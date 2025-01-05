@@ -9,8 +9,9 @@ import (
 )
 
 func main() {
+	fmt.Println("benchmarking...")
 	threads := runtime.NumCPU() * 2
-	fmt.Printf("benchmarking on %v threads...", threads)
+	fmt.Printf("running on %v threads\n\n", threads)
 	encrypted, _ := core.Encrypt([]byte("Hello world"), "pass")
 
 	nextPasswordChan := make(chan string)
