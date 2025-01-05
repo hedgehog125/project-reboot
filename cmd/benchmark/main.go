@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	print("benchmarking...")
 	encrypted, _ := core.Encrypt([]byte("Hello world"), "pass")
 
 	nextPasswordChan := make(chan string)
