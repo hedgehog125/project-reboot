@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 	"time"
 
 	"github.com/hedgehog125/project-reboot/core"
@@ -10,7 +9,8 @@ import (
 
 func main() {
 	fmt.Println("benchmarking...")
-	threads := runtime.NumCPU() * 2
+	// threads := runtime.NumCPU() * 2
+	threads := 2
 	fmt.Printf("running on %v threads\n\n", threads)
 	encrypted, _ := core.Encrypt([]byte("Hello world"), "pass")
 
