@@ -40,3 +40,23 @@ func RequireInt64Env(name string) int64 {
 
 	return value
 }
+
+// Mainly used for the CLI commands eg. BENCHMARK_THREAD_COUNT
+func OptionalEnv(name string, defaultValue string) string {
+	value, specified := os.LookupEnv(name)
+	if specified {
+		return value
+	} else {
+		return defaultValue
+	}
+}
+
+// Mainly used for the CLI commands eg. BENCHMARK_THREAD_COUNT
+func OptionalIntEnv(name string, defaultValue int) int {
+	_, specified := os.LookupEnv(name)
+	if specified {
+		return RequireIntEnv(name)
+	} else {
+		return defaultValue
+	}
+}
