@@ -9,11 +9,11 @@ import (
 )
 
 func main() {
-	fmt.Println("benchmarking...")
+	threads := runtime.NumCPU() * 2
+	fmt.Printf("benchmarking on %v threads...", threads)
 	encrypted, _ := core.Encrypt([]byte("Hello world"), "pass")
 
 	nextPasswordChan := make(chan string)
-	threads := runtime.NumCPU() * 2
 
 	for i := 0; i < threads; i++ {
 		go workerLoop(nextPasswordChan, encrypted)
