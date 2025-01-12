@@ -17,12 +17,27 @@ type EncryptedData struct {
 	KeySalt      []byte
 	PasswordHash []byte
 	PasswordSalt []byte
+	HashSettings HashSettings
+}
+
+const HASH_THREADS = 2
+const SALT_LENGTH = 128
+
+type HashSettings struct {
+	Time   uint32
+	Memory uint32
+	KeyLen uint32
 }
 
 // Adapted from: https://tutorialedge.net/golang/go-encrypt-decrypt-aes-tutorial/
 func Encrypt(data []byte, password string) (*EncryptedData, error) {
-	passwordHash, passwordSalt := hash(password)
-	encryptionKey, encryptionKeySalt := hash(password)
+	hashSettings := HashSettings{
+		Time:   5,
+		Memory: 128 * 1024,
+		KeyLen: 32,
+	}
+	passwordHash, passwordSalt := hash(password, &hashSettings)
+	encryptionKey, encryptionKeySalt := hash(password, &hashSettings)
 
 	passwordCipher, err := aes.NewCipher(encryptionKey)
 	if err != nil {
@@ -41,6 +56,7 @@ func Encrypt(data []byte, password string) (*EncryptedData, error) {
 		KeySalt:      encryptionKeySalt,
 		PasswordHash: passwordHash,
 		PasswordSalt: passwordSalt,
+		HashSettings: hashSettings,
 	}, nil
 }
 
@@ -48,12 +64,12 @@ var ErrIncorrectPassword error = errors.New("incorrect password")
 
 func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
 	{
-		passwordHash := hashWithSalt(password, encryptedData.PasswordSalt)
+		passwordHash := hashWithSalt(password, encryptedData.PasswordSalt, &encryptedData.HashSettings)
 		if subtle.ConstantTimeCompare(passwordHash, encryptedData.PasswordHash) == 0 {
 			return nil, ErrIncorrectPassword
 		}
 	}
-	encryptionKey := hashWithSalt(password, encryptedData.KeySalt)
+	encryptionKey := hashWithSalt(password, encryptedData.KeySalt, &encryptedData.HashSettings)
 
 	passwordCipher, err := aes.NewCipher(encryptionKey)
 	if err != nil {
@@ -70,14 +86,13 @@ func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
 	}
 	return decrypted, nil
 }
-func hash(password string) (hash, salt []byte) {
-	salt = randomBytes(128)
-	hash = hashWithSalt(password, salt)
+func hash(password string, settings *HashSettings) (hash, salt []byte) {
+	salt = randomBytes(SALT_LENGTH)
+	hash = hashWithSalt(password, salt, settings)
 	return
 }
-func hashWithSalt(password string, salt []byte) []byte {
-	// TODO: save the constants in the db for each hash
-	return argon2.IDKey([]byte(password), salt, 1, 64*1024, 2, 32)
+func hashWithSalt(password string, salt []byte, settings *HashSettings) []byte {
+	return argon2.IDKey([]byte(password), salt, settings.Time, settings.Memory, HASH_THREADS, settings.KeyLen)
 }
 
 func randomBytes(length int) []byte {

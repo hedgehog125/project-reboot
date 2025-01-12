@@ -10,11 +10,13 @@ import (
 )
 
 func main() {
+	const PASSWORD = "pass"
+
 	fmt.Println("benchmarking...")
 	threads := util.OptionalIntEnv("BENCHMARK_THREAD_COUNT", runtime.NumCPU()*2)
 	fmt.Printf("running on %v threads\n\n", threads)
 
-	encrypted, _ := core.Encrypt([]byte("Hello world"), "pass")
+	encrypted, _ := core.Encrypt([]byte("Hello world"), PASSWORD)
 
 	nextPasswordChan := make(chan string)
 
@@ -26,7 +28,7 @@ func main() {
 	go performanceLoop(&completedChecks)
 
 	alphabet := []rune("abcdefghijklmnopqrstuvwxyz")
-	currentPassword := make([]int32, 4)
+	currentPassword := make([]int32, len(PASSWORD))
 	for {
 		asString := ""
 		for _, charId := range currentPassword {
@@ -57,7 +59,7 @@ func workerLoop(nextPasswordChan chan string, encrypted *core.EncryptedData) {
 
 		decrypted, err := core.Decrypt(password, encrypted)
 		if err == nil {
-			fmt.Printf("password: %v\ndecrypted:\n%v\n", password, string(decrypted))
+			fmt.Printf("successfully guessed password: %v\ndecrypted content:\n%v\n", password, string(decrypted))
 		}
 	}
 }
