@@ -3,6 +3,8 @@
 package loginattempt
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -44,6 +46,11 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultTime holds the default value on creation for the "time" field.
+	DefaultTime func() time.Time
+)
 
 // OrderOption defines the ordering options for the LoginAttempt queries.
 type OrderOption func(*sql.Selector)

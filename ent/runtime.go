@@ -2,8 +2,21 @@
 
 package ent
 
+import (
+	"time"
+
+	"github.com/hedgehog125/project-reboot/ent/loginattempt"
+	"github.com/hedgehog125/project-reboot/ent/schema"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	loginattemptFields := schema.LoginAttempt{}.Fields()
+	_ = loginattemptFields
+	// loginattemptDescTime is the schema descriptor for time field.
+	loginattemptDescTime := loginattemptFields[0].Descriptor()
+	// loginattempt.DefaultTime holds the default value on creation for the time field.
+	loginattempt.DefaultTime = loginattemptDescTime.Default.(func() time.Time)
 }

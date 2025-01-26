@@ -29,6 +29,14 @@ func (lac *LoginAttemptCreate) SetTime(t time.Time) *LoginAttemptCreate {
 	return lac
 }
 
+// SetNillableTime sets the "time" field if the given value is not nil.
+func (lac *LoginAttemptCreate) SetNillableTime(t *time.Time) *LoginAttemptCreate {
+	if t != nil {
+		lac.SetTime(*t)
+	}
+	return lac
+}
+
 // SetUsername sets the "username" field.
 func (lac *LoginAttemptCreate) SetUsername(s string) *LoginAttemptCreate {
 	lac.mutation.SetUsername(s)
@@ -60,6 +68,7 @@ func (lac *LoginAttemptCreate) Mutation() *LoginAttemptMutation {
 
 // Save creates the LoginAttempt in the database.
 func (lac *LoginAttemptCreate) Save(ctx context.Context) (*LoginAttempt, error) {
+	lac.defaults()
 	return withHooks(ctx, lac.sqlSave, lac.mutation, lac.hooks)
 }
 
@@ -82,6 +91,14 @@ func (lac *LoginAttemptCreate) Exec(ctx context.Context) error {
 func (lac *LoginAttemptCreate) ExecX(ctx context.Context) {
 	if err := lac.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (lac *LoginAttemptCreate) defaults() {
+	if _, ok := lac.mutation.Time(); !ok {
+		v := loginattempt.DefaultTime()
+		lac.mutation.SetTime(v)
 	}
 }
 
@@ -423,6 +440,7 @@ func (lacb *LoginAttemptCreateBulk) Save(ctx context.Context) ([]*LoginAttempt, 
 	for i := range lacb.builders {
 		func(i int, root context.Context) {
 			builder := lacb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*LoginAttemptMutation)
 				if !ok {
