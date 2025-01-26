@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/hedgehog125/project-reboot/intertypes"
@@ -22,14 +23,36 @@ func LoadEnvironmentVariables() *intertypes.Env {
 	return &env
 }
 
-func ConfigureShutdown(callbacks ...func()) {
+type ShutdownTask struct {
+	Callback   func()
+	Concurrent bool
+}
+
+func NewShutdownTask(callback func(), concurrent bool) *ShutdownTask {
+	return &ShutdownTask{
+		Callback:   callback,
+		Concurrent: concurrent,
+	}
+}
+
+func ConfigureShutdown(tasks ...*ShutdownTask) {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	fmt.Println("shutting down...")
-	for _, callback := range callbacks {
-		callback()
+	fmt.Println("\nshutting down...")
+	var wg sync.WaitGroup
+	for _, task := range tasks {
+		if task.Concurrent {
+			wg.Add(1)
+			go func() {
+				task.Callback()
+				wg.Done()
+			}()
+		} else {
+			wg.Wait()
+			task.Callback()
+		}
 	}
 	fmt.Println("shut down.")
 }

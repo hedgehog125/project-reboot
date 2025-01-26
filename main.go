@@ -18,7 +18,9 @@ func main() {
 
 	go subfns.RunServer(engine, env)
 
-	subfns.ConfigureShutdown(func() {
-		subfns.ShutdownScheduler(scheduler) // TODO: run this in parallel
-	})
+	subfns.ConfigureShutdown(
+		subfns.NewShutdownTask(func() {
+			subfns.ShutdownScheduler(scheduler)
+		}, true),
+	)
 }

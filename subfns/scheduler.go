@@ -27,12 +27,6 @@ func ConfigureScheduler(clock clockwork.Clock, state intertypes.State) gocron.Sc
 func addJobs(scheduler gocron.Scheduler, state intertypes.State) {
 	// Once an hour
 	mustAddJob(scheduler, gocron.CronJob("0 * * * *", false), gocron.NewTask(core.UpdateAdminCode, state))
-
-	mustAddJob(scheduler, gocron.CronJob("* * * * *", false), gocron.NewTask(func() {
-		fmt.Println("waiting")
-		time.Sleep(150 * time.Second)
-		fmt.Println("done")
-	})) // Every minute
 }
 
 func RunScheduler(scheduler gocron.Scheduler) {
