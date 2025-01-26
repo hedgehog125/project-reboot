@@ -30,8 +30,8 @@ func (lac *LoginAttemptCreate) SetTime(t time.Time) *LoginAttemptCreate {
 }
 
 // SetUsername sets the "username" field.
-func (lac *LoginAttemptCreate) SetUsername(t time.Time) *LoginAttemptCreate {
-	lac.mutation.SetUsername(t)
+func (lac *LoginAttemptCreate) SetUsername(s string) *LoginAttemptCreate {
+	lac.mutation.SetUsername(s)
 	return lac
 }
 
@@ -134,7 +134,7 @@ func (lac *LoginAttemptCreate) createSpec() (*LoginAttempt, *sqlgraph.CreateSpec
 		_node.Time = value
 	}
 	if value, ok := lac.mutation.Username(); ok {
-		_spec.SetField(loginattempt.FieldUsername, field.TypeTime, value)
+		_spec.SetField(loginattempt.FieldUsername, field.TypeString, value)
 		_node.Username = value
 	}
 	if value, ok := lac.mutation.Code(); ok {
@@ -214,7 +214,7 @@ func (u *LoginAttemptUpsert) UpdateTime() *LoginAttemptUpsert {
 }
 
 // SetUsername sets the "username" field.
-func (u *LoginAttemptUpsert) SetUsername(v time.Time) *LoginAttemptUpsert {
+func (u *LoginAttemptUpsert) SetUsername(v string) *LoginAttemptUpsert {
 	u.Set(loginattempt.FieldUsername, v)
 	return u
 }
@@ -316,7 +316,7 @@ func (u *LoginAttemptUpsertOne) UpdateTime() *LoginAttemptUpsertOne {
 }
 
 // SetUsername sets the "username" field.
-func (u *LoginAttemptUpsertOne) SetUsername(v time.Time) *LoginAttemptUpsertOne {
+func (u *LoginAttemptUpsertOne) SetUsername(v string) *LoginAttemptUpsertOne {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.SetUsername(v)
 	})
@@ -589,7 +589,7 @@ func (u *LoginAttemptUpsertBulk) UpdateTime() *LoginAttemptUpsertBulk {
 }
 
 // SetUsername sets the "username" field.
-func (u *LoginAttemptUpsertBulk) SetUsername(v time.Time) *LoginAttemptUpsertBulk {
+func (u *LoginAttemptUpsertBulk) SetUsername(v string) *LoginAttemptUpsertBulk {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.SetUsername(v)
 	})

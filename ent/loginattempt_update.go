@@ -44,15 +44,15 @@ func (lau *LoginAttemptUpdate) SetNillableTime(t *time.Time) *LoginAttemptUpdate
 }
 
 // SetUsername sets the "username" field.
-func (lau *LoginAttemptUpdate) SetUsername(t time.Time) *LoginAttemptUpdate {
-	lau.mutation.SetUsername(t)
+func (lau *LoginAttemptUpdate) SetUsername(s string) *LoginAttemptUpdate {
+	lau.mutation.SetUsername(s)
 	return lau
 }
 
 // SetNillableUsername sets the "username" field if the given value is not nil.
-func (lau *LoginAttemptUpdate) SetNillableUsername(t *time.Time) *LoginAttemptUpdate {
-	if t != nil {
-		lau.SetUsername(*t)
+func (lau *LoginAttemptUpdate) SetNillableUsername(s *string) *LoginAttemptUpdate {
+	if s != nil {
+		lau.SetUsername(*s)
 	}
 	return lau
 }
@@ -136,7 +136,7 @@ func (lau *LoginAttemptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(loginattempt.FieldTime, field.TypeTime, value)
 	}
 	if value, ok := lau.mutation.Username(); ok {
-		_spec.SetField(loginattempt.FieldUsername, field.TypeTime, value)
+		_spec.SetField(loginattempt.FieldUsername, field.TypeString, value)
 	}
 	if value, ok := lau.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
@@ -182,15 +182,15 @@ func (lauo *LoginAttemptUpdateOne) SetNillableTime(t *time.Time) *LoginAttemptUp
 }
 
 // SetUsername sets the "username" field.
-func (lauo *LoginAttemptUpdateOne) SetUsername(t time.Time) *LoginAttemptUpdateOne {
-	lauo.mutation.SetUsername(t)
+func (lauo *LoginAttemptUpdateOne) SetUsername(s string) *LoginAttemptUpdateOne {
+	lauo.mutation.SetUsername(s)
 	return lauo
 }
 
 // SetNillableUsername sets the "username" field if the given value is not nil.
-func (lauo *LoginAttemptUpdateOne) SetNillableUsername(t *time.Time) *LoginAttemptUpdateOne {
-	if t != nil {
-		lauo.SetUsername(*t)
+func (lauo *LoginAttemptUpdateOne) SetNillableUsername(s *string) *LoginAttemptUpdateOne {
+	if s != nil {
+		lauo.SetUsername(*s)
 	}
 	return lauo
 }
@@ -304,7 +304,7 @@ func (lauo *LoginAttemptUpdateOne) sqlSave(ctx context.Context) (_node *LoginAtt
 		_spec.SetField(loginattempt.FieldTime, field.TypeTime, value)
 	}
 	if value, ok := lauo.mutation.Username(); ok {
-		_spec.SetField(loginattempt.FieldUsername, field.TypeTime, value)
+		_spec.SetField(loginattempt.FieldUsername, field.TypeString, value)
 	}
 	if value, ok := lauo.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
