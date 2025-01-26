@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/intertypes"
 	"github.com/hedgehog125/project-reboot/util"
@@ -34,7 +35,6 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 				Where(user.Username(body.Username)).
 				Select(user.FieldPasswordHash, user.FieldPasswordSalt, user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen).
 				Only(context.Background())
-
 			if err != nil {
 				if ent.IsNotFound(err) {
 					ctx.JSON(http.StatusNotFound, gin.H{
@@ -61,11 +61,9 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 				},
 			)
 
-			authCode := ""
+			var authCode []byte = nil
 			if authorized {
-				authCode = base64.RawStdEncoding.EncodeToString(
-					util.CryptoRandomBytes(core.AUTH_CODE_BYTE_LENGTH),
-				)
+				authCode = util.CryptoRandomBytes(core.AUTH_CODE_BYTE_LENGTH)
 			}
 			validAt := clock.Now().UTC().
 				Add(time.Duration(env.UNLOCK_TIME) * time.Second)
@@ -95,12 +93,104 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 
 			ctx.JSON(http.StatusOK, gin.H{
 				"errors":                   []string{},
-				"authorizationCode":        authCode,
+				"authorizationCode":        base64.RawStdEncoding.EncodeToString(authCode),
 				"authorizationCodeValidAt": validAt.Unix(),
 				"rebootZipContent":         nil,
 				"rebootZipFilename":        nil,
 				"rebootZipMime":            nil,
 			})
+		} else {
+			givenAuthCodeBytes, err := base64.RawStdEncoding.DecodeString(body.AuthorizationCode)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, gin.H{
+					"errors": []string{"MALFORMED_AUTH_CODE"},
+				})
+				return
+			}
+
+			attemptRow, err := dbClient.LoginAttempt.Query().
+				Where(loginattempt.And(loginattempt.Username(body.Username), loginattempt.Code(givenAuthCodeBytes))).
+				Select(loginattempt.FieldCode, loginattempt.FieldCodeValidFrom).
+				First(context.Background())
+			if err != nil {
+				if ent.IsNotFound(err) {
+					ctx.JSON(http.StatusUnauthorized, gin.H{
+						"errors": []string{"INVALID_USERNAME_OR_AUTH_CODE"},
+					})
+				} else {
+					fmt.Printf("warning: an error occurred while reading user data:\n%v\n", err.Error())
+					ctx.JSON(http.StatusInternalServerError, gin.H{
+						"errors": []string{"INTERNAL"},
+					})
+				}
+
+				return
+			}
+
+			// body.AuthorizationCode != "" so this should be a successful login attempt, but just in case
+			if len(attemptRow.Code) != core.AUTH_CODE_BYTE_LENGTH {
+				fmt.Printf("warning: row.Code was the wrong length! this shouldn't happen. len(row.Code): %v\n", len(attemptRow.Code))
+				ctx.JSON(http.StatusInternalServerError, gin.H{
+					"errors": []string{"INTERNAL"},
+				})
+				return
+			}
+			if clock.Now().UTC().Before(attemptRow.CodeValidFrom) {
+				ctx.JSON(http.StatusConflict, gin.H{
+					"errors":                   []string{"CODE_NOT_VALID_YET"},
+					"authorizationCodeValidAt": attemptRow.CodeValidFrom,
+				})
+				return
+			}
+
+			userRow, err := dbClient.User.Query().
+				Where(user.Username(body.Username)).
+				Select(user.Columns...).
+				Only(context.Background())
+			if err != nil {
+				fmt.Printf("warning: an error occurred while reading user data:\n%v\n", err.Error())
+				ctx.JSON(http.StatusInternalServerError, gin.H{
+					"errors": []string{"INTERNAL"},
+				})
+				return
+			}
+
+			decrypted, err := core.Decrypt(body.Password, &core.EncryptedData{
+				Data:         userRow.Content,
+				Nonce:        userRow.Nonce,
+				KeySalt:      userRow.KeySalt,
+				PasswordHash: userRow.PasswordHash,
+				PasswordSalt: userRow.PasswordSalt,
+				HashSettings: core.HashSettings{
+					Time:   userRow.HashTime,
+					Memory: userRow.HashMemory,
+					KeyLen: userRow.HashKeyLen,
+				},
+			})
+			if err != nil {
+				if err == core.ErrIncorrectPassword {
+					ctx.JSON(http.StatusUnauthorized, gin.H{
+						"errors": []string{"INVALID_PASSWORD"},
+					})
+				} else {
+					fmt.Printf("warning: an error occurred while decrypting user data:\n%v\n", err.Error())
+					ctx.JSON(http.StatusInternalServerError, gin.H{
+						"errors": []string{"INTERNAL"},
+					})
+				}
+				return
+			}
+
+			ctx.JSON(http.StatusOK, gin.H{
+				"errors":                   []string{},
+				"authorizationCode":        nil,
+				"authorizationCodeValidAt": nil,
+				"rebootZipContent":         decrypted,
+				"rebootZipFilename":        userRow.FileName,
+				"rebootZipMime":            userRow.Mime,
+			})
+
+			// TODO: log this event to database
 		}
 	})
 }
@@ -123,7 +213,7 @@ func RegisterUser(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClient 
 		contentBytes, err := base64.RawStdEncoding.DecodeString(body.Content)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
-				"errors": []string{"CONTENT_DECODE_ERROR"},
+				"errors": []string{"MALFORMED_CONTENT"},
 			})
 			return
 		}

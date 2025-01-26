@@ -1,6 +1,6 @@
 package intertypes
 
 type LoginAttemptInfo struct {
-	UserAgent string `json:"username"`
+	UserAgent string `json:"userAgent"`
 	IP        string `json:"ip"`
 }
