@@ -12,18 +12,21 @@ import (
 // Doubled because the bytes are represented as base64
 const ADMIN_CODE_BYTE_LENGTH = 128
 
-func UpdateAdminCode(state intertypes.State) {
+func UpdateAdminCode(state *intertypes.State) {
 	<-state.AdminCode
 
 	adminCode := util.CryptoRandomBytes(ADMIN_CODE_BYTE_LENGTH)
-	fmt.Printf("admin code:\n%v\n", base64.RawStdEncoding.EncodeToString(adminCode))
+	fmt.Printf("\n==========\n\nadmin code:\n%v\n\n==========\n\n", base64.RawStdEncoding.EncodeToString(adminCode))
 
 	go func() { state.AdminCode <- adminCode }()
 }
 
-func CheckAdminCode(givenCode string, state intertypes.State) bool {
+func CheckAdminCode(givenCode string, state *intertypes.State) bool {
 	currentCode := <-state.AdminCode
 	go func() { state.AdminCode <- currentCode }()
+	if len(currentCode) != ADMIN_CODE_BYTE_LENGTH { // Failsafe in case this is somehow unset or only partly written
+		return false
+	}
 
 	givenBytes, err := base64.RawStdEncoding.DecodeString(givenCode)
 	if err != nil {

@@ -10,8 +10,8 @@ func main() {
 	clock := clockwork.NewRealClock()
 
 	_ = subfns.OpenDatabase(env)
-	engine := subfns.ConfigureServer(env)
 	state := subfns.InitState()
+	engine := subfns.ConfigureServer(state, env)
 	scheduler := subfns.ConfigureScheduler(clock, state)
 
 	subfns.RunScheduler(scheduler)

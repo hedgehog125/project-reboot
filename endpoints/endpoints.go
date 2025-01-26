@@ -17,8 +17,8 @@ type RegisterUserPayload struct {
 	MimeType string `json:"mimeType" binding:"required,min=1,max=256"`
 }
 
-func RegisterUser(engine *gin.Engine) {
-	engine.POST("/api/v1/register", func(ctx *gin.Context) {
+func RegisterUser(engine *gin.Engine, adminMiddleware gin.HandlerFunc) {
+	engine.POST("/api/v1/register", adminMiddleware, func(ctx *gin.Context) {
 		body := RegisterUserPayload{}
 		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?
 			return

@@ -11,7 +11,7 @@ import (
 	"github.com/jonboulle/clockwork"
 )
 
-func ConfigureScheduler(clock clockwork.Clock, state intertypes.State) gocron.Scheduler {
+func ConfigureScheduler(clock clockwork.Clock, state *intertypes.State) gocron.Scheduler {
 	scheduler, err := gocron.NewScheduler(
 		gocron.WithClock(clock),
 		gocron.WithLocation(time.UTC),
@@ -24,7 +24,7 @@ func ConfigureScheduler(clock clockwork.Clock, state intertypes.State) gocron.Sc
 	addJobs(scheduler, state)
 	return scheduler
 }
-func addJobs(scheduler gocron.Scheduler, state intertypes.State) {
+func addJobs(scheduler gocron.Scheduler, state *intertypes.State) {
 	// Once an hour
 	mustAddJob(scheduler, gocron.CronJob("0 * * * *", false), gocron.NewTask(core.UpdateAdminCode, state))
 }

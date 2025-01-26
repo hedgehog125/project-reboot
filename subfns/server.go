@@ -7,38 +7,28 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/endpoints"
 	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
-func ConfigureServer(env *intertypes.Env) *gin.Engine {
+func ConfigureServer(state *intertypes.State, env *intertypes.Env) *gin.Engine {
 	engine := gin.Default()
 	engine.SetTrustedProxies(nil)
 	engine.TrustedPlatform = env.PROXY_ORIGINAL_IP_HEADER_NAME
 
-	engine.Use(timeout.New(
-		timeout.WithTimeout(5*time.Second),
-		timeout.WithHandler(func(ctx *gin.Context) {
-			ctx.Next()
-		}),
-		timeout.WithResponse(func(ctx *gin.Context) {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"errors": []string{"REQUEST_TIMED_OUT"},
-			})
-		}),
-	))
+	engine.Use(endpoints.NewTimeoutMiddleware())
+	adminMiddleware := endpoints.NewAdminProtectedMiddleware(state)
 
 	engine.Static("/static", "./public")
 
-	registerEndpoints(engine, env)
+	registerEndpoints(engine, adminMiddleware, env)
 
 	return engine
 }
-func registerEndpoints(engine *gin.Engine, env *intertypes.Env) {
+func registerEndpoints(engine *gin.Engine, adminMiddleware gin.HandlerFunc, env *intertypes.Env) {
 	endpoints.RootRedirect(engine)
-	endpoints.RegisterUser(engine)
+	endpoints.RegisterUser(engine, adminMiddleware)
 }
 
 func RunServer(engine *gin.Engine, env *intertypes.Env) *http.Server {
