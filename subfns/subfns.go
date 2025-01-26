@@ -54,5 +54,6 @@ func ConfigureShutdown(tasks ...*ShutdownTask) {
 			task.Callback()
 		}
 	}
+	wg.Wait()
 	fmt.Println("shut down.")
 }

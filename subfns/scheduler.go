@@ -34,12 +34,9 @@ func RunScheduler(scheduler gocron.Scheduler) {
 }
 
 func ShutdownScheduler(scheduler gocron.Scheduler) {
-	err := scheduler.StopJobs()
-	if err == nil {
-		err = scheduler.Shutdown()
-	}
+	err := scheduler.Shutdown()
 	if err != nil {
-		fmt.Printf("warning: an error occurred while shutting down the scheduler:\n%v", err.Error())
+		fmt.Printf("warning: an error occurred while shutting down the scheduler:\n%v\n", err.Error())
 	}
 }
 
