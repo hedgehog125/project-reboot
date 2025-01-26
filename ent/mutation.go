@@ -417,14 +417,18 @@ type UserMutation struct {
 	id            *int
 	username      *string
 	content       *[]byte
+	fileName      *string
 	mime          *string
 	nonce         *[]byte
 	keySalt       *[]byte
 	passwordHash  *[]byte
 	passwordSalt  *[]byte
-	hashTime      *[]byte
-	hashMemory    *[]byte
-	hashKeyLen    *[]byte
+	hashTime      *uint32
+	addhashTime   *int32
+	hashMemory    *uint32
+	addhashMemory *int32
+	hashKeyLen    *uint32
+	addhashKeyLen *int32
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*User, error)
@@ -599,6 +603,42 @@ func (m *UserMutation) OldContent(ctx context.Context) (v []byte, err error) {
 // ResetContent resets all changes to the "content" field.
 func (m *UserMutation) ResetContent() {
 	m.content = nil
+}
+
+// SetFileName sets the "fileName" field.
+func (m *UserMutation) SetFileName(s string) {
+	m.fileName = &s
+}
+
+// FileName returns the value of the "fileName" field in the mutation.
+func (m *UserMutation) FileName() (r string, exists bool) {
+	v := m.fileName
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileName returns the old "fileName" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldFileName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
+	}
+	return oldValue.FileName, nil
+}
+
+// ResetFileName resets all changes to the "fileName" field.
+func (m *UserMutation) ResetFileName() {
+	m.fileName = nil
 }
 
 // SetMime sets the "mime" field.
@@ -782,12 +822,13 @@ func (m *UserMutation) ResetPasswordSalt() {
 }
 
 // SetHashTime sets the "hashTime" field.
-func (m *UserMutation) SetHashTime(b []byte) {
-	m.hashTime = &b
+func (m *UserMutation) SetHashTime(u uint32) {
+	m.hashTime = &u
+	m.addhashTime = nil
 }
 
 // HashTime returns the value of the "hashTime" field in the mutation.
-func (m *UserMutation) HashTime() (r []byte, exists bool) {
+func (m *UserMutation) HashTime() (r uint32, exists bool) {
 	v := m.hashTime
 	if v == nil {
 		return
@@ -798,7 +839,7 @@ func (m *UserMutation) HashTime() (r []byte, exists bool) {
 // OldHashTime returns the old "hashTime" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldHashTime(ctx context.Context) (v []byte, err error) {
+func (m *UserMutation) OldHashTime(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldHashTime is only allowed on UpdateOne operations")
 	}
@@ -812,18 +853,38 @@ func (m *UserMutation) OldHashTime(ctx context.Context) (v []byte, err error) {
 	return oldValue.HashTime, nil
 }
 
+// AddHashTime adds u to the "hashTime" field.
+func (m *UserMutation) AddHashTime(u int32) {
+	if m.addhashTime != nil {
+		*m.addhashTime += u
+	} else {
+		m.addhashTime = &u
+	}
+}
+
+// AddedHashTime returns the value that was added to the "hashTime" field in this mutation.
+func (m *UserMutation) AddedHashTime() (r int32, exists bool) {
+	v := m.addhashTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetHashTime resets all changes to the "hashTime" field.
 func (m *UserMutation) ResetHashTime() {
 	m.hashTime = nil
+	m.addhashTime = nil
 }
 
 // SetHashMemory sets the "hashMemory" field.
-func (m *UserMutation) SetHashMemory(b []byte) {
-	m.hashMemory = &b
+func (m *UserMutation) SetHashMemory(u uint32) {
+	m.hashMemory = &u
+	m.addhashMemory = nil
 }
 
 // HashMemory returns the value of the "hashMemory" field in the mutation.
-func (m *UserMutation) HashMemory() (r []byte, exists bool) {
+func (m *UserMutation) HashMemory() (r uint32, exists bool) {
 	v := m.hashMemory
 	if v == nil {
 		return
@@ -834,7 +895,7 @@ func (m *UserMutation) HashMemory() (r []byte, exists bool) {
 // OldHashMemory returns the old "hashMemory" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldHashMemory(ctx context.Context) (v []byte, err error) {
+func (m *UserMutation) OldHashMemory(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldHashMemory is only allowed on UpdateOne operations")
 	}
@@ -848,18 +909,38 @@ func (m *UserMutation) OldHashMemory(ctx context.Context) (v []byte, err error) 
 	return oldValue.HashMemory, nil
 }
 
+// AddHashMemory adds u to the "hashMemory" field.
+func (m *UserMutation) AddHashMemory(u int32) {
+	if m.addhashMemory != nil {
+		*m.addhashMemory += u
+	} else {
+		m.addhashMemory = &u
+	}
+}
+
+// AddedHashMemory returns the value that was added to the "hashMemory" field in this mutation.
+func (m *UserMutation) AddedHashMemory() (r int32, exists bool) {
+	v := m.addhashMemory
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetHashMemory resets all changes to the "hashMemory" field.
 func (m *UserMutation) ResetHashMemory() {
 	m.hashMemory = nil
+	m.addhashMemory = nil
 }
 
 // SetHashKeyLen sets the "hashKeyLen" field.
-func (m *UserMutation) SetHashKeyLen(b []byte) {
-	m.hashKeyLen = &b
+func (m *UserMutation) SetHashKeyLen(u uint32) {
+	m.hashKeyLen = &u
+	m.addhashKeyLen = nil
 }
 
 // HashKeyLen returns the value of the "hashKeyLen" field in the mutation.
-func (m *UserMutation) HashKeyLen() (r []byte, exists bool) {
+func (m *UserMutation) HashKeyLen() (r uint32, exists bool) {
 	v := m.hashKeyLen
 	if v == nil {
 		return
@@ -870,7 +951,7 @@ func (m *UserMutation) HashKeyLen() (r []byte, exists bool) {
 // OldHashKeyLen returns the old "hashKeyLen" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldHashKeyLen(ctx context.Context) (v []byte, err error) {
+func (m *UserMutation) OldHashKeyLen(ctx context.Context) (v uint32, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldHashKeyLen is only allowed on UpdateOne operations")
 	}
@@ -884,9 +965,28 @@ func (m *UserMutation) OldHashKeyLen(ctx context.Context) (v []byte, err error) 
 	return oldValue.HashKeyLen, nil
 }
 
+// AddHashKeyLen adds u to the "hashKeyLen" field.
+func (m *UserMutation) AddHashKeyLen(u int32) {
+	if m.addhashKeyLen != nil {
+		*m.addhashKeyLen += u
+	} else {
+		m.addhashKeyLen = &u
+	}
+}
+
+// AddedHashKeyLen returns the value that was added to the "hashKeyLen" field in this mutation.
+func (m *UserMutation) AddedHashKeyLen() (r int32, exists bool) {
+	v := m.addhashKeyLen
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetHashKeyLen resets all changes to the "hashKeyLen" field.
 func (m *UserMutation) ResetHashKeyLen() {
 	m.hashKeyLen = nil
+	m.addhashKeyLen = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -923,12 +1023,15 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
 	if m.content != nil {
 		fields = append(fields, user.FieldContent)
+	}
+	if m.fileName != nil {
+		fields = append(fields, user.FieldFileName)
 	}
 	if m.mime != nil {
 		fields = append(fields, user.FieldMime)
@@ -966,6 +1069,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Username()
 	case user.FieldContent:
 		return m.Content()
+	case user.FieldFileName:
+		return m.FileName()
 	case user.FieldMime:
 		return m.Mime()
 	case user.FieldNonce:
@@ -995,6 +1100,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUsername(ctx)
 	case user.FieldContent:
 		return m.OldContent(ctx)
+	case user.FieldFileName:
+		return m.OldFileName(ctx)
 	case user.FieldMime:
 		return m.OldMime(ctx)
 	case user.FieldNonce:
@@ -1034,6 +1141,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetContent(v)
 		return nil
+	case user.FieldFileName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileName(v)
+		return nil
 	case user.FieldMime:
 		v, ok := value.(string)
 		if !ok {
@@ -1070,21 +1184,21 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		m.SetPasswordSalt(v)
 		return nil
 	case user.FieldHashTime:
-		v, ok := value.([]byte)
+		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHashTime(v)
 		return nil
 	case user.FieldHashMemory:
-		v, ok := value.([]byte)
+		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHashMemory(v)
 		return nil
 	case user.FieldHashKeyLen:
-		v, ok := value.([]byte)
+		v, ok := value.(uint32)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1097,13 +1211,31 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *UserMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addhashTime != nil {
+		fields = append(fields, user.FieldHashTime)
+	}
+	if m.addhashMemory != nil {
+		fields = append(fields, user.FieldHashMemory)
+	}
+	if m.addhashKeyLen != nil {
+		fields = append(fields, user.FieldHashKeyLen)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case user.FieldHashTime:
+		return m.AddedHashTime()
+	case user.FieldHashMemory:
+		return m.AddedHashMemory()
+	case user.FieldHashKeyLen:
+		return m.AddedHashKeyLen()
+	}
 	return nil, false
 }
 
@@ -1112,6 +1244,27 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case user.FieldHashTime:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHashTime(v)
+		return nil
+	case user.FieldHashMemory:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHashMemory(v)
+		return nil
+	case user.FieldHashKeyLen:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHashKeyLen(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
 }
@@ -1144,6 +1297,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldContent:
 		m.ResetContent()
+		return nil
+	case user.FieldFileName:
+		m.ResetFileName()
 		return nil
 	case user.FieldMime:
 		m.ResetMime()

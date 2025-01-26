@@ -13,17 +13,18 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("username"),
+		field.String("username").Unique(),
 
 		field.Bytes("content"),
+		field.String("fileName"),
 		field.String("mime"),
 		field.Bytes("nonce"),
 		field.Bytes("keySalt"),
 		field.Bytes("passwordHash"),
 		field.Bytes("passwordSalt"),
-		field.Bytes("hashTime"),
-		field.Bytes("hashMemory"),
-		field.Bytes("hashKeyLen"),
+		field.Uint32("hashTime"),
+		field.Uint32("hashMemory"),
+		field.Uint32("hashKeyLen"),
 	}
 }
 

@@ -20,6 +20,8 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	// Content holds the value of the "content" field.
 	Content []byte `json:"content,omitempty"`
+	// FileName holds the value of the "fileName" field.
+	FileName string `json:"fileName,omitempty"`
 	// Mime holds the value of the "mime" field.
 	Mime string `json:"mime,omitempty"`
 	// Nonce holds the value of the "nonce" field.
@@ -31,11 +33,11 @@ type User struct {
 	// PasswordSalt holds the value of the "passwordSalt" field.
 	PasswordSalt []byte `json:"passwordSalt,omitempty"`
 	// HashTime holds the value of the "hashTime" field.
-	HashTime []byte `json:"hashTime,omitempty"`
+	HashTime uint32 `json:"hashTime,omitempty"`
 	// HashMemory holds the value of the "hashMemory" field.
-	HashMemory []byte `json:"hashMemory,omitempty"`
+	HashMemory uint32 `json:"hashMemory,omitempty"`
 	// HashKeyLen holds the value of the "hashKeyLen" field.
-	HashKeyLen   []byte `json:"hashKeyLen,omitempty"`
+	HashKeyLen   uint32 `json:"hashKeyLen,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -44,11 +46,11 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldContent, user.FieldNonce, user.FieldKeySalt, user.FieldPasswordHash, user.FieldPasswordSalt, user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen:
+		case user.FieldContent, user.FieldNonce, user.FieldKeySalt, user.FieldPasswordHash, user.FieldPasswordSalt:
 			values[i] = new([]byte)
-		case user.FieldID:
+		case user.FieldID, user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUsername, user.FieldMime:
+		case user.FieldUsername, user.FieldFileName, user.FieldMime:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -83,6 +85,12 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				u.Content = *value
 			}
+		case user.FieldFileName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field fileName", values[i])
+			} else if value.Valid {
+				u.FileName = value.String
+			}
 		case user.FieldMime:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field mime", values[i])
@@ -114,22 +122,22 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.PasswordSalt = *value
 			}
 		case user.FieldHashTime:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field hashTime", values[i])
-			} else if value != nil {
-				u.HashTime = *value
+			} else if value.Valid {
+				u.HashTime = uint32(value.Int64)
 			}
 		case user.FieldHashMemory:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field hashMemory", values[i])
-			} else if value != nil {
-				u.HashMemory = *value
+			} else if value.Valid {
+				u.HashMemory = uint32(value.Int64)
 			}
 		case user.FieldHashKeyLen:
-			if value, ok := values[i].(*[]byte); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field hashKeyLen", values[i])
-			} else if value != nil {
-				u.HashKeyLen = *value
+			} else if value.Valid {
+				u.HashKeyLen = uint32(value.Int64)
 			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
@@ -172,6 +180,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("content=")
 	builder.WriteString(fmt.Sprintf("%v", u.Content))
+	builder.WriteString(", ")
+	builder.WriteString("fileName=")
+	builder.WriteString(u.FileName)
 	builder.WriteString(", ")
 	builder.WriteString("mime=")
 	builder.WriteString(u.Mime)

@@ -9,9 +9,9 @@ func main() {
 	env := subfns.LoadEnvironmentVariables()
 	clock := clockwork.NewRealClock()
 
-	_ = subfns.OpenDatabase(env)
+	dbClient := subfns.OpenDatabase(env)
 	state := subfns.InitState()
-	engine := subfns.ConfigureServer(state, env)
+	engine := subfns.ConfigureServer(state, dbClient, env)
 	scheduler := subfns.ConfigureScheduler(clock, state)
 
 	subfns.RunScheduler(scheduler)
@@ -25,5 +25,8 @@ func main() {
 		subfns.NewShutdownTask(func() {
 			subfns.ShutdownServer(server)
 		}, true),
+		subfns.NewShutdownTask(func() {
+			dbClient.Close()
+		}, false),
 	)
 }

@@ -32,3 +32,10 @@ func OpenDatabase(env *intertypes.Env) *ent.Client {
 
 	return client
 }
+
+func ShutdownDatabase(client *ent.Client) {
+	err := client.Close()
+	if err != nil {
+		fmt.Printf("warning: an error occurred while shutting down the database:\n%v\n", err.Error())
+	}
+}

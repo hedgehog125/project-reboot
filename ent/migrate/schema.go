@@ -23,16 +23,17 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "username", Type: field.TypeString},
+		{Name: "username", Type: field.TypeString, Unique: true},
 		{Name: "content", Type: field.TypeBytes},
+		{Name: "file_name", Type: field.TypeString},
 		{Name: "mime", Type: field.TypeString},
 		{Name: "nonce", Type: field.TypeBytes},
 		{Name: "key_salt", Type: field.TypeBytes},
 		{Name: "password_hash", Type: field.TypeBytes},
 		{Name: "password_salt", Type: field.TypeBytes},
-		{Name: "hash_time", Type: field.TypeBytes},
-		{Name: "hash_memory", Type: field.TypeBytes},
-		{Name: "hash_key_len", Type: field.TypeBytes},
+		{Name: "hash_time", Type: field.TypeUint32},
+		{Name: "hash_memory", Type: field.TypeUint32},
+		{Name: "hash_key_len", Type: field.TypeUint32},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

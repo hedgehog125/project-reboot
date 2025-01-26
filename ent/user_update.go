@@ -47,6 +47,20 @@ func (uu *UserUpdate) SetContent(b []byte) *UserUpdate {
 	return uu
 }
 
+// SetFileName sets the "fileName" field.
+func (uu *UserUpdate) SetFileName(s string) *UserUpdate {
+	uu.mutation.SetFileName(s)
+	return uu
+}
+
+// SetNillableFileName sets the "fileName" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableFileName(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetFileName(*s)
+	}
+	return uu
+}
+
 // SetMime sets the "mime" field.
 func (uu *UserUpdate) SetMime(s string) *UserUpdate {
 	uu.mutation.SetMime(s)
@@ -86,20 +100,65 @@ func (uu *UserUpdate) SetPasswordSalt(b []byte) *UserUpdate {
 }
 
 // SetHashTime sets the "hashTime" field.
-func (uu *UserUpdate) SetHashTime(b []byte) *UserUpdate {
-	uu.mutation.SetHashTime(b)
+func (uu *UserUpdate) SetHashTime(u uint32) *UserUpdate {
+	uu.mutation.ResetHashTime()
+	uu.mutation.SetHashTime(u)
+	return uu
+}
+
+// SetNillableHashTime sets the "hashTime" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableHashTime(u *uint32) *UserUpdate {
+	if u != nil {
+		uu.SetHashTime(*u)
+	}
+	return uu
+}
+
+// AddHashTime adds u to the "hashTime" field.
+func (uu *UserUpdate) AddHashTime(u int32) *UserUpdate {
+	uu.mutation.AddHashTime(u)
 	return uu
 }
 
 // SetHashMemory sets the "hashMemory" field.
-func (uu *UserUpdate) SetHashMemory(b []byte) *UserUpdate {
-	uu.mutation.SetHashMemory(b)
+func (uu *UserUpdate) SetHashMemory(u uint32) *UserUpdate {
+	uu.mutation.ResetHashMemory()
+	uu.mutation.SetHashMemory(u)
+	return uu
+}
+
+// SetNillableHashMemory sets the "hashMemory" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableHashMemory(u *uint32) *UserUpdate {
+	if u != nil {
+		uu.SetHashMemory(*u)
+	}
+	return uu
+}
+
+// AddHashMemory adds u to the "hashMemory" field.
+func (uu *UserUpdate) AddHashMemory(u int32) *UserUpdate {
+	uu.mutation.AddHashMemory(u)
 	return uu
 }
 
 // SetHashKeyLen sets the "hashKeyLen" field.
-func (uu *UserUpdate) SetHashKeyLen(b []byte) *UserUpdate {
-	uu.mutation.SetHashKeyLen(b)
+func (uu *UserUpdate) SetHashKeyLen(u uint32) *UserUpdate {
+	uu.mutation.ResetHashKeyLen()
+	uu.mutation.SetHashKeyLen(u)
+	return uu
+}
+
+// SetNillableHashKeyLen sets the "hashKeyLen" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableHashKeyLen(u *uint32) *UserUpdate {
+	if u != nil {
+		uu.SetHashKeyLen(*u)
+	}
+	return uu
+}
+
+// AddHashKeyLen adds u to the "hashKeyLen" field.
+func (uu *UserUpdate) AddHashKeyLen(u int32) *UserUpdate {
+	uu.mutation.AddHashKeyLen(u)
 	return uu
 }
 
@@ -150,6 +209,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 	}
+	if value, ok := uu.mutation.FileName(); ok {
+		_spec.SetField(user.FieldFileName, field.TypeString, value)
+	}
 	if value, ok := uu.mutation.Mime(); ok {
 		_spec.SetField(user.FieldMime, field.TypeString, value)
 	}
@@ -166,13 +228,22 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(user.FieldPasswordSalt, field.TypeBytes, value)
 	}
 	if value, ok := uu.mutation.HashTime(); ok {
-		_spec.SetField(user.FieldHashTime, field.TypeBytes, value)
+		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
+	}
+	if value, ok := uu.mutation.AddedHashTime(); ok {
+		_spec.AddField(user.FieldHashTime, field.TypeUint32, value)
 	}
 	if value, ok := uu.mutation.HashMemory(); ok {
-		_spec.SetField(user.FieldHashMemory, field.TypeBytes, value)
+		_spec.SetField(user.FieldHashMemory, field.TypeUint32, value)
+	}
+	if value, ok := uu.mutation.AddedHashMemory(); ok {
+		_spec.AddField(user.FieldHashMemory, field.TypeUint32, value)
 	}
 	if value, ok := uu.mutation.HashKeyLen(); ok {
-		_spec.SetField(user.FieldHashKeyLen, field.TypeBytes, value)
+		_spec.SetField(user.FieldHashKeyLen, field.TypeUint32, value)
+	}
+	if value, ok := uu.mutation.AddedHashKeyLen(); ok {
+		_spec.AddField(user.FieldHashKeyLen, field.TypeUint32, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -211,6 +282,20 @@ func (uuo *UserUpdateOne) SetNillableUsername(s *string) *UserUpdateOne {
 // SetContent sets the "content" field.
 func (uuo *UserUpdateOne) SetContent(b []byte) *UserUpdateOne {
 	uuo.mutation.SetContent(b)
+	return uuo
+}
+
+// SetFileName sets the "fileName" field.
+func (uuo *UserUpdateOne) SetFileName(s string) *UserUpdateOne {
+	uuo.mutation.SetFileName(s)
+	return uuo
+}
+
+// SetNillableFileName sets the "fileName" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableFileName(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetFileName(*s)
+	}
 	return uuo
 }
 
@@ -253,20 +338,65 @@ func (uuo *UserUpdateOne) SetPasswordSalt(b []byte) *UserUpdateOne {
 }
 
 // SetHashTime sets the "hashTime" field.
-func (uuo *UserUpdateOne) SetHashTime(b []byte) *UserUpdateOne {
-	uuo.mutation.SetHashTime(b)
+func (uuo *UserUpdateOne) SetHashTime(u uint32) *UserUpdateOne {
+	uuo.mutation.ResetHashTime()
+	uuo.mutation.SetHashTime(u)
+	return uuo
+}
+
+// SetNillableHashTime sets the "hashTime" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableHashTime(u *uint32) *UserUpdateOne {
+	if u != nil {
+		uuo.SetHashTime(*u)
+	}
+	return uuo
+}
+
+// AddHashTime adds u to the "hashTime" field.
+func (uuo *UserUpdateOne) AddHashTime(u int32) *UserUpdateOne {
+	uuo.mutation.AddHashTime(u)
 	return uuo
 }
 
 // SetHashMemory sets the "hashMemory" field.
-func (uuo *UserUpdateOne) SetHashMemory(b []byte) *UserUpdateOne {
-	uuo.mutation.SetHashMemory(b)
+func (uuo *UserUpdateOne) SetHashMemory(u uint32) *UserUpdateOne {
+	uuo.mutation.ResetHashMemory()
+	uuo.mutation.SetHashMemory(u)
+	return uuo
+}
+
+// SetNillableHashMemory sets the "hashMemory" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableHashMemory(u *uint32) *UserUpdateOne {
+	if u != nil {
+		uuo.SetHashMemory(*u)
+	}
+	return uuo
+}
+
+// AddHashMemory adds u to the "hashMemory" field.
+func (uuo *UserUpdateOne) AddHashMemory(u int32) *UserUpdateOne {
+	uuo.mutation.AddHashMemory(u)
 	return uuo
 }
 
 // SetHashKeyLen sets the "hashKeyLen" field.
-func (uuo *UserUpdateOne) SetHashKeyLen(b []byte) *UserUpdateOne {
-	uuo.mutation.SetHashKeyLen(b)
+func (uuo *UserUpdateOne) SetHashKeyLen(u uint32) *UserUpdateOne {
+	uuo.mutation.ResetHashKeyLen()
+	uuo.mutation.SetHashKeyLen(u)
+	return uuo
+}
+
+// SetNillableHashKeyLen sets the "hashKeyLen" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableHashKeyLen(u *uint32) *UserUpdateOne {
+	if u != nil {
+		uuo.SetHashKeyLen(*u)
+	}
+	return uuo
+}
+
+// AddHashKeyLen adds u to the "hashKeyLen" field.
+func (uuo *UserUpdateOne) AddHashKeyLen(u int32) *UserUpdateOne {
+	uuo.mutation.AddHashKeyLen(u)
 	return uuo
 }
 
@@ -347,6 +477,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 	}
+	if value, ok := uuo.mutation.FileName(); ok {
+		_spec.SetField(user.FieldFileName, field.TypeString, value)
+	}
 	if value, ok := uuo.mutation.Mime(); ok {
 		_spec.SetField(user.FieldMime, field.TypeString, value)
 	}
@@ -363,13 +496,22 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		_spec.SetField(user.FieldPasswordSalt, field.TypeBytes, value)
 	}
 	if value, ok := uuo.mutation.HashTime(); ok {
-		_spec.SetField(user.FieldHashTime, field.TypeBytes, value)
+		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
+	}
+	if value, ok := uuo.mutation.AddedHashTime(); ok {
+		_spec.AddField(user.FieldHashTime, field.TypeUint32, value)
 	}
 	if value, ok := uuo.mutation.HashMemory(); ok {
-		_spec.SetField(user.FieldHashMemory, field.TypeBytes, value)
+		_spec.SetField(user.FieldHashMemory, field.TypeUint32, value)
+	}
+	if value, ok := uuo.mutation.AddedHashMemory(); ok {
+		_spec.AddField(user.FieldHashMemory, field.TypeUint32, value)
 	}
 	if value, ok := uuo.mutation.HashKeyLen(); ok {
-		_spec.SetField(user.FieldHashKeyLen, field.TypeBytes, value)
+		_spec.SetField(user.FieldHashKeyLen, field.TypeUint32, value)
+	}
+	if value, ok := uuo.mutation.AddedHashKeyLen(); ok {
+		_spec.AddField(user.FieldHashKeyLen, field.TypeUint32, value)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

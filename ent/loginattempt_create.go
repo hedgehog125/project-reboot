@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
@@ -18,6 +19,7 @@ type LoginAttemptCreate struct {
 	config
 	mutation *LoginAttemptMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTime sets the "time" field.
@@ -98,6 +100,7 @@ func (lac *LoginAttemptCreate) createSpec() (*LoginAttempt, *sqlgraph.CreateSpec
 		_node = &LoginAttempt{config: lac.config}
 		_spec = sqlgraph.NewCreateSpec(loginattempt.Table, sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = lac.conflict
 	if value, ok := lac.mutation.Time(); ok {
 		_spec.SetField(loginattempt.FieldTime, field.TypeTime, value)
 		_node.Time = value
@@ -109,11 +112,186 @@ func (lac *LoginAttemptCreate) createSpec() (*LoginAttempt, *sqlgraph.CreateSpec
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.LoginAttempt.Create().
+//		SetTime(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.LoginAttemptUpsert) {
+//			SetTime(v+v).
+//		}).
+//		Exec(ctx)
+func (lac *LoginAttemptCreate) OnConflict(opts ...sql.ConflictOption) *LoginAttemptUpsertOne {
+	lac.conflict = opts
+	return &LoginAttemptUpsertOne{
+		create: lac,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.LoginAttempt.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (lac *LoginAttemptCreate) OnConflictColumns(columns ...string) *LoginAttemptUpsertOne {
+	lac.conflict = append(lac.conflict, sql.ConflictColumns(columns...))
+	return &LoginAttemptUpsertOne{
+		create: lac,
+	}
+}
+
+type (
+	// LoginAttemptUpsertOne is the builder for "upsert"-ing
+	//  one LoginAttempt node.
+	LoginAttemptUpsertOne struct {
+		create *LoginAttemptCreate
+	}
+
+	// LoginAttemptUpsert is the "OnConflict" setter.
+	LoginAttemptUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTime sets the "time" field.
+func (u *LoginAttemptUpsert) SetTime(v time.Time) *LoginAttemptUpsert {
+	u.Set(loginattempt.FieldTime, v)
+	return u
+}
+
+// UpdateTime sets the "time" field to the value that was provided on create.
+func (u *LoginAttemptUpsert) UpdateTime() *LoginAttemptUpsert {
+	u.SetExcluded(loginattempt.FieldTime)
+	return u
+}
+
+// SetCode sets the "code" field.
+func (u *LoginAttemptUpsert) SetCode(v string) *LoginAttemptUpsert {
+	u.Set(loginattempt.FieldCode, v)
+	return u
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *LoginAttemptUpsert) UpdateCode() *LoginAttemptUpsert {
+	u.SetExcluded(loginattempt.FieldCode)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.LoginAttempt.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *LoginAttemptUpsertOne) UpdateNewValues() *LoginAttemptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.LoginAttempt.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *LoginAttemptUpsertOne) Ignore() *LoginAttemptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *LoginAttemptUpsertOne) DoNothing() *LoginAttemptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the LoginAttemptCreate.OnConflict
+// documentation for more info.
+func (u *LoginAttemptUpsertOne) Update(set func(*LoginAttemptUpsert)) *LoginAttemptUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&LoginAttemptUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTime sets the "time" field.
+func (u *LoginAttemptUpsertOne) SetTime(v time.Time) *LoginAttemptUpsertOne {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.SetTime(v)
+	})
+}
+
+// UpdateTime sets the "time" field to the value that was provided on create.
+func (u *LoginAttemptUpsertOne) UpdateTime() *LoginAttemptUpsertOne {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.UpdateTime()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *LoginAttemptUpsertOne) SetCode(v string) *LoginAttemptUpsertOne {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *LoginAttemptUpsertOne) UpdateCode() *LoginAttemptUpsertOne {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// Exec executes the query.
+func (u *LoginAttemptUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for LoginAttemptCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *LoginAttemptUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *LoginAttemptUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *LoginAttemptUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // LoginAttemptCreateBulk is the builder for creating many LoginAttempt entities in bulk.
 type LoginAttemptCreateBulk struct {
 	config
 	err      error
 	builders []*LoginAttemptCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the LoginAttempt entities in the database.
@@ -142,6 +320,7 @@ func (lacb *LoginAttemptCreateBulk) Save(ctx context.Context) ([]*LoginAttempt, 
 					_, err = mutators[i+1].Mutate(root, lacb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = lacb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, lacb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -192,6 +371,138 @@ func (lacb *LoginAttemptCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (lacb *LoginAttemptCreateBulk) ExecX(ctx context.Context) {
 	if err := lacb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.LoginAttempt.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.LoginAttemptUpsert) {
+//			SetTime(v+v).
+//		}).
+//		Exec(ctx)
+func (lacb *LoginAttemptCreateBulk) OnConflict(opts ...sql.ConflictOption) *LoginAttemptUpsertBulk {
+	lacb.conflict = opts
+	return &LoginAttemptUpsertBulk{
+		create: lacb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.LoginAttempt.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (lacb *LoginAttemptCreateBulk) OnConflictColumns(columns ...string) *LoginAttemptUpsertBulk {
+	lacb.conflict = append(lacb.conflict, sql.ConflictColumns(columns...))
+	return &LoginAttemptUpsertBulk{
+		create: lacb,
+	}
+}
+
+// LoginAttemptUpsertBulk is the builder for "upsert"-ing
+// a bulk of LoginAttempt nodes.
+type LoginAttemptUpsertBulk struct {
+	create *LoginAttemptCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.LoginAttempt.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *LoginAttemptUpsertBulk) UpdateNewValues() *LoginAttemptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.LoginAttempt.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *LoginAttemptUpsertBulk) Ignore() *LoginAttemptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *LoginAttemptUpsertBulk) DoNothing() *LoginAttemptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the LoginAttemptCreateBulk.OnConflict
+// documentation for more info.
+func (u *LoginAttemptUpsertBulk) Update(set func(*LoginAttemptUpsert)) *LoginAttemptUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&LoginAttemptUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTime sets the "time" field.
+func (u *LoginAttemptUpsertBulk) SetTime(v time.Time) *LoginAttemptUpsertBulk {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.SetTime(v)
+	})
+}
+
+// UpdateTime sets the "time" field to the value that was provided on create.
+func (u *LoginAttemptUpsertBulk) UpdateTime() *LoginAttemptUpsertBulk {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.UpdateTime()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *LoginAttemptUpsertBulk) SetCode(v string) *LoginAttemptUpsertBulk {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *LoginAttemptUpsertBulk) UpdateCode() *LoginAttemptUpsertBulk {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// Exec executes the query.
+func (u *LoginAttemptUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the LoginAttemptCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for LoginAttemptCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *LoginAttemptUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -62,6 +62,11 @@ func Content(v []byte) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldContent, v))
 }
 
+// FileName applies equality check predicate on the "fileName" field. It's identical to FileNameEQ.
+func FileName(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldFileName, v))
+}
+
 // Mime applies equality check predicate on the "mime" field. It's identical to MimeEQ.
 func Mime(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldMime, v))
@@ -88,17 +93,17 @@ func PasswordSalt(v []byte) predicate.User {
 }
 
 // HashTime applies equality check predicate on the "hashTime" field. It's identical to HashTimeEQ.
-func HashTime(v []byte) predicate.User {
+func HashTime(v uint32) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHashTime, v))
 }
 
 // HashMemory applies equality check predicate on the "hashMemory" field. It's identical to HashMemoryEQ.
-func HashMemory(v []byte) predicate.User {
+func HashMemory(v uint32) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHashMemory, v))
 }
 
 // HashKeyLen applies equality check predicate on the "hashKeyLen" field. It's identical to HashKeyLenEQ.
-func HashKeyLen(v []byte) predicate.User {
+func HashKeyLen(v uint32) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHashKeyLen, v))
 }
 
@@ -205,6 +210,71 @@ func ContentLT(v []byte) predicate.User {
 // ContentLTE applies the LTE predicate on the "content" field.
 func ContentLTE(v []byte) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldContent, v))
+}
+
+// FileNameEQ applies the EQ predicate on the "fileName" field.
+func FileNameEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldFileName, v))
+}
+
+// FileNameNEQ applies the NEQ predicate on the "fileName" field.
+func FileNameNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldFileName, v))
+}
+
+// FileNameIn applies the In predicate on the "fileName" field.
+func FileNameIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldFileName, vs...))
+}
+
+// FileNameNotIn applies the NotIn predicate on the "fileName" field.
+func FileNameNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldFileName, vs...))
+}
+
+// FileNameGT applies the GT predicate on the "fileName" field.
+func FileNameGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldFileName, v))
+}
+
+// FileNameGTE applies the GTE predicate on the "fileName" field.
+func FileNameGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldFileName, v))
+}
+
+// FileNameLT applies the LT predicate on the "fileName" field.
+func FileNameLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldFileName, v))
+}
+
+// FileNameLTE applies the LTE predicate on the "fileName" field.
+func FileNameLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldFileName, v))
+}
+
+// FileNameContains applies the Contains predicate on the "fileName" field.
+func FileNameContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldFileName, v))
+}
+
+// FileNameHasPrefix applies the HasPrefix predicate on the "fileName" field.
+func FileNameHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldFileName, v))
+}
+
+// FileNameHasSuffix applies the HasSuffix predicate on the "fileName" field.
+func FileNameHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldFileName, v))
+}
+
+// FileNameEqualFold applies the EqualFold predicate on the "fileName" field.
+func FileNameEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldFileName, v))
+}
+
+// FileNameContainsFold applies the ContainsFold predicate on the "fileName" field.
+func FileNameContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldFileName, v))
 }
 
 // MimeEQ applies the EQ predicate on the "mime" field.
@@ -433,122 +503,122 @@ func PasswordSaltLTE(v []byte) predicate.User {
 }
 
 // HashTimeEQ applies the EQ predicate on the "hashTime" field.
-func HashTimeEQ(v []byte) predicate.User {
+func HashTimeEQ(v uint32) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHashTime, v))
 }
 
 // HashTimeNEQ applies the NEQ predicate on the "hashTime" field.
-func HashTimeNEQ(v []byte) predicate.User {
+func HashTimeNEQ(v uint32) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldHashTime, v))
 }
 
 // HashTimeIn applies the In predicate on the "hashTime" field.
-func HashTimeIn(vs ...[]byte) predicate.User {
+func HashTimeIn(vs ...uint32) predicate.User {
 	return predicate.User(sql.FieldIn(FieldHashTime, vs...))
 }
 
 // HashTimeNotIn applies the NotIn predicate on the "hashTime" field.
-func HashTimeNotIn(vs ...[]byte) predicate.User {
+func HashTimeNotIn(vs ...uint32) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldHashTime, vs...))
 }
 
 // HashTimeGT applies the GT predicate on the "hashTime" field.
-func HashTimeGT(v []byte) predicate.User {
+func HashTimeGT(v uint32) predicate.User {
 	return predicate.User(sql.FieldGT(FieldHashTime, v))
 }
 
 // HashTimeGTE applies the GTE predicate on the "hashTime" field.
-func HashTimeGTE(v []byte) predicate.User {
+func HashTimeGTE(v uint32) predicate.User {
 	return predicate.User(sql.FieldGTE(FieldHashTime, v))
 }
 
 // HashTimeLT applies the LT predicate on the "hashTime" field.
-func HashTimeLT(v []byte) predicate.User {
+func HashTimeLT(v uint32) predicate.User {
 	return predicate.User(sql.FieldLT(FieldHashTime, v))
 }
 
 // HashTimeLTE applies the LTE predicate on the "hashTime" field.
-func HashTimeLTE(v []byte) predicate.User {
+func HashTimeLTE(v uint32) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldHashTime, v))
 }
 
 // HashMemoryEQ applies the EQ predicate on the "hashMemory" field.
-func HashMemoryEQ(v []byte) predicate.User {
+func HashMemoryEQ(v uint32) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHashMemory, v))
 }
 
 // HashMemoryNEQ applies the NEQ predicate on the "hashMemory" field.
-func HashMemoryNEQ(v []byte) predicate.User {
+func HashMemoryNEQ(v uint32) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldHashMemory, v))
 }
 
 // HashMemoryIn applies the In predicate on the "hashMemory" field.
-func HashMemoryIn(vs ...[]byte) predicate.User {
+func HashMemoryIn(vs ...uint32) predicate.User {
 	return predicate.User(sql.FieldIn(FieldHashMemory, vs...))
 }
 
 // HashMemoryNotIn applies the NotIn predicate on the "hashMemory" field.
-func HashMemoryNotIn(vs ...[]byte) predicate.User {
+func HashMemoryNotIn(vs ...uint32) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldHashMemory, vs...))
 }
 
 // HashMemoryGT applies the GT predicate on the "hashMemory" field.
-func HashMemoryGT(v []byte) predicate.User {
+func HashMemoryGT(v uint32) predicate.User {
 	return predicate.User(sql.FieldGT(FieldHashMemory, v))
 }
 
 // HashMemoryGTE applies the GTE predicate on the "hashMemory" field.
-func HashMemoryGTE(v []byte) predicate.User {
+func HashMemoryGTE(v uint32) predicate.User {
 	return predicate.User(sql.FieldGTE(FieldHashMemory, v))
 }
 
 // HashMemoryLT applies the LT predicate on the "hashMemory" field.
-func HashMemoryLT(v []byte) predicate.User {
+func HashMemoryLT(v uint32) predicate.User {
 	return predicate.User(sql.FieldLT(FieldHashMemory, v))
 }
 
 // HashMemoryLTE applies the LTE predicate on the "hashMemory" field.
-func HashMemoryLTE(v []byte) predicate.User {
+func HashMemoryLTE(v uint32) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldHashMemory, v))
 }
 
 // HashKeyLenEQ applies the EQ predicate on the "hashKeyLen" field.
-func HashKeyLenEQ(v []byte) predicate.User {
+func HashKeyLenEQ(v uint32) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHashKeyLen, v))
 }
 
 // HashKeyLenNEQ applies the NEQ predicate on the "hashKeyLen" field.
-func HashKeyLenNEQ(v []byte) predicate.User {
+func HashKeyLenNEQ(v uint32) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldHashKeyLen, v))
 }
 
 // HashKeyLenIn applies the In predicate on the "hashKeyLen" field.
-func HashKeyLenIn(vs ...[]byte) predicate.User {
+func HashKeyLenIn(vs ...uint32) predicate.User {
 	return predicate.User(sql.FieldIn(FieldHashKeyLen, vs...))
 }
 
 // HashKeyLenNotIn applies the NotIn predicate on the "hashKeyLen" field.
-func HashKeyLenNotIn(vs ...[]byte) predicate.User {
+func HashKeyLenNotIn(vs ...uint32) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldHashKeyLen, vs...))
 }
 
 // HashKeyLenGT applies the GT predicate on the "hashKeyLen" field.
-func HashKeyLenGT(v []byte) predicate.User {
+func HashKeyLenGT(v uint32) predicate.User {
 	return predicate.User(sql.FieldGT(FieldHashKeyLen, v))
 }
 
 // HashKeyLenGTE applies the GTE predicate on the "hashKeyLen" field.
-func HashKeyLenGTE(v []byte) predicate.User {
+func HashKeyLenGTE(v uint32) predicate.User {
 	return predicate.User(sql.FieldGTE(FieldHashKeyLen, v))
 }
 
 // HashKeyLenLT applies the LT predicate on the "hashKeyLen" field.
-func HashKeyLenLT(v []byte) predicate.User {
+func HashKeyLenLT(v uint32) predicate.User {
 	return predicate.User(sql.FieldLT(FieldHashKeyLen, v))
 }
 
 // HashKeyLenLTE applies the LTE predicate on the "hashKeyLen" field.
-func HashKeyLenLTE(v []byte) predicate.User {
+func HashKeyLenLTE(v uint32) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldHashKeyLen, v))
 }
 

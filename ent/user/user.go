@@ -15,6 +15,8 @@ const (
 	FieldUsername = "username"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
+	// FieldFileName holds the string denoting the filename field in the database.
+	FieldFileName = "file_name"
 	// FieldMime holds the string denoting the mime field in the database.
 	FieldMime = "mime"
 	// FieldNonce holds the string denoting the nonce field in the database.
@@ -40,6 +42,7 @@ var Columns = []string{
 	FieldID,
 	FieldUsername,
 	FieldContent,
+	FieldFileName,
 	FieldMime,
 	FieldNonce,
 	FieldKeySalt,
@@ -73,7 +76,27 @@ func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
 }
 
+// ByFileName orders the results by the fileName field.
+func ByFileName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFileName, opts...).ToFunc()
+}
+
 // ByMime orders the results by the mime field.
 func ByMime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMime, opts...).ToFunc()
+}
+
+// ByHashTime orders the results by the hashTime field.
+func ByHashTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHashTime, opts...).ToFunc()
+}
+
+// ByHashMemory orders the results by the hashMemory field.
+func ByHashMemory(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHashMemory, opts...).ToFunc()
+}
+
+// ByHashKeyLen orders the results by the hashKeyLen field.
+func ByHashKeyLen(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHashKeyLen, opts...).ToFunc()
 }
