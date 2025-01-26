@@ -59,14 +59,16 @@ func Encrypt(data []byte, password string) (*EncryptedData, error) {
 	}, nil
 }
 
+func CheckPassword(givenPassword string, passwordHash []byte, passwordSalt []byte, hashSettings *HashSettings) bool {
+	givenPasswordHash := hashWithSalt(givenPassword, passwordSalt, hashSettings)
+	return subtle.ConstantTimeCompare(givenPasswordHash, passwordHash) == 1
+}
+
 var ErrIncorrectPassword error = errors.New("incorrect password")
 
 func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
-	{
-		passwordHash := hashWithSalt(password, encryptedData.PasswordSalt, &encryptedData.HashSettings)
-		if subtle.ConstantTimeCompare(passwordHash, encryptedData.PasswordHash) == 0 {
-			return nil, ErrIncorrectPassword
-		}
+	if !CheckPassword(password, encryptedData.PasswordHash, encryptedData.PasswordSalt, &encryptedData.HashSettings) {
+		return nil, ErrIncorrectPassword
 	}
 	encryptionKey := hashWithSalt(password, encryptedData.KeySalt, &encryptedData.HashSettings)
 

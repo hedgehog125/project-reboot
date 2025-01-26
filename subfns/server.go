@@ -11,9 +11,15 @@ import (
 	"github.com/hedgehog125/project-reboot/endpoints"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/intertypes"
+	"github.com/jonboulle/clockwork"
 )
 
-func ConfigureServer(state *intertypes.State, dbClient *ent.Client, env *intertypes.Env) *gin.Engine {
+func ConfigureServer(
+	state *intertypes.State,
+	dbClient *ent.Client,
+	clock clockwork.Clock,
+	env *intertypes.Env,
+) *gin.Engine {
 	engine := gin.Default()
 	engine.SetTrustedProxies(nil)
 	engine.TrustedPlatform = env.PROXY_ORIGINAL_IP_HEADER_NAME
@@ -23,13 +29,20 @@ func ConfigureServer(state *intertypes.State, dbClient *ent.Client, env *interty
 
 	engine.Static("/static", "./public")
 
-	registerEndpoints(engine, adminMiddleware, dbClient, env)
+	registerEndpoints(engine, adminMiddleware, dbClient, clock, env)
 
 	return engine
 }
-func registerEndpoints(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClient *ent.Client, env *intertypes.Env) {
+func registerEndpoints(
+	engine *gin.Engine,
+	adminMiddleware gin.HandlerFunc,
+	dbClient *ent.Client,
+	clock clockwork.Clock,
+	env *intertypes.Env,
+) {
 	endpoints.RootRedirect(engine)
 	endpoints.RegisterUser(engine, adminMiddleware, dbClient)
+	endpoints.GetUserDownload(engine, dbClient, clock, env)
 }
 
 func RunServer(engine *gin.Engine, env *intertypes.Env) *http.Server {

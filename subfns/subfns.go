@@ -19,6 +19,8 @@ func LoadEnvironmentVariables() *intertypes.Env {
 		MOUNT_PATH:                    util.RequireEnv("MOUNT_PATH"),
 		PORT:                          util.RequireIntEnv("PORT"),
 		PROXY_ORIGINAL_IP_HEADER_NAME: util.RequireEnv("PROXY_ORIGINAL_IP_HEADER_NAME"),
+		UNLOCK_TIME:                   util.RequireInt64Env("UNLOCK_TIME"),
+		AUTH_CODE_VALID_FOR:           util.RequireInt64Env("AUTH_CODE_VALID_FOR"),
 	}
 	return &env
 }

@@ -11,7 +11,7 @@ func main() {
 
 	dbClient := subfns.OpenDatabase(env)
 	state := subfns.InitState()
-	engine := subfns.ConfigureServer(state, dbClient, env)
+	engine := subfns.ConfigureServer(state, dbClient, clock, env)
 	scheduler := subfns.ConfigureScheduler(clock, state)
 
 	subfns.RunScheduler(scheduler)
