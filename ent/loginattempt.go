@@ -20,8 +20,10 @@ type LoginAttempt struct {
 	// Time holds the value of the "time" field.
 	Time time.Time `json:"time,omitempty"`
 	// Code holds the value of the "code" field.
-	Code         string `json:"code,omitempty"`
-	selectValues sql.SelectValues
+	Code string `json:"code,omitempty"`
+	// CodeValidFrom holds the value of the "codeValidFrom" field.
+	CodeValidFrom time.Time `json:"codeValidFrom,omitempty"`
+	selectValues  sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -33,7 +35,7 @@ func (*LoginAttempt) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case loginattempt.FieldCode:
 			values[i] = new(sql.NullString)
-		case loginattempt.FieldTime:
+		case loginattempt.FieldTime, loginattempt.FieldCodeValidFrom:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -67,6 +69,12 @@ func (la *LoginAttempt) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
 				la.Code = value.String
+			}
+		case loginattempt.FieldCodeValidFrom:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field codeValidFrom", values[i])
+			} else if value.Valid {
+				la.CodeValidFrom = value.Time
 			}
 		default:
 			la.selectValues.Set(columns[i], values[i])
@@ -109,6 +117,9 @@ func (la *LoginAttempt) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("code=")
 	builder.WriteString(la.Code)
+	builder.WriteString(", ")
+	builder.WriteString("codeValidFrom=")
+	builder.WriteString(la.CodeValidFrom.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

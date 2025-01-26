@@ -34,6 +34,12 @@ func (lac *LoginAttemptCreate) SetCode(s string) *LoginAttemptCreate {
 	return lac
 }
 
+// SetCodeValidFrom sets the "codeValidFrom" field.
+func (lac *LoginAttemptCreate) SetCodeValidFrom(t time.Time) *LoginAttemptCreate {
+	lac.mutation.SetCodeValidFrom(t)
+	return lac
+}
+
 // Mutation returns the LoginAttemptMutation object of the builder.
 func (lac *LoginAttemptCreate) Mutation() *LoginAttemptMutation {
 	return lac.mutation
@@ -74,6 +80,9 @@ func (lac *LoginAttemptCreate) check() error {
 	if _, ok := lac.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "LoginAttempt.code"`)}
 	}
+	if _, ok := lac.mutation.CodeValidFrom(); !ok {
+		return &ValidationError{Name: "codeValidFrom", err: errors.New(`ent: missing required field "LoginAttempt.codeValidFrom"`)}
+	}
 	return nil
 }
 
@@ -108,6 +117,10 @@ func (lac *LoginAttemptCreate) createSpec() (*LoginAttempt, *sqlgraph.CreateSpec
 	if value, ok := lac.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
 		_node.Code = value
+	}
+	if value, ok := lac.mutation.CodeValidFrom(); ok {
+		_spec.SetField(loginattempt.FieldCodeValidFrom, field.TypeTime, value)
+		_node.CodeValidFrom = value
 	}
 	return _node, _spec
 }
@@ -185,6 +198,18 @@ func (u *LoginAttemptUpsert) UpdateCode() *LoginAttemptUpsert {
 	return u
 }
 
+// SetCodeValidFrom sets the "codeValidFrom" field.
+func (u *LoginAttemptUpsert) SetCodeValidFrom(v time.Time) *LoginAttemptUpsert {
+	u.Set(loginattempt.FieldCodeValidFrom, v)
+	return u
+}
+
+// UpdateCodeValidFrom sets the "codeValidFrom" field to the value that was provided on create.
+func (u *LoginAttemptUpsert) UpdateCodeValidFrom() *LoginAttemptUpsert {
+	u.SetExcluded(loginattempt.FieldCodeValidFrom)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -250,6 +275,20 @@ func (u *LoginAttemptUpsertOne) SetCode(v string) *LoginAttemptUpsertOne {
 func (u *LoginAttemptUpsertOne) UpdateCode() *LoginAttemptUpsertOne {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.UpdateCode()
+	})
+}
+
+// SetCodeValidFrom sets the "codeValidFrom" field.
+func (u *LoginAttemptUpsertOne) SetCodeValidFrom(v time.Time) *LoginAttemptUpsertOne {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.SetCodeValidFrom(v)
+	})
+}
+
+// UpdateCodeValidFrom sets the "codeValidFrom" field to the value that was provided on create.
+func (u *LoginAttemptUpsertOne) UpdateCodeValidFrom() *LoginAttemptUpsertOne {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.UpdateCodeValidFrom()
 	})
 }
 
@@ -481,6 +520,20 @@ func (u *LoginAttemptUpsertBulk) SetCode(v string) *LoginAttemptUpsertBulk {
 func (u *LoginAttemptUpsertBulk) UpdateCode() *LoginAttemptUpsertBulk {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.UpdateCode()
+	})
+}
+
+// SetCodeValidFrom sets the "codeValidFrom" field.
+func (u *LoginAttemptUpsertBulk) SetCodeValidFrom(v time.Time) *LoginAttemptUpsertBulk {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.SetCodeValidFrom(v)
+	})
+}
+
+// UpdateCodeValidFrom sets the "codeValidFrom" field to the value that was provided on create.
+func (u *LoginAttemptUpsertBulk) UpdateCodeValidFrom() *LoginAttemptUpsertBulk {
+	return u.Update(func(s *LoginAttemptUpsert) {
+		s.UpdateCodeValidFrom()
 	})
 }
 

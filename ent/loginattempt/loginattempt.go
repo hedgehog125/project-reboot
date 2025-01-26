@@ -15,6 +15,8 @@ const (
 	FieldTime = "time"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
+	// FieldCodeValidFrom holds the string denoting the codevalidfrom field in the database.
+	FieldCodeValidFrom = "code_valid_from"
 	// Table holds the table name of the loginattempt in the database.
 	Table = "login_attempts"
 )
@@ -24,6 +26,7 @@ var Columns = []string{
 	FieldID,
 	FieldTime,
 	FieldCode,
+	FieldCodeValidFrom,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -52,4 +55,9 @@ func ByTime(opts ...sql.OrderTermOption) OrderOption {
 // ByCode orders the results by the code field.
 func ByCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCode, opts...).ToFunc()
+}
+
+// ByCodeValidFrom orders the results by the codeValidFrom field.
+func ByCodeValidFrom(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCodeValidFrom, opts...).ToFunc()
 }

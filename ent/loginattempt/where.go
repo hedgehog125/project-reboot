@@ -64,6 +64,11 @@ func Code(v string) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldEQ(FieldCode, v))
 }
 
+// CodeValidFrom applies equality check predicate on the "codeValidFrom" field. It's identical to CodeValidFromEQ.
+func CodeValidFrom(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldEQ(FieldCodeValidFrom, v))
+}
+
 // TimeEQ applies the EQ predicate on the "time" field.
 func TimeEQ(v time.Time) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldEQ(FieldTime, v))
@@ -167,6 +172,46 @@ func CodeEqualFold(v string) predicate.LoginAttempt {
 // CodeContainsFold applies the ContainsFold predicate on the "code" field.
 func CodeContainsFold(v string) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldContainsFold(FieldCode, v))
+}
+
+// CodeValidFromEQ applies the EQ predicate on the "codeValidFrom" field.
+func CodeValidFromEQ(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldEQ(FieldCodeValidFrom, v))
+}
+
+// CodeValidFromNEQ applies the NEQ predicate on the "codeValidFrom" field.
+func CodeValidFromNEQ(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldNEQ(FieldCodeValidFrom, v))
+}
+
+// CodeValidFromIn applies the In predicate on the "codeValidFrom" field.
+func CodeValidFromIn(vs ...time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldIn(FieldCodeValidFrom, vs...))
+}
+
+// CodeValidFromNotIn applies the NotIn predicate on the "codeValidFrom" field.
+func CodeValidFromNotIn(vs ...time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldNotIn(FieldCodeValidFrom, vs...))
+}
+
+// CodeValidFromGT applies the GT predicate on the "codeValidFrom" field.
+func CodeValidFromGT(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldGT(FieldCodeValidFrom, v))
+}
+
+// CodeValidFromGTE applies the GTE predicate on the "codeValidFrom" field.
+func CodeValidFromGTE(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldGTE(FieldCodeValidFrom, v))
+}
+
+// CodeValidFromLT applies the LT predicate on the "codeValidFrom" field.
+func CodeValidFromLT(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldLT(FieldCodeValidFrom, v))
+}
+
+// CodeValidFromLTE applies the LTE predicate on the "codeValidFrom" field.
+func CodeValidFromLTE(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldLTE(FieldCodeValidFrom, v))
 }
 
 // And groups predicates with the AND operator between them.

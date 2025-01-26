@@ -13,6 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "time", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeString},
+		{Name: "code_valid_from", Type: field.TypeTime},
 	}
 	// LoginAttemptsTable holds the schema information for the "login_attempts" table.
 	LoginAttemptsTable = &schema.Table{

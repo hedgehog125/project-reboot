@@ -56,6 +56,20 @@ func (lau *LoginAttemptUpdate) SetNillableCode(s *string) *LoginAttemptUpdate {
 	return lau
 }
 
+// SetCodeValidFrom sets the "codeValidFrom" field.
+func (lau *LoginAttemptUpdate) SetCodeValidFrom(t time.Time) *LoginAttemptUpdate {
+	lau.mutation.SetCodeValidFrom(t)
+	return lau
+}
+
+// SetNillableCodeValidFrom sets the "codeValidFrom" field if the given value is not nil.
+func (lau *LoginAttemptUpdate) SetNillableCodeValidFrom(t *time.Time) *LoginAttemptUpdate {
+	if t != nil {
+		lau.SetCodeValidFrom(*t)
+	}
+	return lau
+}
+
 // Mutation returns the LoginAttemptMutation object of the builder.
 func (lau *LoginAttemptUpdate) Mutation() *LoginAttemptMutation {
 	return lau.mutation
@@ -103,6 +117,9 @@ func (lau *LoginAttemptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := lau.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
 	}
+	if value, ok := lau.mutation.CodeValidFrom(); ok {
+		_spec.SetField(loginattempt.FieldCodeValidFrom, field.TypeTime, value)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, lau.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{loginattempt.Label}
@@ -147,6 +164,20 @@ func (lauo *LoginAttemptUpdateOne) SetCode(s string) *LoginAttemptUpdateOne {
 func (lauo *LoginAttemptUpdateOne) SetNillableCode(s *string) *LoginAttemptUpdateOne {
 	if s != nil {
 		lauo.SetCode(*s)
+	}
+	return lauo
+}
+
+// SetCodeValidFrom sets the "codeValidFrom" field.
+func (lauo *LoginAttemptUpdateOne) SetCodeValidFrom(t time.Time) *LoginAttemptUpdateOne {
+	lauo.mutation.SetCodeValidFrom(t)
+	return lauo
+}
+
+// SetNillableCodeValidFrom sets the "codeValidFrom" field if the given value is not nil.
+func (lauo *LoginAttemptUpdateOne) SetNillableCodeValidFrom(t *time.Time) *LoginAttemptUpdateOne {
+	if t != nil {
+		lauo.SetCodeValidFrom(*t)
 	}
 	return lauo
 }
@@ -227,6 +258,9 @@ func (lauo *LoginAttemptUpdateOne) sqlSave(ctx context.Context) (_node *LoginAtt
 	}
 	if value, ok := lauo.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
+	}
+	if value, ok := lauo.mutation.CodeValidFrom(); ok {
+		_spec.SetField(loginattempt.FieldCodeValidFrom, field.TypeTime, value)
 	}
 	_node = &LoginAttempt{config: lauo.config}
 	_spec.Assign = _node.assignValues

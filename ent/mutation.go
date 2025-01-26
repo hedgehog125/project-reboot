@@ -37,6 +37,7 @@ type LoginAttemptMutation struct {
 	id            *int
 	time          *time.Time
 	code          *string
+	codeValidFrom *time.Time
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*LoginAttempt, error)
@@ -213,6 +214,42 @@ func (m *LoginAttemptMutation) ResetCode() {
 	m.code = nil
 }
 
+// SetCodeValidFrom sets the "codeValidFrom" field.
+func (m *LoginAttemptMutation) SetCodeValidFrom(t time.Time) {
+	m.codeValidFrom = &t
+}
+
+// CodeValidFrom returns the value of the "codeValidFrom" field in the mutation.
+func (m *LoginAttemptMutation) CodeValidFrom() (r time.Time, exists bool) {
+	v := m.codeValidFrom
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCodeValidFrom returns the old "codeValidFrom" field's value of the LoginAttempt entity.
+// If the LoginAttempt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginAttemptMutation) OldCodeValidFrom(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCodeValidFrom is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCodeValidFrom requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCodeValidFrom: %w", err)
+	}
+	return oldValue.CodeValidFrom, nil
+}
+
+// ResetCodeValidFrom resets all changes to the "codeValidFrom" field.
+func (m *LoginAttemptMutation) ResetCodeValidFrom() {
+	m.codeValidFrom = nil
+}
+
 // Where appends a list predicates to the LoginAttemptMutation builder.
 func (m *LoginAttemptMutation) Where(ps ...predicate.LoginAttempt) {
 	m.predicates = append(m.predicates, ps...)
@@ -247,12 +284,15 @@ func (m *LoginAttemptMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LoginAttemptMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.time != nil {
 		fields = append(fields, loginattempt.FieldTime)
 	}
 	if m.code != nil {
 		fields = append(fields, loginattempt.FieldCode)
+	}
+	if m.codeValidFrom != nil {
+		fields = append(fields, loginattempt.FieldCodeValidFrom)
 	}
 	return fields
 }
@@ -266,6 +306,8 @@ func (m *LoginAttemptMutation) Field(name string) (ent.Value, bool) {
 		return m.Time()
 	case loginattempt.FieldCode:
 		return m.Code()
+	case loginattempt.FieldCodeValidFrom:
+		return m.CodeValidFrom()
 	}
 	return nil, false
 }
@@ -279,6 +321,8 @@ func (m *LoginAttemptMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldTime(ctx)
 	case loginattempt.FieldCode:
 		return m.OldCode(ctx)
+	case loginattempt.FieldCodeValidFrom:
+		return m.OldCodeValidFrom(ctx)
 	}
 	return nil, fmt.Errorf("unknown LoginAttempt field %s", name)
 }
@@ -301,6 +345,13 @@ func (m *LoginAttemptMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCode(v)
+		return nil
+	case loginattempt.FieldCodeValidFrom:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCodeValidFrom(v)
 		return nil
 	}
 	return fmt.Errorf("unknown LoginAttempt field %s", name)
@@ -356,6 +407,9 @@ func (m *LoginAttemptMutation) ResetField(name string) error {
 		return nil
 	case loginattempt.FieldCode:
 		m.ResetCode()
+		return nil
+	case loginattempt.FieldCodeValidFrom:
+		m.ResetCodeValidFrom()
 		return nil
 	}
 	return fmt.Errorf("unknown LoginAttempt field %s", name)
