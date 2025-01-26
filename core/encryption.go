@@ -3,11 +3,10 @@ package core
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"crypto/subtle"
 	"errors"
-	"log"
 
+	"github.com/hedgehog125/project-reboot/util"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -47,7 +46,7 @@ func Encrypt(data []byte, password string) (*EncryptedData, error) {
 	if err != nil {
 		return nil, err
 	}
-	nonce := randomBytes(gcm.NonceSize()) // TODO: how bad are collisions?
+	nonce := util.CryptoRandomBytes(gcm.NonceSize()) // TODO: how bad are collisions?
 
 	encrypted := gcm.Seal(nil, nonce, data, nil)
 	return &EncryptedData{
@@ -87,19 +86,10 @@ func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
 	return decrypted, nil
 }
 func hash(password string, settings *HashSettings) (hash, salt []byte) {
-	salt = randomBytes(SALT_LENGTH)
+	salt = util.CryptoRandomBytes(SALT_LENGTH)
 	hash = hashWithSalt(password, salt, settings)
 	return
 }
 func hashWithSalt(password string, salt []byte, settings *HashSettings) []byte {
 	return argon2.IDKey([]byte(password), salt, settings.Time, settings.Memory, HASH_THREADS, settings.KeyLen)
-}
-
-func randomBytes(length int) []byte {
-	salt := make([]byte, length)
-	_, err := rand.Read(salt)
-	if err != nil {
-		log.Fatalf("randomBytes: couldn't get random byte. error:\n%v", err)
-	}
-	return salt
 }
