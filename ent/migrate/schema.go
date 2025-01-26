@@ -12,8 +12,10 @@ var (
 	LoginAttemptsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "time", Type: field.TypeTime},
+		{Name: "username", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeString},
 		{Name: "code_valid_from", Type: field.TypeTime},
+		{Name: "info", Type: field.TypeJSON},
 	}
 	// LoginAttemptsTable holds the schema information for the "login_attempts" table.
 	LoginAttemptsTable = &schema.Table{

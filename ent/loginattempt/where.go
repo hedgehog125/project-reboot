@@ -59,6 +59,11 @@ func Time(v time.Time) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldEQ(FieldTime, v))
 }
 
+// Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
+func Username(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldEQ(FieldUsername, v))
+}
+
 // Code applies equality check predicate on the "code" field. It's identical to CodeEQ.
 func Code(v string) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldEQ(FieldCode, v))
@@ -107,6 +112,46 @@ func TimeLT(v time.Time) predicate.LoginAttempt {
 // TimeLTE applies the LTE predicate on the "time" field.
 func TimeLTE(v time.Time) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldLTE(FieldTime, v))
+}
+
+// UsernameEQ applies the EQ predicate on the "username" field.
+func UsernameEQ(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldEQ(FieldUsername, v))
+}
+
+// UsernameNEQ applies the NEQ predicate on the "username" field.
+func UsernameNEQ(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldNEQ(FieldUsername, v))
+}
+
+// UsernameIn applies the In predicate on the "username" field.
+func UsernameIn(vs ...time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldIn(FieldUsername, vs...))
+}
+
+// UsernameNotIn applies the NotIn predicate on the "username" field.
+func UsernameNotIn(vs ...time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldNotIn(FieldUsername, vs...))
+}
+
+// UsernameGT applies the GT predicate on the "username" field.
+func UsernameGT(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldGT(FieldUsername, v))
+}
+
+// UsernameGTE applies the GTE predicate on the "username" field.
+func UsernameGTE(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldGTE(FieldUsername, v))
+}
+
+// UsernameLT applies the LT predicate on the "username" field.
+func UsernameLT(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldLT(FieldUsername, v))
+}
+
+// UsernameLTE applies the LTE predicate on the "username" field.
+func UsernameLTE(v time.Time) predicate.LoginAttempt {
+	return predicate.LoginAttempt(sql.FieldLTE(FieldUsername, v))
 }
 
 // CodeEQ applies the EQ predicate on the "code" field.

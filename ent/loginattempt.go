@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
+	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
 // LoginAttempt is the model entity for the LoginAttempt schema.
@@ -19,11 +21,15 @@ type LoginAttempt struct {
 	ID int `json:"id,omitempty"`
 	// Time holds the value of the "time" field.
 	Time time.Time `json:"time,omitempty"`
+	// Username holds the value of the "username" field.
+	Username time.Time `json:"username,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
 	// CodeValidFrom holds the value of the "codeValidFrom" field.
 	CodeValidFrom time.Time `json:"codeValidFrom,omitempty"`
-	selectValues  sql.SelectValues
+	// Info holds the value of the "info" field.
+	Info         *intertypes.LoginAttemptInfo `json:"info,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -31,11 +37,13 @@ func (*LoginAttempt) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case loginattempt.FieldInfo:
+			values[i] = new([]byte)
 		case loginattempt.FieldID:
 			values[i] = new(sql.NullInt64)
 		case loginattempt.FieldCode:
 			values[i] = new(sql.NullString)
-		case loginattempt.FieldTime, loginattempt.FieldCodeValidFrom:
+		case loginattempt.FieldTime, loginattempt.FieldUsername, loginattempt.FieldCodeValidFrom:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -64,6 +72,12 @@ func (la *LoginAttempt) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				la.Time = value.Time
 			}
+		case loginattempt.FieldUsername:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field username", values[i])
+			} else if value.Valid {
+				la.Username = value.Time
+			}
 		case loginattempt.FieldCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
@@ -75,6 +89,14 @@ func (la *LoginAttempt) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field codeValidFrom", values[i])
 			} else if value.Valid {
 				la.CodeValidFrom = value.Time
+			}
+		case loginattempt.FieldInfo:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field info", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &la.Info); err != nil {
+					return fmt.Errorf("unmarshal field info: %w", err)
+				}
 			}
 		default:
 			la.selectValues.Set(columns[i], values[i])
@@ -115,11 +137,17 @@ func (la *LoginAttempt) String() string {
 	builder.WriteString("time=")
 	builder.WriteString(la.Time.Format(time.ANSIC))
 	builder.WriteString(", ")
+	builder.WriteString("username=")
+	builder.WriteString(la.Username.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("code=")
 	builder.WriteString(la.Code)
 	builder.WriteString(", ")
 	builder.WriteString("codeValidFrom=")
 	builder.WriteString(la.CodeValidFrom.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("info=")
+	builder.WriteString(fmt.Sprintf("%v", la.Info))
 	builder.WriteByte(')')
 	return builder.String()
 }

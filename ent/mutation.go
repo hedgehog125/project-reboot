@@ -14,6 +14,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/user"
+	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
 const (
@@ -36,8 +37,10 @@ type LoginAttemptMutation struct {
 	typ           string
 	id            *int
 	time          *time.Time
+	username      *time.Time
 	code          *string
 	codeValidFrom *time.Time
+	info          **intertypes.LoginAttemptInfo
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*LoginAttempt, error)
@@ -178,6 +181,42 @@ func (m *LoginAttemptMutation) ResetTime() {
 	m.time = nil
 }
 
+// SetUsername sets the "username" field.
+func (m *LoginAttemptMutation) SetUsername(t time.Time) {
+	m.username = &t
+}
+
+// Username returns the value of the "username" field in the mutation.
+func (m *LoginAttemptMutation) Username() (r time.Time, exists bool) {
+	v := m.username
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsername returns the old "username" field's value of the LoginAttempt entity.
+// If the LoginAttempt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginAttemptMutation) OldUsername(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsername: %w", err)
+	}
+	return oldValue.Username, nil
+}
+
+// ResetUsername resets all changes to the "username" field.
+func (m *LoginAttemptMutation) ResetUsername() {
+	m.username = nil
+}
+
 // SetCode sets the "code" field.
 func (m *LoginAttemptMutation) SetCode(s string) {
 	m.code = &s
@@ -250,6 +289,42 @@ func (m *LoginAttemptMutation) ResetCodeValidFrom() {
 	m.codeValidFrom = nil
 }
 
+// SetInfo sets the "info" field.
+func (m *LoginAttemptMutation) SetInfo(iai *intertypes.LoginAttemptInfo) {
+	m.info = &iai
+}
+
+// Info returns the value of the "info" field in the mutation.
+func (m *LoginAttemptMutation) Info() (r *intertypes.LoginAttemptInfo, exists bool) {
+	v := m.info
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInfo returns the old "info" field's value of the LoginAttempt entity.
+// If the LoginAttempt object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginAttemptMutation) OldInfo(ctx context.Context) (v *intertypes.LoginAttemptInfo, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInfo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInfo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInfo: %w", err)
+	}
+	return oldValue.Info, nil
+}
+
+// ResetInfo resets all changes to the "info" field.
+func (m *LoginAttemptMutation) ResetInfo() {
+	m.info = nil
+}
+
 // Where appends a list predicates to the LoginAttemptMutation builder.
 func (m *LoginAttemptMutation) Where(ps ...predicate.LoginAttempt) {
 	m.predicates = append(m.predicates, ps...)
@@ -284,15 +359,21 @@ func (m *LoginAttemptMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LoginAttemptMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.time != nil {
 		fields = append(fields, loginattempt.FieldTime)
+	}
+	if m.username != nil {
+		fields = append(fields, loginattempt.FieldUsername)
 	}
 	if m.code != nil {
 		fields = append(fields, loginattempt.FieldCode)
 	}
 	if m.codeValidFrom != nil {
 		fields = append(fields, loginattempt.FieldCodeValidFrom)
+	}
+	if m.info != nil {
+		fields = append(fields, loginattempt.FieldInfo)
 	}
 	return fields
 }
@@ -304,10 +385,14 @@ func (m *LoginAttemptMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case loginattempt.FieldTime:
 		return m.Time()
+	case loginattempt.FieldUsername:
+		return m.Username()
 	case loginattempt.FieldCode:
 		return m.Code()
 	case loginattempt.FieldCodeValidFrom:
 		return m.CodeValidFrom()
+	case loginattempt.FieldInfo:
+		return m.Info()
 	}
 	return nil, false
 }
@@ -319,10 +404,14 @@ func (m *LoginAttemptMutation) OldField(ctx context.Context, name string) (ent.V
 	switch name {
 	case loginattempt.FieldTime:
 		return m.OldTime(ctx)
+	case loginattempt.FieldUsername:
+		return m.OldUsername(ctx)
 	case loginattempt.FieldCode:
 		return m.OldCode(ctx)
 	case loginattempt.FieldCodeValidFrom:
 		return m.OldCodeValidFrom(ctx)
+	case loginattempt.FieldInfo:
+		return m.OldInfo(ctx)
 	}
 	return nil, fmt.Errorf("unknown LoginAttempt field %s", name)
 }
@@ -339,6 +428,13 @@ func (m *LoginAttemptMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTime(v)
 		return nil
+	case loginattempt.FieldUsername:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsername(v)
+		return nil
 	case loginattempt.FieldCode:
 		v, ok := value.(string)
 		if !ok {
@@ -352,6 +448,13 @@ func (m *LoginAttemptMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCodeValidFrom(v)
+		return nil
+	case loginattempt.FieldInfo:
+		v, ok := value.(*intertypes.LoginAttemptInfo)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInfo(v)
 		return nil
 	}
 	return fmt.Errorf("unknown LoginAttempt field %s", name)
@@ -405,11 +508,17 @@ func (m *LoginAttemptMutation) ResetField(name string) error {
 	case loginattempt.FieldTime:
 		m.ResetTime()
 		return nil
+	case loginattempt.FieldUsername:
+		m.ResetUsername()
+		return nil
 	case loginattempt.FieldCode:
 		m.ResetCode()
 		return nil
 	case loginattempt.FieldCodeValidFrom:
 		m.ResetCodeValidFrom()
+		return nil
+	case loginattempt.FieldInfo:
+		m.ResetInfo()
 		return nil
 	}
 	return fmt.Errorf("unknown LoginAttempt field %s", name)

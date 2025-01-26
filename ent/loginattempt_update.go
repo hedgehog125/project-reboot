@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
 // LoginAttemptUpdate is the builder for updating LoginAttempt entities.
@@ -42,6 +43,20 @@ func (lau *LoginAttemptUpdate) SetNillableTime(t *time.Time) *LoginAttemptUpdate
 	return lau
 }
 
+// SetUsername sets the "username" field.
+func (lau *LoginAttemptUpdate) SetUsername(t time.Time) *LoginAttemptUpdate {
+	lau.mutation.SetUsername(t)
+	return lau
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (lau *LoginAttemptUpdate) SetNillableUsername(t *time.Time) *LoginAttemptUpdate {
+	if t != nil {
+		lau.SetUsername(*t)
+	}
+	return lau
+}
+
 // SetCode sets the "code" field.
 func (lau *LoginAttemptUpdate) SetCode(s string) *LoginAttemptUpdate {
 	lau.mutation.SetCode(s)
@@ -67,6 +82,12 @@ func (lau *LoginAttemptUpdate) SetNillableCodeValidFrom(t *time.Time) *LoginAtte
 	if t != nil {
 		lau.SetCodeValidFrom(*t)
 	}
+	return lau
+}
+
+// SetInfo sets the "info" field.
+func (lau *LoginAttemptUpdate) SetInfo(iai *intertypes.LoginAttemptInfo) *LoginAttemptUpdate {
+	lau.mutation.SetInfo(iai)
 	return lau
 }
 
@@ -114,11 +135,17 @@ func (lau *LoginAttemptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := lau.mutation.Time(); ok {
 		_spec.SetField(loginattempt.FieldTime, field.TypeTime, value)
 	}
+	if value, ok := lau.mutation.Username(); ok {
+		_spec.SetField(loginattempt.FieldUsername, field.TypeTime, value)
+	}
 	if value, ok := lau.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
 	}
 	if value, ok := lau.mutation.CodeValidFrom(); ok {
 		_spec.SetField(loginattempt.FieldCodeValidFrom, field.TypeTime, value)
+	}
+	if value, ok := lau.mutation.Info(); ok {
+		_spec.SetField(loginattempt.FieldInfo, field.TypeJSON, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, lau.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -154,6 +181,20 @@ func (lauo *LoginAttemptUpdateOne) SetNillableTime(t *time.Time) *LoginAttemptUp
 	return lauo
 }
 
+// SetUsername sets the "username" field.
+func (lauo *LoginAttemptUpdateOne) SetUsername(t time.Time) *LoginAttemptUpdateOne {
+	lauo.mutation.SetUsername(t)
+	return lauo
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (lauo *LoginAttemptUpdateOne) SetNillableUsername(t *time.Time) *LoginAttemptUpdateOne {
+	if t != nil {
+		lauo.SetUsername(*t)
+	}
+	return lauo
+}
+
 // SetCode sets the "code" field.
 func (lauo *LoginAttemptUpdateOne) SetCode(s string) *LoginAttemptUpdateOne {
 	lauo.mutation.SetCode(s)
@@ -179,6 +220,12 @@ func (lauo *LoginAttemptUpdateOne) SetNillableCodeValidFrom(t *time.Time) *Login
 	if t != nil {
 		lauo.SetCodeValidFrom(*t)
 	}
+	return lauo
+}
+
+// SetInfo sets the "info" field.
+func (lauo *LoginAttemptUpdateOne) SetInfo(iai *intertypes.LoginAttemptInfo) *LoginAttemptUpdateOne {
+	lauo.mutation.SetInfo(iai)
 	return lauo
 }
 
@@ -256,11 +303,17 @@ func (lauo *LoginAttemptUpdateOne) sqlSave(ctx context.Context) (_node *LoginAtt
 	if value, ok := lauo.mutation.Time(); ok {
 		_spec.SetField(loginattempt.FieldTime, field.TypeTime, value)
 	}
+	if value, ok := lauo.mutation.Username(); ok {
+		_spec.SetField(loginattempt.FieldUsername, field.TypeTime, value)
+	}
 	if value, ok := lauo.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
 	}
 	if value, ok := lauo.mutation.CodeValidFrom(); ok {
 		_spec.SetField(loginattempt.FieldCodeValidFrom, field.TypeTime, value)
+	}
+	if value, ok := lauo.mutation.Info(); ok {
+		_spec.SetField(loginattempt.FieldInfo, field.TypeJSON, value)
 	}
 	_node = &LoginAttempt{config: lauo.config}
 	_spec.Assign = _node.assignValues

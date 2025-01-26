@@ -13,10 +13,14 @@ const (
 	FieldID = "id"
 	// FieldTime holds the string denoting the time field in the database.
 	FieldTime = "time"
+	// FieldUsername holds the string denoting the username field in the database.
+	FieldUsername = "username"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
 	// FieldCodeValidFrom holds the string denoting the codevalidfrom field in the database.
 	FieldCodeValidFrom = "code_valid_from"
+	// FieldInfo holds the string denoting the info field in the database.
+	FieldInfo = "info"
 	// Table holds the table name of the loginattempt in the database.
 	Table = "login_attempts"
 )
@@ -25,8 +29,10 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldTime,
+	FieldUsername,
 	FieldCode,
 	FieldCodeValidFrom,
+	FieldInfo,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -50,6 +56,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByTime orders the results by the time field.
 func ByTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTime, opts...).ToFunc()
+}
+
+// ByUsername orders the results by the username field.
+func ByUsername(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUsername, opts...).ToFunc()
 }
 
 // ByCode orders the results by the code field.
