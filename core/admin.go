@@ -16,7 +16,7 @@ func UpdateAdminCode(state *intertypes.State) {
 	<-state.AdminCode
 
 	adminCode := util.CryptoRandomBytes(ADMIN_CODE_BYTE_LENGTH)
-	fmt.Printf("\n==========\n\nadmin code:\n%v\n\n==========\n\n", base64.RawStdEncoding.EncodeToString(adminCode))
+	fmt.Printf("\n==========\n\nadmin code:\n%v\n\n==========\n\n", base64.StdEncoding.EncodeToString(adminCode))
 
 	go func() { state.AdminCode <- adminCode }()
 }
@@ -28,7 +28,7 @@ func CheckAdminCode(givenCode string, state *intertypes.State) bool {
 		return false
 	}
 
-	givenBytes, err := base64.RawStdEncoding.DecodeString(givenCode)
+	givenBytes, err := base64.StdEncoding.DecodeString(givenCode)
 	if err != nil {
 		return false
 	}

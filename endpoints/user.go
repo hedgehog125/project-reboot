@@ -93,14 +93,14 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 
 			ctx.JSON(http.StatusOK, gin.H{
 				"errors":                   []string{},
-				"authorizationCode":        base64.RawStdEncoding.EncodeToString(authCode),
+				"authorizationCode":        base64.StdEncoding.EncodeToString(authCode),
 				"authorizationCodeValidAt": validAt,
 				"content":                  nil,
 				"filename":                 nil,
 				"mime":                     nil,
 			})
 		} else {
-			givenAuthCodeBytes, err := base64.RawStdEncoding.DecodeString(body.AuthorizationCode)
+			givenAuthCodeBytes, err := base64.StdEncoding.DecodeString(body.AuthorizationCode)
 			if err != nil {
 				ctx.JSON(http.StatusBadRequest, gin.H{
 					"errors": []string{"MALFORMED_AUTH_CODE"},
@@ -199,8 +199,8 @@ type RegisterUserPayload struct {
 	Username string `json:"username" binding:"required,min=1,max=32,alphanum,lowercase"`
 	Password string `json:"password" binding:"required,min=8,max=256"`
 	Content  string `json:"content"  binding:"required,min=1,max=100000000"` // 100 MB but base64 encoded
-	FileName string `json:"fileName" binding:"required,min=1,max=256"`
-	MimeType string `json:"mimeType" binding:"required,min=1,max=256"`
+	Filename string `json:"filename" binding:"required,min=1,max=256"`
+	Mime     string `json:"mime" binding:"required,min=1,max=256"`
 }
 
 func RegisterUser(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClient *ent.Client) {
@@ -210,8 +210,9 @@ func RegisterUser(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClient 
 			return
 		}
 
-		contentBytes, err := base64.RawStdEncoding.DecodeString(body.Content)
+		contentBytes, err := base64.StdEncoding.DecodeString(body.Content)
 		if err != nil {
+			fmt.Printf("err.Error(): %v\n", err.Error())
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"errors": []string{"MALFORMED_CONTENT"},
 			})
@@ -230,8 +231,8 @@ func RegisterUser(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClient 
 		err = dbClient.User.Create().
 			SetUsername(body.Username).
 			SetContent(encrypted.Data).
-			SetFileName(body.FileName).
-			SetMime(body.MimeType).
+			SetFileName(body.Filename).
+			SetMime(body.Mime).
 			SetNonce(encrypted.Nonce).
 			SetKeySalt(encrypted.KeySalt).
 			SetPasswordHash(encrypted.PasswordHash).

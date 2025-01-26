@@ -25,7 +25,7 @@ func NewTimeoutMiddleware() gin.HandlerFunc {
 				}
 				return
 			}
-			ctx.JSON(http.StatusRequestTimeout, gin.H{
+			ctx.AbortWithStatusJSON(http.StatusRequestTimeout, gin.H{
 				"errors": []string{"REQUEST_TIMED_OUT"},
 			})
 		}),
@@ -36,7 +36,7 @@ func NewAdminProtectedMiddleware(state *intertypes.State) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		headerValue := ctx.GetHeader("authorization")
 		if headerValue == "" {
-			ctx.JSON(http.StatusBadRequest, gin.H{
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"errors": []string{"MISSING_AUTHORIZATION_HEADER"},
 			})
 			return
@@ -44,13 +44,13 @@ func NewAdminProtectedMiddleware(state *intertypes.State) gin.HandlerFunc {
 		headerParts := strings.SplitN(headerValue, " ", 2)
 
 		if len(headerParts) != 2 {
-			ctx.JSON(http.StatusBadRequest, gin.H{
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"errors": []string{"MALFORMED_AUTHORIZATION_HEADER"},
 			})
 			return
 		}
 		if headerParts[0] != "AdminCode" {
-			ctx.JSON(http.StatusBadRequest, gin.H{
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"errors": []string{"UNSUPPORTED_AUTHORIZATION_SCHEME"},
 			})
 			return
@@ -59,7 +59,7 @@ func NewAdminProtectedMiddleware(state *intertypes.State) gin.HandlerFunc {
 		if core.CheckAdminCode(headerParts[1], state) {
 			ctx.Next()
 		} else {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"errors": []string{"INVALID_ADMIN_CODE"},
 			})
 			return

@@ -7,6 +7,7 @@ const messageElement = document.querySelector("#message");
 
 form.addEventListener("submit", async (e) => {
 	e.preventDefault();
+	displayMessage("");
 
 	const resp = await fetch("/api/v1/users/download", {
 		method: "POST",
@@ -36,15 +37,14 @@ form.addEventListener("submit", async (e) => {
 
 	if (content) {
 		download(content, filename, mime);
+		displayMessage("File downloaded");
 		return;
 	}
 
 	const asDate = new Date(authorizationCodeValidAt);
 	displayMessage(
-		`Success! The following authorisation code will be valid on ${asDate.toLocaleDateString(
-			undefined,
-			{ timeStyle: "full" }
-		)}.\n${newAuthorizationCode}`
+		// TODO: include time
+		`Success! The following authorisation code will be valid on ${asDate.toLocaleDateString()}.\n${newAuthorizationCode}`
 	);
 });
 

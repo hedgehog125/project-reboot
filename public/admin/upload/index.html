@@ -3,13 +3,10 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<script type="module" src="/static/main.js"></script>
-		<title>Project Reboot</title>
+		<script type="module" src="/static/admin/upload/main.js"></script>
+		<title>Project Reboot Admin</title>
 	</head>
 	<body>
-		<a href="/static/admin/upload/">Create/update a user</a>
-		<br />
-		<br />
 		<form id="loginForm">
 			<label>
 				Username:
@@ -17,21 +14,26 @@
 			</label>
 			<br />
 			<label>
-				Password:
+				New password:
 				<input
 					required
 					type="password"
-					autocomplete="current-password"
+					autocomplete="new-password"
 					id="password"
 				/>
 			</label>
 			<br />
 			<label>
-				Authorisation code:
-				<input type="text" autocomplete="off" id="authorizationCode" />
+				Admin code:
+				<input required type="text" autocomplete="off" id="adminCode" />
 			</label>
 			<br />
-			<button type="submit">Log in</button>
+			<label>
+				File:
+				<input required type="file" id="file" />
+			</label>
+			<br />
+			<button type="submit">Upload</button>
 		</form>
 		<br />
 		<hr />
