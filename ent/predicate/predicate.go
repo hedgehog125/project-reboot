@@ -8,3 +8,6 @@ import (
 
 // LoginAttempt is the predicate function for loginattempt builders.
 type LoginAttempt func(*sql.Selector)
+
+// User is the predicate function for user builders.
+type User func(*sql.Selector)

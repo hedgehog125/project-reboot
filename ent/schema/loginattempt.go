@@ -14,7 +14,7 @@ type LoginAttempt struct {
 func (LoginAttempt) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("time"),
-		field.String("code"),
+		field.String("code"), // The randomly generated authorisation code that will become valid after enough time
 	}
 }
 

@@ -20,9 +20,30 @@ var (
 		Columns:    LoginAttemptsColumns,
 		PrimaryKey: []*schema.Column{LoginAttemptsColumns[0]},
 	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "username", Type: field.TypeString},
+		{Name: "content", Type: field.TypeBytes},
+		{Name: "mime", Type: field.TypeString},
+		{Name: "nonce", Type: field.TypeBytes},
+		{Name: "key_salt", Type: field.TypeBytes},
+		{Name: "password_hash", Type: field.TypeBytes},
+		{Name: "password_salt", Type: field.TypeBytes},
+		{Name: "hash_time", Type: field.TypeBytes},
+		{Name: "hash_memory", Type: field.TypeBytes},
+		{Name: "hash_key_len", Type: field.TypeBytes},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		LoginAttemptsTable,
+		UsersTable,
 	}
 )
 
