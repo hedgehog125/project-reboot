@@ -38,7 +38,7 @@ type LoginAttemptMutation struct {
 	id            *int
 	time          *time.Time
 	username      *string
-	code          *string
+	code          *[]byte
 	codeValidFrom *time.Time
 	info          **intertypes.LoginAttemptInfo
 	clearedFields map[string]struct{}
@@ -218,12 +218,12 @@ func (m *LoginAttemptMutation) ResetUsername() {
 }
 
 // SetCode sets the "code" field.
-func (m *LoginAttemptMutation) SetCode(s string) {
-	m.code = &s
+func (m *LoginAttemptMutation) SetCode(b []byte) {
+	m.code = &b
 }
 
 // Code returns the value of the "code" field in the mutation.
-func (m *LoginAttemptMutation) Code() (r string, exists bool) {
+func (m *LoginAttemptMutation) Code() (r []byte, exists bool) {
 	v := m.code
 	if v == nil {
 		return
@@ -234,7 +234,7 @@ func (m *LoginAttemptMutation) Code() (r string, exists bool) {
 // OldCode returns the old "code" field's value of the LoginAttempt entity.
 // If the LoginAttempt object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LoginAttemptMutation) OldCode(ctx context.Context) (v string, err error) {
+func (m *LoginAttemptMutation) OldCode(ctx context.Context) (v []byte, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCode is only allowed on UpdateOne operations")
 	}
@@ -436,7 +436,7 @@ func (m *LoginAttemptMutation) SetField(name string, value ent.Value) error {
 		m.SetUsername(v)
 		return nil
 	case loginattempt.FieldCode:
-		v, ok := value.(string)
+		v, ok := value.([]byte)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

@@ -18,7 +18,7 @@ func (LoginAttempt) Fields() []ent.Field { // TODO: auto archive
 	return []ent.Field{
 		field.Time("time").Default(time.Now),
 		field.String("username"),
-		field.String("code"), // The randomly generated authorisation code that will become valid after enough time
+		field.Bytes("code").Unique(), // The randomly generated authorisation code that will become valid after enough time
 		field.Time("codeValidFrom"),
 		field.JSON("info", &intertypes.LoginAttemptInfo{}),
 	}

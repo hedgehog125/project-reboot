@@ -65,7 +65,7 @@ func Username(v string) predicate.LoginAttempt {
 }
 
 // Code applies equality check predicate on the "code" field. It's identical to CodeEQ.
-func Code(v string) predicate.LoginAttempt {
+func Code(v []byte) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldEQ(FieldCode, v))
 }
 
@@ -180,68 +180,43 @@ func UsernameContainsFold(v string) predicate.LoginAttempt {
 }
 
 // CodeEQ applies the EQ predicate on the "code" field.
-func CodeEQ(v string) predicate.LoginAttempt {
+func CodeEQ(v []byte) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldEQ(FieldCode, v))
 }
 
 // CodeNEQ applies the NEQ predicate on the "code" field.
-func CodeNEQ(v string) predicate.LoginAttempt {
+func CodeNEQ(v []byte) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldNEQ(FieldCode, v))
 }
 
 // CodeIn applies the In predicate on the "code" field.
-func CodeIn(vs ...string) predicate.LoginAttempt {
+func CodeIn(vs ...[]byte) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldIn(FieldCode, vs...))
 }
 
 // CodeNotIn applies the NotIn predicate on the "code" field.
-func CodeNotIn(vs ...string) predicate.LoginAttempt {
+func CodeNotIn(vs ...[]byte) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldNotIn(FieldCode, vs...))
 }
 
 // CodeGT applies the GT predicate on the "code" field.
-func CodeGT(v string) predicate.LoginAttempt {
+func CodeGT(v []byte) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldGT(FieldCode, v))
 }
 
 // CodeGTE applies the GTE predicate on the "code" field.
-func CodeGTE(v string) predicate.LoginAttempt {
+func CodeGTE(v []byte) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldGTE(FieldCode, v))
 }
 
 // CodeLT applies the LT predicate on the "code" field.
-func CodeLT(v string) predicate.LoginAttempt {
+func CodeLT(v []byte) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldLT(FieldCode, v))
 }
 
 // CodeLTE applies the LTE predicate on the "code" field.
-func CodeLTE(v string) predicate.LoginAttempt {
+func CodeLTE(v []byte) predicate.LoginAttempt {
 	return predicate.LoginAttempt(sql.FieldLTE(FieldCode, v))
-}
-
-// CodeContains applies the Contains predicate on the "code" field.
-func CodeContains(v string) predicate.LoginAttempt {
-	return predicate.LoginAttempt(sql.FieldContains(FieldCode, v))
-}
-
-// CodeHasPrefix applies the HasPrefix predicate on the "code" field.
-func CodeHasPrefix(v string) predicate.LoginAttempt {
-	return predicate.LoginAttempt(sql.FieldHasPrefix(FieldCode, v))
-}
-
-// CodeHasSuffix applies the HasSuffix predicate on the "code" field.
-func CodeHasSuffix(v string) predicate.LoginAttempt {
-	return predicate.LoginAttempt(sql.FieldHasSuffix(FieldCode, v))
-}
-
-// CodeEqualFold applies the EqualFold predicate on the "code" field.
-func CodeEqualFold(v string) predicate.LoginAttempt {
-	return predicate.LoginAttempt(sql.FieldEqualFold(FieldCode, v))
-}
-
-// CodeContainsFold applies the ContainsFold predicate on the "code" field.
-func CodeContainsFold(v string) predicate.LoginAttempt {
-	return predicate.LoginAttempt(sql.FieldContainsFold(FieldCode, v))
 }
 
 // CodeValidFromEQ applies the EQ predicate on the "codeValidFrom" field.

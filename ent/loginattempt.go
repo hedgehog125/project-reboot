@@ -24,7 +24,7 @@ type LoginAttempt struct {
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// Code holds the value of the "code" field.
-	Code string `json:"code,omitempty"`
+	Code []byte `json:"code,omitempty"`
 	// CodeValidFrom holds the value of the "codeValidFrom" field.
 	CodeValidFrom time.Time `json:"codeValidFrom,omitempty"`
 	// Info holds the value of the "info" field.
@@ -37,11 +37,11 @@ func (*LoginAttempt) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case loginattempt.FieldInfo:
+		case loginattempt.FieldCode, loginattempt.FieldInfo:
 			values[i] = new([]byte)
 		case loginattempt.FieldID:
 			values[i] = new(sql.NullInt64)
-		case loginattempt.FieldUsername, loginattempt.FieldCode:
+		case loginattempt.FieldUsername:
 			values[i] = new(sql.NullString)
 		case loginattempt.FieldTime, loginattempt.FieldCodeValidFrom:
 			values[i] = new(sql.NullTime)
@@ -79,10 +79,10 @@ func (la *LoginAttempt) assignValues(columns []string, values []any) error {
 				la.Username = value.String
 			}
 		case loginattempt.FieldCode:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
-			} else if value.Valid {
-				la.Code = value.String
+			} else if value != nil {
+				la.Code = *value
 			}
 		case loginattempt.FieldCodeValidFrom:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -141,7 +141,7 @@ func (la *LoginAttempt) String() string {
 	builder.WriteString(la.Username)
 	builder.WriteString(", ")
 	builder.WriteString("code=")
-	builder.WriteString(la.Code)
+	builder.WriteString(fmt.Sprintf("%v", la.Code))
 	builder.WriteString(", ")
 	builder.WriteString("codeValidFrom=")
 	builder.WriteString(la.CodeValidFrom.Format(time.ANSIC))

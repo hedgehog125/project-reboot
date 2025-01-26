@@ -13,7 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "time", Type: field.TypeTime},
 		{Name: "username", Type: field.TypeString},
-		{Name: "code", Type: field.TypeString},
+		{Name: "code", Type: field.TypeBytes, Unique: true},
 		{Name: "code_valid_from", Type: field.TypeTime},
 		{Name: "info", Type: field.TypeJSON},
 	}

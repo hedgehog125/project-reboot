@@ -44,8 +44,8 @@ func (lac *LoginAttemptCreate) SetUsername(s string) *LoginAttemptCreate {
 }
 
 // SetCode sets the "code" field.
-func (lac *LoginAttemptCreate) SetCode(s string) *LoginAttemptCreate {
-	lac.mutation.SetCode(s)
+func (lac *LoginAttemptCreate) SetCode(b []byte) *LoginAttemptCreate {
+	lac.mutation.SetCode(b)
 	return lac
 }
 
@@ -155,7 +155,7 @@ func (lac *LoginAttemptCreate) createSpec() (*LoginAttempt, *sqlgraph.CreateSpec
 		_node.Username = value
 	}
 	if value, ok := lac.mutation.Code(); ok {
-		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
+		_spec.SetField(loginattempt.FieldCode, field.TypeBytes, value)
 		_node.Code = value
 	}
 	if value, ok := lac.mutation.CodeValidFrom(); ok {
@@ -243,7 +243,7 @@ func (u *LoginAttemptUpsert) UpdateUsername() *LoginAttemptUpsert {
 }
 
 // SetCode sets the "code" field.
-func (u *LoginAttemptUpsert) SetCode(v string) *LoginAttemptUpsert {
+func (u *LoginAttemptUpsert) SetCode(v []byte) *LoginAttemptUpsert {
 	u.Set(loginattempt.FieldCode, v)
 	return u
 }
@@ -347,7 +347,7 @@ func (u *LoginAttemptUpsertOne) UpdateUsername() *LoginAttemptUpsertOne {
 }
 
 // SetCode sets the "code" field.
-func (u *LoginAttemptUpsertOne) SetCode(v string) *LoginAttemptUpsertOne {
+func (u *LoginAttemptUpsertOne) SetCode(v []byte) *LoginAttemptUpsertOne {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.SetCode(v)
 	})
@@ -621,7 +621,7 @@ func (u *LoginAttemptUpsertBulk) UpdateUsername() *LoginAttemptUpsertBulk {
 }
 
 // SetCode sets the "code" field.
-func (u *LoginAttemptUpsertBulk) SetCode(v string) *LoginAttemptUpsertBulk {
+func (u *LoginAttemptUpsertBulk) SetCode(v []byte) *LoginAttemptUpsertBulk {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.SetCode(v)
 	})

@@ -70,11 +70,6 @@ func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
 }
 
-// ByCode orders the results by the code field.
-func ByCode(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCode, opts...).ToFunc()
-}
-
 // ByCodeValidFrom orders the results by the codeValidFrom field.
 func ByCodeValidFrom(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCodeValidFrom, opts...).ToFunc()

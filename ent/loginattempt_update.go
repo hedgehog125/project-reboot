@@ -58,16 +58,8 @@ func (lau *LoginAttemptUpdate) SetNillableUsername(s *string) *LoginAttemptUpdat
 }
 
 // SetCode sets the "code" field.
-func (lau *LoginAttemptUpdate) SetCode(s string) *LoginAttemptUpdate {
-	lau.mutation.SetCode(s)
-	return lau
-}
-
-// SetNillableCode sets the "code" field if the given value is not nil.
-func (lau *LoginAttemptUpdate) SetNillableCode(s *string) *LoginAttemptUpdate {
-	if s != nil {
-		lau.SetCode(*s)
-	}
+func (lau *LoginAttemptUpdate) SetCode(b []byte) *LoginAttemptUpdate {
+	lau.mutation.SetCode(b)
 	return lau
 }
 
@@ -139,7 +131,7 @@ func (lau *LoginAttemptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(loginattempt.FieldUsername, field.TypeString, value)
 	}
 	if value, ok := lau.mutation.Code(); ok {
-		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
+		_spec.SetField(loginattempt.FieldCode, field.TypeBytes, value)
 	}
 	if value, ok := lau.mutation.CodeValidFrom(); ok {
 		_spec.SetField(loginattempt.FieldCodeValidFrom, field.TypeTime, value)
@@ -196,16 +188,8 @@ func (lauo *LoginAttemptUpdateOne) SetNillableUsername(s *string) *LoginAttemptU
 }
 
 // SetCode sets the "code" field.
-func (lauo *LoginAttemptUpdateOne) SetCode(s string) *LoginAttemptUpdateOne {
-	lauo.mutation.SetCode(s)
-	return lauo
-}
-
-// SetNillableCode sets the "code" field if the given value is not nil.
-func (lauo *LoginAttemptUpdateOne) SetNillableCode(s *string) *LoginAttemptUpdateOne {
-	if s != nil {
-		lauo.SetCode(*s)
-	}
+func (lauo *LoginAttemptUpdateOne) SetCode(b []byte) *LoginAttemptUpdateOne {
+	lauo.mutation.SetCode(b)
 	return lauo
 }
 
@@ -307,7 +291,7 @@ func (lauo *LoginAttemptUpdateOne) sqlSave(ctx context.Context) (_node *LoginAtt
 		_spec.SetField(loginattempt.FieldUsername, field.TypeString, value)
 	}
 	if value, ok := lauo.mutation.Code(); ok {
-		_spec.SetField(loginattempt.FieldCode, field.TypeString, value)
+		_spec.SetField(loginattempt.FieldCode, field.TypeBytes, value)
 	}
 	if value, ok := lauo.mutation.CodeValidFrom(); ok {
 		_spec.SetField(loginattempt.FieldCodeValidFrom, field.TypeTime, value)
