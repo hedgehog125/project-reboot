@@ -1,8 +1,10 @@
 package subfns
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gin-contrib/timeout"
@@ -16,7 +18,17 @@ func ConfigureServer(env *intertypes.Env) *gin.Engine {
 	engine.SetTrustedProxies(nil)
 	engine.TrustedPlatform = env.PROXY_ORIGINAL_IP_HEADER_NAME
 
-	engine.Use(timeout.New(timeout.WithTimeout(5 * time.Second)))
+	engine.Use(timeout.New(
+		timeout.WithTimeout(5*time.Second),
+		timeout.WithHandler(func(ctx *gin.Context) {
+			ctx.Next()
+		}),
+		timeout.WithResponse(func(ctx *gin.Context) {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"errors": []string{"REQUEST_TIMED_OUT"},
+			})
+		}),
+	))
 
 	engine.Static("/static", "./public")
 
@@ -29,10 +41,27 @@ func registerEndpoints(engine *gin.Engine, env *intertypes.Env) {
 	endpoints.RegisterUser(engine)
 }
 
-func RunServer(engine *gin.Engine, env *intertypes.Env) {
-	err := engine.Run(fmt.Sprintf(":%v", env.PORT))
-	if err != nil {
-		log.Fatalf("error starting server. error:\n%v", err.Error())
+func RunServer(engine *gin.Engine, env *intertypes.Env) *http.Server {
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%v", env.PORT),
+		Handler: engine.Handler(),
 	}
-	fmt.Printf("running on port %v", env.PORT)
+
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("an error occurred while running the HTTP server:\n%v", err.Error())
+		}
+	}()
+
+	return server
+}
+func ShutdownServer(server *http.Server) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := server.Shutdown(ctx)
+	if err != nil {
+		fmt.Printf("warning: an error occurred while shutting down the HTTP server:\n%v\n", err.Error())
+	}
 }

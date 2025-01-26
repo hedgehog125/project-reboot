@@ -1,8 +1,6 @@
 package endpoints
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +13,8 @@ func RootRedirect(engine *gin.Engine) {
 type RegisterUserPayload struct {
 	Username string `json:"username" binding:"required,min=1,max=32,alphanum,lowercase"`
 	Password string `json:"password" binding:"required,min=8,max=256"`
-	Content  []byte `json:"content"  binding:"required"`
+	Content  string `json:"content"  binding:"required,min=1,max=100000000"` // 100 MB but base64 encoded
+	MimeType string `json:"mimeType" binding:"required,min=1,max=256"`
 }
 
 func RegisterUser(engine *gin.Engine) {
@@ -24,7 +23,5 @@ func RegisterUser(engine *gin.Engine) {
 		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?
 			return
 		}
-
-		fmt.Println(body)
 	})
 }

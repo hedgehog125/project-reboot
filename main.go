@@ -16,11 +16,14 @@ func main() {
 
 	subfns.RunScheduler(scheduler)
 
-	go subfns.RunServer(engine, env)
+	server := subfns.RunServer(engine, env)
 
 	subfns.ConfigureShutdown(
 		subfns.NewShutdownTask(func() {
 			subfns.ShutdownScheduler(scheduler)
+		}, true),
+		subfns.NewShutdownTask(func() {
+			subfns.ShutdownServer(server)
 		}, true),
 	)
 }
