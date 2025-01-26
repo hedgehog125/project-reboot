@@ -8,7 +8,7 @@ const messageElement = document.querySelector("#message");
 form.addEventListener("submit", async (e) => {
 	e.preventDefault();
 
-	const resp = await fetch("/v1/login", {
+	const resp = await fetch("/api/v1/users/download", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -18,18 +18,24 @@ form.addEventListener("submit", async (e) => {
 		}),
 	});
 	if (!resp.ok) {
-		displayMessage(`Error. Received HTTP error code: ${resp.status}`);
+		displayMessage(
+			`Error, received HTTP error code: ${
+				resp.status
+			}\nContent:\n${await resp.text()}`
+		);
 		return;
 	}
 
 	const {
 		authorizationCode: newAuthorizationCode,
 		authorizationCodeValidAt,
-		rebootZipUrl,
+		content,
+		filename,
+		mime,
 	} = await resp.json();
 
-	if (rebootZipUrl) {
-		downloadUrl(rebootZipUrl);
+	if (content) {
+		download(content, filename, mime);
 		return;
 	}
 
@@ -51,4 +57,16 @@ function displayMessage(message) {
 	messageElement.hidden = false;
 }
 
-function downloadUrl(url) {}
+function download(content, filename, mime) {
+	// Ideally should use a Blob but this is good enough since it's in JSON anyway
+	const url = `data:${mime};base64,${content}`;
+
+	const anchor = document.createElement("a");
+	anchor.href = url;
+	anchor.download = filename;
+	anchor.style.visibility = "none";
+	document.body.appendChild(anchor);
+
+	anchor.click();
+	document.body.removeChild(anchor);
+}

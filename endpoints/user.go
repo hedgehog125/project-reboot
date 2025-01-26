@@ -94,10 +94,10 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 			ctx.JSON(http.StatusOK, gin.H{
 				"errors":                   []string{},
 				"authorizationCode":        base64.RawStdEncoding.EncodeToString(authCode),
-				"authorizationCodeValidAt": validAt.Unix(),
-				"rebootZipContent":         nil,
-				"rebootZipFilename":        nil,
-				"rebootZipMime":            nil,
+				"authorizationCodeValidAt": validAt,
+				"content":                  nil,
+				"filename":                 nil,
+				"mime":                     nil,
 			})
 		} else {
 			givenAuthCodeBytes, err := base64.RawStdEncoding.DecodeString(body.AuthorizationCode)
@@ -185,9 +185,9 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 				"errors":                   []string{},
 				"authorizationCode":        nil,
 				"authorizationCodeValidAt": nil,
-				"rebootZipContent":         decrypted,
-				"rebootZipFilename":        userRow.FileName,
-				"rebootZipMime":            userRow.Mime,
+				"content":                  decrypted,
+				"filename":                 userRow.FileName,
+				"mime":                     userRow.Mime,
 			})
 
 			// TODO: log this event to database

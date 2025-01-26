@@ -24,10 +24,9 @@ func ConfigureServer(
 	engine.SetTrustedProxies(nil)
 	engine.TrustedPlatform = env.PROXY_ORIGINAL_IP_HEADER_NAME
 
+	engine.Static("/static", "./public") // Has to go before otherwise files are sent but with a 404 status
 	engine.Use(endpoints.NewTimeoutMiddleware())
 	adminMiddleware := endpoints.NewAdminProtectedMiddleware(state)
-
-	engine.Static("/static", "./public")
 
 	registerEndpoints(engine, adminMiddleware, dbClient, clock, env)
 
