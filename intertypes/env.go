@@ -7,4 +7,7 @@ type Env struct {
 	UNLOCK_TIME                   int64 // In seconds
 	// TODO: implement
 	AUTH_CODE_VALID_FOR int64 // In seconds
+
+	DISCORD_TOKEN  string
+	SENDGRID_TOKEN string // TODO: implement
 }

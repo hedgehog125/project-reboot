@@ -41,6 +41,46 @@ func (uu *UserUpdate) SetNillableUsername(s *string) *UserUpdate {
 	return uu
 }
 
+// SetAlertDiscordId sets the "alertDiscordId" field.
+func (uu *UserUpdate) SetAlertDiscordId(s string) *UserUpdate {
+	uu.mutation.SetAlertDiscordId(s)
+	return uu
+}
+
+// SetNillableAlertDiscordId sets the "alertDiscordId" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableAlertDiscordId(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetAlertDiscordId(*s)
+	}
+	return uu
+}
+
+// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
+func (uu *UserUpdate) ClearAlertDiscordId() *UserUpdate {
+	uu.mutation.ClearAlertDiscordId()
+	return uu
+}
+
+// SetAlertEmail sets the "alertEmail" field.
+func (uu *UserUpdate) SetAlertEmail(s string) *UserUpdate {
+	uu.mutation.SetAlertEmail(s)
+	return uu
+}
+
+// SetNillableAlertEmail sets the "alertEmail" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableAlertEmail(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetAlertEmail(*s)
+	}
+	return uu
+}
+
+// ClearAlertEmail clears the value of the "alertEmail" field.
+func (uu *UserUpdate) ClearAlertEmail() *UserUpdate {
+	uu.mutation.ClearAlertEmail()
+	return uu
+}
+
 // SetContent sets the "content" field.
 func (uu *UserUpdate) SetContent(b []byte) *UserUpdate {
 	uu.mutation.SetContent(b)
@@ -206,6 +246,18 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
+	if value, ok := uu.mutation.AlertDiscordId(); ok {
+		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
+	}
+	if uu.mutation.AlertDiscordIdCleared() {
+		_spec.ClearField(user.FieldAlertDiscordId, field.TypeString)
+	}
+	if value, ok := uu.mutation.AlertEmail(); ok {
+		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
+	}
+	if uu.mutation.AlertEmailCleared() {
+		_spec.ClearField(user.FieldAlertEmail, field.TypeString)
+	}
 	if value, ok := uu.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 	}
@@ -276,6 +328,46 @@ func (uuo *UserUpdateOne) SetNillableUsername(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetUsername(*s)
 	}
+	return uuo
+}
+
+// SetAlertDiscordId sets the "alertDiscordId" field.
+func (uuo *UserUpdateOne) SetAlertDiscordId(s string) *UserUpdateOne {
+	uuo.mutation.SetAlertDiscordId(s)
+	return uuo
+}
+
+// SetNillableAlertDiscordId sets the "alertDiscordId" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAlertDiscordId(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetAlertDiscordId(*s)
+	}
+	return uuo
+}
+
+// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
+func (uuo *UserUpdateOne) ClearAlertDiscordId() *UserUpdateOne {
+	uuo.mutation.ClearAlertDiscordId()
+	return uuo
+}
+
+// SetAlertEmail sets the "alertEmail" field.
+func (uuo *UserUpdateOne) SetAlertEmail(s string) *UserUpdateOne {
+	uuo.mutation.SetAlertEmail(s)
+	return uuo
+}
+
+// SetNillableAlertEmail sets the "alertEmail" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAlertEmail(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetAlertEmail(*s)
+	}
+	return uuo
+}
+
+// ClearAlertEmail clears the value of the "alertEmail" field.
+func (uuo *UserUpdateOne) ClearAlertEmail() *UserUpdateOne {
+	uuo.mutation.ClearAlertEmail()
 	return uuo
 }
 
@@ -473,6 +565,18 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.AlertDiscordId(); ok {
+		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
+	}
+	if uuo.mutation.AlertDiscordIdCleared() {
+		_spec.ClearField(user.FieldAlertDiscordId, field.TypeString)
+	}
+	if value, ok := uuo.mutation.AlertEmail(); ok {
+		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
+	}
+	if uuo.mutation.AlertEmailCleared() {
+		_spec.ClearField(user.FieldAlertEmail, field.TypeString)
 	}
 	if value, ok := uuo.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)

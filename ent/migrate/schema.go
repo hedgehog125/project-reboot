@@ -27,6 +27,8 @@ var (
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "username", Type: field.TypeString, Unique: true},
+		{Name: "alert_discord_id", Type: field.TypeString, Nullable: true},
+		{Name: "alert_email", Type: field.TypeString, Nullable: true},
 		{Name: "content", Type: field.TypeBytes},
 		{Name: "file_name", Type: field.TypeString},
 		{Name: "mime", Type: field.TypeString},

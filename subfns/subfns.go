@@ -21,6 +21,9 @@ func LoadEnvironmentVariables() *intertypes.Env {
 		PROXY_ORIGINAL_IP_HEADER_NAME: util.RequireEnv("PROXY_ORIGINAL_IP_HEADER_NAME"),
 		UNLOCK_TIME:                   util.RequireInt64Env("UNLOCK_TIME"),
 		AUTH_CODE_VALID_FOR:           util.RequireInt64Env("AUTH_CODE_VALID_FOR"),
+
+		DISCORD_TOKEN:  util.OptionalEnv("DISCORD_TOKEN", ""),
+		SENDGRID_TOKEN: util.OptionalEnv("SENDGRID_TOKEN", ""),
 	}
 	return &env
 }

@@ -575,27 +575,29 @@ func (m *LoginAttemptMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	username      *string
-	content       *[]byte
-	fileName      *string
-	mime          *string
-	nonce         *[]byte
-	keySalt       *[]byte
-	passwordHash  *[]byte
-	passwordSalt  *[]byte
-	hashTime      *uint32
-	addhashTime   *int32
-	hashMemory    *uint32
-	addhashMemory *int32
-	hashKeyLen    *uint32
-	addhashKeyLen *int32
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	op             Op
+	typ            string
+	id             *int
+	username       *string
+	alertDiscordId *string
+	alertEmail     *string
+	content        *[]byte
+	fileName       *string
+	mime           *string
+	nonce          *[]byte
+	keySalt        *[]byte
+	passwordHash   *[]byte
+	passwordSalt   *[]byte
+	hashTime       *uint32
+	addhashTime    *int32
+	hashMemory     *uint32
+	addhashMemory  *int32
+	hashKeyLen     *uint32
+	addhashKeyLen  *int32
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*User, error)
+	predicates     []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -730,6 +732,104 @@ func (m *UserMutation) OldUsername(ctx context.Context) (v string, err error) {
 // ResetUsername resets all changes to the "username" field.
 func (m *UserMutation) ResetUsername() {
 	m.username = nil
+}
+
+// SetAlertDiscordId sets the "alertDiscordId" field.
+func (m *UserMutation) SetAlertDiscordId(s string) {
+	m.alertDiscordId = &s
+}
+
+// AlertDiscordId returns the value of the "alertDiscordId" field in the mutation.
+func (m *UserMutation) AlertDiscordId() (r string, exists bool) {
+	v := m.alertDiscordId
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAlertDiscordId returns the old "alertDiscordId" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldAlertDiscordId(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAlertDiscordId is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAlertDiscordId requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAlertDiscordId: %w", err)
+	}
+	return oldValue.AlertDiscordId, nil
+}
+
+// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
+func (m *UserMutation) ClearAlertDiscordId() {
+	m.alertDiscordId = nil
+	m.clearedFields[user.FieldAlertDiscordId] = struct{}{}
+}
+
+// AlertDiscordIdCleared returns if the "alertDiscordId" field was cleared in this mutation.
+func (m *UserMutation) AlertDiscordIdCleared() bool {
+	_, ok := m.clearedFields[user.FieldAlertDiscordId]
+	return ok
+}
+
+// ResetAlertDiscordId resets all changes to the "alertDiscordId" field.
+func (m *UserMutation) ResetAlertDiscordId() {
+	m.alertDiscordId = nil
+	delete(m.clearedFields, user.FieldAlertDiscordId)
+}
+
+// SetAlertEmail sets the "alertEmail" field.
+func (m *UserMutation) SetAlertEmail(s string) {
+	m.alertEmail = &s
+}
+
+// AlertEmail returns the value of the "alertEmail" field in the mutation.
+func (m *UserMutation) AlertEmail() (r string, exists bool) {
+	v := m.alertEmail
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAlertEmail returns the old "alertEmail" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldAlertEmail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAlertEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAlertEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAlertEmail: %w", err)
+	}
+	return oldValue.AlertEmail, nil
+}
+
+// ClearAlertEmail clears the value of the "alertEmail" field.
+func (m *UserMutation) ClearAlertEmail() {
+	m.alertEmail = nil
+	m.clearedFields[user.FieldAlertEmail] = struct{}{}
+}
+
+// AlertEmailCleared returns if the "alertEmail" field was cleared in this mutation.
+func (m *UserMutation) AlertEmailCleared() bool {
+	_, ok := m.clearedFields[user.FieldAlertEmail]
+	return ok
+}
+
+// ResetAlertEmail resets all changes to the "alertEmail" field.
+func (m *UserMutation) ResetAlertEmail() {
+	m.alertEmail = nil
+	delete(m.clearedFields, user.FieldAlertEmail)
 }
 
 // SetContent sets the "content" field.
@@ -1186,9 +1286,15 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
+	}
+	if m.alertDiscordId != nil {
+		fields = append(fields, user.FieldAlertDiscordId)
+	}
+	if m.alertEmail != nil {
+		fields = append(fields, user.FieldAlertEmail)
 	}
 	if m.content != nil {
 		fields = append(fields, user.FieldContent)
@@ -1230,6 +1336,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case user.FieldUsername:
 		return m.Username()
+	case user.FieldAlertDiscordId:
+		return m.AlertDiscordId()
+	case user.FieldAlertEmail:
+		return m.AlertEmail()
 	case user.FieldContent:
 		return m.Content()
 	case user.FieldFileName:
@@ -1261,6 +1371,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
+	case user.FieldAlertDiscordId:
+		return m.OldAlertDiscordId(ctx)
+	case user.FieldAlertEmail:
+		return m.OldAlertEmail(ctx)
 	case user.FieldContent:
 		return m.OldContent(ctx)
 	case user.FieldFileName:
@@ -1296,6 +1410,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUsername(v)
+		return nil
+	case user.FieldAlertDiscordId:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAlertDiscordId(v)
+		return nil
+	case user.FieldAlertEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAlertEmail(v)
 		return nil
 	case user.FieldContent:
 		v, ok := value.([]byte)
@@ -1435,7 +1563,14 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldAlertDiscordId) {
+		fields = append(fields, user.FieldAlertDiscordId)
+	}
+	if m.FieldCleared(user.FieldAlertEmail) {
+		fields = append(fields, user.FieldAlertEmail)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1448,6 +1583,14 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldAlertDiscordId:
+		m.ClearAlertDiscordId()
+		return nil
+	case user.FieldAlertEmail:
+		m.ClearAlertEmail()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -1457,6 +1600,12 @@ func (m *UserMutation) ResetField(name string) error {
 	switch name {
 	case user.FieldUsername:
 		m.ResetUsername()
+		return nil
+	case user.FieldAlertDiscordId:
+		m.ResetAlertDiscordId()
+		return nil
+	case user.FieldAlertEmail:
+		m.ResetAlertEmail()
 		return nil
 	case user.FieldContent:
 		m.ResetContent()

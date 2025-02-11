@@ -46,7 +46,7 @@ func Encrypt(data []byte, password string) (*EncryptedData, error) {
 	if err != nil {
 		return nil, err
 	}
-	nonce := util.CryptoRandomBytes(gcm.NonceSize()) // TODO: how bad are collisions?
+	nonce := util.CryptoRandomBytes(gcm.NonceSize())
 
 	encrypted := gcm.Seal(nil, nonce, data, nil)
 	return &EncryptedData{

@@ -57,6 +57,16 @@ func Username(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUsername, v))
 }
 
+// AlertDiscordId applies equality check predicate on the "alertDiscordId" field. It's identical to AlertDiscordIdEQ.
+func AlertDiscordId(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAlertDiscordId, v))
+}
+
+// AlertEmail applies equality check predicate on the "alertEmail" field. It's identical to AlertEmailEQ.
+func AlertEmail(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAlertEmail, v))
+}
+
 // Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
 func Content(v []byte) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldContent, v))
@@ -170,6 +180,156 @@ func UsernameEqualFold(v string) predicate.User {
 // UsernameContainsFold applies the ContainsFold predicate on the "username" field.
 func UsernameContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldUsername, v))
+}
+
+// AlertDiscordIdEQ applies the EQ predicate on the "alertDiscordId" field.
+func AlertDiscordIdEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdNEQ applies the NEQ predicate on the "alertDiscordId" field.
+func AlertDiscordIdNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdIn applies the In predicate on the "alertDiscordId" field.
+func AlertDiscordIdIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldAlertDiscordId, vs...))
+}
+
+// AlertDiscordIdNotIn applies the NotIn predicate on the "alertDiscordId" field.
+func AlertDiscordIdNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldAlertDiscordId, vs...))
+}
+
+// AlertDiscordIdGT applies the GT predicate on the "alertDiscordId" field.
+func AlertDiscordIdGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdGTE applies the GTE predicate on the "alertDiscordId" field.
+func AlertDiscordIdGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdLT applies the LT predicate on the "alertDiscordId" field.
+func AlertDiscordIdLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdLTE applies the LTE predicate on the "alertDiscordId" field.
+func AlertDiscordIdLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdContains applies the Contains predicate on the "alertDiscordId" field.
+func AlertDiscordIdContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdHasPrefix applies the HasPrefix predicate on the "alertDiscordId" field.
+func AlertDiscordIdHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdHasSuffix applies the HasSuffix predicate on the "alertDiscordId" field.
+func AlertDiscordIdHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdIsNil applies the IsNil predicate on the "alertDiscordId" field.
+func AlertDiscordIdIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldAlertDiscordId))
+}
+
+// AlertDiscordIdNotNil applies the NotNil predicate on the "alertDiscordId" field.
+func AlertDiscordIdNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldAlertDiscordId))
+}
+
+// AlertDiscordIdEqualFold applies the EqualFold predicate on the "alertDiscordId" field.
+func AlertDiscordIdEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldAlertDiscordId, v))
+}
+
+// AlertDiscordIdContainsFold applies the ContainsFold predicate on the "alertDiscordId" field.
+func AlertDiscordIdContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldAlertDiscordId, v))
+}
+
+// AlertEmailEQ applies the EQ predicate on the "alertEmail" field.
+func AlertEmailEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldAlertEmail, v))
+}
+
+// AlertEmailNEQ applies the NEQ predicate on the "alertEmail" field.
+func AlertEmailNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldAlertEmail, v))
+}
+
+// AlertEmailIn applies the In predicate on the "alertEmail" field.
+func AlertEmailIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldAlertEmail, vs...))
+}
+
+// AlertEmailNotIn applies the NotIn predicate on the "alertEmail" field.
+func AlertEmailNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldAlertEmail, vs...))
+}
+
+// AlertEmailGT applies the GT predicate on the "alertEmail" field.
+func AlertEmailGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldAlertEmail, v))
+}
+
+// AlertEmailGTE applies the GTE predicate on the "alertEmail" field.
+func AlertEmailGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldAlertEmail, v))
+}
+
+// AlertEmailLT applies the LT predicate on the "alertEmail" field.
+func AlertEmailLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldAlertEmail, v))
+}
+
+// AlertEmailLTE applies the LTE predicate on the "alertEmail" field.
+func AlertEmailLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldAlertEmail, v))
+}
+
+// AlertEmailContains applies the Contains predicate on the "alertEmail" field.
+func AlertEmailContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldAlertEmail, v))
+}
+
+// AlertEmailHasPrefix applies the HasPrefix predicate on the "alertEmail" field.
+func AlertEmailHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldAlertEmail, v))
+}
+
+// AlertEmailHasSuffix applies the HasSuffix predicate on the "alertEmail" field.
+func AlertEmailHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldAlertEmail, v))
+}
+
+// AlertEmailIsNil applies the IsNil predicate on the "alertEmail" field.
+func AlertEmailIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldAlertEmail))
+}
+
+// AlertEmailNotNil applies the NotNil predicate on the "alertEmail" field.
+func AlertEmailNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldAlertEmail))
+}
+
+// AlertEmailEqualFold applies the EqualFold predicate on the "alertEmail" field.
+func AlertEmailEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldAlertEmail, v))
+}
+
+// AlertEmailContainsFold applies the ContainsFold predicate on the "alertEmail" field.
+func AlertEmailContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldAlertEmail, v))
 }
 
 // ContentEQ applies the EQ predicate on the "content" field.

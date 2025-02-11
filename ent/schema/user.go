@@ -14,6 +14,8 @@ type User struct {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("username").Unique(),
+		field.String("alertDiscordId").Optional(),
+		field.String("alertEmail").Optional(),
 
 		field.Bytes("content"),
 		field.String("fileName"),

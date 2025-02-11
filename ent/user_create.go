@@ -27,6 +27,34 @@ func (uc *UserCreate) SetUsername(s string) *UserCreate {
 	return uc
 }
 
+// SetAlertDiscordId sets the "alertDiscordId" field.
+func (uc *UserCreate) SetAlertDiscordId(s string) *UserCreate {
+	uc.mutation.SetAlertDiscordId(s)
+	return uc
+}
+
+// SetNillableAlertDiscordId sets the "alertDiscordId" field if the given value is not nil.
+func (uc *UserCreate) SetNillableAlertDiscordId(s *string) *UserCreate {
+	if s != nil {
+		uc.SetAlertDiscordId(*s)
+	}
+	return uc
+}
+
+// SetAlertEmail sets the "alertEmail" field.
+func (uc *UserCreate) SetAlertEmail(s string) *UserCreate {
+	uc.mutation.SetAlertEmail(s)
+	return uc
+}
+
+// SetNillableAlertEmail sets the "alertEmail" field if the given value is not nil.
+func (uc *UserCreate) SetNillableAlertEmail(s *string) *UserCreate {
+	if s != nil {
+		uc.SetAlertEmail(*s)
+	}
+	return uc
+}
+
 // SetContent sets the "content" field.
 func (uc *UserCreate) SetContent(b []byte) *UserCreate {
 	uc.mutation.SetContent(b)
@@ -185,6 +213,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
 	}
+	if value, ok := uc.mutation.AlertDiscordId(); ok {
+		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
+		_node.AlertDiscordId = value
+	}
+	if value, ok := uc.mutation.AlertEmail(); ok {
+		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
+		_node.AlertEmail = value
+	}
 	if value, ok := uc.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 		_node.Content = value
@@ -286,6 +322,42 @@ func (u *UserUpsert) SetUsername(v string) *UserUpsert {
 // UpdateUsername sets the "username" field to the value that was provided on create.
 func (u *UserUpsert) UpdateUsername() *UserUpsert {
 	u.SetExcluded(user.FieldUsername)
+	return u
+}
+
+// SetAlertDiscordId sets the "alertDiscordId" field.
+func (u *UserUpsert) SetAlertDiscordId(v string) *UserUpsert {
+	u.Set(user.FieldAlertDiscordId, v)
+	return u
+}
+
+// UpdateAlertDiscordId sets the "alertDiscordId" field to the value that was provided on create.
+func (u *UserUpsert) UpdateAlertDiscordId() *UserUpsert {
+	u.SetExcluded(user.FieldAlertDiscordId)
+	return u
+}
+
+// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
+func (u *UserUpsert) ClearAlertDiscordId() *UserUpsert {
+	u.SetNull(user.FieldAlertDiscordId)
+	return u
+}
+
+// SetAlertEmail sets the "alertEmail" field.
+func (u *UserUpsert) SetAlertEmail(v string) *UserUpsert {
+	u.Set(user.FieldAlertEmail, v)
+	return u
+}
+
+// UpdateAlertEmail sets the "alertEmail" field to the value that was provided on create.
+func (u *UserUpsert) UpdateAlertEmail() *UserUpsert {
+	u.SetExcluded(user.FieldAlertEmail)
+	return u
+}
+
+// ClearAlertEmail clears the value of the "alertEmail" field.
+func (u *UserUpsert) ClearAlertEmail() *UserUpsert {
+	u.SetNull(user.FieldAlertEmail)
 	return u
 }
 
@@ -478,6 +550,48 @@ func (u *UserUpsertOne) SetUsername(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateUsername() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateUsername()
+	})
+}
+
+// SetAlertDiscordId sets the "alertDiscordId" field.
+func (u *UserUpsertOne) SetAlertDiscordId(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAlertDiscordId(v)
+	})
+}
+
+// UpdateAlertDiscordId sets the "alertDiscordId" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateAlertDiscordId() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAlertDiscordId()
+	})
+}
+
+// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
+func (u *UserUpsertOne) ClearAlertDiscordId() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAlertDiscordId()
+	})
+}
+
+// SetAlertEmail sets the "alertEmail" field.
+func (u *UserUpsertOne) SetAlertEmail(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAlertEmail(v)
+	})
+}
+
+// UpdateAlertEmail sets the "alertEmail" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateAlertEmail() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAlertEmail()
+	})
+}
+
+// ClearAlertEmail clears the value of the "alertEmail" field.
+func (u *UserUpsertOne) ClearAlertEmail() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAlertEmail()
 	})
 }
 
@@ -856,6 +970,48 @@ func (u *UserUpsertBulk) SetUsername(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateUsername() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateUsername()
+	})
+}
+
+// SetAlertDiscordId sets the "alertDiscordId" field.
+func (u *UserUpsertBulk) SetAlertDiscordId(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAlertDiscordId(v)
+	})
+}
+
+// UpdateAlertDiscordId sets the "alertDiscordId" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateAlertDiscordId() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAlertDiscordId()
+	})
+}
+
+// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
+func (u *UserUpsertBulk) ClearAlertDiscordId() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAlertDiscordId()
+	})
+}
+
+// SetAlertEmail sets the "alertEmail" field.
+func (u *UserUpsertBulk) SetAlertEmail(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetAlertEmail(v)
+	})
+}
+
+// UpdateAlertEmail sets the "alertEmail" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateAlertEmail() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateAlertEmail()
+	})
+}
+
+// ClearAlertEmail clears the value of the "alertEmail" field.
+func (u *UserUpsertBulk) ClearAlertEmail() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearAlertEmail()
 	})
 }
 

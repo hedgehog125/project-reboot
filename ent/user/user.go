@@ -13,6 +13,10 @@ const (
 	FieldID = "id"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
+	// FieldAlertDiscordId holds the string denoting the alertdiscordid field in the database.
+	FieldAlertDiscordId = "alert_discord_id"
+	// FieldAlertEmail holds the string denoting the alertemail field in the database.
+	FieldAlertEmail = "alert_email"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
 	// FieldFileName holds the string denoting the filename field in the database.
@@ -41,6 +45,8 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldUsername,
+	FieldAlertDiscordId,
+	FieldAlertEmail,
 	FieldContent,
 	FieldFileName,
 	FieldMime,
@@ -74,6 +80,16 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByUsername orders the results by the username field.
 func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
+}
+
+// ByAlertDiscordId orders the results by the alertDiscordId field.
+func ByAlertDiscordId(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAlertDiscordId, opts...).ToFunc()
+}
+
+// ByAlertEmail orders the results by the alertEmail field.
+func ByAlertEmail(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAlertEmail, opts...).ToFunc()
 }
 
 // ByFileName orders the results by the fileName field.
