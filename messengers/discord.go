@@ -1,4 +1,4 @@
-package messagers
+package messengers
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ type discord struct {
 }
 
 type Discord interface {
-	Messager
+	Messenger
 }
 
 func NewDiscord(env *intertypes.Env) Discord {
@@ -58,6 +58,8 @@ func prepareMessage(message Message) (string, error) {
 	switch message.Type {
 	case MessageLogin:
 		return fmt.Sprintf("Login attempt"), nil
+	case MessageTest:
+		return "Test message", nil
 	}
 	return "", fmt.Errorf("message type \"%v\" hasn't been implemented", message.Type)
 }

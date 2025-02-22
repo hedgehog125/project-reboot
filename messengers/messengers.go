@@ -1,14 +1,15 @@
-package messagers
+package messengers
 
 import "github.com/hedgehog125/project-reboot/ent"
 
-type Messager interface {
+type Messenger interface {
 	SendBatch(messages []Message) error
 }
 
 type MessageType string
 
 const (
+	MessageTest    = "test"
 	MessageRegular = "regular"
 	MessageLogin   = "login"
 )

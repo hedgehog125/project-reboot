@@ -17,23 +17,6 @@ func main() {
 	subfns.RunScheduler(scheduler)
 	server := subfns.RunServer(engine, env)
 
-	// { // TODO: remove
-	// 	discord := messagers.NewDiscord(env)
-	// 	row, err := dbClient.User.Query().
-	// 		Where(user.Username("user1")).
-	// 		Select(user.FieldAlertDiscordId).
-	// 		Only(context.Background())
-	// 	if err != nil {
-	// 		log.Fatalf("discord error: %v", err.Error())
-	// 	}
-	// 	fmt.Printf("%v", discord.SendBatch([]messagers.Message{
-	// 		{
-	// 			Type: messagers.MessageLogin,
-	// 			User: row,
-	// 		},
-	// 	}))
-	// }
-
 	subfns.ConfigureShutdown(
 		subfns.NewShutdownTask(func() {
 			subfns.ShutdownScheduler(scheduler)
