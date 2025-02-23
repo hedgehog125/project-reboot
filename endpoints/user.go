@@ -258,3 +258,40 @@ func RegisterUser(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClient 
 		})
 	})
 }
+
+type SetUserContactsPayload struct {
+	Username      string `json:"username" binding:"required,min=1,max=32,alphanum,lowercase"`
+	DiscordUserId string `json:"discordUserId" binding:"max=256"`
+	Email         string `json:"email" binding:"max=256"`
+}
+
+func SetUserContacts(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClient *ent.Client) {
+	engine.POST("/api/v1/users/set-user-contacts", adminMiddleware, func(ctx *gin.Context) {
+		body := SetUserContactsPayload{}
+		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?
+			return
+		}
+
+		_, err := dbClient.User.Update().
+			Where(user.Username(body.Username)).
+			SetAlertDiscordId(body.DiscordUserId).SetAlertEmail(body.Email).Save(ctx.Request.Context())
+		if err != nil {
+			if ent.IsNotFound(err) {
+				ctx.JSON(http.StatusNotFound, gin.H{
+					"errors": []string{"NO_USER"},
+				})
+			} else {
+				fmt.Printf("warning: an error occurred while updating a user:\n%v\n", err.Error())
+				ctx.JSON(http.StatusInternalServerError, gin.H{
+					"errors": []string{"INTERNAL"},
+				})
+			}
+
+			return
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"errors": []string{},
+		})
+	})
+}

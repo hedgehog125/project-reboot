@@ -41,6 +41,7 @@ func registerEndpoints(
 ) {
 	endpoints.RootRedirect(engine)
 	endpoints.RegisterUser(engine, adminMiddleware, dbClient)
+	endpoints.SetUserContacts(engine, adminMiddleware, dbClient)
 	endpoints.GetUserDownload(engine, dbClient, clock, env)
 }
 
