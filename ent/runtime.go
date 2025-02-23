@@ -7,6 +7,7 @@ import (
 
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/schema"
+	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -19,4 +20,50 @@ func init() {
 	loginattemptDescTime := loginattemptFields[0].Descriptor()
 	// loginattempt.DefaultTime holds the default value on creation for the time field.
 	loginattempt.DefaultTime = loginattemptDescTime.Default.(func() time.Time)
+	// loginattemptDescCode is the schema descriptor for code field.
+	loginattemptDescCode := loginattemptFields[1].Descriptor()
+	// loginattempt.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	loginattempt.CodeValidator = loginattemptDescCode.Validators[0].(func([]byte) error)
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescUsername is the schema descriptor for username field.
+	userDescUsername := userFields[0].Descriptor()
+	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
+	// userDescAlertDiscordId is the schema descriptor for alertDiscordId field.
+	userDescAlertDiscordId := userFields[1].Descriptor()
+	// user.DefaultAlertDiscordId holds the default value on creation for the alertDiscordId field.
+	user.DefaultAlertDiscordId = userDescAlertDiscordId.Default.(string)
+	// userDescAlertEmail is the schema descriptor for alertEmail field.
+	userDescAlertEmail := userFields[2].Descriptor()
+	// user.DefaultAlertEmail holds the default value on creation for the alertEmail field.
+	user.DefaultAlertEmail = userDescAlertEmail.Default.(string)
+	// userDescContent is the schema descriptor for content field.
+	userDescContent := userFields[3].Descriptor()
+	// user.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	user.ContentValidator = userDescContent.Validators[0].(func([]byte) error)
+	// userDescFileName is the schema descriptor for fileName field.
+	userDescFileName := userFields[4].Descriptor()
+	// user.FileNameValidator is a validator for the "fileName" field. It is called by the builders before save.
+	user.FileNameValidator = userDescFileName.Validators[0].(func(string) error)
+	// userDescMime is the schema descriptor for mime field.
+	userDescMime := userFields[5].Descriptor()
+	// user.MimeValidator is a validator for the "mime" field. It is called by the builders before save.
+	user.MimeValidator = userDescMime.Validators[0].(func(string) error)
+	// userDescNonce is the schema descriptor for nonce field.
+	userDescNonce := userFields[6].Descriptor()
+	// user.NonceValidator is a validator for the "nonce" field. It is called by the builders before save.
+	user.NonceValidator = userDescNonce.Validators[0].(func([]byte) error)
+	// userDescKeySalt is the schema descriptor for keySalt field.
+	userDescKeySalt := userFields[7].Descriptor()
+	// user.KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
+	user.KeySaltValidator = userDescKeySalt.Validators[0].(func([]byte) error)
+	// userDescPasswordHash is the schema descriptor for passwordHash field.
+	userDescPasswordHash := userFields[8].Descriptor()
+	// user.PasswordHashValidator is a validator for the "passwordHash" field. It is called by the builders before save.
+	user.PasswordHashValidator = userDescPasswordHash.Validators[0].(func([]byte) error)
+	// userDescPasswordSalt is the schema descriptor for passwordSalt field.
+	userDescPasswordSalt := userFields[9].Descriptor()
+	// user.PasswordSaltValidator is a validator for the "passwordSalt" field. It is called by the builders before save.
+	user.PasswordSaltValidator = userDescPasswordSalt.Validators[0].(func([]byte) error)
 }

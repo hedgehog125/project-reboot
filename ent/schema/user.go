@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -13,17 +14,17 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("username").Unique(),
-		field.String("alertDiscordId").Optional(),
-		field.String("alertEmail").Optional(),
+		field.String("username").Unique().NotEmpty(),
+		field.String("alertDiscordId").Default(""),
+		field.String("alertEmail").Default(""),
 
-		field.Bytes("content"),
-		field.String("fileName"),
-		field.String("mime"),
-		field.Bytes("nonce"),
-		field.Bytes("keySalt"),
-		field.Bytes("passwordHash"),
-		field.Bytes("passwordSalt"),
+		field.Bytes("content").NotEmpty(),
+		field.String("fileName").NotEmpty(),
+		field.String("mime").NotEmpty(),
+		field.Bytes("nonce").NotEmpty(),
+		field.Bytes("keySalt").NotEmpty(),
+		field.Bytes("passwordHash").NotEmpty(),
+		field.Bytes("passwordSalt").NotEmpty(),
 		field.Uint32("hashTime"),
 		field.Uint32("hashMemory"),
 		field.Uint32("hashKeyLen"),
@@ -32,5 +33,7 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("loginAttempts", LoginAttempt.Type),
+	}
 }

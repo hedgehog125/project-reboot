@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
@@ -314,6 +315,22 @@ func (c *LoginAttemptClient) GetX(ctx context.Context, id int) *LoginAttempt {
 	return obj
 }
 
+// QueryUser queries the user edge of a LoginAttempt.
+func (c *LoginAttemptClient) QueryUser(la *LoginAttempt) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := la.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(loginattempt.Table, loginattempt.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, loginattempt.UserTable, loginattempt.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(la.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *LoginAttemptClient) Hooks() []Hook {
 	return c.hooks.LoginAttempt
@@ -445,6 +462,22 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryLoginAttempts queries the loginAttempts edge of a User.
+func (c *UserClient) QueryLoginAttempts(u *User) *LoginAttemptQuery {
+	query := (&LoginAttemptClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(loginattempt.Table, loginattempt.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.LoginAttemptsTable, user.LoginAttemptsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

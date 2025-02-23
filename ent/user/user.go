@@ -4,6 +4,7 @@ package user
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -37,8 +38,17 @@ const (
 	FieldHashMemory = "hash_memory"
 	// FieldHashKeyLen holds the string denoting the hashkeylen field in the database.
 	FieldHashKeyLen = "hash_key_len"
+	// EdgeLoginAttempts holds the string denoting the loginattempts edge name in mutations.
+	EdgeLoginAttempts = "loginAttempts"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// LoginAttemptsTable is the table that holds the loginAttempts relation/edge.
+	LoginAttemptsTable = "login_attempts"
+	// LoginAttemptsInverseTable is the table name for the LoginAttempt entity.
+	// It exists in this package in order to avoid circular dependency with the "loginattempt" package.
+	LoginAttemptsInverseTable = "login_attempts"
+	// LoginAttemptsColumn is the table column denoting the loginAttempts relation/edge.
+	LoginAttemptsColumn = "user_login_attempts"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -68,6 +78,29 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	UsernameValidator func(string) error
+	// DefaultAlertDiscordId holds the default value on creation for the "alertDiscordId" field.
+	DefaultAlertDiscordId string
+	// DefaultAlertEmail holds the default value on creation for the "alertEmail" field.
+	DefaultAlertEmail string
+	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	ContentValidator func([]byte) error
+	// FileNameValidator is a validator for the "fileName" field. It is called by the builders before save.
+	FileNameValidator func(string) error
+	// MimeValidator is a validator for the "mime" field. It is called by the builders before save.
+	MimeValidator func(string) error
+	// NonceValidator is a validator for the "nonce" field. It is called by the builders before save.
+	NonceValidator func([]byte) error
+	// KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
+	KeySaltValidator func([]byte) error
+	// PasswordHashValidator is a validator for the "passwordHash" field. It is called by the builders before save.
+	PasswordHashValidator func([]byte) error
+	// PasswordSaltValidator is a validator for the "passwordSalt" field. It is called by the builders before save.
+	PasswordSaltValidator func([]byte) error
+)
 
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
@@ -115,4 +148,25 @@ func ByHashMemory(opts ...sql.OrderTermOption) OrderOption {
 // ByHashKeyLen orders the results by the hashKeyLen field.
 func ByHashKeyLen(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHashKeyLen, opts...).ToFunc()
+}
+
+// ByLoginAttemptsCount orders the results by loginAttempts count.
+func ByLoginAttemptsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLoginAttemptsStep(), opts...)
+	}
+}
+
+// ByLoginAttempts orders the results by loginAttempts terms.
+func ByLoginAttempts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLoginAttemptsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newLoginAttemptsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LoginAttemptsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LoginAttemptsTable, LoginAttemptsColumn),
+	)
 }

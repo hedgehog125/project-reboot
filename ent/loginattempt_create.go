@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
+	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
@@ -37,12 +38,6 @@ func (lac *LoginAttemptCreate) SetNillableTime(t *time.Time) *LoginAttemptCreate
 	return lac
 }
 
-// SetUsername sets the "username" field.
-func (lac *LoginAttemptCreate) SetUsername(s string) *LoginAttemptCreate {
-	lac.mutation.SetUsername(s)
-	return lac
-}
-
 // SetCode sets the "code" field.
 func (lac *LoginAttemptCreate) SetCode(b []byte) *LoginAttemptCreate {
 	lac.mutation.SetCode(b)
@@ -59,6 +54,25 @@ func (lac *LoginAttemptCreate) SetCodeValidFrom(t time.Time) *LoginAttemptCreate
 func (lac *LoginAttemptCreate) SetInfo(iai *intertypes.LoginAttemptInfo) *LoginAttemptCreate {
 	lac.mutation.SetInfo(iai)
 	return lac
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (lac *LoginAttemptCreate) SetUserID(id int) *LoginAttemptCreate {
+	lac.mutation.SetUserID(id)
+	return lac
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (lac *LoginAttemptCreate) SetNillableUserID(id *int) *LoginAttemptCreate {
+	if id != nil {
+		lac = lac.SetUserID(*id)
+	}
+	return lac
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (lac *LoginAttemptCreate) SetUser(u *User) *LoginAttemptCreate {
+	return lac.SetUserID(u.ID)
 }
 
 // Mutation returns the LoginAttemptMutation object of the builder.
@@ -107,11 +121,13 @@ func (lac *LoginAttemptCreate) check() error {
 	if _, ok := lac.mutation.Time(); !ok {
 		return &ValidationError{Name: "time", err: errors.New(`ent: missing required field "LoginAttempt.time"`)}
 	}
-	if _, ok := lac.mutation.Username(); !ok {
-		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "LoginAttempt.username"`)}
-	}
 	if _, ok := lac.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "LoginAttempt.code"`)}
+	}
+	if v, ok := lac.mutation.Code(); ok {
+		if err := loginattempt.CodeValidator(v); err != nil {
+			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "LoginAttempt.code": %w`, err)}
+		}
 	}
 	if _, ok := lac.mutation.CodeValidFrom(); !ok {
 		return &ValidationError{Name: "codeValidFrom", err: errors.New(`ent: missing required field "LoginAttempt.codeValidFrom"`)}
@@ -150,10 +166,6 @@ func (lac *LoginAttemptCreate) createSpec() (*LoginAttempt, *sqlgraph.CreateSpec
 		_spec.SetField(loginattempt.FieldTime, field.TypeTime, value)
 		_node.Time = value
 	}
-	if value, ok := lac.mutation.Username(); ok {
-		_spec.SetField(loginattempt.FieldUsername, field.TypeString, value)
-		_node.Username = value
-	}
 	if value, ok := lac.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeBytes, value)
 		_node.Code = value
@@ -165,6 +177,23 @@ func (lac *LoginAttemptCreate) createSpec() (*LoginAttempt, *sqlgraph.CreateSpec
 	if value, ok := lac.mutation.Info(); ok {
 		_spec.SetField(loginattempt.FieldInfo, field.TypeJSON, value)
 		_node.Info = value
+	}
+	if nodes := lac.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   loginattempt.UserTable,
+			Columns: []string{loginattempt.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_login_attempts = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -227,18 +256,6 @@ func (u *LoginAttemptUpsert) SetTime(v time.Time) *LoginAttemptUpsert {
 // UpdateTime sets the "time" field to the value that was provided on create.
 func (u *LoginAttemptUpsert) UpdateTime() *LoginAttemptUpsert {
 	u.SetExcluded(loginattempt.FieldTime)
-	return u
-}
-
-// SetUsername sets the "username" field.
-func (u *LoginAttemptUpsert) SetUsername(v string) *LoginAttemptUpsert {
-	u.Set(loginattempt.FieldUsername, v)
-	return u
-}
-
-// UpdateUsername sets the "username" field to the value that was provided on create.
-func (u *LoginAttemptUpsert) UpdateUsername() *LoginAttemptUpsert {
-	u.SetExcluded(loginattempt.FieldUsername)
 	return u
 }
 
@@ -329,20 +346,6 @@ func (u *LoginAttemptUpsertOne) SetTime(v time.Time) *LoginAttemptUpsertOne {
 func (u *LoginAttemptUpsertOne) UpdateTime() *LoginAttemptUpsertOne {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.UpdateTime()
-	})
-}
-
-// SetUsername sets the "username" field.
-func (u *LoginAttemptUpsertOne) SetUsername(v string) *LoginAttemptUpsertOne {
-	return u.Update(func(s *LoginAttemptUpsert) {
-		s.SetUsername(v)
-	})
-}
-
-// UpdateUsername sets the "username" field to the value that was provided on create.
-func (u *LoginAttemptUpsertOne) UpdateUsername() *LoginAttemptUpsertOne {
-	return u.Update(func(s *LoginAttemptUpsert) {
-		s.UpdateUsername()
 	})
 }
 
@@ -603,20 +606,6 @@ func (u *LoginAttemptUpsertBulk) SetTime(v time.Time) *LoginAttemptUpsertBulk {
 func (u *LoginAttemptUpsertBulk) UpdateTime() *LoginAttemptUpsertBulk {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.UpdateTime()
-	})
-}
-
-// SetUsername sets the "username" field.
-func (u *LoginAttemptUpsertBulk) SetUsername(v string) *LoginAttemptUpsertBulk {
-	return u.Update(func(s *LoginAttemptUpsert) {
-		s.SetUsername(v)
-	})
-}
-
-// UpdateUsername sets the "username" field to the value that was provided on create.
-func (u *LoginAttemptUpsertBulk) UpdateUsername() *LoginAttemptUpsertBulk {
-	return u.Update(func(s *LoginAttemptUpsert) {
-		s.UpdateUsername()
 	})
 }
 

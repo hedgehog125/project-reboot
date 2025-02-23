@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
@@ -115,6 +116,21 @@ func (uc *UserCreate) SetHashKeyLen(u uint32) *UserCreate {
 	return uc
 }
 
+// AddLoginAttemptIDs adds the "loginAttempts" edge to the LoginAttempt entity by IDs.
+func (uc *UserCreate) AddLoginAttemptIDs(ids ...int) *UserCreate {
+	uc.mutation.AddLoginAttemptIDs(ids...)
+	return uc
+}
+
+// AddLoginAttempts adds the "loginAttempts" edges to the LoginAttempt entity.
+func (uc *UserCreate) AddLoginAttempts(l ...*LoginAttempt) *UserCreate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uc.AddLoginAttemptIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -122,6 +138,7 @@ func (uc *UserCreate) Mutation() *UserMutation {
 
 // Save creates the User in the database.
 func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
+	uc.defaults()
 	return withHooks(ctx, uc.sqlSave, uc.mutation, uc.hooks)
 }
 
@@ -147,31 +164,89 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (uc *UserCreate) defaults() {
+	if _, ok := uc.mutation.AlertDiscordId(); !ok {
+		v := user.DefaultAlertDiscordId
+		uc.mutation.SetAlertDiscordId(v)
+	}
+	if _, ok := uc.mutation.AlertEmail(); !ok {
+		v := user.DefaultAlertEmail
+		uc.mutation.SetAlertEmail(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
 	}
+	if v, ok := uc.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
+		}
+	}
+	if _, ok := uc.mutation.AlertDiscordId(); !ok {
+		return &ValidationError{Name: "alertDiscordId", err: errors.New(`ent: missing required field "User.alertDiscordId"`)}
+	}
+	if _, ok := uc.mutation.AlertEmail(); !ok {
+		return &ValidationError{Name: "alertEmail", err: errors.New(`ent: missing required field "User.alertEmail"`)}
+	}
 	if _, ok := uc.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "User.content"`)}
+	}
+	if v, ok := uc.mutation.Content(); ok {
+		if err := user.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "User.content": %w`, err)}
+		}
 	}
 	if _, ok := uc.mutation.FileName(); !ok {
 		return &ValidationError{Name: "fileName", err: errors.New(`ent: missing required field "User.fileName"`)}
 	}
+	if v, ok := uc.mutation.FileName(); ok {
+		if err := user.FileNameValidator(v); err != nil {
+			return &ValidationError{Name: "fileName", err: fmt.Errorf(`ent: validator failed for field "User.fileName": %w`, err)}
+		}
+	}
 	if _, ok := uc.mutation.Mime(); !ok {
 		return &ValidationError{Name: "mime", err: errors.New(`ent: missing required field "User.mime"`)}
+	}
+	if v, ok := uc.mutation.Mime(); ok {
+		if err := user.MimeValidator(v); err != nil {
+			return &ValidationError{Name: "mime", err: fmt.Errorf(`ent: validator failed for field "User.mime": %w`, err)}
+		}
 	}
 	if _, ok := uc.mutation.Nonce(); !ok {
 		return &ValidationError{Name: "nonce", err: errors.New(`ent: missing required field "User.nonce"`)}
 	}
+	if v, ok := uc.mutation.Nonce(); ok {
+		if err := user.NonceValidator(v); err != nil {
+			return &ValidationError{Name: "nonce", err: fmt.Errorf(`ent: validator failed for field "User.nonce": %w`, err)}
+		}
+	}
 	if _, ok := uc.mutation.KeySalt(); !ok {
 		return &ValidationError{Name: "keySalt", err: errors.New(`ent: missing required field "User.keySalt"`)}
+	}
+	if v, ok := uc.mutation.KeySalt(); ok {
+		if err := user.KeySaltValidator(v); err != nil {
+			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
+		}
 	}
 	if _, ok := uc.mutation.PasswordHash(); !ok {
 		return &ValidationError{Name: "passwordHash", err: errors.New(`ent: missing required field "User.passwordHash"`)}
 	}
+	if v, ok := uc.mutation.PasswordHash(); ok {
+		if err := user.PasswordHashValidator(v); err != nil {
+			return &ValidationError{Name: "passwordHash", err: fmt.Errorf(`ent: validator failed for field "User.passwordHash": %w`, err)}
+		}
+	}
 	if _, ok := uc.mutation.PasswordSalt(); !ok {
 		return &ValidationError{Name: "passwordSalt", err: errors.New(`ent: missing required field "User.passwordSalt"`)}
+	}
+	if v, ok := uc.mutation.PasswordSalt(); ok {
+		if err := user.PasswordSaltValidator(v); err != nil {
+			return &ValidationError{Name: "passwordSalt", err: fmt.Errorf(`ent: validator failed for field "User.passwordSalt": %w`, err)}
+		}
 	}
 	if _, ok := uc.mutation.HashTime(); !ok {
 		return &ValidationError{Name: "hashTime", err: errors.New(`ent: missing required field "User.hashTime"`)}
@@ -261,6 +336,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldHashKeyLen, field.TypeUint32, value)
 		_node.HashKeyLen = value
 	}
+	if nodes := uc.mutation.LoginAttemptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginAttemptsTable,
+			Columns: []string{user.LoginAttemptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -337,12 +428,6 @@ func (u *UserUpsert) UpdateAlertDiscordId() *UserUpsert {
 	return u
 }
 
-// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
-func (u *UserUpsert) ClearAlertDiscordId() *UserUpsert {
-	u.SetNull(user.FieldAlertDiscordId)
-	return u
-}
-
 // SetAlertEmail sets the "alertEmail" field.
 func (u *UserUpsert) SetAlertEmail(v string) *UserUpsert {
 	u.Set(user.FieldAlertEmail, v)
@@ -352,12 +437,6 @@ func (u *UserUpsert) SetAlertEmail(v string) *UserUpsert {
 // UpdateAlertEmail sets the "alertEmail" field to the value that was provided on create.
 func (u *UserUpsert) UpdateAlertEmail() *UserUpsert {
 	u.SetExcluded(user.FieldAlertEmail)
-	return u
-}
-
-// ClearAlertEmail clears the value of the "alertEmail" field.
-func (u *UserUpsert) ClearAlertEmail() *UserUpsert {
-	u.SetNull(user.FieldAlertEmail)
 	return u
 }
 
@@ -567,13 +646,6 @@ func (u *UserUpsertOne) UpdateAlertDiscordId() *UserUpsertOne {
 	})
 }
 
-// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
-func (u *UserUpsertOne) ClearAlertDiscordId() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearAlertDiscordId()
-	})
-}
-
 // SetAlertEmail sets the "alertEmail" field.
 func (u *UserUpsertOne) SetAlertEmail(v string) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
@@ -585,13 +657,6 @@ func (u *UserUpsertOne) SetAlertEmail(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateAlertEmail() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateAlertEmail()
-	})
-}
-
-// ClearAlertEmail clears the value of the "alertEmail" field.
-func (u *UserUpsertOne) ClearAlertEmail() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearAlertEmail()
 	})
 }
 
@@ -808,6 +873,7 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 	for i := range ucb.builders {
 		func(i int, root context.Context) {
 			builder := ucb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*UserMutation)
 				if !ok {
@@ -987,13 +1053,6 @@ func (u *UserUpsertBulk) UpdateAlertDiscordId() *UserUpsertBulk {
 	})
 }
 
-// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
-func (u *UserUpsertBulk) ClearAlertDiscordId() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearAlertDiscordId()
-	})
-}
-
 // SetAlertEmail sets the "alertEmail" field.
 func (u *UserUpsertBulk) SetAlertEmail(v string) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
@@ -1005,13 +1064,6 @@ func (u *UserUpsertBulk) SetAlertEmail(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateAlertEmail() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateAlertEmail()
-	})
-}
-
-// ClearAlertEmail clears the value of the "alertEmail" field.
-func (u *UserUpsertBulk) ClearAlertEmail() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearAlertEmail()
 	})
 }
 

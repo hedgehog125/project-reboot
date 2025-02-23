@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
 // LoginAttemptQuery is the builder for querying LoginAttempt entities.
@@ -22,6 +23,8 @@ type LoginAttemptQuery struct {
 	order      []loginattempt.OrderOption
 	inters     []Interceptor
 	predicates []predicate.LoginAttempt
+	withUser   *UserQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (laq *LoginAttemptQuery) Unique(unique bool) *LoginAttemptQuery {
 func (laq *LoginAttemptQuery) Order(o ...loginattempt.OrderOption) *LoginAttemptQuery {
 	laq.order = append(laq.order, o...)
 	return laq
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (laq *LoginAttemptQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: laq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := laq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := laq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(loginattempt.Table, loginattempt.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, loginattempt.UserTable, loginattempt.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(laq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first LoginAttempt entity from the query.
@@ -250,10 +275,22 @@ func (laq *LoginAttemptQuery) Clone() *LoginAttemptQuery {
 		order:      append([]loginattempt.OrderOption{}, laq.order...),
 		inters:     append([]Interceptor{}, laq.inters...),
 		predicates: append([]predicate.LoginAttempt{}, laq.predicates...),
+		withUser:   laq.withUser.Clone(),
 		// clone intermediate query.
 		sql:  laq.sql.Clone(),
 		path: laq.path,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (laq *LoginAttemptQuery) WithUser(opts ...func(*UserQuery)) *LoginAttemptQuery {
+	query := (&UserClient{config: laq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	laq.withUser = query
+	return laq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,15 +369,26 @@ func (laq *LoginAttemptQuery) prepareQuery(ctx context.Context) error {
 
 func (laq *LoginAttemptQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*LoginAttempt, error) {
 	var (
-		nodes = []*LoginAttempt{}
-		_spec = laq.querySpec()
+		nodes       = []*LoginAttempt{}
+		withFKs     = laq.withFKs
+		_spec       = laq.querySpec()
+		loadedTypes = [1]bool{
+			laq.withUser != nil,
+		}
 	)
+	if laq.withUser != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, loginattempt.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*LoginAttempt).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &LoginAttempt{config: laq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +400,46 @@ func (laq *LoginAttemptQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := laq.withUser; query != nil {
+		if err := laq.loadUser(ctx, query, nodes, nil,
+			func(n *LoginAttempt, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (laq *LoginAttemptQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*LoginAttempt, init func(*LoginAttempt), assign func(*LoginAttempt, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*LoginAttempt)
+	for i := range nodes {
+		if nodes[i].user_login_attempts == nil {
+			continue
+		}
+		fk := *nodes[i].user_login_attempts
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_login_attempts" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (laq *LoginAttemptQuery) sqlCount(ctx context.Context) (int, error) {

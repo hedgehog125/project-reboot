@@ -12,23 +12,31 @@ var (
 	LoginAttemptsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "time", Type: field.TypeTime},
-		{Name: "username", Type: field.TypeString},
 		{Name: "code", Type: field.TypeBytes, Unique: true},
 		{Name: "code_valid_from", Type: field.TypeTime},
 		{Name: "info", Type: field.TypeJSON},
+		{Name: "user_login_attempts", Type: field.TypeInt, Nullable: true},
 	}
 	// LoginAttemptsTable holds the schema information for the "login_attempts" table.
 	LoginAttemptsTable = &schema.Table{
 		Name:       "login_attempts",
 		Columns:    LoginAttemptsColumns,
 		PrimaryKey: []*schema.Column{LoginAttemptsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "login_attempts_users_loginAttempts",
+				Columns:    []*schema.Column{LoginAttemptsColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "username", Type: field.TypeString, Unique: true},
-		{Name: "alert_discord_id", Type: field.TypeString, Nullable: true},
-		{Name: "alert_email", Type: field.TypeString, Nullable: true},
+		{Name: "alert_discord_id", Type: field.TypeString, Default: ""},
+		{Name: "alert_email", Type: field.TypeString, Default: ""},
 		{Name: "content", Type: field.TypeBytes},
 		{Name: "file_name", Type: field.TypeString},
 		{Name: "mime", Type: field.TypeString},
@@ -54,4 +62,5 @@ var (
 )
 
 func init() {
+	LoginAttemptsTable.ForeignKeys[0].RefTable = UsersTable
 }

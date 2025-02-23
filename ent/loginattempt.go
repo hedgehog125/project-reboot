@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
+	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
@@ -21,15 +22,37 @@ type LoginAttempt struct {
 	ID int `json:"id,omitempty"`
 	// Time holds the value of the "time" field.
 	Time time.Time `json:"time,omitempty"`
-	// Username holds the value of the "username" field.
-	Username string `json:"username,omitempty"`
 	// Code holds the value of the "code" field.
 	Code []byte `json:"code,omitempty"`
 	// CodeValidFrom holds the value of the "codeValidFrom" field.
 	CodeValidFrom time.Time `json:"codeValidFrom,omitempty"`
 	// Info holds the value of the "info" field.
-	Info         *intertypes.LoginAttemptInfo `json:"info,omitempty"`
-	selectValues sql.SelectValues
+	Info *intertypes.LoginAttemptInfo `json:"info,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the LoginAttemptQuery when eager-loading is set.
+	Edges               LoginAttemptEdges `json:"edges"`
+	user_login_attempts *int
+	selectValues        sql.SelectValues
+}
+
+// LoginAttemptEdges holds the relations/edges for other nodes in the graph.
+type LoginAttemptEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LoginAttemptEdges) UserOrErr() (*User, error) {
+	if e.User != nil {
+		return e.User, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -41,10 +64,10 @@ func (*LoginAttempt) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case loginattempt.FieldID:
 			values[i] = new(sql.NullInt64)
-		case loginattempt.FieldUsername:
-			values[i] = new(sql.NullString)
 		case loginattempt.FieldTime, loginattempt.FieldCodeValidFrom:
 			values[i] = new(sql.NullTime)
+		case loginattempt.ForeignKeys[0]: // user_login_attempts
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -72,12 +95,6 @@ func (la *LoginAttempt) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				la.Time = value.Time
 			}
-		case loginattempt.FieldUsername:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field username", values[i])
-			} else if value.Valid {
-				la.Username = value.String
-			}
 		case loginattempt.FieldCode:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
@@ -98,6 +115,13 @@ func (la *LoginAttempt) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field info: %w", err)
 				}
 			}
+		case loginattempt.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_login_attempts", value)
+			} else if value.Valid {
+				la.user_login_attempts = new(int)
+				*la.user_login_attempts = int(value.Int64)
+			}
 		default:
 			la.selectValues.Set(columns[i], values[i])
 		}
@@ -109,6 +133,11 @@ func (la *LoginAttempt) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (la *LoginAttempt) Value(name string) (ent.Value, error) {
 	return la.selectValues.Get(name)
+}
+
+// QueryUser queries the "user" edge of the LoginAttempt entity.
+func (la *LoginAttempt) QueryUser() *UserQuery {
+	return NewLoginAttemptClient(la.config).QueryUser(la)
 }
 
 // Update returns a builder for updating this LoginAttempt.
@@ -136,9 +165,6 @@ func (la *LoginAttempt) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", la.ID))
 	builder.WriteString("time=")
 	builder.WriteString(la.Time.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("username=")
-	builder.WriteString(la.Username)
 	builder.WriteString(", ")
 	builder.WriteString("code=")
 	builder.WriteString(fmt.Sprintf("%v", la.Code))

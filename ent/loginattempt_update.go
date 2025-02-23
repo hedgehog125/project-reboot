@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
@@ -43,20 +44,6 @@ func (lau *LoginAttemptUpdate) SetNillableTime(t *time.Time) *LoginAttemptUpdate
 	return lau
 }
 
-// SetUsername sets the "username" field.
-func (lau *LoginAttemptUpdate) SetUsername(s string) *LoginAttemptUpdate {
-	lau.mutation.SetUsername(s)
-	return lau
-}
-
-// SetNillableUsername sets the "username" field if the given value is not nil.
-func (lau *LoginAttemptUpdate) SetNillableUsername(s *string) *LoginAttemptUpdate {
-	if s != nil {
-		lau.SetUsername(*s)
-	}
-	return lau
-}
-
 // SetCode sets the "code" field.
 func (lau *LoginAttemptUpdate) SetCode(b []byte) *LoginAttemptUpdate {
 	lau.mutation.SetCode(b)
@@ -83,9 +70,34 @@ func (lau *LoginAttemptUpdate) SetInfo(iai *intertypes.LoginAttemptInfo) *LoginA
 	return lau
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (lau *LoginAttemptUpdate) SetUserID(id int) *LoginAttemptUpdate {
+	lau.mutation.SetUserID(id)
+	return lau
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (lau *LoginAttemptUpdate) SetNillableUserID(id *int) *LoginAttemptUpdate {
+	if id != nil {
+		lau = lau.SetUserID(*id)
+	}
+	return lau
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (lau *LoginAttemptUpdate) SetUser(u *User) *LoginAttemptUpdate {
+	return lau.SetUserID(u.ID)
+}
+
 // Mutation returns the LoginAttemptMutation object of the builder.
 func (lau *LoginAttemptUpdate) Mutation() *LoginAttemptMutation {
 	return lau.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (lau *LoginAttemptUpdate) ClearUser() *LoginAttemptUpdate {
+	lau.mutation.ClearUser()
+	return lau
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -115,7 +127,20 @@ func (lau *LoginAttemptUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (lau *LoginAttemptUpdate) check() error {
+	if v, ok := lau.mutation.Code(); ok {
+		if err := loginattempt.CodeValidator(v); err != nil {
+			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "LoginAttempt.code": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (lau *LoginAttemptUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := lau.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(loginattempt.Table, loginattempt.Columns, sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt))
 	if ps := lau.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -127,9 +152,6 @@ func (lau *LoginAttemptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := lau.mutation.Time(); ok {
 		_spec.SetField(loginattempt.FieldTime, field.TypeTime, value)
 	}
-	if value, ok := lau.mutation.Username(); ok {
-		_spec.SetField(loginattempt.FieldUsername, field.TypeString, value)
-	}
 	if value, ok := lau.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeBytes, value)
 	}
@@ -138,6 +160,35 @@ func (lau *LoginAttemptUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := lau.mutation.Info(); ok {
 		_spec.SetField(loginattempt.FieldInfo, field.TypeJSON, value)
+	}
+	if lau.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   loginattempt.UserTable,
+			Columns: []string{loginattempt.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lau.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   loginattempt.UserTable,
+			Columns: []string{loginattempt.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, lau.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -173,20 +224,6 @@ func (lauo *LoginAttemptUpdateOne) SetNillableTime(t *time.Time) *LoginAttemptUp
 	return lauo
 }
 
-// SetUsername sets the "username" field.
-func (lauo *LoginAttemptUpdateOne) SetUsername(s string) *LoginAttemptUpdateOne {
-	lauo.mutation.SetUsername(s)
-	return lauo
-}
-
-// SetNillableUsername sets the "username" field if the given value is not nil.
-func (lauo *LoginAttemptUpdateOne) SetNillableUsername(s *string) *LoginAttemptUpdateOne {
-	if s != nil {
-		lauo.SetUsername(*s)
-	}
-	return lauo
-}
-
 // SetCode sets the "code" field.
 func (lauo *LoginAttemptUpdateOne) SetCode(b []byte) *LoginAttemptUpdateOne {
 	lauo.mutation.SetCode(b)
@@ -213,9 +250,34 @@ func (lauo *LoginAttemptUpdateOne) SetInfo(iai *intertypes.LoginAttemptInfo) *Lo
 	return lauo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (lauo *LoginAttemptUpdateOne) SetUserID(id int) *LoginAttemptUpdateOne {
+	lauo.mutation.SetUserID(id)
+	return lauo
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (lauo *LoginAttemptUpdateOne) SetNillableUserID(id *int) *LoginAttemptUpdateOne {
+	if id != nil {
+		lauo = lauo.SetUserID(*id)
+	}
+	return lauo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (lauo *LoginAttemptUpdateOne) SetUser(u *User) *LoginAttemptUpdateOne {
+	return lauo.SetUserID(u.ID)
+}
+
 // Mutation returns the LoginAttemptMutation object of the builder.
 func (lauo *LoginAttemptUpdateOne) Mutation() *LoginAttemptMutation {
 	return lauo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (lauo *LoginAttemptUpdateOne) ClearUser() *LoginAttemptUpdateOne {
+	lauo.mutation.ClearUser()
+	return lauo
 }
 
 // Where appends a list predicates to the LoginAttemptUpdate builder.
@@ -258,7 +320,20 @@ func (lauo *LoginAttemptUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (lauo *LoginAttemptUpdateOne) check() error {
+	if v, ok := lauo.mutation.Code(); ok {
+		if err := loginattempt.CodeValidator(v); err != nil {
+			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "LoginAttempt.code": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (lauo *LoginAttemptUpdateOne) sqlSave(ctx context.Context) (_node *LoginAttempt, err error) {
+	if err := lauo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(loginattempt.Table, loginattempt.Columns, sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt))
 	id, ok := lauo.mutation.ID()
 	if !ok {
@@ -287,9 +362,6 @@ func (lauo *LoginAttemptUpdateOne) sqlSave(ctx context.Context) (_node *LoginAtt
 	if value, ok := lauo.mutation.Time(); ok {
 		_spec.SetField(loginattempt.FieldTime, field.TypeTime, value)
 	}
-	if value, ok := lauo.mutation.Username(); ok {
-		_spec.SetField(loginattempt.FieldUsername, field.TypeString, value)
-	}
 	if value, ok := lauo.mutation.Code(); ok {
 		_spec.SetField(loginattempt.FieldCode, field.TypeBytes, value)
 	}
@@ -298,6 +370,35 @@ func (lauo *LoginAttemptUpdateOne) sqlSave(ctx context.Context) (_node *LoginAtt
 	}
 	if value, ok := lauo.mutation.Info(); ok {
 		_spec.SetField(loginattempt.FieldInfo, field.TypeJSON, value)
+	}
+	if lauo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   loginattempt.UserTable,
+			Columns: []string{loginattempt.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lauo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   loginattempt.UserTable,
+			Columns: []string{loginattempt.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &LoginAttempt{config: lauo.config}
 	_spec.Assign = _node.assignValues

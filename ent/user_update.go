@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
@@ -55,12 +56,6 @@ func (uu *UserUpdate) SetNillableAlertDiscordId(s *string) *UserUpdate {
 	return uu
 }
 
-// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
-func (uu *UserUpdate) ClearAlertDiscordId() *UserUpdate {
-	uu.mutation.ClearAlertDiscordId()
-	return uu
-}
-
 // SetAlertEmail sets the "alertEmail" field.
 func (uu *UserUpdate) SetAlertEmail(s string) *UserUpdate {
 	uu.mutation.SetAlertEmail(s)
@@ -72,12 +67,6 @@ func (uu *UserUpdate) SetNillableAlertEmail(s *string) *UserUpdate {
 	if s != nil {
 		uu.SetAlertEmail(*s)
 	}
-	return uu
-}
-
-// ClearAlertEmail clears the value of the "alertEmail" field.
-func (uu *UserUpdate) ClearAlertEmail() *UserUpdate {
-	uu.mutation.ClearAlertEmail()
 	return uu
 }
 
@@ -202,9 +191,45 @@ func (uu *UserUpdate) AddHashKeyLen(u int32) *UserUpdate {
 	return uu
 }
 
+// AddLoginAttemptIDs adds the "loginAttempts" edge to the LoginAttempt entity by IDs.
+func (uu *UserUpdate) AddLoginAttemptIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddLoginAttemptIDs(ids...)
+	return uu
+}
+
+// AddLoginAttempts adds the "loginAttempts" edges to the LoginAttempt entity.
+func (uu *UserUpdate) AddLoginAttempts(l ...*LoginAttempt) *UserUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uu.AddLoginAttemptIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
+}
+
+// ClearLoginAttempts clears all "loginAttempts" edges to the LoginAttempt entity.
+func (uu *UserUpdate) ClearLoginAttempts() *UserUpdate {
+	uu.mutation.ClearLoginAttempts()
+	return uu
+}
+
+// RemoveLoginAttemptIDs removes the "loginAttempts" edge to LoginAttempt entities by IDs.
+func (uu *UserUpdate) RemoveLoginAttemptIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveLoginAttemptIDs(ids...)
+	return uu
+}
+
+// RemoveLoginAttempts removes "loginAttempts" edges to LoginAttempt entities.
+func (uu *UserUpdate) RemoveLoginAttempts(l ...*LoginAttempt) *UserUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uu.RemoveLoginAttemptIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -234,7 +259,55 @@ func (uu *UserUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (uu *UserUpdate) check() error {
+	if v, ok := uu.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.Content(); ok {
+		if err := user.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "User.content": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.FileName(); ok {
+		if err := user.FileNameValidator(v); err != nil {
+			return &ValidationError{Name: "fileName", err: fmt.Errorf(`ent: validator failed for field "User.fileName": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.Mime(); ok {
+		if err := user.MimeValidator(v); err != nil {
+			return &ValidationError{Name: "mime", err: fmt.Errorf(`ent: validator failed for field "User.mime": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.Nonce(); ok {
+		if err := user.NonceValidator(v); err != nil {
+			return &ValidationError{Name: "nonce", err: fmt.Errorf(`ent: validator failed for field "User.nonce": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.KeySalt(); ok {
+		if err := user.KeySaltValidator(v); err != nil {
+			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.PasswordHash(); ok {
+		if err := user.PasswordHashValidator(v); err != nil {
+			return &ValidationError{Name: "passwordHash", err: fmt.Errorf(`ent: validator failed for field "User.passwordHash": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.PasswordSalt(); ok {
+		if err := user.PasswordSaltValidator(v); err != nil {
+			return &ValidationError{Name: "passwordSalt", err: fmt.Errorf(`ent: validator failed for field "User.passwordSalt": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := uu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	if ps := uu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -249,14 +322,8 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.AlertDiscordId(); ok {
 		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
 	}
-	if uu.mutation.AlertDiscordIdCleared() {
-		_spec.ClearField(user.FieldAlertDiscordId, field.TypeString)
-	}
 	if value, ok := uu.mutation.AlertEmail(); ok {
 		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
-	}
-	if uu.mutation.AlertEmailCleared() {
-		_spec.ClearField(user.FieldAlertEmail, field.TypeString)
 	}
 	if value, ok := uu.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
@@ -296,6 +363,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.AddedHashKeyLen(); ok {
 		_spec.AddField(user.FieldHashKeyLen, field.TypeUint32, value)
+	}
+	if uu.mutation.LoginAttemptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginAttemptsTable,
+			Columns: []string{user.LoginAttemptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedLoginAttemptsIDs(); len(nodes) > 0 && !uu.mutation.LoginAttemptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginAttemptsTable,
+			Columns: []string{user.LoginAttemptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.LoginAttemptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginAttemptsTable,
+			Columns: []string{user.LoginAttemptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -345,12 +457,6 @@ func (uuo *UserUpdateOne) SetNillableAlertDiscordId(s *string) *UserUpdateOne {
 	return uuo
 }
 
-// ClearAlertDiscordId clears the value of the "alertDiscordId" field.
-func (uuo *UserUpdateOne) ClearAlertDiscordId() *UserUpdateOne {
-	uuo.mutation.ClearAlertDiscordId()
-	return uuo
-}
-
 // SetAlertEmail sets the "alertEmail" field.
 func (uuo *UserUpdateOne) SetAlertEmail(s string) *UserUpdateOne {
 	uuo.mutation.SetAlertEmail(s)
@@ -362,12 +468,6 @@ func (uuo *UserUpdateOne) SetNillableAlertEmail(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetAlertEmail(*s)
 	}
-	return uuo
-}
-
-// ClearAlertEmail clears the value of the "alertEmail" field.
-func (uuo *UserUpdateOne) ClearAlertEmail() *UserUpdateOne {
-	uuo.mutation.ClearAlertEmail()
 	return uuo
 }
 
@@ -492,9 +592,45 @@ func (uuo *UserUpdateOne) AddHashKeyLen(u int32) *UserUpdateOne {
 	return uuo
 }
 
+// AddLoginAttemptIDs adds the "loginAttempts" edge to the LoginAttempt entity by IDs.
+func (uuo *UserUpdateOne) AddLoginAttemptIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddLoginAttemptIDs(ids...)
+	return uuo
+}
+
+// AddLoginAttempts adds the "loginAttempts" edges to the LoginAttempt entity.
+func (uuo *UserUpdateOne) AddLoginAttempts(l ...*LoginAttempt) *UserUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uuo.AddLoginAttemptIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
+}
+
+// ClearLoginAttempts clears all "loginAttempts" edges to the LoginAttempt entity.
+func (uuo *UserUpdateOne) ClearLoginAttempts() *UserUpdateOne {
+	uuo.mutation.ClearLoginAttempts()
+	return uuo
+}
+
+// RemoveLoginAttemptIDs removes the "loginAttempts" edge to LoginAttempt entities by IDs.
+func (uuo *UserUpdateOne) RemoveLoginAttemptIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveLoginAttemptIDs(ids...)
+	return uuo
+}
+
+// RemoveLoginAttempts removes "loginAttempts" edges to LoginAttempt entities.
+func (uuo *UserUpdateOne) RemoveLoginAttempts(l ...*LoginAttempt) *UserUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uuo.RemoveLoginAttemptIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -537,7 +673,55 @@ func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (uuo *UserUpdateOne) check() error {
+	if v, ok := uuo.mutation.Username(); ok {
+		if err := user.UsernameValidator(v); err != nil {
+			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.Content(); ok {
+		if err := user.ContentValidator(v); err != nil {
+			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "User.content": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.FileName(); ok {
+		if err := user.FileNameValidator(v); err != nil {
+			return &ValidationError{Name: "fileName", err: fmt.Errorf(`ent: validator failed for field "User.fileName": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.Mime(); ok {
+		if err := user.MimeValidator(v); err != nil {
+			return &ValidationError{Name: "mime", err: fmt.Errorf(`ent: validator failed for field "User.mime": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.Nonce(); ok {
+		if err := user.NonceValidator(v); err != nil {
+			return &ValidationError{Name: "nonce", err: fmt.Errorf(`ent: validator failed for field "User.nonce": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.KeySalt(); ok {
+		if err := user.KeySaltValidator(v); err != nil {
+			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.PasswordHash(); ok {
+		if err := user.PasswordHashValidator(v); err != nil {
+			return &ValidationError{Name: "passwordHash", err: fmt.Errorf(`ent: validator failed for field "User.passwordHash": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.PasswordSalt(); ok {
+		if err := user.PasswordSaltValidator(v); err != nil {
+			return &ValidationError{Name: "passwordSalt", err: fmt.Errorf(`ent: validator failed for field "User.passwordSalt": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
+	if err := uuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	id, ok := uuo.mutation.ID()
 	if !ok {
@@ -569,14 +753,8 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.AlertDiscordId(); ok {
 		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
 	}
-	if uuo.mutation.AlertDiscordIdCleared() {
-		_spec.ClearField(user.FieldAlertDiscordId, field.TypeString)
-	}
 	if value, ok := uuo.mutation.AlertEmail(); ok {
 		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
-	}
-	if uuo.mutation.AlertEmailCleared() {
-		_spec.ClearField(user.FieldAlertEmail, field.TypeString)
 	}
 	if value, ok := uuo.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
@@ -616,6 +794,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.AddedHashKeyLen(); ok {
 		_spec.AddField(user.FieldHashKeyLen, field.TypeUint32, value)
+	}
+	if uuo.mutation.LoginAttemptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginAttemptsTable,
+			Columns: []string{user.LoginAttemptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedLoginAttemptsIDs(); len(nodes) > 0 && !uuo.mutation.LoginAttemptsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginAttemptsTable,
+			Columns: []string{user.LoginAttemptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.LoginAttemptsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LoginAttemptsTable,
+			Columns: []string{user.LoginAttemptsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

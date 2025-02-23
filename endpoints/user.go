@@ -24,6 +24,12 @@ type GetUserDownloadPayload struct {
 }
 
 func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.Clock, env *intertypes.Env) {
+	sendUnauthorizedError := func(ctx *gin.Context) {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"errors": []string{"INCORRECT_USERNAME_OR_PASSWORD_OR_AUTH_CODE"},
+		})
+	}
+
 	engine.POST("/api/v1/users/download", func(ctx *gin.Context) {
 		body := GetUserDownloadPayload{}
 		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?
@@ -31,15 +37,13 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 		}
 
 		if body.AuthorizationCode == "" {
-			row, err := dbClient.User.Query().
+			userRow, err := dbClient.User.Query().
 				Where(user.Username(body.Username)).
 				Select(user.FieldPasswordHash, user.FieldPasswordSalt, user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen).
 				Only(context.Background())
 			if err != nil {
 				if ent.IsNotFound(err) {
-					ctx.JSON(http.StatusNotFound, gin.H{
-						"errors": []string{"NO_USER"},
-					})
+					sendUnauthorizedError(ctx)
 				} else {
 					fmt.Printf("warning: an error occurred while reading user data:\n%v\n", err.Error())
 					ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -52,12 +56,12 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 
 			authorized := core.CheckPassword(
 				body.Password,
-				row.PasswordHash,
-				row.PasswordSalt,
+				userRow.PasswordHash,
+				userRow.PasswordSalt,
 				&core.HashSettings{
-					Time:   row.HashTime,
-					Memory: row.HashMemory,
-					KeyLen: row.HashKeyLen,
+					Time:   userRow.HashTime,
+					Memory: userRow.HashMemory,
+					KeyLen: userRow.HashKeyLen,
 				},
 			)
 
@@ -69,7 +73,7 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 				Add(time.Duration(env.UNLOCK_TIME) * time.Second)
 
 			_, err = dbClient.LoginAttempt.Create().
-				SetUsername(body.Username).
+				SetUser(userRow).
 				SetCode(authCode).
 				SetCodeValidFrom(validAt).
 				SetInfo(&intertypes.LoginAttemptInfo{
@@ -85,9 +89,7 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 			}
 
 			if !authorized {
-				ctx.JSON(http.StatusUnauthorized, gin.H{
-					"errors": []string{"INCORRECT_USERNAME_OR_PASSWORD"},
-				})
+				sendUnauthorizedError(ctx)
 				return
 			}
 
@@ -109,14 +111,12 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 			}
 
 			attemptRow, err := dbClient.LoginAttempt.Query().
-				Where(loginattempt.And(loginattempt.Username(body.Username), loginattempt.Code(givenAuthCodeBytes))).
+				Where(loginattempt.And(loginattempt.HasUserWith(user.Username(body.Username)), loginattempt.Code(givenAuthCodeBytes))).
 				Select(loginattempt.FieldCode, loginattempt.FieldCodeValidFrom).
 				First(context.Background())
 			if err != nil {
 				if ent.IsNotFound(err) {
-					ctx.JSON(http.StatusUnauthorized, gin.H{
-						"errors": []string{"INVALID_USERNAME_OR_AUTH_CODE"},
-					})
+					sendUnauthorizedError(ctx)
 				} else {
 					fmt.Printf("warning: an error occurred while reading user data:\n%v\n", err.Error())
 					ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -129,7 +129,7 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 
 			// body.AuthorizationCode != "" so this should be a successful login attempt, but just in case
 			if len(attemptRow.Code) != core.AUTH_CODE_BYTE_LENGTH {
-				fmt.Printf("warning: row.Code was the wrong length! this shouldn't happen. len(row.Code): %v\n", len(attemptRow.Code))
+				fmt.Printf("warning: attemptRow.Code was the wrong length! this shouldn't happen. len(attemptRow.Code): %v\n", len(attemptRow.Code))
 				ctx.JSON(http.StatusInternalServerError, gin.H{
 					"errors": []string{"INTERNAL"},
 				})
@@ -145,7 +145,21 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 
 			userRow, err := dbClient.User.Query().
 				Where(user.Username(body.Username)).
-				Select(user.Columns...).
+				Select(
+					user.FieldUsername,
+					// Contacts aren't needed
+
+					user.FieldContent,
+					user.FieldFileName,
+					user.FieldMime,
+					user.FieldNonce,
+					user.FieldKeySalt,
+					user.FieldPasswordHash,
+					user.FieldPasswordSalt,
+					user.FieldHashTime,
+					user.FieldHashMemory,
+					user.FieldHashKeyLen,
+				).
 				Only(context.Background())
 			if err != nil {
 				fmt.Printf("warning: an error occurred while reading user data:\n%v\n", err.Error())
@@ -169,9 +183,7 @@ func GetUserDownload(engine *gin.Engine, dbClient *ent.Client, clock clockwork.C
 			})
 			if err != nil {
 				if err == core.ErrIncorrectPassword {
-					ctx.JSON(http.StatusUnauthorized, gin.H{
-						"errors": []string{"INVALID_PASSWORD"},
-					})
+					sendUnauthorizedError(ctx)
 				} else {
 					fmt.Printf("warning: an error occurred while decrypting user data:\n%v\n", err.Error())
 					ctx.JSON(http.StatusInternalServerError, gin.H{

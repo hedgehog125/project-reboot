@@ -4,6 +4,7 @@ package user
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 )
 
@@ -237,16 +238,6 @@ func AlertDiscordIdHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldAlertDiscordId, v))
 }
 
-// AlertDiscordIdIsNil applies the IsNil predicate on the "alertDiscordId" field.
-func AlertDiscordIdIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldAlertDiscordId))
-}
-
-// AlertDiscordIdNotNil applies the NotNil predicate on the "alertDiscordId" field.
-func AlertDiscordIdNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldAlertDiscordId))
-}
-
 // AlertDiscordIdEqualFold applies the EqualFold predicate on the "alertDiscordId" field.
 func AlertDiscordIdEqualFold(v string) predicate.User {
 	return predicate.User(sql.FieldEqualFold(FieldAlertDiscordId, v))
@@ -310,16 +301,6 @@ func AlertEmailHasPrefix(v string) predicate.User {
 // AlertEmailHasSuffix applies the HasSuffix predicate on the "alertEmail" field.
 func AlertEmailHasSuffix(v string) predicate.User {
 	return predicate.User(sql.FieldHasSuffix(FieldAlertEmail, v))
-}
-
-// AlertEmailIsNil applies the IsNil predicate on the "alertEmail" field.
-func AlertEmailIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldAlertEmail))
-}
-
-// AlertEmailNotNil applies the NotNil predicate on the "alertEmail" field.
-func AlertEmailNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldAlertEmail))
 }
 
 // AlertEmailEqualFold applies the EqualFold predicate on the "alertEmail" field.
@@ -780,6 +761,29 @@ func HashKeyLenLT(v uint32) predicate.User {
 // HashKeyLenLTE applies the LTE predicate on the "hashKeyLen" field.
 func HashKeyLenLTE(v uint32) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldHashKeyLen, v))
+}
+
+// HasLoginAttempts applies the HasEdge predicate on the "loginAttempts" edge.
+func HasLoginAttempts() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, LoginAttemptsTable, LoginAttemptsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLoginAttemptsWith applies the HasEdge predicate on the "loginAttempts" edge with a given conditions (other predicates).
+func HasLoginAttemptsWith(preds ...predicate.LoginAttempt) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newLoginAttemptsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

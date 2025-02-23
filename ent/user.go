@@ -41,8 +41,29 @@ type User struct {
 	// HashMemory holds the value of the "hashMemory" field.
 	HashMemory uint32 `json:"hashMemory,omitempty"`
 	// HashKeyLen holds the value of the "hashKeyLen" field.
-	HashKeyLen   uint32 `json:"hashKeyLen,omitempty"`
+	HashKeyLen uint32 `json:"hashKeyLen,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// LoginAttempts holds the value of the loginAttempts edge.
+	LoginAttempts []*LoginAttempt `json:"loginAttempts,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// LoginAttemptsOrErr returns the LoginAttempts value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) LoginAttemptsOrErr() ([]*LoginAttempt, error) {
+	if e.loadedTypes[0] {
+		return e.LoginAttempts, nil
+	}
+	return nil, &NotLoadedError{edge: "loginAttempts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -166,6 +187,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
+}
+
+// QueryLoginAttempts queries the "loginAttempts" edge of the User entity.
+func (u *User) QueryLoginAttempts() *LoginAttemptQuery {
+	return NewUserClient(u.config).QueryLoginAttempts(u)
 }
 
 // Update returns a builder for updating this User.
