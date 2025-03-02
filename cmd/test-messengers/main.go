@@ -30,11 +30,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("discord error: %v", err.Error())
 	}
-	err = discord.SendBatch([]messengers.Message{
-		{
-			Type: messengers.MessageTest,
-			User: row,
-		},
+	err = discord.Send(messengers.Message{
+		Type: messengers.MessageTest,
+		User: row,
 	})
 	if err != nil {
 		log.Fatalf("couldn't send Discord message. error:\n%v", err.Error())

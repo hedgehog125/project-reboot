@@ -15,7 +15,7 @@ type LoginAttempt struct {
 }
 
 // Fields of the LoginAttempt.
-func (LoginAttempt) Fields() []ent.Field { // TODO: auto archive
+func (LoginAttempt) Fields() []ent.Field { // TODO: auto delete once used? Or also after a certain amount of time
 	return []ent.Field{
 		field.Time("time").Default(time.Now),
 		field.Bytes("code").Unique().MinLen(128), // The randomly generated authorisation code that will become valid after enough time

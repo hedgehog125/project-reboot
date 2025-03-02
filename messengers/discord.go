@@ -28,27 +28,25 @@ func NewDiscord(env *intertypes.Env) Discord {
 	}
 }
 
-func (discord *discord) SendBatch(messages []Message) error {
+func (discord *discord) Send(message Message) error {
 	err := discord.session.Open()
 	if err != nil {
 		return err
 	}
 	defer discord.session.Close()
 
-	for _, message := range messages {
-		preparedMessage, err := prepareMessage(message)
-		if err != nil {
-			return err
-		}
+	preparedMessage, err := prepareMessage(message)
+	if err != nil {
+		return err
+	}
 
-		channel, err := discord.session.UserChannelCreate(message.User.AlertDiscordId)
-		if err != nil {
-			return err
-		}
-		_, err = discord.session.ChannelMessageSend(channel.ID, preparedMessage)
-		if err != nil {
-			return err
-		}
+	channel, err := discord.session.UserChannelCreate(message.User.AlertDiscordId)
+	if err != nil {
+		return err
+	}
+	_, err = discord.session.ChannelMessageSend(channel.ID, preparedMessage)
+	if err != nil {
+		return err
 	}
 
 	return nil
