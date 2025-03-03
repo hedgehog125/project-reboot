@@ -11,12 +11,14 @@ import (
 	"github.com/hedgehog125/project-reboot/endpoints"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/intertypes"
+	"github.com/hedgehog125/project-reboot/messengers"
 	"github.com/jonboulle/clockwork"
 )
 
 func ConfigureServer(
 	state *intertypes.State,
 	dbClient *ent.Client,
+	messengerGroup messengers.MessengerGroup,
 	clock clockwork.Clock,
 	env *intertypes.Env,
 ) *gin.Engine {
@@ -28,7 +30,7 @@ func ConfigureServer(
 	engine.Use(endpoints.NewTimeoutMiddleware())
 	adminMiddleware := endpoints.NewAdminProtectedMiddleware(state)
 
-	registerEndpoints(engine, adminMiddleware, dbClient, clock, env)
+	registerEndpoints(engine, adminMiddleware, dbClient, messengerGroup, clock, env)
 
 	return engine
 }
@@ -36,12 +38,13 @@ func registerEndpoints(
 	engine *gin.Engine,
 	adminMiddleware gin.HandlerFunc,
 	dbClient *ent.Client,
+	messengerGroup messengers.MessengerGroup,
 	clock clockwork.Clock,
 	env *intertypes.Env,
 ) {
 	endpoints.RootRedirect(engine)
 	endpoints.RegisterUser(engine, adminMiddleware, dbClient)
-	endpoints.SetUserContacts(engine, adminMiddleware, dbClient)
+	endpoints.SetUserContacts(engine, adminMiddleware, dbClient, messengerGroup)
 	endpoints.GetUserDownload(engine, dbClient, clock, env)
 }
 

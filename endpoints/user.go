@@ -13,6 +13,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/intertypes"
+	"github.com/hedgehog125/project-reboot/messengers"
 	"github.com/hedgehog125/project-reboot/util"
 	"github.com/jonboulle/clockwork"
 )
@@ -277,7 +278,7 @@ type SetUserContactsPayload struct {
 	Email         string `json:"email" binding:"max=256"`
 }
 
-func SetUserContacts(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClient *ent.Client) {
+func SetUserContacts(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClient *ent.Client, messengerGroup messengers.MessengerGroup) {
 	engine.POST("/api/v1/users/set-user-contacts", adminMiddleware, func(ctx *gin.Context) {
 		body := SetUserContactsPayload{}
 		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?
@@ -299,6 +300,25 @@ func SetUserContacts(engine *gin.Engine, adminMiddleware gin.HandlerFunc, dbClie
 				})
 			}
 
+			return
+		}
+
+		userInfo, err := messengers.ReadUserInfo(body.Username, dbClient)
+		if err != nil {
+			fmt.Printf("warning: an error occurred while reading the user info for a messenger:\n%v\n", err.Error())
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"errors": []string{"INTERNAL"},
+			})
+			return
+		}
+		errs := messengerGroup.SendUsingAll(messengers.Message{
+			Type: messengers.MessageTest,
+			User: userInfo,
+		})
+		if util.HasErrors(errs) {
+			ctx.JSON(http.StatusOK, gin.H{
+				"errors": []string{"TEST_MESSAGE_SEND_ERROR"}, // TODO: say which ones
+			})
 			return
 		}
 

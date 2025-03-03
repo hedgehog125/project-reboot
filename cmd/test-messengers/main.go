@@ -1,12 +1,10 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
 
-	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/messengers"
 	"github.com/hedgehog125/project-reboot/subfns"
 )
@@ -23,16 +21,13 @@ func main() {
 	defer dbClient.Close()
 
 	discord := messengers.NewDiscord(env)
-	row, err := dbClient.User.Query().
-		Where(user.Username(*username)).
-		Select(user.FieldAlertDiscordId).
-		Only(context.Background())
+	userInfo, err := messengers.ReadUserInfo(*username, dbClient)
 	if err != nil {
-		log.Fatalf("discord error: %v", err.Error())
+		log.Fatalf("couldn't read user. error:\n%v", err.Error())
 	}
 	err = discord.Send(messengers.Message{
 		Type: messengers.MessageTest,
-		User: row,
+		User: userInfo,
 	})
 	if err != nil {
 		log.Fatalf("couldn't send Discord message. error:\n%v", err.Error())

@@ -9,9 +9,10 @@ func main() {
 	env := subfns.LoadEnvironmentVariables()
 	clock := clockwork.NewRealClock()
 
-	dbClient := subfns.OpenDatabase(env)
 	state := subfns.InitState()
-	engine := subfns.ConfigureServer(state, dbClient, clock, env)
+	dbClient := subfns.OpenDatabase(env)
+	messengerGroup := subfns.ConfigureMessengers(env)
+	engine := subfns.ConfigureServer(state, dbClient, messengerGroup, clock, env)
 	scheduler := subfns.ConfigureScheduler(clock, state)
 
 	subfns.RunScheduler(scheduler)

@@ -1,7 +1,6 @@
 package messengers
 
 import (
-	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/util"
 )
 
@@ -19,8 +18,14 @@ const (
 
 type Message struct {
 	Type MessageType
-	// Won't include sensitive properties like Content
-	User *ent.User
+	User *UserInfo
+}
+
+// The info about the user provided to a Messenger
+type UserInfo struct {
+	Username       string
+	AlertDiscordId string
+	AlertEmail     string
 }
 
 type MessengerGroup interface {
