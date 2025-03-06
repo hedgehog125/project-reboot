@@ -30,22 +30,9 @@ func ConfigureServer(
 	engine.Use(endpoints.NewTimeoutMiddleware())
 	adminMiddleware := endpoints.NewAdminProtectedMiddleware(state)
 
-	registerEndpoints(engine, adminMiddleware, dbClient, messengerGroup, clock, env)
+	endpoints.ConfigureEndpoints(engine.Group(""))
 
 	return engine
-}
-func registerEndpoints(
-	engine *gin.Engine,
-	adminMiddleware gin.HandlerFunc,
-	dbClient *ent.Client,
-	messengerGroup messengers.MessengerGroup,
-	clock clockwork.Clock,
-	env *intertypes.Env,
-) {
-	endpoints.RootRedirect(engine)
-	endpoints.RegisterUser(engine, adminMiddleware, dbClient)
-	endpoints.SetUserContacts(engine, adminMiddleware, dbClient, messengerGroup)
-	endpoints.GetUserDownload(engine, dbClient, clock, env)
 }
 
 func RunServer(engine *gin.Engine, env *intertypes.Env) *http.Server {

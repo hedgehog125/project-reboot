@@ -1,5 +1,9 @@
 # TODO
 
+-   Remove intertypes package
+-   Rename endpoints to api?
+-   Rename subfns to services?
+
 -   Custom error interface for messengers so the caller knows which failed?
 -   How should messengers be concurrent? Maybe the different types run concurrently but the messages for each are sent sequentially?
 -   Rename loginAttempt table to loginSessions and only store successful logins. Expired sessions are deleted since it'll have already been logged in the log table
