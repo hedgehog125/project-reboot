@@ -1,4 +1,4 @@
-package subfns
+package services
 
 import (
 	"github.com/hedgehog125/project-reboot/intertypes"

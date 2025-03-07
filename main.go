@@ -1,31 +1,31 @@
 package main
 
 import (
-	"github.com/hedgehog125/project-reboot/subfns"
+	"github.com/hedgehog125/project-reboot/services"
 	"github.com/jonboulle/clockwork"
 )
 
 func main() {
-	env := subfns.LoadEnvironmentVariables()
+	env := services.LoadEnvironmentVariables()
 	clock := clockwork.NewRealClock()
 
-	state := subfns.InitState()
-	dbClient := subfns.OpenDatabase(env)
-	messengerGroup := subfns.ConfigureMessengers(env)
-	engine := subfns.ConfigureServer(state, dbClient, messengerGroup, clock, env)
-	scheduler := subfns.ConfigureScheduler(clock, state)
+	state := services.InitState()
+	dbClient := services.OpenDatabase(env)
+	messengerGroup := services.ConfigureMessengers(env)
+	engine := services.ConfigureServer(state, dbClient, messengerGroup, clock, env)
+	scheduler := services.ConfigureScheduler(clock, state)
 
-	subfns.RunScheduler(scheduler)
-	server := subfns.RunServer(engine, env)
+	services.RunScheduler(scheduler)
+	server := services.RunServer(engine, env)
 
-	subfns.ConfigureShutdown(
-		subfns.NewShutdownTask(func() {
-			subfns.ShutdownScheduler(scheduler)
+	services.ConfigureShutdown(
+		services.NewShutdownTask(func() {
+			services.ShutdownScheduler(scheduler)
 		}, true),
-		subfns.NewShutdownTask(func() {
-			subfns.ShutdownServer(server)
+		services.NewShutdownTask(func() {
+			services.ShutdownServer(server)
 		}, true),
-		subfns.NewShutdownTask(func() {
+		services.NewShutdownTask(func() {
 			dbClient.Close()
 		}, false),
 	)
