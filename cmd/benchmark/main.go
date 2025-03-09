@@ -5,15 +5,15 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
-	"github.com/hedgehog125/project-reboot/util"
 )
 
 func main() {
 	const PASSWORD = "pass"
 
 	fmt.Println("benchmarking...")
-	threads := util.OptionalIntEnv("BENCHMARK_THREAD_COUNT", runtime.NumCPU()*2)
+	threads := common.OptionalIntEnv("BENCHMARK_THREAD_COUNT", runtime.NumCPU()*2)
 	fmt.Printf("running on %v threads\n\n", threads)
 
 	encrypted, _ := core.Encrypt([]byte("Hello world"), PASSWORD)

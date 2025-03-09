@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/messengers"
 	"github.com/hedgehog125/project-reboot/services"
 )
@@ -17,16 +18,16 @@ func main() {
 	}
 
 	env := services.LoadEnvironmentVariables()
-	dbClient := services.OpenDatabase(env)
-	defer dbClient.Close()
+	databaseService := services.NewDatabase(env)
+	defer databaseService.Shutdown()
 
 	discord := messengers.NewDiscord(env)
-	userInfo, err := messengers.ReadUserInfo(*username, dbClient)
+	userInfo, err := common.ReadMessageUserInfo(*username, databaseService.Client())
 	if err != nil {
 		log.Fatalf("couldn't read user. error:\n%v", err.Error())
 	}
-	err = discord.Send(messengers.Message{
-		Type: messengers.MessageTest,
+	err = discord.Send(common.Message{
+		Type: common.MessageTest,
 		User: userInfo,
 	})
 	if err != nil {

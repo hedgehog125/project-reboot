@@ -6,8 +6,12 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/intertypes"
 )
+
+type LoginAttemptInfo struct {
+	UserAgent string `json:"userAgent"`
+	IP        string `json:"ip"`
+}
 
 // LoginAttempt holds the schema definition for the LoginAttempt entity.
 type LoginAttempt struct {
@@ -20,7 +24,7 @@ func (LoginAttempt) Fields() []ent.Field { // TODO: auto delete once used? Or al
 		field.Time("time").Default(time.Now),
 		field.Bytes("code").Unique().MinLen(128), // The randomly generated authorisation code that will become valid after enough time
 		field.Time("codeValidFrom"),
-		field.JSON("info", &intertypes.LoginAttemptInfo{}),
+		field.JSON("info", &LoginAttemptInfo{}),
 	}
 }
 

@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
-	"github.com/hedgehog125/project-reboot/intertypes"
-	"github.com/jonboulle/clockwork"
 )
 
-func ConfigureScheduler(clock clockwork.Clock, state *intertypes.State) gocron.Scheduler {
+func NewScheduler(app *common.App) common.SchedulerService {
 	scheduler, err := gocron.NewScheduler(
-		gocron.WithClock(clock),
+		gocron.WithClock(app.Clock),
 		gocron.WithLocation(time.UTC),
 		gocron.WithStopTimeout(10*time.Second),
 	)
@@ -21,20 +20,26 @@ func ConfigureScheduler(clock clockwork.Clock, state *intertypes.State) gocron.S
 		log.Fatalf("couldn't start scheduler. error:\n %v", err.Error())
 	}
 
-	addJobs(scheduler, state)
-	return scheduler
+	addJobs(scheduler, app)
+	return &schedulerService{
+		scheduler: scheduler,
+	}
 }
-func addJobs(scheduler gocron.Scheduler, state *intertypes.State) {
+func addJobs(scheduler gocron.Scheduler, app *common.App) {
 	// Once an hour
-	mustAddJob(scheduler, gocron.CronJob("0 * * * *", false), gocron.NewTask(core.UpdateAdminCode, state))
+	mustAddJob(scheduler, gocron.CronJob("0 * * * *", false), gocron.NewTask(core.UpdateAdminCode, app.State))
 }
 
-func RunScheduler(scheduler gocron.Scheduler) {
-	scheduler.Start()
+type schedulerService struct {
+	scheduler gocron.Scheduler
 }
 
-func ShutdownScheduler(scheduler gocron.Scheduler) {
-	err := scheduler.Shutdown()
+func (service *schedulerService) Start() {
+	service.scheduler.Start()
+}
+
+func (service *schedulerService) Shutdown() {
+	err := service.scheduler.Shutdown()
 	if err != nil {
 		fmt.Printf("warning: an error occurred while shutting down the scheduler:\n%v\n", err.Error())
 	}

@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
 const (
@@ -39,7 +39,7 @@ type LoginAttemptMutation struct {
 	time          *time.Time
 	code          *[]byte
 	codeValidFrom *time.Time
-	info          **intertypes.LoginAttemptInfo
+	info          **schema.LoginAttemptInfo
 	clearedFields map[string]struct{}
 	user          *int
 	cleareduser   bool
@@ -255,12 +255,12 @@ func (m *LoginAttemptMutation) ResetCodeValidFrom() {
 }
 
 // SetInfo sets the "info" field.
-func (m *LoginAttemptMutation) SetInfo(iai *intertypes.LoginAttemptInfo) {
-	m.info = &iai
+func (m *LoginAttemptMutation) SetInfo(sai *schema.LoginAttemptInfo) {
+	m.info = &sai
 }
 
 // Info returns the value of the "info" field in the mutation.
-func (m *LoginAttemptMutation) Info() (r *intertypes.LoginAttemptInfo, exists bool) {
+func (m *LoginAttemptMutation) Info() (r *schema.LoginAttemptInfo, exists bool) {
 	v := m.info
 	if v == nil {
 		return
@@ -271,7 +271,7 @@ func (m *LoginAttemptMutation) Info() (r *intertypes.LoginAttemptInfo, exists bo
 // OldInfo returns the old "info" field's value of the LoginAttempt entity.
 // If the LoginAttempt object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LoginAttemptMutation) OldInfo(ctx context.Context) (v *intertypes.LoginAttemptInfo, err error) {
+func (m *LoginAttemptMutation) OldInfo(ctx context.Context) (v *schema.LoginAttemptInfo, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldInfo is only allowed on UpdateOne operations")
 	}
@@ -440,7 +440,7 @@ func (m *LoginAttemptMutation) SetField(name string, value ent.Value) error {
 		m.SetCodeValidFrom(v)
 		return nil
 	case loginattempt.FieldInfo:
-		v, ok := value.(*intertypes.LoginAttemptInfo)
+		v, ok := value.(*schema.LoginAttemptInfo)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

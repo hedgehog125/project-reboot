@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
-	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
 func NewTimeoutMiddleware() gin.HandlerFunc {
@@ -32,7 +32,7 @@ func NewTimeoutMiddleware() gin.HandlerFunc {
 	)
 }
 
-func NewAdminProtectedMiddleware(state *intertypes.State) gin.HandlerFunc {
+func NewAdminProtectedMiddleware(state *common.State) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		headerValue := ctx.GetHeader("authorization")
 		if headerValue == "" {

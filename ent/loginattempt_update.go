@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
 // LoginAttemptUpdate is the builder for updating LoginAttempt entities.
@@ -65,8 +65,8 @@ func (lau *LoginAttemptUpdate) SetNillableCodeValidFrom(t *time.Time) *LoginAtte
 }
 
 // SetInfo sets the "info" field.
-func (lau *LoginAttemptUpdate) SetInfo(iai *intertypes.LoginAttemptInfo) *LoginAttemptUpdate {
-	lau.mutation.SetInfo(iai)
+func (lau *LoginAttemptUpdate) SetInfo(sai *schema.LoginAttemptInfo) *LoginAttemptUpdate {
+	lau.mutation.SetInfo(sai)
 	return lau
 }
 
@@ -245,8 +245,8 @@ func (lauo *LoginAttemptUpdateOne) SetNillableCodeValidFrom(t *time.Time) *Login
 }
 
 // SetInfo sets the "info" field.
-func (lauo *LoginAttemptUpdateOne) SetInfo(iai *intertypes.LoginAttemptInfo) *LoginAttemptUpdateOne {
-	lauo.mutation.SetInfo(iai)
+func (lauo *LoginAttemptUpdateOne) SetInfo(sai *schema.LoginAttemptInfo) *LoginAttemptUpdateOne {
+	lauo.mutation.SetInfo(sai)
 	return lauo
 }
 

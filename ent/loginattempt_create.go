@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
+	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
 // LoginAttemptCreate is the builder for creating a LoginAttempt entity.
@@ -51,8 +51,8 @@ func (lac *LoginAttemptCreate) SetCodeValidFrom(t time.Time) *LoginAttemptCreate
 }
 
 // SetInfo sets the "info" field.
-func (lac *LoginAttemptCreate) SetInfo(iai *intertypes.LoginAttemptInfo) *LoginAttemptCreate {
-	lac.mutation.SetInfo(iai)
+func (lac *LoginAttemptCreate) SetInfo(sai *schema.LoginAttemptInfo) *LoginAttemptCreate {
+	lac.mutation.SetInfo(sai)
 	return lac
 }
 
@@ -284,7 +284,7 @@ func (u *LoginAttemptUpsert) UpdateCodeValidFrom() *LoginAttemptUpsert {
 }
 
 // SetInfo sets the "info" field.
-func (u *LoginAttemptUpsert) SetInfo(v *intertypes.LoginAttemptInfo) *LoginAttemptUpsert {
+func (u *LoginAttemptUpsert) SetInfo(v *schema.LoginAttemptInfo) *LoginAttemptUpsert {
 	u.Set(loginattempt.FieldInfo, v)
 	return u
 }
@@ -378,7 +378,7 @@ func (u *LoginAttemptUpsertOne) UpdateCodeValidFrom() *LoginAttemptUpsertOne {
 }
 
 // SetInfo sets the "info" field.
-func (u *LoginAttemptUpsertOne) SetInfo(v *intertypes.LoginAttemptInfo) *LoginAttemptUpsertOne {
+func (u *LoginAttemptUpsertOne) SetInfo(v *schema.LoginAttemptInfo) *LoginAttemptUpsertOne {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.SetInfo(v)
 	})
@@ -638,7 +638,7 @@ func (u *LoginAttemptUpsertBulk) UpdateCodeValidFrom() *LoginAttemptUpsertBulk {
 }
 
 // SetInfo sets the "info" field.
-func (u *LoginAttemptUpsertBulk) SetInfo(v *intertypes.LoginAttemptInfo) *LoginAttemptUpsertBulk {
+func (u *LoginAttemptUpsertBulk) SetInfo(v *schema.LoginAttemptInfo) *LoginAttemptUpsertBulk {
 	return u.Update(func(s *LoginAttemptUpsert) {
 		s.SetInfo(v)
 	})

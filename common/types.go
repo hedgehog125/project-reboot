@@ -1,4 +1,6 @@
-package util
+package common
+
+// Service types should go in services.go
 
 type ErrWithIndex struct {
 	Err   error

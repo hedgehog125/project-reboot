@@ -12,8 +12,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/intertypes"
-	"github.com/jonboulle/clockwork"
+	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
 type DownloadPayload struct {
@@ -30,12 +29,14 @@ type DownloadResponse struct {
 	Mime                     string     `json:"mime"`
 }
 
-func Download(engine *gin.Engine, dbClient *ent.Client, clock clockwork.Clock, env *intertypes.Env) gin.HandlerFunc {
+func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 	sendUnauthorizedError := func(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, DownloadResponse{
 			Errors: []string{"INCORRECT_USERNAME_OR_PASSWORD_OR_AUTH_CODE"},
 		})
 	}
+	dbClient := app.App.Database.Client()
+	clock := app.App.Clock
 
 	return func(ctx *gin.Context) {
 		body := DownloadPayload{}

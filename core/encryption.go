@@ -6,7 +6,7 @@ import (
 	"crypto/subtle"
 	"errors"
 
-	"github.com/hedgehog125/project-reboot/util"
+	"github.com/hedgehog125/project-reboot/common"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -46,7 +46,7 @@ func Encrypt(data []byte, password string) (*EncryptedData, error) {
 	if err != nil {
 		return nil, err
 	}
-	nonce := util.CryptoRandomBytes(gcm.NonceSize())
+	nonce := common.CryptoRandomBytes(gcm.NonceSize())
 
 	encrypted := gcm.Seal(nil, nonce, data, nil)
 	return &EncryptedData{
@@ -88,7 +88,7 @@ func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
 	return decrypted, nil
 }
 func hash(password string, settings *HashSettings) (hash, salt []byte) {
-	salt = util.CryptoRandomBytes(SALT_LENGTH)
+	salt = common.CryptoRandomBytes(SALT_LENGTH)
 	hash = hashWithSalt(password, salt, settings)
 	return
 }

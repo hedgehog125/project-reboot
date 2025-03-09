@@ -7,13 +7,13 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/intertypes"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func OpenDatabase(env *intertypes.Env) *ent.Client {
+func NewDatabase(env *common.Env) common.DatabaseService {
 	err := os.MkdirAll(env.MOUNT_PATH, 0700)
 	if err != nil {
 		log.Fatalf("couldn't create storage directory. Error:\n%v", err)
@@ -30,11 +30,21 @@ func OpenDatabase(env *intertypes.Env) *ent.Client {
 		log.Fatalf("couldn't create schema resources. Error:\n%v", err)
 	}
 
-	return client
+	return &databaseService{
+		client: client,
+	}
 }
 
-func ShutdownDatabase(client *ent.Client) {
-	err := client.Close()
+type databaseService struct {
+	client *ent.Client
+}
+
+func (service *databaseService) Client() *ent.Client {
+	return service.client
+}
+
+func (service *databaseService) Shutdown() {
+	err := service.client.Close()
 	if err != nil {
 		fmt.Printf("warning: an error occurred while shutting down the database:\n%v\n", err.Error())
 	}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/core"
-	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
 type RegisterPayload struct {
@@ -19,7 +19,9 @@ type RegisterPayload struct {
 	Mime     string `json:"mime" binding:"required,min=1,max=256"`
 }
 
-func RegisterOrUpdate(engine *gin.Engine, dbClient *ent.Client) gin.HandlerFunc {
+func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
+	dbClient := app.App.Database.Client()
+
 	return func(ctx *gin.Context) {
 		body := RegisterPayload{}
 		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?

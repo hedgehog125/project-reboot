@@ -1,14 +1,13 @@
 package services
 
 import (
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
-	"github.com/hedgehog125/project-reboot/intertypes"
-	"github.com/hedgehog125/project-reboot/util"
 )
 
-func InitState() *intertypes.State {
-	state := intertypes.State{
-		AdminCode: util.InitChannel([]byte{}),
+func InitState() *common.State {
+	state := common.State{
+		AdminCode: common.InitChannel([]byte{}),
 	}
 
 	core.UpdateAdminCode(&state)

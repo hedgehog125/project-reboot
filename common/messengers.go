@@ -1,4 +1,4 @@
-package messengers
+package common
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
-func ReadUserInfo(username string, dbClient *ent.Client) (*UserInfo, error) {
+func ReadMessageUserInfo(username string, dbClient *ent.Client) (*MessageUserInfo, error) {
 	row, err := dbClient.User.Query().
 		Where(user.Username(username)).
 		Select(user.FieldAlertDiscordId, user.FieldAlertEmail).
@@ -16,7 +16,7 @@ func ReadUserInfo(username string, dbClient *ent.Client) (*UserInfo, error) {
 		return nil, err
 	}
 
-	return &UserInfo{
+	return &MessageUserInfo{
 		Username:       username,
 		AlertDiscordId: row.AlertDiscordId,
 		AlertEmail:     row.AlertEmail,

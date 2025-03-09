@@ -1,4 +1,4 @@
-package util
+package common
 
 func HasErrors(errs []error) bool {
 	for _, err := range errs {

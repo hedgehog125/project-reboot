@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/hedgehog125/project-reboot/ent/loginattempt"
+	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/intertypes"
 )
 
 // LoginAttempt is the model entity for the LoginAttempt schema.
@@ -27,7 +27,7 @@ type LoginAttempt struct {
 	// CodeValidFrom holds the value of the "codeValidFrom" field.
 	CodeValidFrom time.Time `json:"codeValidFrom,omitempty"`
 	// Info holds the value of the "info" field.
-	Info *intertypes.LoginAttemptInfo `json:"info,omitempty"`
+	Info *schema.LoginAttemptInfo `json:"info,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LoginAttemptQuery when eager-loading is set.
 	Edges               LoginAttemptEdges `json:"edges"`

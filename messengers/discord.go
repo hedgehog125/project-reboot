@@ -5,11 +5,11 @@ import (
 	"log"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/hedgehog125/project-reboot/intertypes"
+	"github.com/hedgehog125/project-reboot/common"
 )
 
 type discord struct {
-	env     *intertypes.Env
+	env     *common.Env
 	session *discordgo.Session
 }
 
@@ -17,7 +17,7 @@ type Discord interface {
 	Messenger
 }
 
-func NewDiscord(env *intertypes.Env) Discord {
+func NewDiscord(env *common.Env) Discord {
 	session, err := discordgo.New("Bot " + env.DISCORD_TOKEN)
 	if err != nil {
 		log.Fatalf("error creating Discord session:\n%v", err)
@@ -28,7 +28,7 @@ func NewDiscord(env *intertypes.Env) Discord {
 	}
 }
 
-func (discord *discord) Send(message Message) error {
+func (discord *discord) Send(message common.Message) error {
 	err := discord.session.Open()
 	if err != nil {
 		return err
@@ -52,11 +52,11 @@ func (discord *discord) Send(message Message) error {
 	return nil
 }
 
-func prepareMessage(message Message) (string, error) {
+func prepareMessage(message common.Message) (string, error) {
 	switch message.Type {
-	case MessageLogin:
+	case common.MessageLogin:
 		return fmt.Sprintf("Login attempt"), nil
-	case MessageTest:
+	case common.MessageTest:
 		return "Test message", nil
 	}
 	return "", fmt.Errorf("message type \"%v\" hasn't been implemented", message.Type)

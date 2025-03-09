@@ -1,32 +1,35 @@
 package main
 
 import (
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/services"
 	"github.com/jonboulle/clockwork"
 )
 
 func main() {
-	env := services.LoadEnvironmentVariables()
-	clock := clockwork.NewRealClock()
+	app := common.App{
+		Env:   services.LoadEnvironmentVariables(),
+		Clock: clockwork.NewRealClock(),
+	}
 
-	state := services.InitState()
-	dbClient := services.OpenDatabase(env)
-	messengerGroup := services.ConfigureMessengers(env)
-	engine := services.ConfigureServer(state, dbClient, messengerGroup, clock, env)
-	scheduler := services.ConfigureScheduler(clock, state)
+	app.State = services.InitState()
+	app.Database = services.NewDatabase(app.Env)
+	app.Messenger = services.NewMessenger(app.Env)
+	app.Server = services.NewServer(&app)
+	app.Scheduler = services.NewScheduler(&app)
 
-	services.RunScheduler(scheduler)
-	server := services.RunServer(engine, env)
+	app.Scheduler.Start()
+	app.Server.Start()
 
 	services.ConfigureShutdown(
 		services.NewShutdownTask(func() {
-			services.ShutdownScheduler(scheduler)
+			app.Scheduler.Shutdown()
 		}, true),
 		services.NewShutdownTask(func() {
-			services.ShutdownServer(server)
+			app.Server.Shutdown()
 		}, true),
 		services.NewShutdownTask(func() {
-			dbClient.Close()
+			app.Database.Shutdown()
 		}, false),
 	)
 }
