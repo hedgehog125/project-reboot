@@ -6,8 +6,8 @@ import (
 )
 
 func ConfigureEndpoints(group *gin.RouterGroup, app *servercommon.ServerApp) {
-	group.POST("/download", Download(app))
-	group.POST("/get-authorization-code", GetAuthorizationCode(app))
 	group.POST("/register-or-update", app.AdminMiddleware, RegisterOrUpdate(app))
 	group.POST("/set-user-contacts", app.AdminMiddleware, SetContacts(app))
+	group.POST("/get-authorization-code", GetAuthorizationCode(app))
+	group.POST("/download", Download(app))
 }

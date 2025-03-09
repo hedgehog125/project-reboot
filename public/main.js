@@ -9,20 +9,24 @@ form.addEventListener("submit", async (e) => {
 	e.preventDefault();
 	displayMessage("");
 
-	const resp = await fetch("/api/v1/users/download", {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			username: usernameInput.value,
-			password: passwordInput.value,
-			authorizationCode: authorizationCodeInput.value,
-		}),
-	});
+	const resp = await fetch(
+		authorizationCodeInput.value
+			? "/api/v1/users/download"
+			: "/api/v1/users/get-authorization-code",
+		{
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				username: usernameInput.value,
+				password: passwordInput.value,
+				authorizationCode: authorizationCodeInput.value,
+			}),
+		}
+	);
 	if (!resp.ok) {
 		displayMessage(
-			`Error, received HTTP error code: ${
-				resp.status
-			}\nContent:\n${await resp.text()}`
+			`Error, received HTTP error code: ${resp.status}\nContent:`,
+			await resp.text()
 		);
 		return;
 	}
@@ -44,15 +48,19 @@ form.addEventListener("submit", async (e) => {
 	const asDate = new Date(authorizationCodeValidAt);
 	displayMessage(
 		// TODO: include time
-		`Success! The following authorisation code will be valid on ${asDate.toLocaleDateString()}.\n${newAuthorizationCode}`
+		`Success! The following authorisation code will be valid on ${asDate.toLocaleDateString()}.`,
+		newAuthorizationCode
 	);
 });
 
-function displayMessage(message) {
+function displayMessage(message, content) {
 	messageElement.innerText = message;
-	messageElement.innerHTML = messageElement.innerHTML
-		.split("\n")
-		.join("<br>");
+	if (content) {
+		messageElement.innerText += "\n";
+		const textArea = document.createElement("textarea");
+		textArea.innerText = content;
+		messageElement.appendChild(textArea);
+	}
 
 	messageElement.hidden = false;
 }

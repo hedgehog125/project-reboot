@@ -77,6 +77,12 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 		validAt := clock.Now().UTC().Add(unlockTime)
 
+		if !authorized {
+			// TODO: log this event
+			sendUnauthorizedError(ctx)
+			return
+		}
+
 		_, err = dbClient.LoginAttempt.Create().
 			SetUser(userRow).
 			SetCode(authCode).
@@ -90,11 +96,6 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"errors": []string{"INTERNAL"},
 			})
-			return
-		}
-
-		if !authorized {
-			sendUnauthorizedError(ctx)
 			return
 		}
 

@@ -18,7 +18,7 @@ import (
 type DownloadPayload struct {
 	Username          string `json:"username" binding:"required,min=1,max=32,alphanum,lowercase"`
 	Password          string `json:"password" binding:"required,min=8,max=256"`
-	AuthorizationCode string `json:"authorizationCode" binding:"required,min=256,max=256"`
+	AuthorizationCode string `json:"authorizationCode" binding:"required,min=128,max=256"` // I think the length can vary because of the base64 encoding?
 }
 
 type DownloadResponse struct {
