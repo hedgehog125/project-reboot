@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
-	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
@@ -48,15 +47,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			Select(user.FieldPasswordHash, user.FieldPasswordSalt, user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen).
 			Only(context.Background())
 		if err != nil {
-			if ent.IsNotFound(err) {
-				sendUnauthorizedError(ctx)
-			} else {
-				fmt.Printf("warning: an error occurred while reading user data:\n%v\n", err.Error())
-				ctx.JSON(http.StatusInternalServerError, GetAuthorizationCodeResponse{
-					Errors: []string{"INTERNAL"},
-				})
-			}
-
+			ctx.Error(servercommon.Send401IfNotFound(err))
 			return
 		}
 

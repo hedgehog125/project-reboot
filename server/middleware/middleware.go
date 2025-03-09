@@ -1,6 +1,9 @@
-package endpoints
+package middleware
+
+// TODO: return ContextErrors
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -9,7 +12,35 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
+	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
+
+// TODO: handle panics and stop the default error handler from being registered
+func NewErrorMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Next()
+
+		for _, ginError := range ctx.Errors {
+			err := &servercommon.ContextError{}
+			if !errors.As(ginError.Err, &err) {
+				err = servercommon.NewContextError(ginError.Err)
+			}
+			err.Finish()
+
+			if err.ErrorCodes == nil {
+				if err.Status != -1 {
+					ctx.Status(err.Status)
+				}
+			} else {
+				ctx.JSON(err.Status, gin.H{
+					"errors": err.ErrorCodes,
+				})
+			}
+
+			common.DumpJSON(err)
+		}
+	}
+}
 
 func NewTimeoutMiddleware() gin.HandlerFunc {
 	return timeout.New(
