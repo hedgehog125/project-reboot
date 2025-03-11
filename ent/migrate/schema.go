@@ -8,24 +8,25 @@ import (
 )
 
 var (
-	// LoginAttemptsColumns holds the columns for the "login_attempts" table.
-	LoginAttemptsColumns = []*schema.Column{
+	// SessionsColumns holds the columns for the "sessions" table.
+	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "time", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeBytes, Unique: true},
 		{Name: "code_valid_from", Type: field.TypeTime},
-		{Name: "info", Type: field.TypeJSON},
-		{Name: "user_login_attempts", Type: field.TypeInt, Nullable: true},
+		{Name: "user_agent", Type: field.TypeString},
+		{Name: "ip", Type: field.TypeString},
+		{Name: "user_sessions", Type: field.TypeInt, Nullable: true},
 	}
-	// LoginAttemptsTable holds the schema information for the "login_attempts" table.
-	LoginAttemptsTable = &schema.Table{
-		Name:       "login_attempts",
-		Columns:    LoginAttemptsColumns,
-		PrimaryKey: []*schema.Column{LoginAttemptsColumns[0]},
+	// SessionsTable holds the schema information for the "sessions" table.
+	SessionsTable = &schema.Table{
+		Name:       "sessions",
+		Columns:    SessionsColumns,
+		PrimaryKey: []*schema.Column{SessionsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "login_attempts_users_loginAttempts",
-				Columns:    []*schema.Column{LoginAttemptsColumns[5]},
+				Symbol:     "sessions_users_sessions",
+				Columns:    []*schema.Column{SessionsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -56,11 +57,11 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		LoginAttemptsTable,
+		SessionsTable,
 		UsersTable,
 	}
 )
 
 func init() {
-	LoginAttemptsTable.ForeignKeys[0].RefTable = UsersTable
+	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 }

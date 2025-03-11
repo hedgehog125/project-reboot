@@ -13,7 +13,7 @@
 -   Revamp login attempts table to store more different types of login attempts. Maybe most should be moved to the general log table?
 -   Notify using the other methods when a message fails to send
 -   Account locking until a specified date for if you know you won't have access to your devices for a while
--   SMS messager
+-   SMS messenger
 
 # To research
 

@@ -38,17 +38,17 @@ const (
 	FieldHashMemory = "hash_memory"
 	// FieldHashKeyLen holds the string denoting the hashkeylen field in the database.
 	FieldHashKeyLen = "hash_key_len"
-	// EdgeLoginAttempts holds the string denoting the loginattempts edge name in mutations.
-	EdgeLoginAttempts = "loginAttempts"
+	// EdgeSessions holds the string denoting the sessions edge name in mutations.
+	EdgeSessions = "sessions"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// LoginAttemptsTable is the table that holds the loginAttempts relation/edge.
-	LoginAttemptsTable = "login_attempts"
-	// LoginAttemptsInverseTable is the table name for the LoginAttempt entity.
-	// It exists in this package in order to avoid circular dependency with the "loginattempt" package.
-	LoginAttemptsInverseTable = "login_attempts"
-	// LoginAttemptsColumn is the table column denoting the loginAttempts relation/edge.
-	LoginAttemptsColumn = "user_login_attempts"
+	// SessionsTable is the table that holds the sessions relation/edge.
+	SessionsTable = "sessions"
+	// SessionsInverseTable is the table name for the Session entity.
+	// It exists in this package in order to avoid circular dependency with the "session" package.
+	SessionsInverseTable = "sessions"
+	// SessionsColumn is the table column denoting the sessions relation/edge.
+	SessionsColumn = "user_sessions"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -150,23 +150,23 @@ func ByHashKeyLen(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHashKeyLen, opts...).ToFunc()
 }
 
-// ByLoginAttemptsCount orders the results by loginAttempts count.
-func ByLoginAttemptsCount(opts ...sql.OrderTermOption) OrderOption {
+// BySessionsCount orders the results by sessions count.
+func BySessionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newLoginAttemptsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newSessionsStep(), opts...)
 	}
 }
 
-// ByLoginAttempts orders the results by loginAttempts terms.
-func ByLoginAttempts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// BySessions orders the results by sessions terms.
+func BySessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newLoginAttemptsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newLoginAttemptsStep() *sqlgraph.Step {
+func newSessionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(LoginAttemptsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, LoginAttemptsTable, LoginAttemptsColumn),
+		sqlgraph.To(SessionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
 	)
 }

@@ -50,20 +50,20 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// LoginAttempts holds the value of the loginAttempts edge.
-	LoginAttempts []*LoginAttempt `json:"loginAttempts,omitempty"`
+	// Sessions holds the value of the sessions edge.
+	Sessions []*Session `json:"sessions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// LoginAttemptsOrErr returns the LoginAttempts value or an error if the edge
+// SessionsOrErr returns the Sessions value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) LoginAttemptsOrErr() ([]*LoginAttempt, error) {
+func (e UserEdges) SessionsOrErr() ([]*Session, error) {
 	if e.loadedTypes[0] {
-		return e.LoginAttempts, nil
+		return e.Sessions, nil
 	}
-	return nil, &NotLoadedError{edge: "loginAttempts"}
+	return nil, &NotLoadedError{edge: "sessions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -189,9 +189,9 @@ func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
 }
 
-// QueryLoginAttempts queries the "loginAttempts" edge of the User entity.
-func (u *User) QueryLoginAttempts() *LoginAttemptQuery {
-	return NewUserClient(u.config).QueryLoginAttempts(u)
+// QuerySessions queries the "sessions" edge of the User entity.
+func (u *User) QuerySessions() *SessionQuery {
+	return NewUserClient(u.config).QuerySessions(u)
 }
 
 // Update returns a builder for updating this User.

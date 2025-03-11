@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/loginattempt"
+	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
@@ -116,19 +116,19 @@ func (uc *UserCreate) SetHashKeyLen(u uint32) *UserCreate {
 	return uc
 }
 
-// AddLoginAttemptIDs adds the "loginAttempts" edge to the LoginAttempt entity by IDs.
-func (uc *UserCreate) AddLoginAttemptIDs(ids ...int) *UserCreate {
-	uc.mutation.AddLoginAttemptIDs(ids...)
+// AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
+func (uc *UserCreate) AddSessionIDs(ids ...int) *UserCreate {
+	uc.mutation.AddSessionIDs(ids...)
 	return uc
 }
 
-// AddLoginAttempts adds the "loginAttempts" edges to the LoginAttempt entity.
-func (uc *UserCreate) AddLoginAttempts(l ...*LoginAttempt) *UserCreate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// AddSessions adds the "sessions" edges to the Session entity.
+func (uc *UserCreate) AddSessions(s ...*Session) *UserCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return uc.AddLoginAttemptIDs(ids...)
+	return uc.AddSessionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -336,15 +336,15 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldHashKeyLen, field.TypeUint32, value)
 		_node.HashKeyLen = value
 	}
-	if nodes := uc.mutation.LoginAttemptsIDs(); len(nodes) > 0 {
+	if nodes := uc.mutation.SessionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LoginAttemptsTable,
-			Columns: []string{user.LoginAttemptsColumn},
+			Table:   user.SessionsTable,
+			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

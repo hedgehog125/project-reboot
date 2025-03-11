@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
@@ -191,19 +191,19 @@ func (uu *UserUpdate) AddHashKeyLen(u int32) *UserUpdate {
 	return uu
 }
 
-// AddLoginAttemptIDs adds the "loginAttempts" edge to the LoginAttempt entity by IDs.
-func (uu *UserUpdate) AddLoginAttemptIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddLoginAttemptIDs(ids...)
+// AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
+func (uu *UserUpdate) AddSessionIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddSessionIDs(ids...)
 	return uu
 }
 
-// AddLoginAttempts adds the "loginAttempts" edges to the LoginAttempt entity.
-func (uu *UserUpdate) AddLoginAttempts(l ...*LoginAttempt) *UserUpdate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// AddSessions adds the "sessions" edges to the Session entity.
+func (uu *UserUpdate) AddSessions(s ...*Session) *UserUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return uu.AddLoginAttemptIDs(ids...)
+	return uu.AddSessionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -211,25 +211,25 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearLoginAttempts clears all "loginAttempts" edges to the LoginAttempt entity.
-func (uu *UserUpdate) ClearLoginAttempts() *UserUpdate {
-	uu.mutation.ClearLoginAttempts()
+// ClearSessions clears all "sessions" edges to the Session entity.
+func (uu *UserUpdate) ClearSessions() *UserUpdate {
+	uu.mutation.ClearSessions()
 	return uu
 }
 
-// RemoveLoginAttemptIDs removes the "loginAttempts" edge to LoginAttempt entities by IDs.
-func (uu *UserUpdate) RemoveLoginAttemptIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveLoginAttemptIDs(ids...)
+// RemoveSessionIDs removes the "sessions" edge to Session entities by IDs.
+func (uu *UserUpdate) RemoveSessionIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveSessionIDs(ids...)
 	return uu
 }
 
-// RemoveLoginAttempts removes "loginAttempts" edges to LoginAttempt entities.
-func (uu *UserUpdate) RemoveLoginAttempts(l ...*LoginAttempt) *UserUpdate {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// RemoveSessions removes "sessions" edges to Session entities.
+func (uu *UserUpdate) RemoveSessions(s ...*Session) *UserUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return uu.RemoveLoginAttemptIDs(ids...)
+	return uu.RemoveSessionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -364,28 +364,28 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.AddedHashKeyLen(); ok {
 		_spec.AddField(user.FieldHashKeyLen, field.TypeUint32, value)
 	}
-	if uu.mutation.LoginAttemptsCleared() {
+	if uu.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LoginAttemptsTable,
-			Columns: []string{user.LoginAttemptsColumn},
+			Table:   user.SessionsTable,
+			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedLoginAttemptsIDs(); len(nodes) > 0 && !uu.mutation.LoginAttemptsCleared() {
+	if nodes := uu.mutation.RemovedSessionsIDs(); len(nodes) > 0 && !uu.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LoginAttemptsTable,
-			Columns: []string{user.LoginAttemptsColumn},
+			Table:   user.SessionsTable,
+			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -393,15 +393,15 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.LoginAttemptsIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.SessionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LoginAttemptsTable,
-			Columns: []string{user.LoginAttemptsColumn},
+			Table:   user.SessionsTable,
+			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -592,19 +592,19 @@ func (uuo *UserUpdateOne) AddHashKeyLen(u int32) *UserUpdateOne {
 	return uuo
 }
 
-// AddLoginAttemptIDs adds the "loginAttempts" edge to the LoginAttempt entity by IDs.
-func (uuo *UserUpdateOne) AddLoginAttemptIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddLoginAttemptIDs(ids...)
+// AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
+func (uuo *UserUpdateOne) AddSessionIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddSessionIDs(ids...)
 	return uuo
 }
 
-// AddLoginAttempts adds the "loginAttempts" edges to the LoginAttempt entity.
-func (uuo *UserUpdateOne) AddLoginAttempts(l ...*LoginAttempt) *UserUpdateOne {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// AddSessions adds the "sessions" edges to the Session entity.
+func (uuo *UserUpdateOne) AddSessions(s ...*Session) *UserUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return uuo.AddLoginAttemptIDs(ids...)
+	return uuo.AddSessionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -612,25 +612,25 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearLoginAttempts clears all "loginAttempts" edges to the LoginAttempt entity.
-func (uuo *UserUpdateOne) ClearLoginAttempts() *UserUpdateOne {
-	uuo.mutation.ClearLoginAttempts()
+// ClearSessions clears all "sessions" edges to the Session entity.
+func (uuo *UserUpdateOne) ClearSessions() *UserUpdateOne {
+	uuo.mutation.ClearSessions()
 	return uuo
 }
 
-// RemoveLoginAttemptIDs removes the "loginAttempts" edge to LoginAttempt entities by IDs.
-func (uuo *UserUpdateOne) RemoveLoginAttemptIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveLoginAttemptIDs(ids...)
+// RemoveSessionIDs removes the "sessions" edge to Session entities by IDs.
+func (uuo *UserUpdateOne) RemoveSessionIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveSessionIDs(ids...)
 	return uuo
 }
 
-// RemoveLoginAttempts removes "loginAttempts" edges to LoginAttempt entities.
-func (uuo *UserUpdateOne) RemoveLoginAttempts(l ...*LoginAttempt) *UserUpdateOne {
-	ids := make([]int, len(l))
-	for i := range l {
-		ids[i] = l[i].ID
+// RemoveSessions removes "sessions" edges to Session entities.
+func (uuo *UserUpdateOne) RemoveSessions(s ...*Session) *UserUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
 	}
-	return uuo.RemoveLoginAttemptIDs(ids...)
+	return uuo.RemoveSessionIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -795,28 +795,28 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.AddedHashKeyLen(); ok {
 		_spec.AddField(user.FieldHashKeyLen, field.TypeUint32, value)
 	}
-	if uuo.mutation.LoginAttemptsCleared() {
+	if uuo.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LoginAttemptsTable,
-			Columns: []string{user.LoginAttemptsColumn},
+			Table:   user.SessionsTable,
+			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedLoginAttemptsIDs(); len(nodes) > 0 && !uuo.mutation.LoginAttemptsCleared() {
+	if nodes := uuo.mutation.RemovedSessionsIDs(); len(nodes) > 0 && !uuo.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LoginAttemptsTable,
-			Columns: []string{user.LoginAttemptsColumn},
+			Table:   user.SessionsTable,
+			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -824,15 +824,15 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.LoginAttemptsIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.SessionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.LoginAttemptsTable,
-			Columns: []string{user.LoginAttemptsColumn},
+			Table:   user.SessionsTable,
+			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginattempt.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

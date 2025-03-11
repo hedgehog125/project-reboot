@@ -763,21 +763,21 @@ func HashKeyLenLTE(v uint32) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldHashKeyLen, v))
 }
 
-// HasLoginAttempts applies the HasEdge predicate on the "loginAttempts" edge.
-func HasLoginAttempts() predicate.User {
+// HasSessions applies the HasEdge predicate on the "sessions" edge.
+func HasSessions() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, LoginAttemptsTable, LoginAttemptsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasLoginAttemptsWith applies the HasEdge predicate on the "loginAttempts" edge with a given conditions (other predicates).
-func HasLoginAttemptsWith(preds ...predicate.LoginAttempt) predicate.User {
+// HasSessionsWith applies the HasEdge predicate on the "sessions" edge with a given conditions (other predicates).
+func HasSessionsWith(preds ...predicate.Session) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
-		step := newLoginAttemptsStep()
+		step := newSessionsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

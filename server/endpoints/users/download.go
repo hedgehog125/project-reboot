@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/loginattempt"
+	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
@@ -52,9 +52,9 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		attemptRow, err := dbClient.LoginAttempt.Query().
-			Where(loginattempt.And(loginattempt.HasUserWith(user.Username(body.Username)), loginattempt.Code(givenAuthCodeBytes))).
-			Select(loginattempt.FieldCode, loginattempt.FieldCodeValidFrom).
+		sessionRow, err := dbClient.Session.Query().
+			Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
+			Select(session.FieldCode, session.FieldCodeValidFrom).
 			First(context.Background())
 		if err != nil {
 			if ent.IsNotFound(err) {
@@ -69,18 +69,10 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		// body.AuthorizationCode != "" so this should be a successful login attempt, but just in case
-		if len(attemptRow.Code) != core.AUTH_CODE_BYTE_LENGTH {
-			fmt.Printf("warning: attemptRow.Code was the wrong length! this shouldn't happen. len(attemptRow.Code): %v\n", len(attemptRow.Code))
-			ctx.JSON(http.StatusInternalServerError, DownloadResponse{
-				Errors: []string{"INTERNAL"},
-			})
-			return
-		}
-		if clock.Now().UTC().Before(attemptRow.CodeValidFrom) {
+		if clock.Now().UTC().Before(sessionRow.CodeValidFrom) {
 			ctx.JSON(http.StatusConflict, DownloadResponse{
 				Errors:                   []string{"CODE_NOT_VALID_YET"},
-				AuthorizationCodeValidAt: &attemptRow.CodeValidFrom,
+				AuthorizationCodeValidAt: &sessionRow.CodeValidFrom,
 			})
 			return
 		}

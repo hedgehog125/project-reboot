@@ -34,6 +34,6 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("loginAttempts", LoginAttempt.Type),
+		edge.To("sessions", Session.Type),
 	}
 }

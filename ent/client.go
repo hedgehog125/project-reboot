@@ -15,7 +15,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/hedgehog125/project-reboot/ent/loginattempt"
+	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
@@ -24,8 +24,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// LoginAttempt is the client for interacting with the LoginAttempt builders.
-	LoginAttempt *LoginAttemptClient
+	// Session is the client for interacting with the Session builders.
+	Session *SessionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -39,7 +39,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.LoginAttempt = NewLoginAttemptClient(c.config)
+	c.Session = NewSessionClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -131,10 +131,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		LoginAttempt: NewLoginAttemptClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:     ctx,
+		config:  cfg,
+		Session: NewSessionClient(cfg),
+		User:    NewUserClient(cfg),
 	}, nil
 }
 
@@ -152,17 +152,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		LoginAttempt: NewLoginAttemptClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:     ctx,
+		config:  cfg,
+		Session: NewSessionClient(cfg),
+		User:    NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		LoginAttempt.
+//		Session.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -184,22 +184,22 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.LoginAttempt.Use(hooks...)
+	c.Session.Use(hooks...)
 	c.User.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.LoginAttempt.Intercept(interceptors...)
+	c.Session.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *LoginAttemptMutation:
-		return c.LoginAttempt.mutate(ctx, m)
+	case *SessionMutation:
+		return c.Session.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -207,107 +207,107 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	}
 }
 
-// LoginAttemptClient is a client for the LoginAttempt schema.
-type LoginAttemptClient struct {
+// SessionClient is a client for the Session schema.
+type SessionClient struct {
 	config
 }
 
-// NewLoginAttemptClient returns a client for the LoginAttempt from the given config.
-func NewLoginAttemptClient(c config) *LoginAttemptClient {
-	return &LoginAttemptClient{config: c}
+// NewSessionClient returns a client for the Session from the given config.
+func NewSessionClient(c config) *SessionClient {
+	return &SessionClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `loginattempt.Hooks(f(g(h())))`.
-func (c *LoginAttemptClient) Use(hooks ...Hook) {
-	c.hooks.LoginAttempt = append(c.hooks.LoginAttempt, hooks...)
+// A call to `Use(f, g, h)` equals to `session.Hooks(f(g(h())))`.
+func (c *SessionClient) Use(hooks ...Hook) {
+	c.hooks.Session = append(c.hooks.Session, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `loginattempt.Intercept(f(g(h())))`.
-func (c *LoginAttemptClient) Intercept(interceptors ...Interceptor) {
-	c.inters.LoginAttempt = append(c.inters.LoginAttempt, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `session.Intercept(f(g(h())))`.
+func (c *SessionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Session = append(c.inters.Session, interceptors...)
 }
 
-// Create returns a builder for creating a LoginAttempt entity.
-func (c *LoginAttemptClient) Create() *LoginAttemptCreate {
-	mutation := newLoginAttemptMutation(c.config, OpCreate)
-	return &LoginAttemptCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a Session entity.
+func (c *SessionClient) Create() *SessionCreate {
+	mutation := newSessionMutation(c.config, OpCreate)
+	return &SessionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of LoginAttempt entities.
-func (c *LoginAttemptClient) CreateBulk(builders ...*LoginAttemptCreate) *LoginAttemptCreateBulk {
-	return &LoginAttemptCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Session entities.
+func (c *SessionClient) CreateBulk(builders ...*SessionCreate) *SessionCreateBulk {
+	return &SessionCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *LoginAttemptClient) MapCreateBulk(slice any, setFunc func(*LoginAttemptCreate, int)) *LoginAttemptCreateBulk {
+func (c *SessionClient) MapCreateBulk(slice any, setFunc func(*SessionCreate, int)) *SessionCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &LoginAttemptCreateBulk{err: fmt.Errorf("calling to LoginAttemptClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &SessionCreateBulk{err: fmt.Errorf("calling to SessionClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*LoginAttemptCreate, rv.Len())
+	builders := make([]*SessionCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &LoginAttemptCreateBulk{config: c.config, builders: builders}
+	return &SessionCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for LoginAttempt.
-func (c *LoginAttemptClient) Update() *LoginAttemptUpdate {
-	mutation := newLoginAttemptMutation(c.config, OpUpdate)
-	return &LoginAttemptUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Session.
+func (c *SessionClient) Update() *SessionUpdate {
+	mutation := newSessionMutation(c.config, OpUpdate)
+	return &SessionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *LoginAttemptClient) UpdateOne(la *LoginAttempt) *LoginAttemptUpdateOne {
-	mutation := newLoginAttemptMutation(c.config, OpUpdateOne, withLoginAttempt(la))
-	return &LoginAttemptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SessionClient) UpdateOne(s *Session) *SessionUpdateOne {
+	mutation := newSessionMutation(c.config, OpUpdateOne, withSession(s))
+	return &SessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LoginAttemptClient) UpdateOneID(id int) *LoginAttemptUpdateOne {
-	mutation := newLoginAttemptMutation(c.config, OpUpdateOne, withLoginAttemptID(id))
-	return &LoginAttemptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *SessionClient) UpdateOneID(id int) *SessionUpdateOne {
+	mutation := newSessionMutation(c.config, OpUpdateOne, withSessionID(id))
+	return &SessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for LoginAttempt.
-func (c *LoginAttemptClient) Delete() *LoginAttemptDelete {
-	mutation := newLoginAttemptMutation(c.config, OpDelete)
-	return &LoginAttemptDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Session.
+func (c *SessionClient) Delete() *SessionDelete {
+	mutation := newSessionMutation(c.config, OpDelete)
+	return &SessionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *LoginAttemptClient) DeleteOne(la *LoginAttempt) *LoginAttemptDeleteOne {
-	return c.DeleteOneID(la.ID)
+func (c *SessionClient) DeleteOne(s *Session) *SessionDeleteOne {
+	return c.DeleteOneID(s.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LoginAttemptClient) DeleteOneID(id int) *LoginAttemptDeleteOne {
-	builder := c.Delete().Where(loginattempt.ID(id))
+func (c *SessionClient) DeleteOneID(id int) *SessionDeleteOne {
+	builder := c.Delete().Where(session.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &LoginAttemptDeleteOne{builder}
+	return &SessionDeleteOne{builder}
 }
 
-// Query returns a query builder for LoginAttempt.
-func (c *LoginAttemptClient) Query() *LoginAttemptQuery {
-	return &LoginAttemptQuery{
+// Query returns a query builder for Session.
+func (c *SessionClient) Query() *SessionQuery {
+	return &SessionQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeLoginAttempt},
+		ctx:    &QueryContext{Type: TypeSession},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a LoginAttempt entity by its id.
-func (c *LoginAttemptClient) Get(ctx context.Context, id int) (*LoginAttempt, error) {
-	return c.Query().Where(loginattempt.ID(id)).Only(ctx)
+// Get returns a Session entity by its id.
+func (c *SessionClient) Get(ctx context.Context, id int) (*Session, error) {
+	return c.Query().Where(session.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LoginAttemptClient) GetX(ctx context.Context, id int) *LoginAttempt {
+func (c *SessionClient) GetX(ctx context.Context, id int) *Session {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -315,44 +315,44 @@ func (c *LoginAttemptClient) GetX(ctx context.Context, id int) *LoginAttempt {
 	return obj
 }
 
-// QueryUser queries the user edge of a LoginAttempt.
-func (c *LoginAttemptClient) QueryUser(la *LoginAttempt) *UserQuery {
+// QueryUser queries the user edge of a Session.
+func (c *SessionClient) QueryUser(s *Session) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := la.ID
+		id := s.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(loginattempt.Table, loginattempt.FieldID, id),
+			sqlgraph.From(session.Table, session.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, loginattempt.UserTable, loginattempt.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, session.UserTable, session.UserColumn),
 		)
-		fromV = sqlgraph.Neighbors(la.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // Hooks returns the client hooks.
-func (c *LoginAttemptClient) Hooks() []Hook {
-	return c.hooks.LoginAttempt
+func (c *SessionClient) Hooks() []Hook {
+	return c.hooks.Session
 }
 
 // Interceptors returns the client interceptors.
-func (c *LoginAttemptClient) Interceptors() []Interceptor {
-	return c.inters.LoginAttempt
+func (c *SessionClient) Interceptors() []Interceptor {
+	return c.inters.Session
 }
 
-func (c *LoginAttemptClient) mutate(ctx context.Context, m *LoginAttemptMutation) (Value, error) {
+func (c *SessionClient) mutate(ctx context.Context, m *SessionMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&LoginAttemptCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SessionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&LoginAttemptUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SessionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&LoginAttemptUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&SessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&LoginAttemptDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&SessionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown LoginAttempt mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown Session mutation op: %q", m.Op())
 	}
 }
 
@@ -464,15 +464,15 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	return obj
 }
 
-// QueryLoginAttempts queries the loginAttempts edge of a User.
-func (c *UserClient) QueryLoginAttempts(u *User) *LoginAttemptQuery {
-	query := (&LoginAttemptClient{config: c.config}).Query()
+// QuerySessions queries the sessions edge of a User.
+func (c *UserClient) QuerySessions(u *User) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(loginattempt.Table, loginattempt.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.LoginAttemptsTable, user.LoginAttemptsColumn),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SessionsTable, user.SessionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil
@@ -508,9 +508,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		LoginAttempt, User []ent.Hook
+		Session, User []ent.Hook
 	}
 	inters struct {
-		LoginAttempt, User []ent.Interceptor
+		Session, User []ent.Interceptor
 	}
 )

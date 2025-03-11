@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
-	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
@@ -74,16 +73,15 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		_, err = dbClient.LoginAttempt.Create().
+		_, err = dbClient.Session.Create().
 			SetUser(userRow).
 			SetCode(authCode).
 			SetCodeValidFrom(validAt).
-			SetInfo(&schema.LoginAttemptInfo{
-				UserAgent: ctx.Request.UserAgent(),
-				IP:        ctx.ClientIP(),
-			}).Save(context.Background())
+			SetUserAgent(ctx.Request.UserAgent()).
+			SetIP(ctx.ClientIP()).
+			Save(context.Background())
 		if err != nil {
-			fmt.Printf("warning: an error occurred while creating a login attempt:\n%v\n", err.Error())
+			fmt.Printf("warning: an error occurred while creating a login session:\n%v\n", err.Error())
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"errors": []string{"INTERNAL"},
 			})

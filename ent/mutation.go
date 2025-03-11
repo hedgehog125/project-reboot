@@ -11,9 +11,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
-	"github.com/hedgehog125/project-reboot/ent/schema"
+	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
@@ -26,12 +25,12 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeLoginAttempt = "LoginAttempt"
-	TypeUser         = "User"
+	TypeSession = "Session"
+	TypeUser    = "User"
 )
 
-// LoginAttemptMutation represents an operation that mutates the LoginAttempt nodes in the graph.
-type LoginAttemptMutation struct {
+// SessionMutation represents an operation that mutates the Session nodes in the graph.
+type SessionMutation struct {
 	config
 	op            Op
 	typ           string
@@ -39,26 +38,27 @@ type LoginAttemptMutation struct {
 	time          *time.Time
 	code          *[]byte
 	codeValidFrom *time.Time
-	info          **schema.LoginAttemptInfo
+	userAgent     *string
+	ip            *string
 	clearedFields map[string]struct{}
 	user          *int
 	cleareduser   bool
 	done          bool
-	oldValue      func(context.Context) (*LoginAttempt, error)
-	predicates    []predicate.LoginAttempt
+	oldValue      func(context.Context) (*Session, error)
+	predicates    []predicate.Session
 }
 
-var _ ent.Mutation = (*LoginAttemptMutation)(nil)
+var _ ent.Mutation = (*SessionMutation)(nil)
 
-// loginattemptOption allows management of the mutation configuration using functional options.
-type loginattemptOption func(*LoginAttemptMutation)
+// sessionOption allows management of the mutation configuration using functional options.
+type sessionOption func(*SessionMutation)
 
-// newLoginAttemptMutation creates new mutation for the LoginAttempt entity.
-func newLoginAttemptMutation(c config, op Op, opts ...loginattemptOption) *LoginAttemptMutation {
-	m := &LoginAttemptMutation{
+// newSessionMutation creates new mutation for the Session entity.
+func newSessionMutation(c config, op Op, opts ...sessionOption) *SessionMutation {
+	m := &SessionMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeLoginAttempt,
+		typ:           TypeSession,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -67,20 +67,20 @@ func newLoginAttemptMutation(c config, op Op, opts ...loginattemptOption) *Login
 	return m
 }
 
-// withLoginAttemptID sets the ID field of the mutation.
-func withLoginAttemptID(id int) loginattemptOption {
-	return func(m *LoginAttemptMutation) {
+// withSessionID sets the ID field of the mutation.
+func withSessionID(id int) sessionOption {
+	return func(m *SessionMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *LoginAttempt
+			value *Session
 		)
-		m.oldValue = func(ctx context.Context) (*LoginAttempt, error) {
+		m.oldValue = func(ctx context.Context) (*Session, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().LoginAttempt.Get(ctx, id)
+					value, err = m.Client().Session.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -89,10 +89,10 @@ func withLoginAttemptID(id int) loginattemptOption {
 	}
 }
 
-// withLoginAttempt sets the old LoginAttempt of the mutation.
-func withLoginAttempt(node *LoginAttempt) loginattemptOption {
-	return func(m *LoginAttemptMutation) {
-		m.oldValue = func(context.Context) (*LoginAttempt, error) {
+// withSession sets the old Session of the mutation.
+func withSession(node *Session) sessionOption {
+	return func(m *SessionMutation) {
+		m.oldValue = func(context.Context) (*Session, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -101,7 +101,7 @@ func withLoginAttempt(node *LoginAttempt) loginattemptOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m LoginAttemptMutation) Client() *Client {
+func (m SessionMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -109,7 +109,7 @@ func (m LoginAttemptMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m LoginAttemptMutation) Tx() (*Tx, error) {
+func (m SessionMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -120,7 +120,7 @@ func (m LoginAttemptMutation) Tx() (*Tx, error) {
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *LoginAttemptMutation) ID() (id int, exists bool) {
+func (m *SessionMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -131,7 +131,7 @@ func (m *LoginAttemptMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *LoginAttemptMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *SessionMutation) IDs(ctx context.Context) ([]int, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -140,19 +140,19 @@ func (m *LoginAttemptMutation) IDs(ctx context.Context) ([]int, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().LoginAttempt.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().Session.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
 // SetTime sets the "time" field.
-func (m *LoginAttemptMutation) SetTime(t time.Time) {
+func (m *SessionMutation) SetTime(t time.Time) {
 	m.time = &t
 }
 
 // Time returns the value of the "time" field in the mutation.
-func (m *LoginAttemptMutation) Time() (r time.Time, exists bool) {
+func (m *SessionMutation) Time() (r time.Time, exists bool) {
 	v := m.time
 	if v == nil {
 		return
@@ -160,10 +160,10 @@ func (m *LoginAttemptMutation) Time() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldTime returns the old "time" field's value of the LoginAttempt entity.
-// If the LoginAttempt object wasn't provided to the builder, the object is fetched from the database.
+// OldTime returns the old "time" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LoginAttemptMutation) OldTime(ctx context.Context) (v time.Time, err error) {
+func (m *SessionMutation) OldTime(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTime is only allowed on UpdateOne operations")
 	}
@@ -178,17 +178,17 @@ func (m *LoginAttemptMutation) OldTime(ctx context.Context) (v time.Time, err er
 }
 
 // ResetTime resets all changes to the "time" field.
-func (m *LoginAttemptMutation) ResetTime() {
+func (m *SessionMutation) ResetTime() {
 	m.time = nil
 }
 
 // SetCode sets the "code" field.
-func (m *LoginAttemptMutation) SetCode(b []byte) {
+func (m *SessionMutation) SetCode(b []byte) {
 	m.code = &b
 }
 
 // Code returns the value of the "code" field in the mutation.
-func (m *LoginAttemptMutation) Code() (r []byte, exists bool) {
+func (m *SessionMutation) Code() (r []byte, exists bool) {
 	v := m.code
 	if v == nil {
 		return
@@ -196,10 +196,10 @@ func (m *LoginAttemptMutation) Code() (r []byte, exists bool) {
 	return *v, true
 }
 
-// OldCode returns the old "code" field's value of the LoginAttempt entity.
-// If the LoginAttempt object wasn't provided to the builder, the object is fetched from the database.
+// OldCode returns the old "code" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LoginAttemptMutation) OldCode(ctx context.Context) (v []byte, err error) {
+func (m *SessionMutation) OldCode(ctx context.Context) (v []byte, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCode is only allowed on UpdateOne operations")
 	}
@@ -214,17 +214,17 @@ func (m *LoginAttemptMutation) OldCode(ctx context.Context) (v []byte, err error
 }
 
 // ResetCode resets all changes to the "code" field.
-func (m *LoginAttemptMutation) ResetCode() {
+func (m *SessionMutation) ResetCode() {
 	m.code = nil
 }
 
 // SetCodeValidFrom sets the "codeValidFrom" field.
-func (m *LoginAttemptMutation) SetCodeValidFrom(t time.Time) {
+func (m *SessionMutation) SetCodeValidFrom(t time.Time) {
 	m.codeValidFrom = &t
 }
 
 // CodeValidFrom returns the value of the "codeValidFrom" field in the mutation.
-func (m *LoginAttemptMutation) CodeValidFrom() (r time.Time, exists bool) {
+func (m *SessionMutation) CodeValidFrom() (r time.Time, exists bool) {
 	v := m.codeValidFrom
 	if v == nil {
 		return
@@ -232,10 +232,10 @@ func (m *LoginAttemptMutation) CodeValidFrom() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCodeValidFrom returns the old "codeValidFrom" field's value of the LoginAttempt entity.
-// If the LoginAttempt object wasn't provided to the builder, the object is fetched from the database.
+// OldCodeValidFrom returns the old "codeValidFrom" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LoginAttemptMutation) OldCodeValidFrom(ctx context.Context) (v time.Time, err error) {
+func (m *SessionMutation) OldCodeValidFrom(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCodeValidFrom is only allowed on UpdateOne operations")
 	}
@@ -250,63 +250,99 @@ func (m *LoginAttemptMutation) OldCodeValidFrom(ctx context.Context) (v time.Tim
 }
 
 // ResetCodeValidFrom resets all changes to the "codeValidFrom" field.
-func (m *LoginAttemptMutation) ResetCodeValidFrom() {
+func (m *SessionMutation) ResetCodeValidFrom() {
 	m.codeValidFrom = nil
 }
 
-// SetInfo sets the "info" field.
-func (m *LoginAttemptMutation) SetInfo(sai *schema.LoginAttemptInfo) {
-	m.info = &sai
+// SetUserAgent sets the "userAgent" field.
+func (m *SessionMutation) SetUserAgent(s string) {
+	m.userAgent = &s
 }
 
-// Info returns the value of the "info" field in the mutation.
-func (m *LoginAttemptMutation) Info() (r *schema.LoginAttemptInfo, exists bool) {
-	v := m.info
+// UserAgent returns the value of the "userAgent" field in the mutation.
+func (m *SessionMutation) UserAgent() (r string, exists bool) {
+	v := m.userAgent
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldInfo returns the old "info" field's value of the LoginAttempt entity.
-// If the LoginAttempt object wasn't provided to the builder, the object is fetched from the database.
+// OldUserAgent returns the old "userAgent" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LoginAttemptMutation) OldInfo(ctx context.Context) (v *schema.LoginAttemptInfo, err error) {
+func (m *SessionMutation) OldUserAgent(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldInfo is only allowed on UpdateOne operations")
+		return v, errors.New("OldUserAgent is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldInfo requires an ID field in the mutation")
+		return v, errors.New("OldUserAgent requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldInfo: %w", err)
+		return v, fmt.Errorf("querying old value for OldUserAgent: %w", err)
 	}
-	return oldValue.Info, nil
+	return oldValue.UserAgent, nil
 }
 
-// ResetInfo resets all changes to the "info" field.
-func (m *LoginAttemptMutation) ResetInfo() {
-	m.info = nil
+// ResetUserAgent resets all changes to the "userAgent" field.
+func (m *SessionMutation) ResetUserAgent() {
+	m.userAgent = nil
+}
+
+// SetIP sets the "ip" field.
+func (m *SessionMutation) SetIP(s string) {
+	m.ip = &s
+}
+
+// IP returns the value of the "ip" field in the mutation.
+func (m *SessionMutation) IP() (r string, exists bool) {
+	v := m.ip
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIP returns the old "ip" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SessionMutation) OldIP(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIP is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIP requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIP: %w", err)
+	}
+	return oldValue.IP, nil
+}
+
+// ResetIP resets all changes to the "ip" field.
+func (m *SessionMutation) ResetIP() {
+	m.ip = nil
 }
 
 // SetUserID sets the "user" edge to the User entity by id.
-func (m *LoginAttemptMutation) SetUserID(id int) {
+func (m *SessionMutation) SetUserID(id int) {
 	m.user = &id
 }
 
 // ClearUser clears the "user" edge to the User entity.
-func (m *LoginAttemptMutation) ClearUser() {
+func (m *SessionMutation) ClearUser() {
 	m.cleareduser = true
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *LoginAttemptMutation) UserCleared() bool {
+func (m *SessionMutation) UserCleared() bool {
 	return m.cleareduser
 }
 
 // UserID returns the "user" edge ID in the mutation.
-func (m *LoginAttemptMutation) UserID() (id int, exists bool) {
+func (m *SessionMutation) UserID() (id int, exists bool) {
 	if m.user != nil {
 		return *m.user, true
 	}
@@ -316,7 +352,7 @@ func (m *LoginAttemptMutation) UserID() (id int, exists bool) {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *LoginAttemptMutation) UserIDs() (ids []int) {
+func (m *SessionMutation) UserIDs() (ids []int) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -324,20 +360,20 @@ func (m *LoginAttemptMutation) UserIDs() (ids []int) {
 }
 
 // ResetUser resets all changes to the "user" edge.
-func (m *LoginAttemptMutation) ResetUser() {
+func (m *SessionMutation) ResetUser() {
 	m.user = nil
 	m.cleareduser = false
 }
 
-// Where appends a list predicates to the LoginAttemptMutation builder.
-func (m *LoginAttemptMutation) Where(ps ...predicate.LoginAttempt) {
+// Where appends a list predicates to the SessionMutation builder.
+func (m *SessionMutation) Where(ps ...predicate.Session) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the LoginAttemptMutation builder. Using this method,
+// WhereP appends storage-level predicates to the SessionMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *LoginAttemptMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.LoginAttempt, len(ps))
+func (m *SessionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Session, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -345,36 +381,39 @@ func (m *LoginAttemptMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *LoginAttemptMutation) Op() Op {
+func (m *SessionMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *LoginAttemptMutation) SetOp(op Op) {
+func (m *SessionMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (LoginAttempt).
-func (m *LoginAttemptMutation) Type() string {
+// Type returns the node type of this mutation (Session).
+func (m *SessionMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *LoginAttemptMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+func (m *SessionMutation) Fields() []string {
+	fields := make([]string, 0, 5)
 	if m.time != nil {
-		fields = append(fields, loginattempt.FieldTime)
+		fields = append(fields, session.FieldTime)
 	}
 	if m.code != nil {
-		fields = append(fields, loginattempt.FieldCode)
+		fields = append(fields, session.FieldCode)
 	}
 	if m.codeValidFrom != nil {
-		fields = append(fields, loginattempt.FieldCodeValidFrom)
+		fields = append(fields, session.FieldCodeValidFrom)
 	}
-	if m.info != nil {
-		fields = append(fields, loginattempt.FieldInfo)
+	if m.userAgent != nil {
+		fields = append(fields, session.FieldUserAgent)
+	}
+	if m.ip != nil {
+		fields = append(fields, session.FieldIP)
 	}
 	return fields
 }
@@ -382,16 +421,18 @@ func (m *LoginAttemptMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *LoginAttemptMutation) Field(name string) (ent.Value, bool) {
+func (m *SessionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case loginattempt.FieldTime:
+	case session.FieldTime:
 		return m.Time()
-	case loginattempt.FieldCode:
+	case session.FieldCode:
 		return m.Code()
-	case loginattempt.FieldCodeValidFrom:
+	case session.FieldCodeValidFrom:
 		return m.CodeValidFrom()
-	case loginattempt.FieldInfo:
-		return m.Info()
+	case session.FieldUserAgent:
+		return m.UserAgent()
+	case session.FieldIP:
+		return m.IP()
 	}
 	return nil, false
 }
@@ -399,132 +440,144 @@ func (m *LoginAttemptMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *LoginAttemptMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *SessionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case loginattempt.FieldTime:
+	case session.FieldTime:
 		return m.OldTime(ctx)
-	case loginattempt.FieldCode:
+	case session.FieldCode:
 		return m.OldCode(ctx)
-	case loginattempt.FieldCodeValidFrom:
+	case session.FieldCodeValidFrom:
 		return m.OldCodeValidFrom(ctx)
-	case loginattempt.FieldInfo:
-		return m.OldInfo(ctx)
+	case session.FieldUserAgent:
+		return m.OldUserAgent(ctx)
+	case session.FieldIP:
+		return m.OldIP(ctx)
 	}
-	return nil, fmt.Errorf("unknown LoginAttempt field %s", name)
+	return nil, fmt.Errorf("unknown Session field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *LoginAttemptMutation) SetField(name string, value ent.Value) error {
+func (m *SessionMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case loginattempt.FieldTime:
+	case session.FieldTime:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTime(v)
 		return nil
-	case loginattempt.FieldCode:
+	case session.FieldCode:
 		v, ok := value.([]byte)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCode(v)
 		return nil
-	case loginattempt.FieldCodeValidFrom:
+	case session.FieldCodeValidFrom:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCodeValidFrom(v)
 		return nil
-	case loginattempt.FieldInfo:
-		v, ok := value.(*schema.LoginAttemptInfo)
+	case session.FieldUserAgent:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetInfo(v)
+		m.SetUserAgent(v)
+		return nil
+	case session.FieldIP:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIP(v)
 		return nil
 	}
-	return fmt.Errorf("unknown LoginAttempt field %s", name)
+	return fmt.Errorf("unknown Session field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *LoginAttemptMutation) AddedFields() []string {
+func (m *SessionMutation) AddedFields() []string {
 	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *LoginAttemptMutation) AddedField(name string) (ent.Value, bool) {
+func (m *SessionMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *LoginAttemptMutation) AddField(name string, value ent.Value) error {
+func (m *SessionMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	}
-	return fmt.Errorf("unknown LoginAttempt numeric field %s", name)
+	return fmt.Errorf("unknown Session numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *LoginAttemptMutation) ClearedFields() []string {
+func (m *SessionMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *LoginAttemptMutation) FieldCleared(name string) bool {
+func (m *SessionMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *LoginAttemptMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown LoginAttempt nullable field %s", name)
+func (m *SessionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Session nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *LoginAttemptMutation) ResetField(name string) error {
+func (m *SessionMutation) ResetField(name string) error {
 	switch name {
-	case loginattempt.FieldTime:
+	case session.FieldTime:
 		m.ResetTime()
 		return nil
-	case loginattempt.FieldCode:
+	case session.FieldCode:
 		m.ResetCode()
 		return nil
-	case loginattempt.FieldCodeValidFrom:
+	case session.FieldCodeValidFrom:
 		m.ResetCodeValidFrom()
 		return nil
-	case loginattempt.FieldInfo:
-		m.ResetInfo()
+	case session.FieldUserAgent:
+		m.ResetUserAgent()
+		return nil
+	case session.FieldIP:
+		m.ResetIP()
 		return nil
 	}
-	return fmt.Errorf("unknown LoginAttempt field %s", name)
+	return fmt.Errorf("unknown Session field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *LoginAttemptMutation) AddedEdges() []string {
+func (m *SessionMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
 	if m.user != nil {
-		edges = append(edges, loginattempt.EdgeUser)
+		edges = append(edges, session.EdgeUser)
 	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *LoginAttemptMutation) AddedIDs(name string) []ent.Value {
+func (m *SessionMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case loginattempt.EdgeUser:
+	case session.EdgeUser:
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
@@ -533,31 +586,31 @@ func (m *LoginAttemptMutation) AddedIDs(name string) []ent.Value {
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *LoginAttemptMutation) RemovedEdges() []string {
+func (m *SessionMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *LoginAttemptMutation) RemovedIDs(name string) []ent.Value {
+func (m *SessionMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *LoginAttemptMutation) ClearedEdges() []string {
+func (m *SessionMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
 	if m.cleareduser {
-		edges = append(edges, loginattempt.EdgeUser)
+		edges = append(edges, session.EdgeUser)
 	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *LoginAttemptMutation) EdgeCleared(name string) bool {
+func (m *SessionMutation) EdgeCleared(name string) bool {
 	switch name {
-	case loginattempt.EdgeUser:
+	case session.EdgeUser:
 		return m.cleareduser
 	}
 	return false
@@ -565,55 +618,55 @@ func (m *LoginAttemptMutation) EdgeCleared(name string) bool {
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *LoginAttemptMutation) ClearEdge(name string) error {
+func (m *SessionMutation) ClearEdge(name string) error {
 	switch name {
-	case loginattempt.EdgeUser:
+	case session.EdgeUser:
 		m.ClearUser()
 		return nil
 	}
-	return fmt.Errorf("unknown LoginAttempt unique edge %s", name)
+	return fmt.Errorf("unknown Session unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *LoginAttemptMutation) ResetEdge(name string) error {
+func (m *SessionMutation) ResetEdge(name string) error {
 	switch name {
-	case loginattempt.EdgeUser:
+	case session.EdgeUser:
 		m.ResetUser()
 		return nil
 	}
-	return fmt.Errorf("unknown LoginAttempt edge %s", name)
+	return fmt.Errorf("unknown Session edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *int
-	username             *string
-	alertDiscordId       *string
-	alertEmail           *string
-	content              *[]byte
-	fileName             *string
-	mime                 *string
-	nonce                *[]byte
-	keySalt              *[]byte
-	passwordHash         *[]byte
-	passwordSalt         *[]byte
-	hashTime             *uint32
-	addhashTime          *int32
-	hashMemory           *uint32
-	addhashMemory        *int32
-	hashKeyLen           *uint32
-	addhashKeyLen        *int32
-	clearedFields        map[string]struct{}
-	loginAttempts        map[int]struct{}
-	removedloginAttempts map[int]struct{}
-	clearedloginAttempts bool
-	done                 bool
-	oldValue             func(context.Context) (*User, error)
-	predicates           []predicate.User
+	op              Op
+	typ             string
+	id              *int
+	username        *string
+	alertDiscordId  *string
+	alertEmail      *string
+	content         *[]byte
+	fileName        *string
+	mime            *string
+	nonce           *[]byte
+	keySalt         *[]byte
+	passwordHash    *[]byte
+	passwordSalt    *[]byte
+	hashTime        *uint32
+	addhashTime     *int32
+	hashMemory      *uint32
+	addhashMemory   *int32
+	hashKeyLen      *uint32
+	addhashKeyLen   *int32
+	clearedFields   map[string]struct{}
+	sessions        map[int]struct{}
+	removedsessions map[int]struct{}
+	clearedsessions bool
+	done            bool
+	oldValue        func(context.Context) (*User, error)
+	predicates      []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1242,58 +1295,58 @@ func (m *UserMutation) ResetHashKeyLen() {
 	m.addhashKeyLen = nil
 }
 
-// AddLoginAttemptIDs adds the "loginAttempts" edge to the LoginAttempt entity by ids.
-func (m *UserMutation) AddLoginAttemptIDs(ids ...int) {
-	if m.loginAttempts == nil {
-		m.loginAttempts = make(map[int]struct{})
+// AddSessionIDs adds the "sessions" edge to the Session entity by ids.
+func (m *UserMutation) AddSessionIDs(ids ...int) {
+	if m.sessions == nil {
+		m.sessions = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.loginAttempts[ids[i]] = struct{}{}
+		m.sessions[ids[i]] = struct{}{}
 	}
 }
 
-// ClearLoginAttempts clears the "loginAttempts" edge to the LoginAttempt entity.
-func (m *UserMutation) ClearLoginAttempts() {
-	m.clearedloginAttempts = true
+// ClearSessions clears the "sessions" edge to the Session entity.
+func (m *UserMutation) ClearSessions() {
+	m.clearedsessions = true
 }
 
-// LoginAttemptsCleared reports if the "loginAttempts" edge to the LoginAttempt entity was cleared.
-func (m *UserMutation) LoginAttemptsCleared() bool {
-	return m.clearedloginAttempts
+// SessionsCleared reports if the "sessions" edge to the Session entity was cleared.
+func (m *UserMutation) SessionsCleared() bool {
+	return m.clearedsessions
 }
 
-// RemoveLoginAttemptIDs removes the "loginAttempts" edge to the LoginAttempt entity by IDs.
-func (m *UserMutation) RemoveLoginAttemptIDs(ids ...int) {
-	if m.removedloginAttempts == nil {
-		m.removedloginAttempts = make(map[int]struct{})
+// RemoveSessionIDs removes the "sessions" edge to the Session entity by IDs.
+func (m *UserMutation) RemoveSessionIDs(ids ...int) {
+	if m.removedsessions == nil {
+		m.removedsessions = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.loginAttempts, ids[i])
-		m.removedloginAttempts[ids[i]] = struct{}{}
+		delete(m.sessions, ids[i])
+		m.removedsessions[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedLoginAttempts returns the removed IDs of the "loginAttempts" edge to the LoginAttempt entity.
-func (m *UserMutation) RemovedLoginAttemptsIDs() (ids []int) {
-	for id := range m.removedloginAttempts {
+// RemovedSessions returns the removed IDs of the "sessions" edge to the Session entity.
+func (m *UserMutation) RemovedSessionsIDs() (ids []int) {
+	for id := range m.removedsessions {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// LoginAttemptsIDs returns the "loginAttempts" edge IDs in the mutation.
-func (m *UserMutation) LoginAttemptsIDs() (ids []int) {
-	for id := range m.loginAttempts {
+// SessionsIDs returns the "sessions" edge IDs in the mutation.
+func (m *UserMutation) SessionsIDs() (ids []int) {
+	for id := range m.sessions {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetLoginAttempts resets all changes to the "loginAttempts" edge.
-func (m *UserMutation) ResetLoginAttempts() {
-	m.loginAttempts = nil
-	m.clearedloginAttempts = false
-	m.removedloginAttempts = nil
+// ResetSessions resets all changes to the "sessions" edge.
+func (m *UserMutation) ResetSessions() {
+	m.sessions = nil
+	m.clearedsessions = false
+	m.removedsessions = nil
 }
 
 // Where appends a list predicates to the UserMutation builder.
@@ -1673,8 +1726,8 @@ func (m *UserMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.loginAttempts != nil {
-		edges = append(edges, user.EdgeLoginAttempts)
+	if m.sessions != nil {
+		edges = append(edges, user.EdgeSessions)
 	}
 	return edges
 }
@@ -1683,9 +1736,9 @@ func (m *UserMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeLoginAttempts:
-		ids := make([]ent.Value, 0, len(m.loginAttempts))
-		for id := range m.loginAttempts {
+	case user.EdgeSessions:
+		ids := make([]ent.Value, 0, len(m.sessions))
+		for id := range m.sessions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1696,8 +1749,8 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedloginAttempts != nil {
-		edges = append(edges, user.EdgeLoginAttempts)
+	if m.removedsessions != nil {
+		edges = append(edges, user.EdgeSessions)
 	}
 	return edges
 }
@@ -1706,9 +1759,9 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case user.EdgeLoginAttempts:
-		ids := make([]ent.Value, 0, len(m.removedloginAttempts))
-		for id := range m.removedloginAttempts {
+	case user.EdgeSessions:
+		ids := make([]ent.Value, 0, len(m.removedsessions))
+		for id := range m.removedsessions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1719,8 +1772,8 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.clearedloginAttempts {
-		edges = append(edges, user.EdgeLoginAttempts)
+	if m.clearedsessions {
+		edges = append(edges, user.EdgeSessions)
 	}
 	return edges
 }
@@ -1729,8 +1782,8 @@ func (m *UserMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
-	case user.EdgeLoginAttempts:
-		return m.clearedloginAttempts
+	case user.EdgeSessions:
+		return m.clearedsessions
 	}
 	return false
 }
@@ -1747,8 +1800,8 @@ func (m *UserMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
-	case user.EdgeLoginAttempts:
-		m.ResetLoginAttempts()
+	case user.EdgeSessions:
+		m.ResetSessions()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

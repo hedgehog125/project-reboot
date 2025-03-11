@@ -5,8 +5,8 @@ package ent
 import (
 	"time"
 
-	"github.com/hedgehog125/project-reboot/ent/loginattempt"
 	"github.com/hedgehog125/project-reboot/ent/schema"
+	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
@@ -14,16 +14,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	loginattemptFields := schema.LoginAttempt{}.Fields()
-	_ = loginattemptFields
-	// loginattemptDescTime is the schema descriptor for time field.
-	loginattemptDescTime := loginattemptFields[0].Descriptor()
-	// loginattempt.DefaultTime holds the default value on creation for the time field.
-	loginattempt.DefaultTime = loginattemptDescTime.Default.(func() time.Time)
-	// loginattemptDescCode is the schema descriptor for code field.
-	loginattemptDescCode := loginattemptFields[1].Descriptor()
-	// loginattempt.CodeValidator is a validator for the "code" field. It is called by the builders before save.
-	loginattempt.CodeValidator = loginattemptDescCode.Validators[0].(func([]byte) error)
+	sessionFields := schema.Session{}.Fields()
+	_ = sessionFields
+	// sessionDescTime is the schema descriptor for time field.
+	sessionDescTime := sessionFields[0].Descriptor()
+	// session.DefaultTime holds the default value on creation for the time field.
+	session.DefaultTime = sessionDescTime.Default.(func() time.Time)
+	// sessionDescCode is the schema descriptor for code field.
+	sessionDescCode := sessionFields[1].Descriptor()
+	// session.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	session.CodeValidator = sessionDescCode.Validators[0].(func([]byte) error)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.
