@@ -3,7 +3,6 @@ package users
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +17,9 @@ type RegisterPayload struct {
 	Filename string `json:"filename" binding:"required,min=1,max=256"`
 	Mime     string `json:"mime" binding:"required,min=1,max=256"`
 }
+type RegisterOrUpdateResponse struct {
+	Errors []string `json:"errors" binding:"required"`
+}
 
 func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 	dbClient := app.App.Database.Client()
@@ -30,19 +32,15 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		contentBytes, err := base64.StdEncoding.DecodeString(body.Content)
 		if err != nil {
-			fmt.Printf("err.Error(): %v\n", err.Error())
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"errors": []string{"MALFORMED_CONTENT"},
+			ctx.JSON(http.StatusBadRequest, RegisterOrUpdateResponse{
+				Errors: []string{"MALFORMED_CONTENT"},
 			})
 			return
 		}
 
 		encrypted, err := core.Encrypt(contentBytes, body.Password)
 		if err != nil {
-			fmt.Printf("warning: an error occurred while encrypting a user's data:\n%v\n", err.Error())
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"errors": []string{"INTERNAL"},
-			})
+			ctx.Error(err)
 			return
 		}
 
@@ -64,15 +62,12 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 		// TODO: delete active attempts if this is an update
 
 		if err != nil {
-			fmt.Printf("warning: an error occurred while saving user data:\n%v\n", err.Error())
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"errors": []string{"INTERNAL"},
-			})
+			ctx.Error(err)
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, gin.H{
-			"errors": []string{},
+		ctx.JSON(http.StatusCreated, RegisterOrUpdateResponse{
+			Errors: []string{},
 		})
 	}
 }

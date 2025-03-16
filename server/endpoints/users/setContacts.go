@@ -1,12 +1,10 @@
 package users
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
@@ -15,6 +13,10 @@ type SetContactsPayload struct {
 	Username      string `json:"username" binding:"required,min=1,max=32,alphanum,lowercase"`
 	DiscordUserId string `json:"discordUserId" binding:"max=256"`
 	Email         string `json:"email" binding:"max=256"`
+}
+type SetContactsResponse struct {
+	Errors       []string `json:"errors" binding:"required"`
+	MessagesSent []string `json:"messagesSent"`
 }
 
 func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -31,26 +33,14 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 			Where(user.Username(body.Username)).
 			SetAlertDiscordId(body.DiscordUserId).SetAlertEmail(body.Email).Save(ctx.Request.Context())
 		if err != nil {
-			if ent.IsNotFound(err) {
-				ctx.JSON(http.StatusNotFound, gin.H{
-					"errors": []string{"NO_USER"},
-				})
-			} else {
-				fmt.Printf("warning: an error occurred while updating a user:\n%v\n", err.Error())
-				ctx.JSON(http.StatusInternalServerError, gin.H{
-					"errors": []string{"INTERNAL"},
-				})
-			}
-
+			ctx.Error(servercommon.Send404IfNotFound(err))
 			return
 		}
 
+		// TODO: wrap these errors with context
 		userInfo, err := common.ReadMessageUserInfo(body.Username, dbClient)
 		if err != nil {
-			fmt.Printf("warning: an error occurred while reading the user info for a messenger:\n%v\n", err.Error())
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"errors": []string{"INTERNAL"},
-			})
+			ctx.Error(err)
 			return
 		}
 		errs := messenger.SendUsingAll(common.Message{
@@ -58,14 +48,16 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 			User: userInfo,
 		})
 		if common.HasErrors(errs) {
-			ctx.JSON(http.StatusOK, gin.H{
-				"errors": []string{"TEST_MESSAGE_SEND_ERROR"}, // TODO: say which ones
+			ctx.JSON(http.StatusBadRequest, SetContactsResponse{
+				Errors:       []string{"SOME_TEST_MESSAGE_FAILED"}, // TODO: say which ones
+				MessagesSent: []string{},                           // TODO
 			})
 			return
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{
-			"errors": []string{},
+		ctx.JSON(http.StatusOK, SetContactsResponse{
+			Errors:       []string{},
+			MessagesSent: []string{}, // TODO
 		})
 	}
 }

@@ -17,8 +17,10 @@ func HasErrors(errs []error) bool {
 }
 
 const (
-	ErrorDatabase = "database"
-	ErrorOther    = "other"
+	ErrorDatabase     = "database"
+	ErrorNotFound     = "not-found"
+	ErrorUnauthorized = "unauthorized"
+	ErrorOther        = "other"
 )
 
 func CategorizeError(err error) string {
@@ -34,4 +36,17 @@ func CategorizeError(err error) string {
 	}
 
 	return ErrorOther
+}
+
+type ContextPanic struct {
+	Message       string
+	ShouldRecover bool
+}
+
+// Crashes the whole server rather than just sending a 500
+func UnrecoverablePanic(message string) {
+	panic(&ContextPanic{
+		Message:       message,
+		ShouldRecover: false,
+	})
 }

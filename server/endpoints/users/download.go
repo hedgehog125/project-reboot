@@ -3,13 +3,11 @@ package users
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/core"
-	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
@@ -30,11 +28,6 @@ type DownloadResponse struct {
 }
 
 func Download(app *servercommon.ServerApp) gin.HandlerFunc {
-	sendUnauthorizedError := func(ctx *gin.Context) {
-		ctx.JSON(http.StatusUnauthorized, DownloadResponse{
-			Errors: []string{"INCORRECT_USERNAME_OR_PASSWORD_OR_AUTH_CODE"},
-		})
-	}
 	dbClient := app.App.Database.Client()
 	clock := app.App.Clock
 
@@ -57,15 +50,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			Select(session.FieldCode, session.FieldCodeValidFrom).
 			First(context.Background())
 		if err != nil {
-			if ent.IsNotFound(err) {
-				sendUnauthorizedError(ctx)
-			} else {
-				fmt.Printf("warning: an error occurred while reading user data:\n%v\n", err.Error())
-				ctx.JSON(http.StatusInternalServerError, DownloadResponse{
-					Errors: []string{"INTERNAL"},
-				})
-			}
-
+			ctx.Error(servercommon.Send401IfNotFound(err))
 			return
 		}
 
@@ -96,10 +81,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			).
 			Only(context.Background())
 		if err != nil {
-			fmt.Printf("warning: an error occurred while reading user data:\n%v\n", err.Error())
-			ctx.JSON(http.StatusInternalServerError, DownloadResponse{
-				Errors: []string{"INTERNAL"},
-			})
+			ctx.Error(err)
 			return
 		}
 
@@ -116,14 +98,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			},
 		})
 		if err != nil {
-			if err == core.ErrIncorrectPassword {
-				sendUnauthorizedError(ctx)
-			} else {
-				fmt.Printf("warning: an error occurred while decrypting user data:\n%v\n", err.Error())
-				ctx.JSON(http.StatusInternalServerError, DownloadResponse{
-					Errors: []string{"INTERNAL"},
-				})
-			}
+			ctx.Error(servercommon.ExpectError(err, core.ErrIncorrectPassword, http.StatusUnauthorized, "UNAUTHORIZED"))
 			return
 		}
 

@@ -2,14 +2,14 @@ package common
 
 import (
 	"crypto/rand"
-	"log"
+	"fmt"
 )
 
 func CryptoRandomBytes(length int) []byte {
 	salt := make([]byte, length)
 	_, err := rand.Read(salt)
 	if err != nil {
-		log.Fatalf("randomBytes: couldn't get random byte. error:\n%v", err)
+		UnrecoverablePanic(fmt.Sprintf("CryptoRandomBytes: couldn't get random byte. error:\n%v", err))
 	}
 	return salt
 }

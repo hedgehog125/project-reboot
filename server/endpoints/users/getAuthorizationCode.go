@@ -3,7 +3,6 @@ package users
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -26,11 +25,6 @@ type GetAuthorizationCodeResponse struct {
 }
 
 func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
-	sendUnauthorizedError := func(ctx *gin.Context) {
-		ctx.JSON(http.StatusUnauthorized, GetAuthorizationCodeResponse{
-			Errors: []string{"INCORRECT_USERNAME_OR_PASSWORD_OR_AUTH_CODE"},
-		})
-	}
 	dbClient := app.App.Database.Client()
 	clock := app.App.Clock
 	unlockTime := time.Duration(app.App.Env.UNLOCK_TIME) * time.Second
@@ -46,11 +40,11 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			Select(user.FieldPasswordHash, user.FieldPasswordSalt, user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen).
 			Only(context.Background())
 		if err != nil {
-			ctx.Error(servercommon.Send401IfNotFound(err))
+			ctx.Error(servercommon.SendUnauthorizedIfNotFound(err))
 			return
 		}
 
-		authorized := core.CheckPassword(
+		if !core.CheckPassword(
 			body.Password,
 			userRow.PasswordHash,
 			userRow.PasswordSalt,
@@ -59,19 +53,13 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				Memory: userRow.HashMemory,
 				KeyLen: userRow.HashKeyLen,
 			},
-		)
-
-		var authCode []byte = nil
-		if authorized {
-			authCode = common.CryptoRandomBytes(core.AUTH_CODE_BYTE_LENGTH)
-		}
-		validAt := clock.Now().UTC().Add(unlockTime)
-
-		if !authorized {
-			// TODO: log this event
-			sendUnauthorizedError(ctx)
+		) {
+			ctx.Error(servercommon.NewUnauthorizedError())
 			return
 		}
+
+		authCode := common.CryptoRandomBytes(core.AUTH_CODE_BYTE_LENGTH)
+		validAt := clock.Now().UTC().Add(unlockTime)
 
 		_, err = dbClient.Session.Create().
 			SetUser(userRow).
@@ -81,10 +69,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			SetIP(ctx.ClientIP()).
 			Save(context.Background())
 		if err != nil {
-			fmt.Printf("warning: an error occurred while creating a login session:\n%v\n", err.Error())
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"errors": []string{"INTERNAL"},
-			})
+			ctx.Error(err)
 			return
 		}
 

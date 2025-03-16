@@ -1,6 +1,8 @@
 package servercommon
 
 import (
+	"errors"
+
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 )
@@ -43,23 +45,41 @@ func (err *ContextError) Finish() *ContextError {
 }
 
 func (err *ContextError) Send404IfNotFound() *ContextError {
-	return err.SendStatusIfNotFound(404, "NOT_FOUND")
+	return sendStatusIfNotFound(err, 404, "NOT_FOUND", true)
 }
 
-// 401 is HTTP unauthorized
-func (err *ContextError) Send401IfNotFound() *ContextError {
-	return err.SendStatusIfNotFound(401, "UNAUTHORIZED")
+func (err *ContextError) SendUnauthorizedIfNotFound() *ContextError {
+	return sendStatusIfNotFound(err, 401, "UNAUTHORIZED", false)
 }
 
-func (err *ContextError) SendStatusIfNotFound(statusCode int, errorCode string) *ContextError {
-	if ent.IsNotFound(err.Err) {
+func (err *ContextError) Expect(
+	expectedError error,
+	statusCode int, errorCode string,
+) *ContextError {
+	return sendStatusAndCodeIfCondition(err, errors.Is(err, expectedError), statusCode, errorCode, true)
+}
+
+func sendStatusIfNotFound(
+	err *ContextError, statusCode int,
+	errorCode string, preventLog bool,
+) *ContextError {
+	return sendStatusAndCodeIfCondition(err, ent.IsNotFound(err.Err), statusCode, errorCode, preventLog)
+}
+
+func sendStatusAndCodeIfCondition(
+	err *ContextError, condition bool, statusCode int,
+	errorCode string, preventLog bool,
+) *ContextError {
+	if condition {
 		if statusCode != -1 {
 			err.Status = statusCode
 		}
 		if errorCode != "" {
 			err.ErrorCodes = append(err.ErrorCodes, errorCode)
 		}
-		err.ShouldLog = false
+		if preventLog {
+			err.ShouldLog = false
+		}
 	}
 	return err
 }
