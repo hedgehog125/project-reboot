@@ -50,7 +50,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			Select(session.FieldCode, session.FieldCodeValidFrom).
 			First(context.Background())
 		if err != nil {
-			ctx.Error(servercommon.Send401IfNotFound(err))
+			ctx.Error(servercommon.SendUnauthorizedIfNotFound(err))
 			return
 		}
 

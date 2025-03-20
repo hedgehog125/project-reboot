@@ -1,7 +1,5 @@
 # TODO
 
--   Simplify endpoints using the new error system
--   Don't use generic error codes. A 404 should just be 404, errors: [] if there's nothing more specific
 -   Custom error interface for messengers so the caller knows which failed?
 -   How should messengers be concurrent? Maybe the different types run concurrently but the messages for each are sent sequentially?
 -   Rename loginAttempt table to loginSessions and only store successful logins. Expired sessions are deleted since it'll have already been logged in the log table

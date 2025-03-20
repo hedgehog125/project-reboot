@@ -45,11 +45,11 @@ func (err *ContextError) Finish() *ContextError {
 }
 
 func (err *ContextError) Send404IfNotFound() *ContextError {
-	return sendStatusIfNotFound(err, 404, "NOT_FOUND", true)
+	return sendStatusIfNotFound(err, 404, "", true)
 }
 
 func (err *ContextError) SendUnauthorizedIfNotFound() *ContextError {
-	return sendStatusIfNotFound(err, 401, "UNAUTHORIZED", false)
+	return sendStatusIfNotFound(err, 401, "", false)
 }
 
 func (err *ContextError) Expect(
