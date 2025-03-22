@@ -30,7 +30,8 @@ type App struct {
 }
 
 type MessengerService interface {
-	SendUsingAll(message Message) []error
+	Ids() []string
+	SendUsingAll(message Message) []*ErrWithStrId
 }
 type MessageType string
 

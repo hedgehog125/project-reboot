@@ -23,21 +23,30 @@ type messengerService struct {
 	messengers []messengers.Messenger
 }
 
-func (service *messengerService) SendUsingAll(message common.Message) []error {
-	errChan := make(chan common.ErrWithIndex, 3)
+func (service *messengerService) Ids() []string {
+	ids := make([]string, len(service.messengers))
 	for i, messenger := range service.messengers {
+		ids[i] = messenger.Id()
+	}
+	return ids
+}
+func (service *messengerService) SendUsingAll(message common.Message) []*common.ErrWithStrId {
+	errChan := make(chan common.ErrWithStrId, 3)
+	for _, messenger := range service.messengers {
 		go func() {
 			err := messenger.Send(message)
-			errChan <- common.ErrWithIndex{
-				Err:   err,
-				Index: i,
+			errChan <- common.ErrWithStrId{
+				Err: err,
+				Id:  messenger.Id(),
 			}
 		}()
 	}
-	errs := make([]error, len(service.messengers))
+	errs := make([]*common.ErrWithStrId, 0)
 	for range len(service.messengers) {
 		errInfo := <-errChan
-		errs[errInfo.Index] = errInfo.Err
+		if errInfo.Err != nil {
+			errs = append(errs, &errInfo)
+		}
 	}
 
 	return errs

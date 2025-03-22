@@ -28,6 +28,10 @@ func NewDiscord(env *common.Env) Discord {
 	}
 }
 
+func (discord *discord) Id() string {
+	return "discord"
+}
+
 func (discord *discord) Send(message common.Message) error {
 	err := discord.session.Open()
 	if err != nil {
