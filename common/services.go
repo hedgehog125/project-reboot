@@ -57,6 +57,7 @@ type MessageUserInfo struct {
 type DatabaseService interface {
 	Client() *ent.Client
 	Shutdown() // Should log warning rather than return an error
+	ReadMessageUserInfo(username string) (*MessageUserInfo, error)
 }
 
 type ServerService interface {

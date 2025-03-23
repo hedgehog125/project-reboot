@@ -39,7 +39,7 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		// TODO: wrap these errors with context
-		userInfo, err := common.ReadMessageUserInfo(body.Username, dbClient)
+		userInfo, err := app.App.Database.ReadMessageUserInfo(body.Username)
 		if err != nil {
 			ctx.Error(err)
 			return
