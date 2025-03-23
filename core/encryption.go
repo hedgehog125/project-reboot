@@ -29,6 +29,11 @@ var defaultHashSettings = HashSettings{
 	Time:   5,
 	Memory: 128 * 1024,
 	KeyLen: 32,
+
+	// Minimum
+	// Time:   1,
+	// Memory: 1 * 1024,
+	// KeyLen: 16,
 }
 
 type HashSettings struct {
@@ -68,7 +73,7 @@ func CheckPassword(givenPassword string, passwordHash []byte, passwordSalt []byt
 	return subtle.ConstantTimeCompare(givenPasswordHash, passwordHash) == 1
 }
 
-var ErrIncorrectPassword error = errors.New("incorrect password")
+var ErrIncorrectPassword = errors.New("incorrect password")
 
 func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
 	if !CheckPassword(password, encryptedData.PasswordHash, encryptedData.PasswordSalt, encryptedData.HashSettings) {
@@ -92,11 +97,13 @@ func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
 	}
 	return decrypted, nil
 }
+
 func hash(password string, settings HashSettings) (hash, salt []byte) {
 	salt = common.CryptoRandomBytes(SaltLength)
 	hash = hashWithSalt(password, salt, settings)
 	return
 }
+
 func hashWithSalt(password string, salt []byte, settings HashSettings) []byte {
 	return argon2.IDKey([]byte(password), salt, settings.Time, settings.Memory, HashThreads, settings.KeyLen)
 }

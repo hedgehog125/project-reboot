@@ -11,14 +11,14 @@ import (
 )
 
 type RegisterPayload struct {
-	Username string `json:"username" binding:"required,min=1,max=32,alphanum,lowercase"`
-	Password string `json:"password" binding:"required,min=8,max=256"`
-	Content  string `json:"content"  binding:"required,min=1,max=100000000"` // 100 MB but base64 encoded
-	Filename string `json:"filename" binding:"required,min=1,max=256"`
-	Mime     string `json:"mime" binding:"required,min=1,max=256"`
+	Username string `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
+	Password string `binding:"required,min=8,max=256"                   json:"password"`
+	Content  string `binding:"required,min=1,max=100000000"             json:"content"` // 100 MB but base64 encoded
+	Filename string `binding:"required,min=1,max=256"                   json:"filename"`
+	Mime     string `binding:"required,min=1,max=256"                   json:"mime"`
 }
 type RegisterOrUpdateResponse struct {
-	Errors []string `json:"errors" binding:"required"`
+	Errors []string `binding:"required" json:"errors"`
 }
 
 func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -58,9 +58,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			SetHashKeyLen(encrypted.HashSettings.KeyLen).
 			OnConflict().UpdateNewValues().
 			Exec(context.Background())
-
-		// TODO: delete active attempts if this is an update
-
+			// TODO: delete active attempts if this is an update
 		if err != nil {
 			ctx.Error(err)
 			return

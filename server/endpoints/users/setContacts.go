@@ -10,12 +10,12 @@ import (
 )
 
 type SetContactsPayload struct {
-	Username      string `json:"username" binding:"required,min=1,max=32,alphanum,lowercase"`
-	DiscordUserId string `json:"discordUserId" binding:"max=256"`
-	Email         string `json:"email" binding:"max=256"`
+	Username      string `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
+	DiscordUserId string `binding:"max=256"                                  json:"discordUserId"`
+	Email         string `binding:"max=256"                                  json:"email"`
 }
 type SetContactsResponse struct {
-	Errors       []string `json:"errors" binding:"required"`
+	Errors       []string `binding:"required"  json:"errors"`
 	MessagesSent []string `json:"messagesSent"`
 }
 

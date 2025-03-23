@@ -14,12 +14,12 @@ import (
 )
 
 type GetAuthorizationCodePayload struct {
-	Username string `json:"username" binding:"required,min=1,max=32,alphanum,lowercase"`
-	Password string `json:"password" binding:"required,min=8,max=256"`
+	Username string `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
+	Password string `binding:"required,min=8,max=256"                   json:"password"`
 }
 
 type GetAuthorizationCodeResponse struct {
-	Errors                   []string  `json:"errors" binding:"required"`
+	Errors                   []string  `binding:"required"              json:"errors"`
 	MessagesSent             []string  `json:"messagesSent"`
 	AuthorizationCode        string    `json:"authorizationCode"`
 	AuthorizationCodeValidAt time.Time `json:"authorizationCodeValidAt"`

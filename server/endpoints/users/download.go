@@ -14,13 +14,14 @@ import (
 )
 
 type DownloadPayload struct {
-	Username          string `json:"username" binding:"required,min=1,max=32,alphanum,lowercase"`
-	Password          string `json:"password" binding:"required,min=8,max=256"`
-	AuthorizationCode string `json:"authorizationCode" binding:"required,min=128,max=256"` // I think the length can vary because of the base64 encoding?
+	Username          string `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
+	Password          string `binding:"required,min=8,max=256"                   json:"password"`
+	AuthorizationCode string `binding:"required,min=128,max=256"                 json:"authorizationCode"`
+	// ^ I think the length can vary because of the base64 encoding?
 }
 
 type DownloadResponse struct {
-	Errors                   []string   `json:"errors" binding:"required"`
+	Errors                   []string   `binding:"required"              json:"errors"`
 	AuthorizationCodeValidAt *time.Time `json:"authorizationCodeValidAt"`
 	Content                  []byte     `json:"content"`
 	Filename                 string     `json:"filename"`
