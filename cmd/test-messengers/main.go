@@ -22,7 +22,7 @@ func main() {
 	defer databaseService.Shutdown()
 
 	discord := messengers.NewDiscord(env)
-	userInfo, err := common.ReadMessageUserInfo(*username, databaseService.Client())
+	userInfo, err := databaseService.ReadMessageUserInfo(*username)
 	if err != nil {
 		log.Fatalf("couldn't read user. error:\n%v", err.Error())
 	}

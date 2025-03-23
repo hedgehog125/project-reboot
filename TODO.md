@@ -17,3 +17,8 @@
 Can I wake up a sleeping railway app by just having a separate cron service send an HTTP request over the internal network?
 
 Maybe have the server save the time periodically and on shutdown? Then when it starts it runs through the cron jobs it missed? It probably shouldn't run the same jobs multiple times though
+
+# Testing
+
+-   Create mock messenger
+-   -   Register it multiple times in place of the actual ones to ensure the contacts are being passed correctly?

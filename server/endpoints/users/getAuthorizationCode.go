@@ -20,12 +20,14 @@ type GetAuthorizationCodePayload struct {
 
 type GetAuthorizationCodeResponse struct {
 	Errors                   []string  `json:"errors" binding:"required"`
+	MessagesSent             []string  `json:"messagesSent"`
 	AuthorizationCode        string    `json:"authorizationCode"`
 	AuthorizationCodeValidAt time.Time `json:"authorizationCodeValidAt"`
 }
 
 func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 	dbClient := app.App.Database.Client()
+	messenger := app.App.Messenger
 	clock := app.App.Clock
 	unlockTime := time.Duration(app.App.Env.UNLOCK_TIME) * time.Second
 
@@ -37,7 +39,13 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		userRow, err := dbClient.User.Query().
 			Where(user.Username(body.Username)).
-			Select(user.FieldPasswordHash, user.FieldPasswordSalt, user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen).
+			Select(
+				user.FieldPasswordHash, user.FieldPasswordSalt,
+				user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen,
+				// Contacts
+				user.FieldAlertDiscordId,
+				user.FieldAlertEmail,
+			).
 			Only(context.Background())
 		if err != nil {
 			ctx.Error(servercommon.SendUnauthorizedIfNotFound(err))
@@ -48,7 +56,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			body.Password,
 			userRow.PasswordHash,
 			userRow.PasswordSalt,
-			&core.HashSettings{
+			core.HashSettings{
 				Time:   userRow.HashTime,
 				Memory: userRow.HashMemory,
 				KeyLen: userRow.HashKeyLen,
@@ -58,7 +66,29 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		authCode := common.CryptoRandomBytes(core.AUTH_CODE_BYTE_LENGTH)
+		errs := messenger.SendUsingAll(common.Message{
+			Type: common.MessageLogin,
+			User: (
+			//exhaustruct:enforce
+			&common.MessageUserInfo{
+				Username:       body.Username,
+				AlertDiscordId: userRow.AlertDiscordId,
+				AlertEmail:     userRow.AlertEmail,
+			}),
+		})
+		messengerIDs := messenger.IDs()
+		if len(errs) == len(messengerIDs) {
+			// We aren't sure if this error is the client or server's fault
+			ctx.JSON(http.StatusInternalServerError, SetContactsResponse{
+				Errors:       []string{"ALL_TEST_MESSAGES_FAILED"},
+				MessagesSent: []string{},
+			})
+			return
+		}
+
+		// TODO: log these errors
+
+		authCode := core.RandomAuthCode()
 		validAt := clock.Now().UTC().Add(unlockTime)
 
 		_, err = dbClient.Session.Create().
@@ -75,6 +105,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		ctx.JSON(http.StatusOK, GetAuthorizationCodeResponse{
 			Errors:                   []string{},
+			MessagesSent:             common.GetSuccessfulActionIDs(messengerIDs, errs),
 			AuthorizationCode:        base64.StdEncoding.EncodeToString(authCode),
 			AuthorizationCodeValidAt: validAt,
 		})

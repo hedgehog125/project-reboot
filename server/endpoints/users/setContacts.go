@@ -2,7 +2,6 @@ package users
 
 import (
 	"net/http"
-	"slices"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
@@ -38,7 +37,6 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		// TODO: wrap these errors with context
 		userInfo, err := app.App.Database.ReadMessageUserInfo(body.Username)
 		if err != nil {
 			ctx.Error(err)
@@ -48,7 +46,8 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 			Type: common.MessageTest,
 			User: userInfo,
 		})
-		if len(errs) != 0 {
+		messengerIds := messenger.IDs()
+		if len(errs) == len(messengerIds) {
 			ctx.JSON(http.StatusInternalServerError, SetContactsResponse{ // We aren't sure if this error is the client or server's fault
 				Errors:       []string{"ALL_TEST_MESSAGES_FAILED"},
 				MessagesSent: []string{},
@@ -56,19 +55,11 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		messagesSent := messenger.Ids()
-		for _, err := range errs {
-			index := slices.Index(messagesSent, err.Id)
-			if index != -1 {
-				messagesSent = slices.Delete(messagesSent, index, index)
-			}
-		}
-
 		// TODO: log these errors
 
 		ctx.JSON(http.StatusOK, SetContactsResponse{
 			Errors:       []string{},
-			MessagesSent: messagesSent,
+			MessagesSent: common.GetSuccessfulActionIDs(messengerIds, errs),
 		})
 	}
 }

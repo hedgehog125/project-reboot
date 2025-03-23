@@ -60,6 +60,7 @@ func (service *databaseService) ReadMessageUserInfo(username string) (*common.Me
 		return nil, err
 	}
 
+	//exhaustruct:enforce
 	return &common.MessageUserInfo{
 		Username:       username,
 		AlertDiscordId: row.AlertDiscordId,

@@ -19,8 +19,17 @@ type EncryptedData struct {
 	HashSettings HashSettings
 }
 
-const HASH_THREADS = 2
-const SALT_LENGTH = 128
+// Hash run settings
+const (
+	HashThreads = 2
+	SaltLength  = 128
+)
+
+var defaultHashSettings = HashSettings{
+	Time:   5,
+	Memory: 128 * 1024,
+	KeyLen: 32,
+}
 
 type HashSettings struct {
 	Time   uint32
@@ -30,13 +39,8 @@ type HashSettings struct {
 
 // Adapted from: https://tutorialedge.net/golang/go-encrypt-decrypt-aes-tutorial/
 func Encrypt(data []byte, password string) (*EncryptedData, error) {
-	hashSettings := HashSettings{
-		Time:   5,
-		Memory: 128 * 1024,
-		KeyLen: 32,
-	}
-	passwordHash, passwordSalt := hash(password, &hashSettings)
-	encryptionKey, encryptionKeySalt := hash(password, &hashSettings)
+	passwordHash, passwordSalt := hash(password, defaultHashSettings)
+	encryptionKey, encryptionKeySalt := hash(password, defaultHashSettings)
 
 	passwordCipher, err := aes.NewCipher(encryptionKey)
 	if err != nil {
@@ -55,11 +59,11 @@ func Encrypt(data []byte, password string) (*EncryptedData, error) {
 		KeySalt:      encryptionKeySalt,
 		PasswordHash: passwordHash,
 		PasswordSalt: passwordSalt,
-		HashSettings: hashSettings,
+		HashSettings: defaultHashSettings,
 	}, nil
 }
 
-func CheckPassword(givenPassword string, passwordHash []byte, passwordSalt []byte, hashSettings *HashSettings) bool {
+func CheckPassword(givenPassword string, passwordHash []byte, passwordSalt []byte, hashSettings HashSettings) bool {
 	givenPasswordHash := hashWithSalt(givenPassword, passwordSalt, hashSettings)
 	return subtle.ConstantTimeCompare(givenPasswordHash, passwordHash) == 1
 }
@@ -67,15 +71,16 @@ func CheckPassword(givenPassword string, passwordHash []byte, passwordSalt []byt
 var ErrIncorrectPassword error = errors.New("incorrect password")
 
 func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
-	if !CheckPassword(password, encryptedData.PasswordHash, encryptedData.PasswordSalt, &encryptedData.HashSettings) {
+	if !CheckPassword(password, encryptedData.PasswordHash, encryptedData.PasswordSalt, encryptedData.HashSettings) {
 		return nil, ErrIncorrectPassword
 	}
-	encryptionKey := hashWithSalt(password, encryptedData.KeySalt, &encryptedData.HashSettings)
 
+	encryptionKey := hashWithSalt(password, encryptedData.KeySalt, encryptedData.HashSettings)
 	passwordCipher, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return nil, err
 	}
+
 	gcm, err := cipher.NewGCM(passwordCipher)
 	if err != nil {
 		return nil, err
@@ -87,11 +92,11 @@ func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
 	}
 	return decrypted, nil
 }
-func hash(password string, settings *HashSettings) (hash, salt []byte) {
-	salt = common.CryptoRandomBytes(SALT_LENGTH)
+func hash(password string, settings HashSettings) (hash, salt []byte) {
+	salt = common.CryptoRandomBytes(SaltLength)
 	hash = hashWithSalt(password, salt, settings)
 	return
 }
-func hashWithSalt(password string, salt []byte, settings *HashSettings) []byte {
-	return argon2.IDKey([]byte(password), salt, settings.Time, settings.Memory, HASH_THREADS, settings.KeyLen)
+func hashWithSalt(password string, salt []byte, settings HashSettings) []byte {
+	return argon2.IDKey([]byte(password), salt, settings.Time, settings.Memory, HashThreads, settings.KeyLen)
 }
