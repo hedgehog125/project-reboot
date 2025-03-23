@@ -1,7 +1,6 @@
 package messengers
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/bwmarrin/discordgo"
@@ -39,7 +38,7 @@ func (discord *discord) Send(message common.Message) error {
 	}
 	defer discord.session.Close()
 
-	preparedMessage, err := prepareMessage(message)
+	formattedMessage, err := formatDefaultMessage(message)
 	if err != nil {
 		return err
 	}
@@ -48,20 +47,10 @@ func (discord *discord) Send(message common.Message) error {
 	if err != nil {
 		return err
 	}
-	_, err = discord.session.ChannelMessageSend(channel.ID, preparedMessage)
+	_, err = discord.session.ChannelMessageSend(channel.ID, formattedMessage)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func prepareMessage(message common.Message) (string, error) {
-	switch message.Type {
-	case common.MessageLogin:
-		return fmt.Sprintf("Login attempt"), nil
-	case common.MessageTest:
-		return "Test message", nil
-	}
-	return "", fmt.Errorf("message type \"%v\" hasn't been implemented", message.Type)
 }

@@ -40,6 +40,19 @@ func RequireInt64Env(name string) int64 {
 
 	return value
 }
+func RequireBoolEnv(name string) bool {
+	rawValue := RequireEnv(name)
+	lower := strings.ToLower(rawValue)
+
+	if lower == "true" {
+		return true
+	} else if lower == "false" {
+		return false
+	}
+
+	log.Fatalf("couldn't parse environment variable \"%v\". \"%v\" is not true or false", name, rawValue)
+	return false
+}
 
 // Mainly used for the CLI commands eg. BENCHMARK_THREAD_COUNT
 func OptionalEnv(name string, defaultValue string) string {

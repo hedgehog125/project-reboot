@@ -6,6 +6,7 @@ import (
 )
 
 type Env struct {
+	IS_DEV                        bool
 	PORT                          int
 	MOUNT_PATH                    string
 	PROXY_ORIGINAL_IP_HEADER_NAME string

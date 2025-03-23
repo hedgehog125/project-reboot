@@ -7,6 +7,9 @@ import (
 
 func NewMessenger(env *common.Env) common.MessengerService {
 	enabledMessengers := []messengers.Messenger{}
+	if env.IS_DEV {
+		enabledMessengers = append(enabledMessengers, messengers.NewDevelop())
+	}
 	if env.DISCORD_TOKEN != "" {
 		enabledMessengers = append(enabledMessengers, messengers.NewDiscord(env))
 	}
