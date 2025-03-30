@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -25,9 +26,9 @@ func main() {
 		log.Fatalf("missing required argument \"password\"")
 	}
 
-	fmt.Println("benchmarking...")
+	fmt.Fprintln(os.Stdout, "benchmarking...")
 	threads := runtime.GOMAXPROCS(0)
-	fmt.Printf("running on %v threads\n\n", threads)
+	fmt.Fprintf(os.Stdout, "running on %v threads\n\n", threads)
 
 	encrypted, err := core.Encrypt([]byte("Hello world"), *password)
 	if err != nil {
@@ -71,7 +72,8 @@ MainLoop:
 		}
 	}
 
-	fmt.Printf("\nsuccessfully guessed password after ~%v attempts in %v seconds: \"%v\"\ndecrypted content:\n%v\n",
+	fmt.Fprintf(os.Stdout,
+		"\nsuccessfully guessed password after ~%v attempts in %v seconds: \"%v\"\ndecrypted content:\n%v\n",
 		completedChecks,
 		math.Round(time.Now().UTC().Sub(startTime).Seconds()),
 		successfulGuess.password,
@@ -120,19 +122,23 @@ func workerLoop(
 	}
 }
 
-func performanceLoop(completedChecks *int64, currentPassword []int32) {
+func performanceLoop(completedChecksPointer *int64, currentPassword []int32) {
 	completedChecksWas := int64(0)
 	for {
 		time.Sleep(time.Minute)
-		c := *completedChecks
+		completedChecks := *completedChecksPointer
 
 		asStrings := make([]string, len(currentPassword))
 		for i, charID := range currentPassword {
 			asStrings[i] = strconv.Itoa(int(charID))
 		}
 
-		fmt.Printf("\nChecks per minute: %v\nCurrent guess: [%v]\n", c-completedChecksWas, strings.Join(asStrings, ", "))
+		fmt.Fprintf(os.Stdout,
+			"\nChecks per minute: %v\nCurrent guess: [%v]\n",
+			completedChecks-completedChecksWas,
+			strings.Join(asStrings, ", "),
+		)
 
-		completedChecksWas = c
+		completedChecksWas = completedChecks
 	}
 }

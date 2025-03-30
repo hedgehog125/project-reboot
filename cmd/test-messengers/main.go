@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/messengers"
@@ -24,14 +25,14 @@ func main() {
 	discord := messengers.NewDiscord(env)
 	userInfo, err := databaseService.ReadMessageUserInfo(*username)
 	if err != nil {
-		log.Fatalf("couldn't read user. error:\n%v", err.Error())
+		panic(fmt.Sprintf("couldn't read user. error:\n%v", err.Error()))
 	}
 	err = discord.Send(common.Message{
 		Type: common.MessageTest,
 		User: userInfo,
 	})
 	if err != nil {
-		log.Fatalf("couldn't send Discord message. error:\n%v", err.Error())
+		panic(fmt.Sprintf("couldn't send Discord message. error:\n%v", err.Error()))
 	}
-	fmt.Println("sent Discord message")
+	fmt.Fprintln(os.Stdout, "sent Discord message")
 }

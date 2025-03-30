@@ -11,6 +11,7 @@
 -   Repeat password in sign up form
 -   Account locking until a specified date for if you know you won't have access to your devices for a while
 -   SMS messenger
+-   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 
 # To research
 
