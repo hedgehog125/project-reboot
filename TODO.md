@@ -23,3 +23,4 @@ Maybe have the server save the time periodically and on shutdown? Then when it s
 
 -   Create mock messenger
 -   -   Register it multiple times in place of the actual ones to ensure the contacts are being passed correctly?
+-   Continue fixing linting errors once golang ci v2 is working properly in VSCode

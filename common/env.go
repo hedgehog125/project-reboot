@@ -15,11 +15,13 @@ func RequireEnv(name string) string {
 
 	return value
 }
+
 func RequireStrArrEnv(name string) []string {
 	rawValue := RequireEnv(name)
 
 	return strings.Split(rawValue, ",")
 }
+
 func RequireIntEnv(name string) int {
 	rawValue := RequireEnv(name)
 
@@ -30,6 +32,7 @@ func RequireIntEnv(name string) int {
 
 	return value
 }
+
 func RequireInt64Env(name string) int64 {
 	rawValue := RequireEnv(name)
 
@@ -40,6 +43,7 @@ func RequireInt64Env(name string) int64 {
 
 	return value
 }
+
 func RequireBoolEnv(name string) bool {
 	rawValue := RequireEnv(name)
 	lower := strings.ToLower(rawValue)
