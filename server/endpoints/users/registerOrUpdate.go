@@ -6,7 +6,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
+	"github.com/hedgehog125/project-reboot/ent/session"
+	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
@@ -58,7 +61,23 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			SetHashKeyLen(encrypted.HashSettings.KeyLen).
 			OnConflict().UpdateNewValues().
 			Exec(context.Background())
-			// TODO: delete active attempts if this is an update
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		userInfo, err := app.App.Database.ReadMessageUserInfo(body.Username)
+		if err == nil {
+			// TODO: if this fails, let the user know using other methods
+			_ = app.App.Messenger.SendUsingAll(common.Message{
+				Type: common.MessageReset,
+				User: userInfo,
+			})
+		}
+
+		_, err = dbClient.Session.Delete().Where(
+			session.HasUserWith(user.Username(body.Username)),
+		).Exec(context.Background())
 		if err != nil {
 			ctx.Error(err)
 			return

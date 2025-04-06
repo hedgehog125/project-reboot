@@ -40,6 +40,10 @@ const (
 	MessageTest    = "test"
 	MessageRegular = "regular"
 	MessageLogin   = "login"
+	MessageReset   = "reset"
+	MessageLock    = "lock"
+	MessageFreeze  = "freeze"
+	Message2FA     = "2FA"
 )
 
 type Message struct {
