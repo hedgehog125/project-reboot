@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/session"
+	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
@@ -25,8 +26,9 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeSession = "Session"
-	TypeUser    = "User"
+	TypeSession         = "Session"
+	TypeTwoFactorAction = "TwoFactorAction"
+	TypeUser            = "User"
 )
 
 // SessionMutation represents an operation that mutates the Session nodes in the graph.
@@ -636,6 +638,584 @@ func (m *SessionMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Session edge %s", name)
+}
+
+// TwoFactorActionMutation represents an operation that mutates the TwoFactorAction nodes in the graph.
+type TwoFactorActionMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	_type         *string
+	version       *int
+	addversion    *int
+	data          **map[string]interface{}
+	expiresAt     *time.Time
+	code          *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*TwoFactorAction, error)
+	predicates    []predicate.TwoFactorAction
+}
+
+var _ ent.Mutation = (*TwoFactorActionMutation)(nil)
+
+// twofactoractionOption allows management of the mutation configuration using functional options.
+type twofactoractionOption func(*TwoFactorActionMutation)
+
+// newTwoFactorActionMutation creates new mutation for the TwoFactorAction entity.
+func newTwoFactorActionMutation(c config, op Op, opts ...twofactoractionOption) *TwoFactorActionMutation {
+	m := &TwoFactorActionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTwoFactorAction,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTwoFactorActionID sets the ID field of the mutation.
+func withTwoFactorActionID(id int) twofactoractionOption {
+	return func(m *TwoFactorActionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TwoFactorAction
+		)
+		m.oldValue = func(ctx context.Context) (*TwoFactorAction, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TwoFactorAction.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTwoFactorAction sets the old TwoFactorAction of the mutation.
+func withTwoFactorAction(node *TwoFactorAction) twofactoractionOption {
+	return func(m *TwoFactorActionMutation) {
+		m.oldValue = func(context.Context) (*TwoFactorAction, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TwoFactorActionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TwoFactorActionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TwoFactorActionMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TwoFactorActionMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().TwoFactorAction.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetType sets the "type" field.
+func (m *TwoFactorActionMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *TwoFactorActionMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the TwoFactorAction entity.
+// If the TwoFactorAction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TwoFactorActionMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *TwoFactorActionMutation) ResetType() {
+	m._type = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *TwoFactorActionMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *TwoFactorActionMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the TwoFactorAction entity.
+// If the TwoFactorAction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TwoFactorActionMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *TwoFactorActionMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *TwoFactorActionMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *TwoFactorActionMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetData sets the "data" field.
+func (m *TwoFactorActionMutation) SetData(value *map[string]interface{}) {
+	m.data = &value
+}
+
+// Data returns the value of the "data" field in the mutation.
+func (m *TwoFactorActionMutation) Data() (r *map[string]interface{}, exists bool) {
+	v := m.data
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldData returns the old "data" field's value of the TwoFactorAction entity.
+// If the TwoFactorAction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TwoFactorActionMutation) OldData(ctx context.Context) (v *map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldData is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldData requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldData: %w", err)
+	}
+	return oldValue.Data, nil
+}
+
+// ResetData resets all changes to the "data" field.
+func (m *TwoFactorActionMutation) ResetData() {
+	m.data = nil
+}
+
+// SetExpiresAt sets the "expiresAt" field.
+func (m *TwoFactorActionMutation) SetExpiresAt(t time.Time) {
+	m.expiresAt = &t
+}
+
+// ExpiresAt returns the value of the "expiresAt" field in the mutation.
+func (m *TwoFactorActionMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expiresAt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expiresAt" field's value of the TwoFactorAction entity.
+// If the TwoFactorAction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TwoFactorActionMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ResetExpiresAt resets all changes to the "expiresAt" field.
+func (m *TwoFactorActionMutation) ResetExpiresAt() {
+	m.expiresAt = nil
+}
+
+// SetCode sets the "code" field.
+func (m *TwoFactorActionMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *TwoFactorActionMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the TwoFactorAction entity.
+// If the TwoFactorAction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TwoFactorActionMutation) OldCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *TwoFactorActionMutation) ResetCode() {
+	m.code = nil
+}
+
+// Where appends a list predicates to the TwoFactorActionMutation builder.
+func (m *TwoFactorActionMutation) Where(ps ...predicate.TwoFactorAction) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TwoFactorActionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TwoFactorActionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TwoFactorAction, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TwoFactorActionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TwoFactorActionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (TwoFactorAction).
+func (m *TwoFactorActionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TwoFactorActionMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m._type != nil {
+		fields = append(fields, twofactoraction.FieldType)
+	}
+	if m.version != nil {
+		fields = append(fields, twofactoraction.FieldVersion)
+	}
+	if m.data != nil {
+		fields = append(fields, twofactoraction.FieldData)
+	}
+	if m.expiresAt != nil {
+		fields = append(fields, twofactoraction.FieldExpiresAt)
+	}
+	if m.code != nil {
+		fields = append(fields, twofactoraction.FieldCode)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TwoFactorActionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case twofactoraction.FieldType:
+		return m.GetType()
+	case twofactoraction.FieldVersion:
+		return m.Version()
+	case twofactoraction.FieldData:
+		return m.Data()
+	case twofactoraction.FieldExpiresAt:
+		return m.ExpiresAt()
+	case twofactoraction.FieldCode:
+		return m.Code()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TwoFactorActionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case twofactoraction.FieldType:
+		return m.OldType(ctx)
+	case twofactoraction.FieldVersion:
+		return m.OldVersion(ctx)
+	case twofactoraction.FieldData:
+		return m.OldData(ctx)
+	case twofactoraction.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case twofactoraction.FieldCode:
+		return m.OldCode(ctx)
+	}
+	return nil, fmt.Errorf("unknown TwoFactorAction field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TwoFactorActionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case twofactoraction.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case twofactoraction.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case twofactoraction.FieldData:
+		v, ok := value.(*map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetData(v)
+		return nil
+	case twofactoraction.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case twofactoraction.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TwoFactorAction field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TwoFactorActionMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, twofactoraction.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TwoFactorActionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case twofactoraction.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TwoFactorActionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case twofactoraction.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TwoFactorAction numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TwoFactorActionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TwoFactorActionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TwoFactorActionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown TwoFactorAction nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TwoFactorActionMutation) ResetField(name string) error {
+	switch name {
+	case twofactoraction.FieldType:
+		m.ResetType()
+		return nil
+	case twofactoraction.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case twofactoraction.FieldData:
+		m.ResetData()
+		return nil
+	case twofactoraction.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case twofactoraction.FieldCode:
+		m.ResetCode()
+		return nil
+	}
+	return fmt.Errorf("unknown TwoFactorAction field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TwoFactorActionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TwoFactorActionMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TwoFactorActionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TwoFactorActionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TwoFactorActionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TwoFactorActionMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TwoFactorActionMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown TwoFactorAction unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TwoFactorActionMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown TwoFactorAction edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

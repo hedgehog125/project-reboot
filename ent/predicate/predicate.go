@@ -9,5 +9,8 @@ import (
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)
 
+// TwoFactorAction is the predicate function for twofactoraction builders.
+type TwoFactorAction func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

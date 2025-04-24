@@ -1,6 +1,7 @@
 # TODO
 
--   Store password hash in session so it can be double checked to ensure it's still valid
+-   Store timestamp in session so it can be double checked to ensure it's still valid by comparing to auth_timestamps_valid_from in users table
+-   Account locking until a specified date for if you know you won't have access to your devices for a while
 -   Store logs to database
 -   -   Should have categories (e.g login) and types (e.g failed login)
 -   -   Logs associated with your user that have the user facing attribute set to true are sent in the regular email
@@ -11,7 +12,7 @@
 -   -   Get auth code endpoint should require at least 1 messenger to succeed
 -   -   If all messengers fail, send the message to env.ADMIN_USERNAME
 -   Repeat password in sign up form
--   Account locking until a specified date for if you know you won't have access to your devices for a while
+-   Use transactions
 -   SMS messenger
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 

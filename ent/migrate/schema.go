@@ -32,6 +32,21 @@ var (
 			},
 		},
 	}
+	// TwoFactorActionsColumns holds the columns for the "two_factor_actions" table.
+	TwoFactorActionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "type", Type: field.TypeString, Size: 128},
+		{Name: "version", Type: field.TypeInt},
+		{Name: "data", Type: field.TypeJSON},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Size: 6},
+	}
+	// TwoFactorActionsTable holds the schema information for the "two_factor_actions" table.
+	TwoFactorActionsTable = &schema.Table{
+		Name:       "two_factor_actions",
+		Columns:    TwoFactorActionsColumns,
+		PrimaryKey: []*schema.Column{TwoFactorActionsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -58,6 +73,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		SessionsTable,
+		TwoFactorActionsTable,
 		UsersTable,
 	}
 )

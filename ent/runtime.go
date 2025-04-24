@@ -7,6 +7,7 @@ import (
 
 	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/session"
+	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
@@ -24,6 +25,44 @@ func init() {
 	sessionDescCode := sessionFields[1].Descriptor()
 	// session.CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	session.CodeValidator = sessionDescCode.Validators[0].(func([]byte) error)
+	twofactoractionFields := schema.TwoFactorAction{}.Fields()
+	_ = twofactoractionFields
+	// twofactoractionDescType is the schema descriptor for type field.
+	twofactoractionDescType := twofactoractionFields[0].Descriptor()
+	// twofactoraction.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	twofactoraction.TypeValidator = func() func(string) error {
+		validators := twofactoractionDescType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(_type string) error {
+			for _, fn := range fns {
+				if err := fn(_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// twofactoractionDescCode is the schema descriptor for code field.
+	twofactoractionDescCode := twofactoractionFields[4].Descriptor()
+	// twofactoraction.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	twofactoraction.CodeValidator = func() func(string) error {
+		validators := twofactoractionDescCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(code string) error {
+			for _, fn := range fns {
+				if err := fn(code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.

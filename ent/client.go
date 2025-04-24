@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/hedgehog125/project-reboot/ent/session"
+	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
@@ -26,6 +27,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
+	// TwoFactorAction is the client for interacting with the TwoFactorAction builders.
+	TwoFactorAction *TwoFactorActionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -40,6 +43,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Session = NewSessionClient(c.config)
+	c.TwoFactorAction = NewTwoFactorActionClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -131,10 +135,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Session: NewSessionClient(cfg),
-		User:    NewUserClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Session:         NewSessionClient(cfg),
+		TwoFactorAction: NewTwoFactorActionClient(cfg),
+		User:            NewUserClient(cfg),
 	}, nil
 }
 
@@ -152,10 +157,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Session: NewSessionClient(cfg),
-		User:    NewUserClient(cfg),
+		ctx:             ctx,
+		config:          cfg,
+		Session:         NewSessionClient(cfg),
+		TwoFactorAction: NewTwoFactorActionClient(cfg),
+		User:            NewUserClient(cfg),
 	}, nil
 }
 
@@ -185,6 +191,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Session.Use(hooks...)
+	c.TwoFactorAction.Use(hooks...)
 	c.User.Use(hooks...)
 }
 
@@ -192,6 +199,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Session.Intercept(interceptors...)
+	c.TwoFactorAction.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
 
@@ -200,6 +208,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
+	case *TwoFactorActionMutation:
+		return c.TwoFactorAction.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -356,6 +366,139 @@ func (c *SessionClient) mutate(ctx context.Context, m *SessionMutation) (Value, 
 	}
 }
 
+// TwoFactorActionClient is a client for the TwoFactorAction schema.
+type TwoFactorActionClient struct {
+	config
+}
+
+// NewTwoFactorActionClient returns a client for the TwoFactorAction from the given config.
+func NewTwoFactorActionClient(c config) *TwoFactorActionClient {
+	return &TwoFactorActionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `twofactoraction.Hooks(f(g(h())))`.
+func (c *TwoFactorActionClient) Use(hooks ...Hook) {
+	c.hooks.TwoFactorAction = append(c.hooks.TwoFactorAction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `twofactoraction.Intercept(f(g(h())))`.
+func (c *TwoFactorActionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TwoFactorAction = append(c.inters.TwoFactorAction, interceptors...)
+}
+
+// Create returns a builder for creating a TwoFactorAction entity.
+func (c *TwoFactorActionClient) Create() *TwoFactorActionCreate {
+	mutation := newTwoFactorActionMutation(c.config, OpCreate)
+	return &TwoFactorActionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TwoFactorAction entities.
+func (c *TwoFactorActionClient) CreateBulk(builders ...*TwoFactorActionCreate) *TwoFactorActionCreateBulk {
+	return &TwoFactorActionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TwoFactorActionClient) MapCreateBulk(slice any, setFunc func(*TwoFactorActionCreate, int)) *TwoFactorActionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TwoFactorActionCreateBulk{err: fmt.Errorf("calling to TwoFactorActionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TwoFactorActionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TwoFactorActionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TwoFactorAction.
+func (c *TwoFactorActionClient) Update() *TwoFactorActionUpdate {
+	mutation := newTwoFactorActionMutation(c.config, OpUpdate)
+	return &TwoFactorActionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TwoFactorActionClient) UpdateOne(tfa *TwoFactorAction) *TwoFactorActionUpdateOne {
+	mutation := newTwoFactorActionMutation(c.config, OpUpdateOne, withTwoFactorAction(tfa))
+	return &TwoFactorActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TwoFactorActionClient) UpdateOneID(id int) *TwoFactorActionUpdateOne {
+	mutation := newTwoFactorActionMutation(c.config, OpUpdateOne, withTwoFactorActionID(id))
+	return &TwoFactorActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TwoFactorAction.
+func (c *TwoFactorActionClient) Delete() *TwoFactorActionDelete {
+	mutation := newTwoFactorActionMutation(c.config, OpDelete)
+	return &TwoFactorActionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TwoFactorActionClient) DeleteOne(tfa *TwoFactorAction) *TwoFactorActionDeleteOne {
+	return c.DeleteOneID(tfa.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TwoFactorActionClient) DeleteOneID(id int) *TwoFactorActionDeleteOne {
+	builder := c.Delete().Where(twofactoraction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TwoFactorActionDeleteOne{builder}
+}
+
+// Query returns a query builder for TwoFactorAction.
+func (c *TwoFactorActionClient) Query() *TwoFactorActionQuery {
+	return &TwoFactorActionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTwoFactorAction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TwoFactorAction entity by its id.
+func (c *TwoFactorActionClient) Get(ctx context.Context, id int) (*TwoFactorAction, error) {
+	return c.Query().Where(twofactoraction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TwoFactorActionClient) GetX(ctx context.Context, id int) *TwoFactorAction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TwoFactorActionClient) Hooks() []Hook {
+	return c.hooks.TwoFactorAction
+}
+
+// Interceptors returns the client interceptors.
+func (c *TwoFactorActionClient) Interceptors() []Interceptor {
+	return c.inters.TwoFactorAction
+}
+
+func (c *TwoFactorActionClient) mutate(ctx context.Context, m *TwoFactorActionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TwoFactorActionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TwoFactorActionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TwoFactorActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TwoFactorActionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TwoFactorAction mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -508,9 +651,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Session, User []ent.Hook
+		Session, TwoFactorAction, User []ent.Hook
 	}
 	inters struct {
-		Session, User []ent.Interceptor
+		Session, TwoFactorAction, User []ent.Interceptor
 	}
 )
