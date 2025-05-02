@@ -64,8 +64,16 @@ func (tfau *TwoFactorActionUpdate) AddVersion(i int) *TwoFactorActionUpdate {
 }
 
 // SetData sets the "data" field.
-func (tfau *TwoFactorActionUpdate) SetData(m *map[string]interface{}) *TwoFactorActionUpdate {
-	tfau.mutation.SetData(m)
+func (tfau *TwoFactorActionUpdate) SetData(s string) *TwoFactorActionUpdate {
+	tfau.mutation.SetData(s)
+	return tfau
+}
+
+// SetNillableData sets the "data" field if the given value is not nil.
+func (tfau *TwoFactorActionUpdate) SetNillableData(s *string) *TwoFactorActionUpdate {
+	if s != nil {
+		tfau.SetData(*s)
+	}
 	return tfau
 }
 
@@ -148,7 +156,7 @@ func (tfau *TwoFactorActionUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if err := tfau.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(twofactoraction.Table, twofactoraction.Columns, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(twofactoraction.Table, twofactoraction.Columns, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeUUID))
 	if ps := tfau.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -230,8 +238,16 @@ func (tfauo *TwoFactorActionUpdateOne) AddVersion(i int) *TwoFactorActionUpdateO
 }
 
 // SetData sets the "data" field.
-func (tfauo *TwoFactorActionUpdateOne) SetData(m *map[string]interface{}) *TwoFactorActionUpdateOne {
-	tfauo.mutation.SetData(m)
+func (tfauo *TwoFactorActionUpdateOne) SetData(s string) *TwoFactorActionUpdateOne {
+	tfauo.mutation.SetData(s)
+	return tfauo
+}
+
+// SetNillableData sets the "data" field if the given value is not nil.
+func (tfauo *TwoFactorActionUpdateOne) SetNillableData(s *string) *TwoFactorActionUpdateOne {
+	if s != nil {
+		tfauo.SetData(*s)
+	}
 	return tfauo
 }
 
@@ -327,7 +343,7 @@ func (tfauo *TwoFactorActionUpdateOne) sqlSave(ctx context.Context) (_node *TwoF
 	if err := tfauo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(twofactoraction.Table, twofactoraction.Columns, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(twofactoraction.Table, twofactoraction.Columns, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeUUID))
 	id, ok := tfauo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "TwoFactorAction.id" for update`)}

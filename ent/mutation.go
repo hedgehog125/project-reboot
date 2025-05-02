@@ -11,6 +11,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -645,11 +646,11 @@ type TwoFactorActionMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
 	_type         *string
 	version       *int
 	addversion    *int
-	data          **map[string]interface{}
+	data          *string
 	expiresAt     *time.Time
 	code          *string
 	clearedFields map[string]struct{}
@@ -678,7 +679,7 @@ func newTwoFactorActionMutation(c config, op Op, opts ...twofactoractionOption) 
 }
 
 // withTwoFactorActionID sets the ID field of the mutation.
-func withTwoFactorActionID(id int) twofactoractionOption {
+func withTwoFactorActionID(id uuid.UUID) twofactoractionOption {
 	return func(m *TwoFactorActionMutation) {
 		var (
 			err   error
@@ -728,9 +729,15 @@ func (m TwoFactorActionMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of TwoFactorAction entities.
+func (m *TwoFactorActionMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *TwoFactorActionMutation) ID() (id int, exists bool) {
+func (m *TwoFactorActionMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -741,12 +748,12 @@ func (m *TwoFactorActionMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *TwoFactorActionMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *TwoFactorActionMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -849,12 +856,12 @@ func (m *TwoFactorActionMutation) ResetVersion() {
 }
 
 // SetData sets the "data" field.
-func (m *TwoFactorActionMutation) SetData(value *map[string]interface{}) {
-	m.data = &value
+func (m *TwoFactorActionMutation) SetData(s string) {
+	m.data = &s
 }
 
 // Data returns the value of the "data" field in the mutation.
-func (m *TwoFactorActionMutation) Data() (r *map[string]interface{}, exists bool) {
+func (m *TwoFactorActionMutation) Data() (r string, exists bool) {
 	v := m.data
 	if v == nil {
 		return
@@ -865,7 +872,7 @@ func (m *TwoFactorActionMutation) Data() (r *map[string]interface{}, exists bool
 // OldData returns the old "data" field's value of the TwoFactorAction entity.
 // If the TwoFactorAction object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TwoFactorActionMutation) OldData(ctx context.Context) (v *map[string]interface{}, err error) {
+func (m *TwoFactorActionMutation) OldData(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldData is only allowed on UpdateOne operations")
 	}
@@ -1067,7 +1074,7 @@ func (m *TwoFactorActionMutation) SetField(name string, value ent.Value) error {
 		m.SetVersion(v)
 		return nil
 	case twofactoraction.FieldData:
-		v, ok := value.(*map[string]interface{})
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

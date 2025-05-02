@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 )
@@ -82,8 +83,8 @@ func (tfaq *TwoFactorActionQuery) FirstX(ctx context.Context) *TwoFactorAction {
 
 // FirstID returns the first TwoFactorAction ID from the query.
 // Returns a *NotFoundError when no TwoFactorAction ID was found.
-func (tfaq *TwoFactorActionQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (tfaq *TwoFactorActionQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = tfaq.Limit(1).IDs(setContextOp(ctx, tfaq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -95,7 +96,7 @@ func (tfaq *TwoFactorActionQuery) FirstID(ctx context.Context) (id int, err erro
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) FirstIDX(ctx context.Context) int {
+func (tfaq *TwoFactorActionQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := tfaq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -133,8 +134,8 @@ func (tfaq *TwoFactorActionQuery) OnlyX(ctx context.Context) *TwoFactorAction {
 // OnlyID is like Only, but returns the only TwoFactorAction ID in the query.
 // Returns a *NotSingularError when more than one TwoFactorAction ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (tfaq *TwoFactorActionQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (tfaq *TwoFactorActionQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = tfaq.Limit(2).IDs(setContextOp(ctx, tfaq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -150,7 +151,7 @@ func (tfaq *TwoFactorActionQuery) OnlyID(ctx context.Context) (id int, err error
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) OnlyIDX(ctx context.Context) int {
+func (tfaq *TwoFactorActionQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := tfaq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,7 +179,7 @@ func (tfaq *TwoFactorActionQuery) AllX(ctx context.Context) []*TwoFactorAction {
 }
 
 // IDs executes the query and returns a list of TwoFactorAction IDs.
-func (tfaq *TwoFactorActionQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (tfaq *TwoFactorActionQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if tfaq.ctx.Unique == nil && tfaq.path != nil {
 		tfaq.Unique(true)
 	}
@@ -190,7 +191,7 @@ func (tfaq *TwoFactorActionQuery) IDs(ctx context.Context) (ids []int, err error
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) IDsX(ctx context.Context) []int {
+func (tfaq *TwoFactorActionQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := tfaq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -365,7 +366,7 @@ func (tfaq *TwoFactorActionQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (tfaq *TwoFactorActionQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(twofactoraction.Table, twofactoraction.Columns, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(twofactoraction.Table, twofactoraction.Columns, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeUUID))
 	_spec.From = tfaq.sql
 	if unique := tfaq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

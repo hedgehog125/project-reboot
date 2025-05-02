@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 )
 
@@ -17,13 +18,13 @@ import (
 type TwoFactorAction struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Type holds the value of the "type" field.
 	Type string `json:"type,omitempty"`
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
 	// Data holds the value of the "data" field.
-	Data *map[string]interface{} `json:"data,omitempty"`
+	Data string `json:"data,omitempty"`
 	// ExpiresAt holds the value of the "expiresAt" field.
 	ExpiresAt time.Time `json:"expiresAt,omitempty"`
 	// Code holds the value of the "code" field.
@@ -38,12 +39,14 @@ func (*TwoFactorAction) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case twofactoraction.FieldData:
 			values[i] = new([]byte)
-		case twofactoraction.FieldID, twofactoraction.FieldVersion:
+		case twofactoraction.FieldVersion:
 			values[i] = new(sql.NullInt64)
 		case twofactoraction.FieldType, twofactoraction.FieldCode:
 			values[i] = new(sql.NullString)
 		case twofactoraction.FieldExpiresAt:
 			values[i] = new(sql.NullTime)
+		case twofactoraction.FieldID:
+			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -60,11 +63,11 @@ func (tfa *TwoFactorAction) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case twofactoraction.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				tfa.ID = *value
 			}
-			tfa.ID = int(value.Int64)
 		case twofactoraction.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])

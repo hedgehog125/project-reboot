@@ -40,7 +40,7 @@ func (tfad *TwoFactorActionDelete) ExecX(ctx context.Context) int {
 }
 
 func (tfad *TwoFactorActionDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(twofactoraction.Table, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(twofactoraction.Table, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeUUID))
 	if ps := tfad.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

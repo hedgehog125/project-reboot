@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 )
 
@@ -35,8 +37,8 @@ func (tfac *TwoFactorActionCreate) SetVersion(i int) *TwoFactorActionCreate {
 }
 
 // SetData sets the "data" field.
-func (tfac *TwoFactorActionCreate) SetData(m *map[string]interface{}) *TwoFactorActionCreate {
-	tfac.mutation.SetData(m)
+func (tfac *TwoFactorActionCreate) SetData(s string) *TwoFactorActionCreate {
+	tfac.mutation.SetData(s)
 	return tfac
 }
 
@@ -52,6 +54,20 @@ func (tfac *TwoFactorActionCreate) SetCode(s string) *TwoFactorActionCreate {
 	return tfac
 }
 
+// SetID sets the "id" field.
+func (tfac *TwoFactorActionCreate) SetID(u uuid.UUID) *TwoFactorActionCreate {
+	tfac.mutation.SetID(u)
+	return tfac
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (tfac *TwoFactorActionCreate) SetNillableID(u *uuid.UUID) *TwoFactorActionCreate {
+	if u != nil {
+		tfac.SetID(*u)
+	}
+	return tfac
+}
+
 // Mutation returns the TwoFactorActionMutation object of the builder.
 func (tfac *TwoFactorActionCreate) Mutation() *TwoFactorActionMutation {
 	return tfac.mutation
@@ -59,6 +75,7 @@ func (tfac *TwoFactorActionCreate) Mutation() *TwoFactorActionMutation {
 
 // Save creates the TwoFactorAction in the database.
 func (tfac *TwoFactorActionCreate) Save(ctx context.Context) (*TwoFactorAction, error) {
+	tfac.defaults()
 	return withHooks(ctx, tfac.sqlSave, tfac.mutation, tfac.hooks)
 }
 
@@ -81,6 +98,14 @@ func (tfac *TwoFactorActionCreate) Exec(ctx context.Context) error {
 func (tfac *TwoFactorActionCreate) ExecX(ctx context.Context) {
 	if err := tfac.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (tfac *TwoFactorActionCreate) defaults() {
+	if _, ok := tfac.mutation.ID(); !ok {
+		v := twofactoraction.DefaultID()
+		tfac.mutation.SetID(v)
 	}
 }
 
@@ -125,8 +150,13 @@ func (tfac *TwoFactorActionCreate) sqlSave(ctx context.Context) (*TwoFactorActio
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	tfac.mutation.id = &_node.ID
 	tfac.mutation.done = true
 	return _node, nil
@@ -135,9 +165,13 @@ func (tfac *TwoFactorActionCreate) sqlSave(ctx context.Context) (*TwoFactorActio
 func (tfac *TwoFactorActionCreate) createSpec() (*TwoFactorAction, *sqlgraph.CreateSpec) {
 	var (
 		_node = &TwoFactorAction{config: tfac.config}
-		_spec = sqlgraph.NewCreateSpec(twofactoraction.Table, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(twofactoraction.Table, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = tfac.conflict
+	if id, ok := tfac.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := tfac.mutation.GetType(); ok {
 		_spec.SetField(twofactoraction.FieldType, field.TypeString, value)
 		_node.Type = value
@@ -241,7 +275,7 @@ func (u *TwoFactorActionUpsert) AddVersion(v int) *TwoFactorActionUpsert {
 }
 
 // SetData sets the "data" field.
-func (u *TwoFactorActionUpsert) SetData(v *map[string]interface{}) *TwoFactorActionUpsert {
+func (u *TwoFactorActionUpsert) SetData(v string) *TwoFactorActionUpsert {
 	u.Set(twofactoraction.FieldData, v)
 	return u
 }
@@ -276,16 +310,24 @@ func (u *TwoFactorActionUpsert) UpdateCode() *TwoFactorActionUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.TwoFactorAction.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(twofactoraction.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *TwoFactorActionUpsertOne) UpdateNewValues() *TwoFactorActionUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(twofactoraction.FieldID)
+		}
+	}))
 	return u
 }
 
@@ -352,7 +394,7 @@ func (u *TwoFactorActionUpsertOne) UpdateVersion() *TwoFactorActionUpsertOne {
 }
 
 // SetData sets the "data" field.
-func (u *TwoFactorActionUpsertOne) SetData(v *map[string]interface{}) *TwoFactorActionUpsertOne {
+func (u *TwoFactorActionUpsertOne) SetData(v string) *TwoFactorActionUpsertOne {
 	return u.Update(func(s *TwoFactorActionUpsert) {
 		s.SetData(v)
 	})
@@ -409,7 +451,12 @@ func (u *TwoFactorActionUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *TwoFactorActionUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *TwoFactorActionUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: TwoFactorActionUpsertOne.ID is not supported by MySQL driver. Use TwoFactorActionUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -418,7 +465,7 @@ func (u *TwoFactorActionUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *TwoFactorActionUpsertOne) IDX(ctx context.Context) int {
+func (u *TwoFactorActionUpsertOne) IDX(ctx context.Context) uuid.UUID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -445,6 +492,7 @@ func (tfacb *TwoFactorActionCreateBulk) Save(ctx context.Context) ([]*TwoFactorA
 	for i := range tfacb.builders {
 		func(i int, root context.Context) {
 			builder := tfacb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TwoFactorActionMutation)
 				if !ok {
@@ -472,10 +520,6 @@ func (tfacb *TwoFactorActionCreateBulk) Save(ctx context.Context) ([]*TwoFactorA
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -562,10 +606,20 @@ type TwoFactorActionUpsertBulk struct {
 //	client.TwoFactorAction.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(twofactoraction.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *TwoFactorActionUpsertBulk) UpdateNewValues() *TwoFactorActionUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(twofactoraction.FieldID)
+			}
+		}
+	}))
 	return u
 }
 
@@ -632,7 +686,7 @@ func (u *TwoFactorActionUpsertBulk) UpdateVersion() *TwoFactorActionUpsertBulk {
 }
 
 // SetData sets the "data" field.
-func (u *TwoFactorActionUpsertBulk) SetData(v *map[string]interface{}) *TwoFactorActionUpsertBulk {
+func (u *TwoFactorActionUpsertBulk) SetData(v string) *TwoFactorActionUpsertBulk {
 	return u.Update(func(s *TwoFactorActionUpsert) {
 		s.SetData(v)
 	})

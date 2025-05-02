@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -28,7 +29,7 @@ func init() {
 	twofactoractionFields := schema.TwoFactorAction{}.Fields()
 	_ = twofactoractionFields
 	// twofactoractionDescType is the schema descriptor for type field.
-	twofactoractionDescType := twofactoractionFields[0].Descriptor()
+	twofactoractionDescType := twofactoractionFields[1].Descriptor()
 	// twofactoraction.TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	twofactoraction.TypeValidator = func() func(string) error {
 		validators := twofactoractionDescType.Validators
@@ -46,7 +47,7 @@ func init() {
 		}
 	}()
 	// twofactoractionDescCode is the schema descriptor for code field.
-	twofactoractionDescCode := twofactoractionFields[4].Descriptor()
+	twofactoractionDescCode := twofactoractionFields[5].Descriptor()
 	// twofactoraction.CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	twofactoraction.CodeValidator = func() func(string) error {
 		validators := twofactoractionDescCode.Validators
@@ -63,6 +64,10 @@ func init() {
 			return nil
 		}
 	}()
+	// twofactoractionDescID is the schema descriptor for id field.
+	twofactoractionDescID := twofactoractionFields[0].Descriptor()
+	// twofactoraction.DefaultID holds the default value on creation for the id field.
+	twofactoraction.DefaultID = twofactoractionDescID.Default.(func() uuid.UUID)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.

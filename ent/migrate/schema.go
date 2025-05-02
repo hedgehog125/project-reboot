@@ -34,7 +34,7 @@ var (
 	}
 	// TwoFactorActionsColumns holds the columns for the "two_factor_actions" table.
 	TwoFactorActionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "type", Type: field.TypeString, Size: 128},
 		{Name: "version", Type: field.TypeInt},
 		{Name: "data", Type: field.TypeJSON},

@@ -9,6 +9,7 @@ import (
 	"log"
 	"reflect"
 
+	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/migrate"
 
 	"entgo.io/ent"
@@ -427,7 +428,7 @@ func (c *TwoFactorActionClient) UpdateOne(tfa *TwoFactorAction) *TwoFactorAction
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *TwoFactorActionClient) UpdateOneID(id int) *TwoFactorActionUpdateOne {
+func (c *TwoFactorActionClient) UpdateOneID(id uuid.UUID) *TwoFactorActionUpdateOne {
 	mutation := newTwoFactorActionMutation(c.config, OpUpdateOne, withTwoFactorActionID(id))
 	return &TwoFactorActionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -444,7 +445,7 @@ func (c *TwoFactorActionClient) DeleteOne(tfa *TwoFactorAction) *TwoFactorAction
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TwoFactorActionClient) DeleteOneID(id int) *TwoFactorActionDeleteOne {
+func (c *TwoFactorActionClient) DeleteOneID(id uuid.UUID) *TwoFactorActionDeleteOne {
 	builder := c.Delete().Where(twofactoraction.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -461,12 +462,12 @@ func (c *TwoFactorActionClient) Query() *TwoFactorActionQuery {
 }
 
 // Get returns a TwoFactorAction entity by its id.
-func (c *TwoFactorActionClient) Get(ctx context.Context, id int) (*TwoFactorAction, error) {
+func (c *TwoFactorActionClient) Get(ctx context.Context, id uuid.UUID) (*TwoFactorAction, error) {
 	return c.Query().Where(twofactoraction.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *TwoFactorActionClient) GetX(ctx context.Context, id int) *TwoFactorAction {
+func (c *TwoFactorActionClient) GetX(ctx context.Context, id uuid.UUID) *TwoFactorAction {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
