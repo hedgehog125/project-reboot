@@ -10,4 +10,6 @@ func ConfigureEndpoints(group *gin.RouterGroup, app *servercommon.ServerApp) {
 	group.POST("/set-user-contacts", app.AdminMiddleware, SetContacts(app))
 	group.POST("/get-authorization-code", GetAuthorizationCode(app))
 	group.POST("/download", Download(app))
+	group.POST("/lock", app.AdminMiddleware, Lock(app))
+	group.POST("/lock-temporarily", LockTemporarily(app))
 }

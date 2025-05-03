@@ -4,6 +4,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -38,6 +39,9 @@ func NewErrorMiddleware() gin.HandlerFunc {
 			}
 
 			common.DumpJSON(err)
+			fmt.Printf("request error:\n%v\n\n", err.Error())
+
+			// TODO:
 		}
 	}
 }

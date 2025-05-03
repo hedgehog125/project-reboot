@@ -6,5 +6,5 @@ import (
 )
 
 func ConfigureEndpoints(group *gin.RouterGroup, app *servercommon.ServerApp) {
-	group.POST("/confirm/:id", Confirm(app))
+	group.POST("/:id/confirm", Confirm(app))
 }

@@ -1,5 +1,9 @@
 # TODO
 
+-   Send better JSON payload parse errors. They currently result in 500s
+-   INTERNAL shouldn't be in error codes for 500
+-   Timeouts incorrectly send 500s
+-   Automatically delete expired 2FA actions
 -   Store timestamp in session so it can be double checked to ensure it's still valid by comparing to auth_timestamps_valid_from in users table
 -   Account locking until a specified date for if you know you won't have access to your devices for a while
 -   Store logs to database
@@ -13,6 +17,8 @@
 -   -   If all messengers fail, send the message to env.ADMIN_USERNAME
 -   Repeat password in sign up form
 -   Use transactions
+-   Rework endpoint system, maybe the endpoint functions could return an Endpoint struct with an array of handlers and some other things? Middleware should be defined there instead of in RegisterEndpoints
+-   Review contexts. Possibly want to give them all a timeout, partly to make shutdowns more predictable
 -   SMS messenger
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 
