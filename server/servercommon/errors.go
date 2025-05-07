@@ -58,6 +58,19 @@ func (err *ContextError) Expect(
 ) *ContextError {
 	return sendStatusAndCodeIfCondition(err, errors.Is(err, expectedError), statusCode, errorCode, true)
 }
+func (err *ContextError) ExpectAnyOf(
+	expectedErrors []error,
+	statusCode int, errorCode string,
+) *ContextError {
+	isExpected := false
+	for _, expectedErr := range expectedErrors {
+		if errors.Is(err, expectedErr) {
+			isExpected = true
+			break
+		}
+	}
+	return sendStatusAndCodeIfCondition(err, isExpected, statusCode, errorCode, true)
+}
 
 func sendStatusIfNotFound(
 	err *ContextError, statusCode int,

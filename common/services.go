@@ -1,6 +1,8 @@
 package common
 
 import (
+	"sync"
+
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/jonboulle/clockwork"
 )
@@ -61,6 +63,7 @@ type MessageUserInfo struct {
 type DatabaseService interface {
 	Client() *ent.Client
 	Shutdown() // Should log warning rather than return an error
+	TwoFactorActionMutex() *sync.Mutex
 	ReadMessageUserInfo(username string) (*MessageUserInfo, error)
 }
 

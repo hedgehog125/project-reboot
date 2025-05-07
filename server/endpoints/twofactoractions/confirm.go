@@ -1,7 +1,6 @@
 package twofactoractions
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +18,7 @@ type ConfirmResponse struct {
 }
 
 func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.App.Database.Client()
+	db := app.App.Database
 	clock := app.App.Clock
 
 	return func(ctx *gin.Context) {
@@ -36,28 +35,17 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		action, err := dbClient.TwoFactorAction.Get(context.Background(), parsedId)
+		err = twofactoractions.Confirm(parsedId, body.Code, db, clock)
 		if err != nil {
-			ctx.Error(servercommon.Send404IfNotFound(err))
-			return
-		}
-
-		if action.ExpiresAt.Before(clock.Now()) {
-			err := dbClient.TwoFactorAction.DeleteOne(action).Exec(ctx)
-			if err != nil {
-				// TODO: log warning
-			}
-			ctx.JSON(http.StatusNotFound, ConfirmResponse{
-				Errors: []string{},
-			})
-			return
-		}
-
-		// TODO: validate body.Code!
-		// TODO: execute the action
-		err = twofactoractions.Confirm(action)
-		if err != nil {
-			ctx.Error(err)
+			ctx.Error(servercommon.ExpectAnyOfErrors(
+				err,
+				[]error{
+					twofactoractions.ErrNotFound,
+					twofactoractions.ErrExpired,
+					twofactoractions.ErrWrongCode,
+				},
+				http.StatusUnauthorized, "",
+			))
 			return
 		}
 

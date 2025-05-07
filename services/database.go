@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
@@ -37,11 +38,16 @@ func NewDatabase(env *common.Env) common.DatabaseService {
 }
 
 type databaseService struct {
-	client *ent.Client
+	client               *ent.Client
+	twoFactorActionMutex sync.Mutex
 }
 
 func (service *databaseService) Client() *ent.Client {
 	return service.client
+}
+
+func (service *databaseService) TwoFactorActionMutex() *sync.Mutex {
+	return &service.twoFactorActionMutex
 }
 
 func (service *databaseService) Shutdown() {

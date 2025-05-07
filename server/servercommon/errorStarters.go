@@ -12,3 +12,6 @@ func SendUnauthorizedIfNotFound(err error) *ContextError {
 func ExpectError(err error, expectedError error, statusCode int, errorCode string) *ContextError {
 	return NewContextError(err).Expect(expectedError, statusCode, errorCode)
 }
+func ExpectAnyOfErrors(err error, expectedErrors []error, statusCode int, errorCode string) *ContextError {
+	return NewContextError(err).ExpectAnyOf(expectedErrors, statusCode, errorCode)
+}
