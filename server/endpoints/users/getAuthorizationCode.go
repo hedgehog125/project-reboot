@@ -62,7 +62,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				KeyLen: userRow.HashKeyLen,
 			},
 		) {
-			ctx.Error(servercommon.NewUnauthorizedError())
+			ctx.Error(servercommon.ErrUnauthorized)
 			return
 		}
 
@@ -79,7 +79,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		messengerIDs := messenger.IDs()
 		if len(errs) == len(messengerIDs) {
 			// We aren't sure if this error is the client or server's fault
-			ctx.JSON(http.StatusInternalServerError, SetContactsResponse{
+			ctx.JSON(http.StatusBadRequest, SetContactsResponse{
 				Errors:       []string{"ALL_TEST_MESSAGES_FAILED"},
 				MessagesSent: []string{},
 			})

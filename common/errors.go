@@ -31,25 +31,55 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 }
 
 const (
-	ErrorDatabase     = "database"
-	ErrorNotFound     = "not-found"
-	ErrorUnauthorized = "unauthorized"
-	ErrorOther        = "other"
+	ErrTypeDatabase = "database"
+	ErrTypeClient   = "client"
+	ErrTypeOther    = "other"
 )
 
+type ErrorWithCategory interface {
+	(error)
+	Category() string
+}
+type errorWithCategory struct {
+	err      error
+	category string
+}
+
+func (e *errorWithCategory) Error() string {
+	return e.err.Error()
+}
+func (e *errorWithCategory) Unwrap() error {
+	return e.err
+}
+func (e *errorWithCategory) Category() string {
+	return e.category
+}
+
+func NewErrorWithCategory(err string, category string) ErrorWithCategory {
+	return &errorWithCategory{
+		err:      errors.New(err),
+		category: category,
+	}
+}
+
 func CategorizeError(err error) string {
+	var catErr ErrorWithCategory
+	if errors.As(err, &catErr) {
+		return catErr.Category()
+	}
 	if errors.As(err, &sqlite3.Error{}) {
-		return ErrorDatabase
-	} else if ent.IsConstraintError(err) ||
+		return ErrTypeDatabase
+	}
+	if ent.IsConstraintError(err) ||
 		ent.IsNotFound(err) ||
 		ent.IsNotLoaded(err) ||
 		ent.IsNotSingular(err) ||
 		ent.IsValidationError(err) ||
 		errors.Is(err, ent.ErrTxStarted) {
-		return ErrorDatabase
+		return ErrTypeDatabase
 	}
 
-	return ErrorOther
+	return ErrTypeOther
 }
 
 type ContextPanic struct {

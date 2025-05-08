@@ -84,6 +84,7 @@ func sendStatusAndCodeIfCondition(
 	errorCode string, preventLog bool,
 ) *ContextError {
 	if condition {
+		err.Category = common.ErrTypeClient
 		if statusCode != -1 {
 			err.Status = statusCode
 		}
