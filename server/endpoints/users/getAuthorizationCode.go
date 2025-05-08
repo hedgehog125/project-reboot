@@ -62,7 +62,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				KeyLen: userRow.HashKeyLen,
 			},
 		) {
-			ctx.Error(servercommon.ErrUnauthorized)
+			ctx.Error(servercommon.NewUnauthorizedError())
 			return
 		}
 
