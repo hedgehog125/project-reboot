@@ -13,6 +13,9 @@ var defaultMessageMap = map[common.MessageType]func(message common.Message) stri
 	common.MessageTest: func(message common.Message) string {
 		return "Test message"
 	},
+	common.Message2FA: func(message common.Message) string {
+		return fmt.Sprintf("2FA code: %s", message.Code)
+	},
 }
 
 // For messengers like SMS where the messages should be as short as possible with no formatting

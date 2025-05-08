@@ -51,6 +51,7 @@ const (
 type Message struct {
 	Type MessageType
 	User *MessageUserInfo
+	Code string
 }
 
 // The info about the user provided to a Messenger
