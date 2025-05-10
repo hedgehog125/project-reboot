@@ -77,6 +77,14 @@ func (uc *UserCreate) SetLockedUntil(t time.Time) *UserCreate {
 	return uc
 }
 
+// SetNillableLockedUntil sets the "lockedUntil" field if the given value is not nil.
+func (uc *UserCreate) SetNillableLockedUntil(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetLockedUntil(*t)
+	}
+	return uc
+}
+
 // SetContent sets the "content" field.
 func (uc *UserCreate) SetContent(b []byte) *UserCreate {
 	uc.mutation.SetContent(b)
@@ -219,9 +227,6 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.Locked(); !ok {
 		return &ValidationError{Name: "locked", err: errors.New(`ent: missing required field "User.locked"`)}
-	}
-	if _, ok := uc.mutation.LockedUntil(); !ok {
-		return &ValidationError{Name: "lockedUntil", err: errors.New(`ent: missing required field "User.lockedUntil"`)}
 	}
 	if _, ok := uc.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "User.content"`)}
@@ -503,6 +508,12 @@ func (u *UserUpsert) UpdateLockedUntil() *UserUpsert {
 	return u
 }
 
+// ClearLockedUntil clears the value of the "lockedUntil" field.
+func (u *UserUpsert) ClearLockedUntil() *UserUpsert {
+	u.SetNull(user.FieldLockedUntil)
+	return u
+}
+
 // SetContent sets the "content" field.
 func (u *UserUpsert) SetContent(v []byte) *UserUpsert {
 	u.Set(user.FieldContent, v)
@@ -748,6 +759,13 @@ func (u *UserUpsertOne) SetLockedUntil(v time.Time) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateLockedUntil() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateLockedUntil()
+	})
+}
+
+// ClearLockedUntil clears the value of the "lockedUntil" field.
+func (u *UserUpsertOne) ClearLockedUntil() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLockedUntil()
 	})
 }
 
@@ -1183,6 +1201,13 @@ func (u *UserUpsertBulk) SetLockedUntil(v time.Time) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateLockedUntil() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateLockedUntil()
+	})
+}
+
+// ClearLockedUntil clears the value of the "lockedUntil" field.
+func (u *UserUpsertBulk) ClearLockedUntil() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearLockedUntil()
 	})
 }
 

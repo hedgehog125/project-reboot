@@ -99,6 +99,12 @@ func (uu *UserUpdate) SetNillableLockedUntil(t *time.Time) *UserUpdate {
 	return uu
 }
 
+// ClearLockedUntil clears the value of the "lockedUntil" field.
+func (uu *UserUpdate) ClearLockedUntil() *UserUpdate {
+	uu.mutation.ClearLockedUntil()
+	return uu
+}
+
 // SetContent sets the "content" field.
 func (uu *UserUpdate) SetContent(b []byte) *UserUpdate {
 	uu.mutation.SetContent(b)
@@ -360,6 +366,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.LockedUntil(); ok {
 		_spec.SetField(user.FieldLockedUntil, field.TypeTime, value)
 	}
+	if uu.mutation.LockedUntilCleared() {
+		_spec.ClearField(user.FieldLockedUntil, field.TypeTime)
+	}
 	if value, ok := uu.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 	}
@@ -531,6 +540,12 @@ func (uuo *UserUpdateOne) SetNillableLockedUntil(t *time.Time) *UserUpdateOne {
 	if t != nil {
 		uuo.SetLockedUntil(*t)
 	}
+	return uuo
+}
+
+// ClearLockedUntil clears the value of the "lockedUntil" field.
+func (uuo *UserUpdateOne) ClearLockedUntil() *UserUpdateOne {
+	uuo.mutation.ClearLockedUntil()
 	return uuo
 }
 
@@ -824,6 +839,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.LockedUntil(); ok {
 		_spec.SetField(user.FieldLockedUntil, field.TypeTime, value)
+	}
+	if uuo.mutation.LockedUntilCleared() {
+		_spec.ClearField(user.FieldLockedUntil, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)

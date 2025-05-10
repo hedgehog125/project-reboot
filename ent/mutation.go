@@ -1531,9 +1531,22 @@ func (m *UserMutation) OldLockedUntil(ctx context.Context) (v *time.Time, err er
 	return oldValue.LockedUntil, nil
 }
 
+// ClearLockedUntil clears the value of the "lockedUntil" field.
+func (m *UserMutation) ClearLockedUntil() {
+	m.lockedUntil = nil
+	m.clearedFields[user.FieldLockedUntil] = struct{}{}
+}
+
+// LockedUntilCleared returns if the "lockedUntil" field was cleared in this mutation.
+func (m *UserMutation) LockedUntilCleared() bool {
+	_, ok := m.clearedFields[user.FieldLockedUntil]
+	return ok
+}
+
 // ResetLockedUntil resets all changes to the "lockedUntil" field.
 func (m *UserMutation) ResetLockedUntil() {
 	m.lockedUntil = nil
+	delete(m.clearedFields, user.FieldLockedUntil)
 }
 
 // SetContent sets the "content" field.
@@ -2349,7 +2362,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldLockedUntil) {
+		fields = append(fields, user.FieldLockedUntil)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2362,6 +2379,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldLockedUntil:
+		m.ClearLockedUntil()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 

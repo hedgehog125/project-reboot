@@ -18,7 +18,7 @@ func (User) Fields() []ent.Field {
 		field.String("alertDiscordId").Default(""),
 		field.String("alertEmail").Default(""),
 		field.Bool("locked").Default(false),
-		field.Time("lockedUntil").Nillable(),
+		field.Time("lockedUntil").Nillable().Optional(),
 
 		field.Bytes("content").NotEmpty(),
 		field.String("fileName").NotEmpty(),

@@ -375,6 +375,16 @@ func LockedUntilLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldLockedUntil, v))
 }
 
+// LockedUntilIsNil applies the IsNil predicate on the "lockedUntil" field.
+func LockedUntilIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldLockedUntil))
+}
+
+// LockedUntilNotNil applies the NotNil predicate on the "lockedUntil" field.
+func LockedUntilNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldLockedUntil))
+}
+
 // ContentEQ applies the EQ predicate on the "content" field.
 func ContentEQ(v []byte) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldContent, v))
