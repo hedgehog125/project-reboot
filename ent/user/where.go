@@ -3,6 +3,8 @@
 package user
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
@@ -66,6 +68,16 @@ func AlertDiscordId(v string) predicate.User {
 // AlertEmail applies equality check predicate on the "alertEmail" field. It's identical to AlertEmailEQ.
 func AlertEmail(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldAlertEmail, v))
+}
+
+// Locked applies equality check predicate on the "locked" field. It's identical to LockedEQ.
+func Locked(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLocked, v))
+}
+
+// LockedUntil applies equality check predicate on the "lockedUntil" field. It's identical to LockedUntilEQ.
+func LockedUntil(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLockedUntil, v))
 }
 
 // Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
@@ -311,6 +323,56 @@ func AlertEmailEqualFold(v string) predicate.User {
 // AlertEmailContainsFold applies the ContainsFold predicate on the "alertEmail" field.
 func AlertEmailContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldAlertEmail, v))
+}
+
+// LockedEQ applies the EQ predicate on the "locked" field.
+func LockedEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLocked, v))
+}
+
+// LockedNEQ applies the NEQ predicate on the "locked" field.
+func LockedNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldLocked, v))
+}
+
+// LockedUntilEQ applies the EQ predicate on the "lockedUntil" field.
+func LockedUntilEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLockedUntil, v))
+}
+
+// LockedUntilNEQ applies the NEQ predicate on the "lockedUntil" field.
+func LockedUntilNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldLockedUntil, v))
+}
+
+// LockedUntilIn applies the In predicate on the "lockedUntil" field.
+func LockedUntilIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldLockedUntil, vs...))
+}
+
+// LockedUntilNotIn applies the NotIn predicate on the "lockedUntil" field.
+func LockedUntilNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldLockedUntil, vs...))
+}
+
+// LockedUntilGT applies the GT predicate on the "lockedUntil" field.
+func LockedUntilGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldLockedUntil, v))
+}
+
+// LockedUntilGTE applies the GTE predicate on the "lockedUntil" field.
+func LockedUntilGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldLockedUntil, v))
+}
+
+// LockedUntilLT applies the LT predicate on the "lockedUntil" field.
+func LockedUntilLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldLockedUntil, v))
+}
+
+// LockedUntilLTE applies the LTE predicate on the "lockedUntil" field.
+func LockedUntilLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldLockedUntil, v))
 }
 
 // ContentEQ applies the EQ predicate on the "content" field.

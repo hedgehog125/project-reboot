@@ -1234,6 +1234,8 @@ type UserMutation struct {
 	username        *string
 	alertDiscordId  *string
 	alertEmail      *string
+	locked          *bool
+	lockedUntil     *time.Time
 	content         *[]byte
 	fileName        *string
 	mime            *string
@@ -1460,6 +1462,78 @@ func (m *UserMutation) OldAlertEmail(ctx context.Context) (v string, err error) 
 // ResetAlertEmail resets all changes to the "alertEmail" field.
 func (m *UserMutation) ResetAlertEmail() {
 	m.alertEmail = nil
+}
+
+// SetLocked sets the "locked" field.
+func (m *UserMutation) SetLocked(b bool) {
+	m.locked = &b
+}
+
+// Locked returns the value of the "locked" field in the mutation.
+func (m *UserMutation) Locked() (r bool, exists bool) {
+	v := m.locked
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocked returns the old "locked" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLocked(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocked is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocked requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocked: %w", err)
+	}
+	return oldValue.Locked, nil
+}
+
+// ResetLocked resets all changes to the "locked" field.
+func (m *UserMutation) ResetLocked() {
+	m.locked = nil
+}
+
+// SetLockedUntil sets the "lockedUntil" field.
+func (m *UserMutation) SetLockedUntil(t time.Time) {
+	m.lockedUntil = &t
+}
+
+// LockedUntil returns the value of the "lockedUntil" field in the mutation.
+func (m *UserMutation) LockedUntil() (r time.Time, exists bool) {
+	v := m.lockedUntil
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLockedUntil returns the old "lockedUntil" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLockedUntil(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLockedUntil is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLockedUntil requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLockedUntil: %w", err)
+	}
+	return oldValue.LockedUntil, nil
+}
+
+// ResetLockedUntil resets all changes to the "lockedUntil" field.
+func (m *UserMutation) ResetLockedUntil() {
+	m.lockedUntil = nil
 }
 
 // SetContent sets the "content" field.
@@ -1970,7 +2044,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 15)
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
@@ -1979,6 +2053,12 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.alertEmail != nil {
 		fields = append(fields, user.FieldAlertEmail)
+	}
+	if m.locked != nil {
+		fields = append(fields, user.FieldLocked)
+	}
+	if m.lockedUntil != nil {
+		fields = append(fields, user.FieldLockedUntil)
 	}
 	if m.content != nil {
 		fields = append(fields, user.FieldContent)
@@ -2024,6 +2104,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.AlertDiscordId()
 	case user.FieldAlertEmail:
 		return m.AlertEmail()
+	case user.FieldLocked:
+		return m.Locked()
+	case user.FieldLockedUntil:
+		return m.LockedUntil()
 	case user.FieldContent:
 		return m.Content()
 	case user.FieldFileName:
@@ -2059,6 +2143,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldAlertDiscordId(ctx)
 	case user.FieldAlertEmail:
 		return m.OldAlertEmail(ctx)
+	case user.FieldLocked:
+		return m.OldLocked(ctx)
+	case user.FieldLockedUntil:
+		return m.OldLockedUntil(ctx)
 	case user.FieldContent:
 		return m.OldContent(ctx)
 	case user.FieldFileName:
@@ -2108,6 +2196,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAlertEmail(v)
+		return nil
+	case user.FieldLocked:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocked(v)
+		return nil
+	case user.FieldLockedUntil:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLockedUntil(v)
 		return nil
 	case user.FieldContent:
 		v, ok := value.([]byte)
@@ -2275,6 +2377,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldAlertEmail:
 		m.ResetAlertEmail()
+		return nil
+	case user.FieldLocked:
+		m.ResetLocked()
+		return nil
+	case user.FieldLockedUntil:
+		m.ResetLockedUntil()
 		return nil
 	case user.FieldContent:
 		m.ResetContent()

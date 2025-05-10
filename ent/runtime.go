@@ -82,32 +82,36 @@ func init() {
 	userDescAlertEmail := userFields[2].Descriptor()
 	// user.DefaultAlertEmail holds the default value on creation for the alertEmail field.
 	user.DefaultAlertEmail = userDescAlertEmail.Default.(string)
+	// userDescLocked is the schema descriptor for locked field.
+	userDescLocked := userFields[3].Descriptor()
+	// user.DefaultLocked holds the default value on creation for the locked field.
+	user.DefaultLocked = userDescLocked.Default.(bool)
 	// userDescContent is the schema descriptor for content field.
-	userDescContent := userFields[3].Descriptor()
+	userDescContent := userFields[5].Descriptor()
 	// user.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	user.ContentValidator = userDescContent.Validators[0].(func([]byte) error)
 	// userDescFileName is the schema descriptor for fileName field.
-	userDescFileName := userFields[4].Descriptor()
+	userDescFileName := userFields[6].Descriptor()
 	// user.FileNameValidator is a validator for the "fileName" field. It is called by the builders before save.
 	user.FileNameValidator = userDescFileName.Validators[0].(func(string) error)
 	// userDescMime is the schema descriptor for mime field.
-	userDescMime := userFields[5].Descriptor()
+	userDescMime := userFields[7].Descriptor()
 	// user.MimeValidator is a validator for the "mime" field. It is called by the builders before save.
 	user.MimeValidator = userDescMime.Validators[0].(func(string) error)
 	// userDescNonce is the schema descriptor for nonce field.
-	userDescNonce := userFields[6].Descriptor()
+	userDescNonce := userFields[8].Descriptor()
 	// user.NonceValidator is a validator for the "nonce" field. It is called by the builders before save.
 	user.NonceValidator = userDescNonce.Validators[0].(func([]byte) error)
 	// userDescKeySalt is the schema descriptor for keySalt field.
-	userDescKeySalt := userFields[7].Descriptor()
+	userDescKeySalt := userFields[9].Descriptor()
 	// user.KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
 	user.KeySaltValidator = userDescKeySalt.Validators[0].(func([]byte) error)
 	// userDescPasswordHash is the schema descriptor for passwordHash field.
-	userDescPasswordHash := userFields[8].Descriptor()
+	userDescPasswordHash := userFields[10].Descriptor()
 	// user.PasswordHashValidator is a validator for the "passwordHash" field. It is called by the builders before save.
 	user.PasswordHashValidator = userDescPasswordHash.Validators[0].(func([]byte) error)
 	// userDescPasswordSalt is the schema descriptor for passwordSalt field.
-	userDescPasswordSalt := userFields[9].Descriptor()
+	userDescPasswordSalt := userFields[11].Descriptor()
 	// user.PasswordSaltValidator is a validator for the "passwordSalt" field. It is called by the builders before save.
 	user.PasswordSaltValidator = userDescPasswordSalt.Validators[0].(func([]byte) error)
 }

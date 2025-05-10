@@ -53,6 +53,8 @@ var (
 		{Name: "username", Type: field.TypeString, Unique: true},
 		{Name: "alert_discord_id", Type: field.TypeString, Default: ""},
 		{Name: "alert_email", Type: field.TypeString, Default: ""},
+		{Name: "locked", Type: field.TypeBool, Default: false},
+		{Name: "locked_until", Type: field.TypeTime},
 		{Name: "content", Type: field.TypeBytes},
 		{Name: "file_name", Type: field.TypeString},
 		{Name: "mime", Type: field.TypeString},

@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -22,6 +23,10 @@ type User struct {
 	AlertDiscordId string `json:"alertDiscordId,omitempty"`
 	// AlertEmail holds the value of the "alertEmail" field.
 	AlertEmail string `json:"alertEmail,omitempty"`
+	// Locked holds the value of the "locked" field.
+	Locked bool `json:"locked,omitempty"`
+	// LockedUntil holds the value of the "lockedUntil" field.
+	LockedUntil *time.Time `json:"lockedUntil,omitempty"`
 	// Content holds the value of the "content" field.
 	Content []byte `json:"content,omitempty"`
 	// FileName holds the value of the "fileName" field.
@@ -73,10 +78,14 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldContent, user.FieldNonce, user.FieldKeySalt, user.FieldPasswordHash, user.FieldPasswordSalt:
 			values[i] = new([]byte)
+		case user.FieldLocked:
+			values[i] = new(sql.NullBool)
 		case user.FieldID, user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen:
 			values[i] = new(sql.NullInt64)
 		case user.FieldUsername, user.FieldAlertDiscordId, user.FieldAlertEmail, user.FieldFileName, user.FieldMime:
 			values[i] = new(sql.NullString)
+		case user.FieldLockedUntil:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -115,6 +124,19 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field alertEmail", values[i])
 			} else if value.Valid {
 				u.AlertEmail = value.String
+			}
+		case user.FieldLocked:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field locked", values[i])
+			} else if value.Valid {
+				u.Locked = value.Bool
+			}
+		case user.FieldLockedUntil:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field lockedUntil", values[i])
+			} else if value.Valid {
+				u.LockedUntil = new(time.Time)
+				*u.LockedUntil = value.Time
 			}
 		case user.FieldContent:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -225,6 +247,14 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("alertEmail=")
 	builder.WriteString(u.AlertEmail)
+	builder.WriteString(", ")
+	builder.WriteString("locked=")
+	builder.WriteString(fmt.Sprintf("%v", u.Locked))
+	builder.WriteString(", ")
+	if v := u.LockedUntil; v != nil {
+		builder.WriteString("lockedUntil=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("content=")
 	builder.WriteString(fmt.Sprintf("%v", u.Content))

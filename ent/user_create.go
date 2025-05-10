@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -53,6 +54,26 @@ func (uc *UserCreate) SetNillableAlertEmail(s *string) *UserCreate {
 	if s != nil {
 		uc.SetAlertEmail(*s)
 	}
+	return uc
+}
+
+// SetLocked sets the "locked" field.
+func (uc *UserCreate) SetLocked(b bool) *UserCreate {
+	uc.mutation.SetLocked(b)
+	return uc
+}
+
+// SetNillableLocked sets the "locked" field if the given value is not nil.
+func (uc *UserCreate) SetNillableLocked(b *bool) *UserCreate {
+	if b != nil {
+		uc.SetLocked(*b)
+	}
+	return uc
+}
+
+// SetLockedUntil sets the "lockedUntil" field.
+func (uc *UserCreate) SetLockedUntil(t time.Time) *UserCreate {
+	uc.mutation.SetLockedUntil(t)
 	return uc
 }
 
@@ -174,6 +195,10 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultAlertEmail
 		uc.mutation.SetAlertEmail(v)
 	}
+	if _, ok := uc.mutation.Locked(); !ok {
+		v := user.DefaultLocked
+		uc.mutation.SetLocked(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -191,6 +216,12 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.AlertEmail(); !ok {
 		return &ValidationError{Name: "alertEmail", err: errors.New(`ent: missing required field "User.alertEmail"`)}
+	}
+	if _, ok := uc.mutation.Locked(); !ok {
+		return &ValidationError{Name: "locked", err: errors.New(`ent: missing required field "User.locked"`)}
+	}
+	if _, ok := uc.mutation.LockedUntil(); !ok {
+		return &ValidationError{Name: "lockedUntil", err: errors.New(`ent: missing required field "User.lockedUntil"`)}
 	}
 	if _, ok := uc.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "User.content"`)}
@@ -295,6 +326,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.AlertEmail(); ok {
 		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
 		_node.AlertEmail = value
+	}
+	if value, ok := uc.mutation.Locked(); ok {
+		_spec.SetField(user.FieldLocked, field.TypeBool, value)
+		_node.Locked = value
+	}
+	if value, ok := uc.mutation.LockedUntil(); ok {
+		_spec.SetField(user.FieldLockedUntil, field.TypeTime, value)
+		_node.LockedUntil = &value
 	}
 	if value, ok := uc.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
@@ -437,6 +476,30 @@ func (u *UserUpsert) SetAlertEmail(v string) *UserUpsert {
 // UpdateAlertEmail sets the "alertEmail" field to the value that was provided on create.
 func (u *UserUpsert) UpdateAlertEmail() *UserUpsert {
 	u.SetExcluded(user.FieldAlertEmail)
+	return u
+}
+
+// SetLocked sets the "locked" field.
+func (u *UserUpsert) SetLocked(v bool) *UserUpsert {
+	u.Set(user.FieldLocked, v)
+	return u
+}
+
+// UpdateLocked sets the "locked" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLocked() *UserUpsert {
+	u.SetExcluded(user.FieldLocked)
+	return u
+}
+
+// SetLockedUntil sets the "lockedUntil" field.
+func (u *UserUpsert) SetLockedUntil(v time.Time) *UserUpsert {
+	u.Set(user.FieldLockedUntil, v)
+	return u
+}
+
+// UpdateLockedUntil sets the "lockedUntil" field to the value that was provided on create.
+func (u *UserUpsert) UpdateLockedUntil() *UserUpsert {
+	u.SetExcluded(user.FieldLockedUntil)
 	return u
 }
 
@@ -657,6 +720,34 @@ func (u *UserUpsertOne) SetAlertEmail(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateAlertEmail() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateAlertEmail()
+	})
+}
+
+// SetLocked sets the "locked" field.
+func (u *UserUpsertOne) SetLocked(v bool) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocked(v)
+	})
+}
+
+// UpdateLocked sets the "locked" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLocked() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocked()
+	})
+}
+
+// SetLockedUntil sets the "lockedUntil" field.
+func (u *UserUpsertOne) SetLockedUntil(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLockedUntil(v)
+	})
+}
+
+// UpdateLockedUntil sets the "lockedUntil" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateLockedUntil() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLockedUntil()
 	})
 }
 
@@ -1064,6 +1155,34 @@ func (u *UserUpsertBulk) SetAlertEmail(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateAlertEmail() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateAlertEmail()
+	})
+}
+
+// SetLocked sets the "locked" field.
+func (u *UserUpsertBulk) SetLocked(v bool) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLocked(v)
+	})
+}
+
+// UpdateLocked sets the "locked" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLocked() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLocked()
+	})
+}
+
+// SetLockedUntil sets the "lockedUntil" field.
+func (u *UserUpsertBulk) SetLockedUntil(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetLockedUntil(v)
+	})
+}
+
+// UpdateLockedUntil sets the "lockedUntil" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateLockedUntil() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateLockedUntil()
 	})
 }
 

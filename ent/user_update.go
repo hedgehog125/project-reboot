@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -66,6 +67,34 @@ func (uu *UserUpdate) SetAlertEmail(s string) *UserUpdate {
 func (uu *UserUpdate) SetNillableAlertEmail(s *string) *UserUpdate {
 	if s != nil {
 		uu.SetAlertEmail(*s)
+	}
+	return uu
+}
+
+// SetLocked sets the "locked" field.
+func (uu *UserUpdate) SetLocked(b bool) *UserUpdate {
+	uu.mutation.SetLocked(b)
+	return uu
+}
+
+// SetNillableLocked sets the "locked" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableLocked(b *bool) *UserUpdate {
+	if b != nil {
+		uu.SetLocked(*b)
+	}
+	return uu
+}
+
+// SetLockedUntil sets the "lockedUntil" field.
+func (uu *UserUpdate) SetLockedUntil(t time.Time) *UserUpdate {
+	uu.mutation.SetLockedUntil(t)
+	return uu
+}
+
+// SetNillableLockedUntil sets the "lockedUntil" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableLockedUntil(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetLockedUntil(*t)
 	}
 	return uu
 }
@@ -325,6 +354,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.AlertEmail(); ok {
 		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
 	}
+	if value, ok := uu.mutation.Locked(); ok {
+		_spec.SetField(user.FieldLocked, field.TypeBool, value)
+	}
+	if value, ok := uu.mutation.LockedUntil(); ok {
+		_spec.SetField(user.FieldLockedUntil, field.TypeTime, value)
+	}
 	if value, ok := uu.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 	}
@@ -467,6 +502,34 @@ func (uuo *UserUpdateOne) SetAlertEmail(s string) *UserUpdateOne {
 func (uuo *UserUpdateOne) SetNillableAlertEmail(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetAlertEmail(*s)
+	}
+	return uuo
+}
+
+// SetLocked sets the "locked" field.
+func (uuo *UserUpdateOne) SetLocked(b bool) *UserUpdateOne {
+	uuo.mutation.SetLocked(b)
+	return uuo
+}
+
+// SetNillableLocked sets the "locked" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableLocked(b *bool) *UserUpdateOne {
+	if b != nil {
+		uuo.SetLocked(*b)
+	}
+	return uuo
+}
+
+// SetLockedUntil sets the "lockedUntil" field.
+func (uuo *UserUpdateOne) SetLockedUntil(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetLockedUntil(t)
+	return uuo
+}
+
+// SetNillableLockedUntil sets the "lockedUntil" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableLockedUntil(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetLockedUntil(*t)
 	}
 	return uuo
 }
@@ -755,6 +818,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.AlertEmail(); ok {
 		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.Locked(); ok {
+		_spec.SetField(user.FieldLocked, field.TypeBool, value)
+	}
+	if value, ok := uuo.mutation.LockedUntil(); ok {
+		_spec.SetField(user.FieldLockedUntil, field.TypeTime, value)
 	}
 	if value, ok := uuo.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)

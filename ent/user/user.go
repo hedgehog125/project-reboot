@@ -18,6 +18,10 @@ const (
 	FieldAlertDiscordId = "alert_discord_id"
 	// FieldAlertEmail holds the string denoting the alertemail field in the database.
 	FieldAlertEmail = "alert_email"
+	// FieldLocked holds the string denoting the locked field in the database.
+	FieldLocked = "locked"
+	// FieldLockedUntil holds the string denoting the lockeduntil field in the database.
+	FieldLockedUntil = "locked_until"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
 	// FieldFileName holds the string denoting the filename field in the database.
@@ -57,6 +61,8 @@ var Columns = []string{
 	FieldUsername,
 	FieldAlertDiscordId,
 	FieldAlertEmail,
+	FieldLocked,
+	FieldLockedUntil,
 	FieldContent,
 	FieldFileName,
 	FieldMime,
@@ -86,6 +92,8 @@ var (
 	DefaultAlertDiscordId string
 	// DefaultAlertEmail holds the default value on creation for the "alertEmail" field.
 	DefaultAlertEmail string
+	// DefaultLocked holds the default value on creation for the "locked" field.
+	DefaultLocked bool
 	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	ContentValidator func([]byte) error
 	// FileNameValidator is a validator for the "fileName" field. It is called by the builders before save.
@@ -123,6 +131,16 @@ func ByAlertDiscordId(opts ...sql.OrderTermOption) OrderOption {
 // ByAlertEmail orders the results by the alertEmail field.
 func ByAlertEmail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAlertEmail, opts...).ToFunc()
+}
+
+// ByLocked orders the results by the locked field.
+func ByLocked(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLocked, opts...).ToFunc()
+}
+
+// ByLockedUntil orders the results by the lockedUntil field.
+func ByLockedUntil(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockedUntil, opts...).ToFunc()
 }
 
 // ByFileName orders the results by the fileName field.
