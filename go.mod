@@ -1,6 +1,6 @@
 module github.com/hedgehog125/project-reboot
 
-go 1.23.4
+go 1.23.9
 
 require (
 	entgo.io/ent v0.14.1
