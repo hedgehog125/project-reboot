@@ -36,3 +36,5 @@ Maybe have the server save the time periodically and on shutdown? Then when it s
 -   Race condition fuzzer that spams a bunch of endpoints
 -   -   Would be run with the -race flag
 -   -   In particular, test that spamming get-authorization-code with the correct password then updating the password invalidates all of the codes generated using the old password
+-   Endpoints
+-   -   Do they cancel their work if a request times out? Can encryption/decryption run in the background?

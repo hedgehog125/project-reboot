@@ -48,7 +48,7 @@ func NewErrorMiddleware() gin.HandlerFunc {
 
 func NewTimeoutMiddleware() gin.HandlerFunc {
 	return timeout.New(
-		timeout.WithTimeout(5*time.Second),
+		timeout.WithTimeout(30*time.Second),
 		timeout.WithHandler(func(ctx *gin.Context) {
 			ctx.Next()
 		}),
