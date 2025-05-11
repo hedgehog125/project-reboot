@@ -24,7 +24,7 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 	for _, err := range errs {
 		index := slices.Index(successfulActionIDs, err.Id)
 		if index != -1 {
-			successfulActionIDs = slices.Delete(successfulActionIDs, index, index)
+			successfulActionIDs = slices.Delete(successfulActionIDs, index, index+1)
 		}
 	}
 	return successfulActionIDs

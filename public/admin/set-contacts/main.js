@@ -31,7 +31,12 @@ form.addEventListener("submit", async (e) => {
 		return;
 	}
 
-	displayMessage("Success");
+	const json = await resp.json();
+	displayMessage(
+		`Success. A test message was sent using these messengers: ${json.messagesSent.join(
+			", "
+		)}`
+	);
 });
 
 function displayMessage(message) {
