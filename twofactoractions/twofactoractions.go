@@ -13,7 +13,7 @@ import (
 	"github.com/jonboulle/clockwork"
 )
 
-const CODE_LENGTH = 6
+const CODE_LENGTH = 9
 
 var DEFAULT_CODE_LIFETIME = 2 * time.Minute
 

@@ -10,7 +10,7 @@ import (
 )
 
 type ConfirmPayload struct {
-	Code string `binding:"required,min=6,max=6,alphanum,lowercase" json:"code"`
+	Code string `binding:"required,min=9,max=9,alphanum,lowercase" json:"code"`
 }
 
 type ConfirmResponse struct {
