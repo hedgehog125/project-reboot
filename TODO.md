@@ -2,7 +2,7 @@
 
 -   Send better JSON payload parse errors. They currently result in 500s
 -   INTERNAL shouldn't be in error codes for 500
--   Timeouts incorrectly send 500s
+-   Timeouts sometimes incorrectly send 500s?
 -   Automatically delete expired 2FA actions
 -   Store timestamp in session so it can be double checked to ensure it's still valid by comparing to auth_timestamps_valid_from in users table
 -   Account locking until a specified date for if you know you won't have access to your devices for a while

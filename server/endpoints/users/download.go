@@ -112,5 +112,6 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 		})
 
 		// TODO: log this event to database
+		// TODO: reduce session expiry to 1 hour
 	}
 }
