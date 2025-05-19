@@ -1,6 +1,7 @@
 package servercommon
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -23,6 +24,17 @@ func NewNotFoundError() *ContextError {
 		Err:        err,
 		Status:     http.StatusNotFound,
 		ErrorCodes: []string{},
+		Category:   err.Category(),
+		ShouldLog:  false,
+	}
+}
+
+func NewBadRequestError(fieldName string, message string) *ContextError {
+	err := common.NewErrorWithCategory(fmt.Sprintf("%v: %v", fieldName, message), common.ErrTypeClient)
+	return &ContextError{
+		Err:        err,
+		Status:     http.StatusBadRequest,
+		ErrorCodes: []string{}, // TODO: add error code?
 		Category:   err.Category(),
 		ShouldLog:  false,
 	}

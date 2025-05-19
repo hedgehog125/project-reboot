@@ -1,6 +1,10 @@
 # TODO
 
+-   Create 2FA actions registry. Should be initialised with App and action callbacks should be passed it
+-   -   Then implement the self lock action
 -   Send better JSON payload parse errors. They currently result in 500s
+-   -   BindJSON sends the HTTP response itself. Should make a util to handle that instead and use a proper ContextError
+-   -   Response errors property should be an an array of structs with code and message properties
 -   INTERNAL shouldn't be in error codes for 500
 -   Timeouts sometimes incorrectly send 500s?
 -   Automatically delete expired 2FA actions
@@ -20,6 +24,8 @@
 -   Rework endpoint system, maybe the endpoint functions could return an Endpoint struct with an array of handlers and some other things? Middleware should be defined there instead of in RegisterEndpoints
 -   Review contexts. Possibly want to give them all a timeout, partly to make shutdowns more predictable
 -   SMS messenger
+-   Split endpoints into admin and normal?
+
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 
 # To research

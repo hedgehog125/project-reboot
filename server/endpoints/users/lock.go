@@ -2,6 +2,7 @@ package users
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
@@ -10,6 +11,8 @@ import (
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 	"github.com/hedgehog125/project-reboot/twofactoractions"
 )
+
+const MAX_SELF_LOCK_DURATION = 14 * (24 * time.Hour)
 
 type LockPayload struct {
 	Username string `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
@@ -36,6 +39,7 @@ func Lock(app *servercommon.ServerApp) gin.HandlerFunc {
 type LockTemporarilyPayload struct {
 	Username string `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
 	Password string `binding:"required,min=8,max=256"                   json:"password"`
+	Until    string `binding:"required,max=256" json:"until"`
 }
 type LockTemporarilyResponse struct {
 	Errors            []string `binding:"required"  json:"errors"`
@@ -52,6 +56,17 @@ func LockTemporarily(app *servercommon.ServerApp) gin.HandlerFunc {
 		if err := ctx.BindJSON(&body); err != nil {
 			return
 		}
+		until, err := time.Parse(time.RFC3339, body.Until)
+		if err != nil {
+			ctx.Error(servercommon.NewBadRequestError("until", "invalid date format"))
+			return
+		}
+		until = clock.Now().Add(
+			min(
+				until.Sub(clock.Now()), // Convert to duration
+				MAX_SELF_LOCK_DURATION,
+			),
+		)
 
 		userRow, err := dbClient.User.Query().
 			Where(user.Username(body.Username)).
@@ -85,7 +100,11 @@ func LockTemporarily(app *servercommon.ServerApp) gin.HandlerFunc {
 		actionID, code, err := twofactoractions.Create(
 			"TEMP_SELF_LOCK", 1,
 			clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
-			twofactoractions.TempSelfLock1{},
+			//exhaustruct:enforce
+			twofactoractions.TempSelfLock1{
+				Username: body.Username,
+				Until:    until,
+			},
 			dbClient,
 		)
 		if err != nil {
