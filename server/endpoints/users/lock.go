@@ -10,6 +10,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 	"github.com/hedgehog125/project-reboot/twofactoractions"
+	useractions "github.com/hedgehog125/project-reboot/twofactoractions/actions/users"
 )
 
 const MAX_SELF_LOCK_DURATION = 14 * (24 * time.Hour)
@@ -93,15 +94,15 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		actionID, code, err := twofactoractions.Create(
-			"TEMP_SELF_LOCK", 1,
+		actionID, code, err := app.App.TwoFactorAction.Create(
+			"users/TEMP_SELF_LOCK", 1,
 			clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
 			//exhaustruct:enforce
-			twofactoractions.TempSelfLock1{
+			useractions.TempSelfLock1Body{
+				// TODO: can this be accessed through the registry instead?
 				Username: body.Username,
 				Until:    common.ISOTimeString{Time: until},
 			},
-			dbClient,
 		)
 		if err != nil {
 			// TODO: categorise the database errors properly

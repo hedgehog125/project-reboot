@@ -18,9 +18,6 @@ type ConfirmResponse struct {
 }
 
 func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
-	db := app.App.Database
-	clock := app.App.Clock
-
 	return func(ctx *gin.Context) {
 		body := ConfirmPayload{}
 		if err := ctx.BindJSON(&body); err != nil {
@@ -35,7 +32,7 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		err = twofactoractions.Confirm(parsedId, body.Code, db, clock)
+		err = app.App.TwoFactorAction.Confirm(parsedId, body.Code)
 		if err != nil {
 			ctx.Error(servercommon.ExpectAnyOfErrors(
 				err,

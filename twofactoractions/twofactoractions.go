@@ -3,14 +3,13 @@ package twofactoractions
 import (
 	"context"
 	"crypto/subtle"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/jonboulle/clockwork"
 )
 
 const CODE_LENGTH = 9
@@ -19,15 +18,14 @@ var DEFAULT_CODE_LIFETIME = 2 * time.Minute
 
 var ErrDatabase = errors.New("database error")
 
-func Create(
+func (registry *Registry) Create(
 	actionType string,
 	version int,
 	expiresAt time.Time,
 	data any,
-	dbClient *ent.Client,
 ) (uuid.UUID, string, error) {
-	encoded, err := Encode(
-		fmt.Sprintf("%v_%v", actionType, version),
+	encoded, err := registry.Encode(
+		GetFullType(actionType, version),
 		data,
 	)
 	if err != nil {
@@ -35,6 +33,7 @@ func Create(
 	}
 
 	code := common.CryptoRandomAlphaNum(CODE_LENGTH)
+	dbClient := registry.App.Database.Client()
 	action, err := dbClient.TwoFactorAction.Create().
 		SetType(actionType).
 		SetVersion(version).
@@ -54,9 +53,9 @@ var ErrExpired = errors.New("action has expired")
 var ErrUnknownActionType = errors.New("unknown action type")
 var ErrInvalidData = errors.New("invalid action data")
 
-func Confirm(actionID uuid.UUID, code string, db common.DatabaseService, clock clockwork.Clock) error {
-	mu := db.TwoFactorActionMutex()
-	dbClient := db.Client()
+func (registry *Registry) Confirm(actionID uuid.UUID, code string) error {
+	mu := registry.App.Database.TwoFactorActionMutex()
+	dbClient := registry.App.Database.Client()
 	mu.Lock()
 
 	action, err := dbClient.TwoFactorAction.Get(context.Background(), actionID)
@@ -75,14 +74,29 @@ func Confirm(actionID uuid.UUID, code string, db common.DatabaseService, clock c
 		return ErrDatabase
 	}
 
-	if action.ExpiresAt.Before(clock.Now()) {
+	if action.ExpiresAt.Before(registry.App.Clock.Now()) {
 		return ErrExpired
 	}
-	fullType := fmt.Sprintf("%v_%v", action.Type, action.Version)
-	actionFunc, ok := actionMap[fullType]
+	fullType := GetFullType(action.Type, action.Version)
+	actionDef, ok := registry.actions[fullType]
 	if !ok {
 		return ErrUnknownActionType
 	}
 
-	return actionFunc(action)
+	parsed := actionDef.BodyType
+	err = json.Unmarshal([]byte(action.Data), &parsed)
+	if err != nil {
+		// TODO: add the JSON decode error to this
+		return ErrInvalidData
+	}
+
+	return actionDef.Handler(&Action[any]{
+		Definition: &actionDef,
+		ExpiresAt:  action.ExpiresAt,
+		Body:       &parsed,
+	})
+}
+
+func GetFullType(actionType string, version int) string {
+	return fmt.Sprintf("%v_%v", actionType, version)
 }

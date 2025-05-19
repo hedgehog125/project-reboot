@@ -2,7 +2,9 @@ package common
 
 import (
 	"sync"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/jonboulle/clockwork"
 )
@@ -23,13 +25,14 @@ type State struct {
 	AdminCode chan []byte
 }
 type App struct {
-	Env       *Env
-	Clock     clockwork.Clock
-	State     *State
-	Messenger MessengerService
-	Database  DatabaseService
-	Server    ServerService
-	Scheduler SchedulerService
+	Env             *Env
+	Clock           clockwork.Clock
+	State           *State
+	Messenger       MessengerService
+	Database        DatabaseService
+	Server          ServerService
+	TwoFactorAction TwoFactorActionService
+	Scheduler       SchedulerService
 }
 
 type MessengerService interface {
@@ -71,6 +74,17 @@ type DatabaseService interface {
 type ServerService interface {
 	Start()    // Should fatalf rather than returning an error
 	Shutdown() // Should log warning rather than return an error
+}
+
+type TwoFactorActionService interface {
+	Shutdown() // Should log warning rather than return an error
+	Confirm(actionID uuid.UUID, code string) error
+	Create(
+		actionType string,
+		version int,
+		expiresAt time.Time,
+		data any,
+	) (uuid.UUID, string, error)
 }
 
 type SchedulerService interface {
