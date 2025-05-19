@@ -2,15 +2,16 @@ package twofactoractions
 
 import (
 	"encoding/json"
-	"time"
+
+	"github.com/hedgehog125/project-reboot/common"
 )
 
 type NoAction1 struct {
 	Foo string
 }
 type TempSelfLock1 struct {
-	Username string    `binding:"required" json:"username"`
-	Until    time.Time `binding:"required" json:"until"`
+	Username string               `binding:"required" json:"username"`
+	Until    common.ISOTimeString `binding:"required" json:"until"`
 }
 
 // TODO: combine into single map

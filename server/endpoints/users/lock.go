@@ -36,34 +36,30 @@ func Lock(app *servercommon.ServerApp) gin.HandlerFunc {
 	}
 }
 
-type LockTemporarilyPayload struct {
-	Username string `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
-	Password string `binding:"required,min=8,max=256"                   json:"password"`
-	Until    string `binding:"required,max=256" json:"until"`
+type SelfLockPayload struct {
+	Username string               `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
+	Password string               `binding:"required,min=8,max=256"                   json:"password"`
+	Until    common.ISOTimeString `binding:"required" json:"until"`
 }
-type LockTemporarilyResponse struct {
+type SelfLockResponse struct {
 	Errors            []string `binding:"required"  json:"errors"`
 	TwoFactorActionID string   `json:"twoFactorActionID"`
 }
 
-func LockTemporarily(app *servercommon.ServerApp) gin.HandlerFunc {
+func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 	dbClient := app.App.Database.Client()
 	clock := app.App.Clock
 	messenger := app.App.Messenger
 
 	return func(ctx *gin.Context) {
-		body := LockTemporarilyPayload{}
-		if err := ctx.BindJSON(&body); err != nil {
+		body := SelfLockPayload{}
+		if err := servercommon.ParseBody(&body, ctx); err != nil {
+			ctx.Error(err)
 			return
 		}
-		until, err := time.Parse(time.RFC3339, body.Until)
-		if err != nil {
-			ctx.Error(servercommon.NewBadRequestError("until", "invalid date format"))
-			return
-		}
-		until = clock.Now().Add(
+		until := clock.Now().Add(
 			min(
-				until.Sub(clock.Now()), // Convert to duration
+				body.Until.Sub(clock.Now()), // Convert to duration
 				MAX_SELF_LOCK_DURATION,
 			),
 		)
@@ -103,7 +99,7 @@ func LockTemporarily(app *servercommon.ServerApp) gin.HandlerFunc {
 			//exhaustruct:enforce
 			twofactoractions.TempSelfLock1{
 				Username: body.Username,
-				Until:    until,
+				Until:    common.ISOTimeString{Time: until},
 			},
 			dbClient,
 		)
@@ -136,7 +132,7 @@ func LockTemporarily(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		// TODO: log these errors
 
-		ctx.JSON(http.StatusCreated, LockTemporarilyResponse{
+		ctx.JSON(http.StatusCreated, SelfLockResponse{
 			Errors:            []string{},
 			TwoFactorActionID: actionID.String(),
 		})
