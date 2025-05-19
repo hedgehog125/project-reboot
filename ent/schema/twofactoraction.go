@@ -19,7 +19,7 @@ func (TwoFactorAction) Fields() []ent.Field {
 		field.Int("version"),
 		field.JSON("data", ""),
 		field.Time("expiresAt"),
-		field.String("code").MaxLen(6).MaxLen(6),
+		field.String("code").MaxLen(9).MaxLen(9),
 	}
 }
 

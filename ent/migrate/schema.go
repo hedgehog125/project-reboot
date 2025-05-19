@@ -39,7 +39,7 @@ var (
 		{Name: "version", Type: field.TypeInt},
 		{Name: "data", Type: field.TypeJSON},
 		{Name: "expires_at", Type: field.TypeTime},
-		{Name: "code", Type: field.TypeString, Size: 6},
+		{Name: "code", Type: field.TypeString, Size: 9},
 	}
 	// TwoFactorActionsTable holds the schema information for the "two_factor_actions" table.
 	TwoFactorActionsTable = &schema.Table{
