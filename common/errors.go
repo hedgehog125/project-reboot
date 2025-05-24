@@ -2,6 +2,7 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 
 	"github.com/hedgehog125/project-reboot/ent" // Note: will have to reorganise if I end up needing to use the common module in schemas
@@ -36,36 +37,46 @@ const (
 	ErrTypeOther    = "other"
 )
 
-type ErrorWithCategory interface {
-	(error)
-	Category() string
-}
-type errorWithCategory struct {
-	err      error
-	category string
+type ErrorWithCategory struct {
+	Err                   error
+	Category              string
+	ErrDuplicatesCategory bool
 }
 
-func (e *errorWithCategory) Error() string {
-	return e.err.Error()
-}
-func (e *errorWithCategory) Unwrap() error {
-	return e.err
-}
-func (e *errorWithCategory) Category() string {
-	return e.category
-}
-
-func NewErrorWithCategory(err string, category string) ErrorWithCategory {
-	return &errorWithCategory{
-		err:      errors.New(err),
-		category: category,
+func (err *ErrorWithCategory) Error() string {
+	if err.ErrDuplicatesCategory {
+		return err.Err.Error()
+	} else {
+		return fmt.Sprintf("%v error: %v", err.Category, err.Err.Error())
 	}
+}
+func (err *ErrorWithCategory) Unwrap() error {
+	return err.Err
+}
+
+func NewErrorWithCategory(err string, category string) *ErrorWithCategory {
+	return &ErrorWithCategory{
+		Err:      errors.New(err),
+		Category: category,
+	}
+}
+func WrapErrorWithCategory(err error, category string) *ErrorWithCategory {
+	catErr := &ErrorWithCategory{
+		Err:      err,
+		Category: category,
+	}
+	if err == nil {
+		catErr.Err = errors.New(category)
+		catErr.ErrDuplicatesCategory = true
+	}
+
+	return catErr
 }
 
 func CategorizeError(err error) string {
-	var catErr ErrorWithCategory
+	var catErr *ErrorWithCategory
 	if errors.As(err, &catErr) {
-		return catErr.Category()
+		return catErr.Category
 	}
 	if errors.As(err, &sqlite3.Error{}) {
 		return ErrTypeDatabase

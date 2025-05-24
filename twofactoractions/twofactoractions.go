@@ -16,8 +16,6 @@ const CODE_LENGTH = 9
 
 var DEFAULT_CODE_LIFETIME = 2 * time.Minute
 
-var ErrDatabase = errors.New("database error")
-
 func (registry *Registry) Create(
 	actionType string,
 	version int,
@@ -41,7 +39,7 @@ func (registry *Registry) Create(
 		SetExpiresAt(expiresAt).
 		SetCode(code).Save(context.Background())
 	if err != nil {
-		return uuid.UUID{}, code, ErrDatabase
+		return uuid.UUID{}, code, common.WrapErrorWithCategory(err, common.ErrTypeDatabase)
 	}
 
 	return action.ID, code, nil
@@ -50,9 +48,9 @@ func (registry *Registry) Create(
 var ErrNotFound = errors.New("no action with given ID")
 var ErrWrongCode = errors.New("wrong 2FA code")
 var ErrExpired = errors.New("action has expired")
-var ErrUnknownActionType = errors.New("unknown action type")
-var ErrInvalidData = errors.New("invalid action data")
 
+// TODO: maybe the approach used for errors in Encode doesn't make sense?
+// It seems weird to wrap these all in a category when ErrInvalidData is the only one that needs it
 func (registry *Registry) Confirm(actionID uuid.UUID, code string) error {
 	mu := registry.App.Database.TwoFactorActionMutex()
 	dbClient := registry.App.Database.Client()

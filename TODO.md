@@ -1,5 +1,7 @@
 # TODO
 
+-   Are categories supposed to be vague? They were originally intended for log grouping, but maybe they still can be if they're unwrapped as deep as possible?
+-   Functions should wrap their errors with themself as the category. It can always be unwrapped if you want more control
 -   Create 2FA actions registry. Should be initialised with App and action callbacks should be passed it
 -   -   Then implement the self lock action
 -   Send better JSON payload parse errors. They currently result in 500s
