@@ -32,41 +32,70 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 }
 
 const (
+	// Highest level categories
 	ErrTypeDatabase        = "database"
 	ErrTypeTwoFactorAction = "two factor action"
 	ErrTypeClient          = "client"
 	ErrTypeOther           = "other"
 )
 
-// TODO: root categories are really more of a top level category. Maybe should be kept separately? You have to set it at creation but it can be overridden later in the chain?
-
 type Error struct {
 	Err                   error
 	Categories            []string
+	HighestCategory       string
 	ErrDuplicatesCategory bool
 }
 
 func (err *Error) Error() string {
-	if err.ErrDuplicatesCategory {
-		return err.Err.Error()
-	} else {
-		return fmt.Sprintf("%v error: %v", err.Categories, err.Err.Error()) // TODO: update
+	message := ""
+	if err.HighestCategory != ErrTypeOther {
+		message += fmt.Sprintf("%v error: ", err.HighestCategory)
 	}
+
+	reversedCategories := slices.Clone(err.Categories)
+	slices.Reverse(reversedCategories) // Highest to lowest level
+	if err.ErrDuplicatesCategory {
+		reversedCategories = DeleteSliceIndex(reversedCategories, -1) // Ignore the lowest (last) category since it duplicates the error
+	}
+
+	for _, category := range reversedCategories {
+		message += fmt.Sprintf("%v error: ", category)
+	}
+
+	return message + err.Err.Error()
 }
 func (err *Error) Unwrap() error {
 	return err.Err
 }
+func (err *Error) Is(target error) bool {
+	// Needed so that errors.Is(err.AddCategory("extra category"), err) == true
+	// We don't really care if the properties on this struct are different, only that the underlying error is the same
 
-func (err *Error) HighestCategory() string {
+	if target == nil {
+		return false
+	}
+	targetStruct, ok := target.(*Error)
+	if !ok {
+		return false
+	}
+	return err.Err == targetStruct.Err
+}
+
+func (err *Error) SetHighestCategory(category string) *Error {
+	copiedErr := err.Copy()
+	copiedErr.HighestCategory = category
+	return copiedErr
+}
+
+// Note: not to be confused with `HighestCategory` which is something like "database". This is a level lower, e.g "create user"
+func (err *Error) HighestSpecificCategory() string {
 	return err.Categories[len(err.Categories)-1]
 }
-func (err *Error) LowestCategory() string {
-	return err.Categories[0]
+func (err *Error) AllCategories() []string {
+	return slices.Concat(err.Categories, []string{err.HighestCategory})
 }
-func (err *Error) SetLowestCategory(category string) *Error {
-	err.Categories[0] = category
-	return err
-}
+
+// Note: this mutates the error, so ensure it's been wrapped or copied first
 func (err *Error) PopCategory() string {
 	if len(err.Categories) == 0 {
 		return ""
@@ -83,42 +112,46 @@ func (err *Error) AddCategory(category string) *Error {
 }
 func (err Error) Copy() *Error {
 	copiedErr := err
-	copiedErr.Categories = make([]string, len(err.Categories))
-	copy(copiedErr.Categories, err.Categories)
+	copiedErr.Categories = slices.Clone(err.Categories)
 
 	return &copiedErr
 }
 
 // e.g err.HasCategories(common.ErrTypeDatabase, "create user")
 func (err *Error) HasCategories(requiredCategories ...string) bool {
+	allCategories := err.AllCategories()
+	if len(requiredCategories) > len(allCategories) {
+		return false
+	}
+
+	slices.Reverse(allCategories) // Check from the highest level first, so lower level can be implicitly ignored
 	for i, requiredCategory := range requiredCategories {
-		if i >= len(err.Categories) {
-			return false
-		}
-		if requiredCategory != "*" && err.Categories[i] != requiredCategory {
+		if requiredCategory != "*" && allCategories[i] != requiredCategory {
 			return false
 		}
 	}
 	return true
 }
 
-func NewErrorWithCategories(err string, rootCategory string, categories ...string) *Error {
+func NewErrorWithCategories(err string, highestCategory string, categories ...string) *Error {
 	return &Error{
-		Err:        errors.New(err),
-		Categories: append([]string{rootCategory}, categories...),
+		Err:             errors.New(err),
+		Categories:      categories,
+		HighestCategory: highestCategory,
 	}
 }
-func WrapErrorWithCategory(err error, rootCategory string, categories ...string) *Error {
+func WrapErrorWithCategory(err error, highestCategory string, categories ...string) *Error {
 	catErr := &Error{
-		Err:        err,
-		Categories: append([]string{rootCategory}, categories...),
+		Err:             err,
+		Categories:      categories,
+		HighestCategory: highestCategory,
 	}
 	if err == nil {
 		if len(categories) == 0 {
-			panic("you must provide at least one category in addition to the root category or provide an error")
+			panic("you must provide at least one category in addition to the highest category or provide an error")
 		}
 
-		catErr.Err = errors.New(rootCategory)
+		catErr.Err = errors.New(categories[0])
 		catErr.ErrDuplicatesCategory = true
 	}
 
@@ -128,7 +161,7 @@ func WrapErrorWithCategory(err error, rootCategory string, categories ...string)
 func CategorizeError(err error) string {
 	var commErr *Error
 	if errors.As(err, &commErr) {
-		return commErr.LowestCategory()
+		return commErr.HighestCategory
 	}
 	if errors.As(err, &sqlite3.Error{}) {
 		return ErrTypeDatabase

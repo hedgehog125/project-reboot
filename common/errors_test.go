@@ -81,6 +81,26 @@ func TestGetSuccessfulActionIDs_returnsCorrectIDs(t *testing.T) {
 	}
 }
 
+func TestError_Error_returnsCorrectMessage(t *testing.T) {
+	t.Parallel()
+	sentinelErr := WrapErrorWithCategory(
+		nil,
+		ErrTypeOther,
+		"test error",
+	)
+	wrappedSentinelErr := sentinelErr.AddCategory("test function")
+	databaseErr := WrapErrorWithCategory(
+		errors.New("database connection failed. details: ..."),
+		ErrTypeDatabase,
+	)
+	wrappedDatabaseErr := databaseErr.AddCategory("create user")
+
+	require.Equal(t, "test error", sentinelErr.Error())
+	require.Equal(t, "test function error: test error", wrappedSentinelErr.Error())
+	require.Equal(t, "database error: database connection failed. details: ...", databaseErr.Error())
+	require.Equal(t, "database error: create user error: database connection failed. details: ...", wrappedDatabaseErr.Error())
+}
+
 func TestError_worksWithIs(t *testing.T) {
 	t.Parallel()
 	sentinelErr := WrapErrorWithCategory(
@@ -88,7 +108,7 @@ func TestError_worksWithIs(t *testing.T) {
 		ErrTypeOther,
 		"test error, no details",
 	)
-	wrappedSentinelErr := (*sentinelErr).AddCategory(ErrTypeOther)
+	wrappedSentinelErr := sentinelErr.AddCategory("test function")
 	databaseErr := WrapErrorWithCategory(
 		errors.New("database connection failed. details: ..."),
 		ErrTypeDatabase,
@@ -96,10 +116,14 @@ func TestError_worksWithIs(t *testing.T) {
 
 	require.ErrorIs(t, sentinelErr, sentinelErr)
 	require.NotErrorIs(t, sentinelErr, databaseErr)
+	require.ErrorIs(t, sentinelErr, sentinelErr.Err)
+	require.NotErrorIs(t, sentinelErr.Err, sentinelErr) // Target is more specific than err
 
 	require.NotSame(t, sentinelErr, wrappedSentinelErr)
 	require.ErrorIs(t, wrappedSentinelErr, sentinelErr)
 	require.NotErrorIs(t, wrappedSentinelErr, databaseErr)
+	require.ErrorIs(t, wrappedSentinelErr, wrappedSentinelErr.Err)
+	require.NotErrorIs(t, wrappedSentinelErr.Err, wrappedSentinelErr) // Target is more specific than err
 }
 
 func TestError_HasCategories(t *testing.T) {
@@ -122,9 +146,9 @@ func TestError_HasCategories(t *testing.T) {
 	require.True(t, sentinelErr.HasCategories(ErrTypeOther))
 	require.True(t, sentinelErr.HasCategories("*"))
 	require.False(t, sentinelErr.HasCategories(ErrTypeDatabase))
-	require.True(t, sentinelErr.HasCategories(ErrTypeOther, sentinelErr.HighestCategory()))
-	require.True(t, sentinelErr.HasCategories("*", sentinelErr.HighestCategory()))
-	require.False(t, sentinelErr.HasCategories(ErrTypeDatabase, sentinelErr.HighestCategory()))
+	require.True(t, sentinelErr.HasCategories(ErrTypeOther, sentinelErr.HighestSpecificCategory()))
+	require.True(t, sentinelErr.HasCategories("*", sentinelErr.HighestSpecificCategory()))
+	require.False(t, sentinelErr.HasCategories(ErrTypeDatabase, sentinelErr.HighestSpecificCategory()))
 
 	require.True(t, flatDatabaseErr.HasCategories(ErrTypeDatabase))
 	require.True(t, flatDatabaseErr.HasCategories("*"))
@@ -134,9 +158,9 @@ func TestError_HasCategories(t *testing.T) {
 
 	require.True(t, detailedDatabaseErr.HasCategories(ErrTypeDatabase))
 	require.False(t, detailedDatabaseErr.HasCategories(ErrTypeOther))
-	require.True(t, detailedDatabaseErr.HasCategories(ErrTypeDatabase, detailedDatabaseErr.HighestCategory()))
-	require.True(t, detailedDatabaseErr.HasCategories("*", detailedDatabaseErr.HighestCategory()))
-	require.False(t, detailedDatabaseErr.HasCategories(ErrTypeOther, detailedDatabaseErr.HighestCategory()))
+	require.True(t, detailedDatabaseErr.HasCategories(ErrTypeDatabase, detailedDatabaseErr.HighestSpecificCategory()))
+	require.True(t, detailedDatabaseErr.HasCategories("*", detailedDatabaseErr.HighestSpecificCategory()))
+	require.False(t, detailedDatabaseErr.HasCategories(ErrTypeOther, detailedDatabaseErr.HighestSpecificCategory()))
 }
 
 func TestError_Copy(t *testing.T) {
