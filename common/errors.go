@@ -32,41 +32,93 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 }
 
 const (
-	ErrTypeDatabase = "database"
-	ErrTypeClient   = "client"
-	ErrTypeOther    = "other"
+	ErrTypeDatabase        = "database"
+	ErrTypeTwoFactorAction = "two factor action"
+	ErrTypeClient          = "client"
+	ErrTypeOther           = "other"
 )
 
-type ErrorWithCategory struct {
+// TODO: root categories are really more of a top level category. Maybe should be kept separately? You have to set it at creation but it can be overridden later in the chain?
+
+type Error struct {
 	Err                   error
-	Category              string
+	Categories            []string
 	ErrDuplicatesCategory bool
 }
 
-func (err *ErrorWithCategory) Error() string {
+func (err *Error) Error() string {
 	if err.ErrDuplicatesCategory {
 		return err.Err.Error()
 	} else {
-		return fmt.Sprintf("%v error: %v", err.Category, err.Err.Error())
+		return fmt.Sprintf("%v error: %v", err.Categories, err.Err.Error()) // TODO: update
 	}
 }
-func (err *ErrorWithCategory) Unwrap() error {
+func (err *Error) Unwrap() error {
 	return err.Err
 }
 
-func NewErrorWithCategory(err string, category string) *ErrorWithCategory {
-	return &ErrorWithCategory{
-		Err:      errors.New(err),
-		Category: category,
+func (err *Error) HighestCategory() string {
+	return err.Categories[len(err.Categories)-1]
+}
+func (err *Error) LowestCategory() string {
+	return err.Categories[0]
+}
+func (err *Error) SetLowestCategory(category string) *Error {
+	err.Categories[0] = category
+	return err
+}
+func (err *Error) PopCategory() string {
+	if len(err.Categories) == 0 {
+		return ""
+	}
+
+	highestCategory := err.Categories[len(err.Categories)-1]
+	err.Categories = slices.Delete(err.Categories, len(err.Categories)-1, len(err.Categories))
+	return highestCategory
+}
+func (err *Error) AddCategory(category string) *Error {
+	copiedErr := err.Copy()
+	copiedErr.Categories = append(copiedErr.Categories, category)
+	return copiedErr
+}
+func (err Error) Copy() *Error {
+	copiedErr := err
+	copiedErr.Categories = make([]string, len(err.Categories))
+	copy(copiedErr.Categories, err.Categories)
+
+	return &copiedErr
+}
+
+// e.g err.HasCategories(common.ErrTypeDatabase, "create user")
+func (err *Error) HasCategories(requiredCategories ...string) bool {
+	for i, requiredCategory := range requiredCategories {
+		if i >= len(err.Categories) {
+			return false
+		}
+		if requiredCategory != "*" && err.Categories[i] != requiredCategory {
+			return false
+		}
+	}
+	return true
+}
+
+func NewErrorWithCategories(err string, rootCategory string, categories ...string) *Error {
+	return &Error{
+		Err:        errors.New(err),
+		Categories: append([]string{rootCategory}, categories...),
 	}
 }
-func WrapErrorWithCategory(err error, category string) *ErrorWithCategory {
-	catErr := &ErrorWithCategory{
-		Err:      err,
-		Category: category,
+func WrapErrorWithCategory(err error, rootCategory string, categories ...string) *Error {
+	catErr := &Error{
+		Err:        err,
+		Categories: append([]string{rootCategory}, categories...),
 	}
 	if err == nil {
-		catErr.Err = errors.New(category)
+		if len(categories) == 0 {
+			panic("you must provide at least one category in addition to the root category or provide an error")
+		}
+
+		catErr.Err = errors.New(rootCategory)
 		catErr.ErrDuplicatesCategory = true
 	}
 
@@ -74,9 +126,9 @@ func WrapErrorWithCategory(err error, category string) *ErrorWithCategory {
 }
 
 func CategorizeError(err error) string {
-	var catErr *ErrorWithCategory
-	if errors.As(err, &catErr) {
-		return catErr.Category
+	var commErr *Error
+	if errors.As(err, &commErr) {
+		return commErr.LowestCategory()
 	}
 	if errors.As(err, &sqlite3.Error{}) {
 		return ErrTypeDatabase

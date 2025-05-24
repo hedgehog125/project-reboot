@@ -7,25 +7,25 @@ import (
 )
 
 const (
+	ErrTypeEncoding = "encoding"
+	// Lower level
 	ErrTypeInvalidData = "invalid data"
 )
 
-// TODO: adapt other error constants to this pattern <=============
-// TODO: does this work with errors.Is?
 var ErrUnknownActionType = common.WrapErrorWithCategory(
-	nil, "unknown action type",
+	nil, common.ErrTypeTwoFactorAction, "unknown action type",
 )
 
-func (registry *Registry) Encode(fullType string, data any) (string, error) {
+func (registry *Registry) Encode(fullType string, data any) (string, *common.Error) {
 	actionDef, ok := registry.actions[fullType]
 	if !ok {
-		return "", ErrUnknownActionType
+		return "", ErrUnknownActionType.AddCategory(ErrTypeEncoding)
 	}
 
 	encoded, err := json.Marshal(data)
 	if err != nil {
 		return "", common.WrapErrorWithCategory(
-			err, ErrTypeInvalidData,
+			err, ErrTypeInvalidData, ErrTypeEncoding,
 		)
 	}
 
@@ -34,7 +34,7 @@ func (registry *Registry) Encode(fullType string, data any) (string, error) {
 	err = json.Unmarshal(encoded, &temp)
 	if err != nil {
 		return "", common.WrapErrorWithCategory(
-			err, ErrTypeInvalidData,
+			err, ErrTypeInvalidData, ErrTypeEncoding,
 		)
 	}
 

@@ -9,6 +9,7 @@ import (
 var ErrInvalidJSONString = errors.New("couldn't parse JSON string")
 
 // Adapted from https://github.com/vtopc/epoch/blob/master/str_seconds.go
+// TODO: Sounds like json.Marshal already supports this? But maybe Gin doesn't?
 type ISOTimeString struct {
 	time.Time
 }
