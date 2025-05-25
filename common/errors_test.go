@@ -87,7 +87,6 @@ func TestError_Error_returnsCorrectMessage(t *testing.T) {
 	t.Parallel()
 	sentinelErr := NewErrorWithCategories(
 		"test error",
-		errTypeTest,
 	)
 	wrappedSentinelErr := sentinelErr.AddCategory("test function")
 	databaseErr := WrapErrorWithCategories(
@@ -95,11 +94,37 @@ func TestError_Error_returnsCorrectMessage(t *testing.T) {
 		ErrTypeDatabase,
 	)
 	wrappedDatabaseErr := databaseErr.AddCategory("create user")
+	packagedDatabaseErr := databaseErr.AddCategory("auth [package]")
 
 	require.Equal(t, "test error", sentinelErr.Error())
 	require.Equal(t, "test function error: test error", wrappedSentinelErr.Error())
-	require.Equal(t, "database error: database connection failed. details: ...", databaseErr.Error())
-	require.Equal(t, "database error: create user error: database connection failed. details: ...", wrappedDatabaseErr.Error())
+	require.Equal(t, "database [general] error: database connection failed. details: ...", databaseErr.Error())
+	require.Equal(t, "create user error: database [general] error: database connection failed. details: ...", wrappedDatabaseErr.Error())
+
+	require.Equal(
+		t,
+		"auth [package] error: database [general] error: database connection failed. details: ...",
+		packagedDatabaseErr.Error(),
+	)
+	packagedDatabaseErr = packagedDatabaseErr.AddCategory("create user")
+	require.Equal(
+		t,
+		"auth [package] error: create user error: database [general] error: database connection failed. details: ...",
+		packagedDatabaseErr.Error(),
+	)
+
+	repackagedDatabaseErr := packagedDatabaseErr.AddCategory("auth abstraction [package]")
+	require.Equal(
+		t,
+		"auth abstraction [package] error: auth [package] error: create user error: database [general] error: database connection failed. details: ...",
+		repackagedDatabaseErr.Error(),
+	)
+	repackagedDatabaseErr = repackagedDatabaseErr.AddCategory("abstraction function")
+	require.Equal(
+		t,
+		"auth abstraction [package] error: abstraction function error: auth [package] error: create user error: database [general] error: database connection failed. details: ...",
+		repackagedDatabaseErr.Error(),
+	)
 }
 
 func TestError_worksWithIs(t *testing.T) {

@@ -83,7 +83,7 @@ func (err *Error) Is(target error) bool {
 }
 
 func (err *Error) GeneralCategory() string {
-	category, _, _ := GetLastCategoryWithTag(err.Categories, CategoryTagGeneral)
+	category, _ := GetLastCategoryWithTag(err.Categories, CategoryTagGeneral)
 	return category
 }
 
@@ -96,11 +96,16 @@ func (err *Error) LowestCategory() string {
 func (err *Error) AddCategory(category string) *Error {
 	copiedErr := err.Clone()
 
-	_, packageTagIndex, _ := GetLastCategoryWithTag(err.Categories, CategoryTagPackage)
-	if packageTagIndex == -1 {
+	hasCategoryTag := slices.Contains(ParseCategoryTags(category), CategoryTagPackage)
+	insertIndex := -1
+	if !hasCategoryTag {
+		_, insertIndex = GetLastCategoryWithTag(err.Categories, CategoryTagPackage)
+	}
+
+	if insertIndex == -1 {
 		copiedErr.Categories = append(copiedErr.Categories, category)
 	} else {
-		copiedErr.Categories = slices.Insert(copiedErr.Categories, packageTagIndex, category)
+		copiedErr.Categories = slices.Insert(copiedErr.Categories, insertIndex, category)
 	}
 
 	return copiedErr
@@ -179,14 +184,14 @@ func GetCategoryType(categoryTags []string) string {
 	}
 	return ""
 }
-func GetLastCategoryWithTag(categories []string, requiredTag string) (string, int, []string) {
+func GetLastCategoryWithTag(categories []string, requiredTag string) (string, int) {
 	for i, category := range slices.Backward(categories) {
 		tags := ParseCategoryTags(category)
 		if slices.Contains(tags, requiredTag) {
-			return category, i, tags
+			return category, i
 		}
 	}
-	return "", -1, []string{}
+	return "", -1
 }
 
 func CategorizeError(err error) string {
