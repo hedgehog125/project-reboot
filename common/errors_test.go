@@ -83,13 +83,12 @@ func TestGetSuccessfulActionIDs_returnsCorrectIDs(t *testing.T) {
 
 func TestError_Error_returnsCorrectMessage(t *testing.T) {
 	t.Parallel()
-	sentinelErr := WrapErrorWithCategory(
-		nil,
-		ErrTypeOther,
+	sentinelErr := NewErrorWithCategories(
 		"test error",
+		ErrTypeOther,
 	)
 	wrappedSentinelErr := sentinelErr.AddCategory("test function")
-	databaseErr := WrapErrorWithCategory(
+	databaseErr := WrapErrorWithCategories(
 		errors.New("database connection failed. details: ..."),
 		ErrTypeDatabase,
 	)
@@ -103,13 +102,12 @@ func TestError_Error_returnsCorrectMessage(t *testing.T) {
 
 func TestError_worksWithIs(t *testing.T) {
 	t.Parallel()
-	sentinelErr := WrapErrorWithCategory(
-		nil,
-		ErrTypeOther,
+	sentinelErr := NewErrorWithCategories(
 		"test error, no details",
+		ErrTypeOther,
 	)
 	wrappedSentinelErr := sentinelErr.AddCategory("test function")
-	databaseErr := WrapErrorWithCategory(
+	databaseErr := WrapErrorWithCategories(
 		errors.New("database connection failed. details: ..."),
 		ErrTypeDatabase,
 	)
@@ -128,16 +126,15 @@ func TestError_worksWithIs(t *testing.T) {
 
 func TestError_HasCategories(t *testing.T) {
 	t.Parallel()
-	sentinelErr := WrapErrorWithCategory(
-		nil,
-		ErrTypeOther,
+	sentinelErr := NewErrorWithCategories(
 		"test error, no details",
+		ErrTypeOther,
 	)
-	flatDatabaseErr := WrapErrorWithCategory(
+	flatDatabaseErr := WrapErrorWithCategories(
 		errors.New("database connection failed. details: ..."),
 		ErrTypeDatabase,
 	)
-	detailedDatabaseErr := WrapErrorWithCategory(
+	detailedDatabaseErr := WrapErrorWithCategories(
 		errors.New("duplicate key error. details: ..."),
 		ErrTypeDatabase,
 		"create user",
@@ -165,10 +162,9 @@ func TestError_HasCategories(t *testing.T) {
 
 func TestError_Copy(t *testing.T) {
 	t.Parallel()
-	sentinelErr := WrapErrorWithCategory(
-		nil,
-		ErrTypeOther,
+	sentinelErr := NewErrorWithCategories(
 		"test error, no details",
+		ErrTypeOther,
 	)
 	copiedErr := sentinelErr.Copy()
 

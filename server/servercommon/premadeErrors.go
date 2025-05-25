@@ -7,35 +7,40 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 )
 
+const (
+	ErrTypeBadRequest = "bad request"
+)
+
+var ErrUnauthorized = common.NewErrorWithCategories("unauthorized", common.ErrTypeClient)
+var ErrNotFound = common.NewErrorWithCategories("not found", common.ErrTypeClient)
+
 func NewUnauthorizedError() *ContextError {
-	err := common.NewErrorWithCategory("unauthorized", common.ErrTypeClient)
 	return &ContextError{
-		Err:        err,
+		Err:        ErrUnauthorized,
 		Status:     http.StatusUnauthorized,
 		ErrorCodes: []string{},
-		Category:   err.Categories,
+		Category:   ErrUnauthorized.HighestCategory,
 		ShouldLog:  true,
 	}
 }
 
 func NewNotFoundError() *ContextError {
-	err := common.NewErrorWithCategory("not found", common.ErrTypeClient)
 	return &ContextError{
-		Err:        err,
+		Err:        ErrNotFound,
 		Status:     http.StatusNotFound,
 		ErrorCodes: []string{},
-		Category:   err.Categories,
+		Category:   ErrNotFound.HighestCategory,
 		ShouldLog:  false,
 	}
 }
 
 func NewBadRequestError(fieldName string, message string) *ContextError {
-	err := common.NewErrorWithCategory(fmt.Sprintf("%v: %v", fieldName, message), common.ErrTypeClient)
+	err := common.NewErrorWithCategories(fmt.Sprintf("%v: %v", fieldName, message), common.ErrTypeClient, ErrTypeBadRequest)
 	return &ContextError{
 		Err:        err,
 		Status:     http.StatusBadRequest,
 		ErrorCodes: []string{}, // TODO: add error code?
-		Category:   err.Categories,
+		Category:   err.HighestCategory,
 		ShouldLog:  false,
 	}
 }

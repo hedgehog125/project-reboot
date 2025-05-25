@@ -31,12 +31,14 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 	return successfulActionIDs
 }
 
+// TODO: rename to ErrType1 and ErrType2?
 const (
 	// Highest level categories
-	ErrTypeDatabase        = "database"
+	ErrTypeDatabase = "database"
+	ErrTypeClient   = "client"
+	ErrTypeOther    = "other"
+	// 2nd highest level: packages
 	ErrTypeTwoFactorAction = "two factor action"
-	ErrTypeClient          = "client"
-	ErrTypeOther           = "other"
 )
 
 type Error struct {
@@ -87,7 +89,7 @@ func (err *Error) SetHighestCategory(category string) *Error {
 	return copiedErr
 }
 
-// Note: not to be confused with `HighestCategory` which is something like "database". This is a level lower, e.g "create user"
+// Note: not to be confused with HighestCategory which is something like "database". This is a level lower, e.g "create user"
 func (err *Error) HighestSpecificCategory() string {
 	return err.Categories[len(err.Categories)-1]
 }
@@ -133,29 +135,23 @@ func (err *Error) HasCategories(requiredCategories ...string) bool {
 	return true
 }
 
-func NewErrorWithCategories(err string, highestCategory string, categories ...string) *Error {
+// categories is lowest to highest level, e.g. "create profile", "create user"
+func NewErrorWithCategories(message string, highestCategory string, categories ...string) *Error {
 	return &Error{
-		Err:             errors.New(err),
-		Categories:      categories,
-		HighestCategory: highestCategory,
+		Err:                   errors.New(message),
+		Categories:            slices.Concat([]string{message}, categories),
+		HighestCategory:       highestCategory,
+		ErrDuplicatesCategory: true,
 	}
 }
-func WrapErrorWithCategory(err error, highestCategory string, categories ...string) *Error {
-	catErr := &Error{
+
+// categories is lowest to highest level, e.g. "create profile", "create user"
+func WrapErrorWithCategories(err error, highestCategory string, categories ...string) *Error {
+	return &Error{
 		Err:             err,
 		Categories:      categories,
 		HighestCategory: highestCategory,
 	}
-	if err == nil {
-		if len(categories) == 0 {
-			panic("you must provide at least one category in addition to the highest category or provide an error")
-		}
-
-		catErr.Err = errors.New(categories[0])
-		catErr.ErrDuplicatesCategory = true
-	}
-
-	return catErr
 }
 
 func CategorizeError(err error) string {

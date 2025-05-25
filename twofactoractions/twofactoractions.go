@@ -22,12 +22,12 @@ func (registry *Registry) Create(
 	expiresAt time.Time,
 	data any,
 ) (uuid.UUID, string, error) {
-	encoded, err := registry.Encode(
+	encoded, encodeErr := registry.Encode(
 		GetFullType(actionType, version),
 		data,
 	)
-	if err != nil {
-		return uuid.UUID{}, "", err
+	if encodeErr != nil {
+		return uuid.UUID{}, "", encodeErr
 	}
 
 	code := common.CryptoRandomAlphaNum(CODE_LENGTH)
@@ -39,7 +39,7 @@ func (registry *Registry) Create(
 		SetExpiresAt(expiresAt).
 		SetCode(code).Save(context.Background())
 	if err != nil {
-		return uuid.UUID{}, code, common.WrapErrorWithCategory(err, common.ErrTypeDatabase)
+		return uuid.UUID{}, code, common.WrapErrorWithCategories(err, common.ErrTypeDatabase, common.ErrTypeTwoFactorAction)
 	}
 
 	return action.ID, code, nil
