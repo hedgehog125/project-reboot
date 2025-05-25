@@ -60,8 +60,6 @@ var ErrExpired = common.NewErrorWithCategories(
 	"action has expired", common.ErrTypeTwoFactorAction,
 )
 
-// TODO: maybe the approach used for errors in Encode doesn't make sense?
-// It seems weird to wrap these all in a category when ErrInvalidData is the only one that needs it
 func (registry *Registry) Confirm(actionID uuid.UUID, code string) error {
 	mu := registry.App.Database.TwoFactorActionMutex()
 	dbClient := registry.App.Database.Client()
