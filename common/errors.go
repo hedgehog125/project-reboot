@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/hedgehog125/project-reboot/ent" // Note: will have to reorganise if I end up needing to use the common module in schemas
 	"github.com/mattn/go-sqlite3"
@@ -33,26 +34,24 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 
 // TODO: rename to ErrType1 and ErrType2?
 const (
-	// Highest level categories
-	ErrTypeDatabase = "database"
-	ErrTypeClient   = "client"
-	ErrTypeOther    = "other"
-	// 2nd highest level: packages
-	ErrTypeTwoFactorAction = "two factor action"
+	// General categories
+	ErrTypeDatabase = "database [general]"
+	ErrTypeClient   = "client [general]"
+	// If there's no applicable general category, there should be no [general] category on the error. Functions that return a category should return an empty string
+
+	// Package categories
+	ErrTypeTwoFactorAction = "two factor action [package]"
+	// Similar idea here if it's unknown
 )
 
 type Error struct {
 	Err                   error
 	Categories            []string
-	HighestCategory       string
 	ErrDuplicatesCategory bool
 }
 
 func (err *Error) Error() string {
 	message := ""
-	if err.HighestCategory != ErrTypeOther {
-		message += fmt.Sprintf("%v error: ", err.HighestCategory)
-	}
 
 	reversedCategories := slices.Clone(err.Categories)
 	slices.Reverse(reversedCategories) // Highest to lowest level
@@ -83,81 +82,117 @@ func (err *Error) Is(target error) bool {
 	return err.Err == targetStruct.Err
 }
 
-func (err *Error) SetHighestCategory(category string) *Error {
-	copiedErr := err.Copy()
-	copiedErr.HighestCategory = category
-	return copiedErr
+func (err *Error) GeneralCategory() string {
+	category, _, _ := GetLastCategoryWithTag(err.Categories, CategoryTagGeneral)
+	return category
 }
 
-// Note: not to be confused with HighestCategory which is something like "database". This is a level lower, e.g "create user"
-func (err *Error) HighestSpecificCategory() string {
+func (err *Error) HighestCategory() string {
 	return err.Categories[len(err.Categories)-1]
 }
-func (err *Error) AllCategories() []string {
-	return slices.Concat(err.Categories, []string{err.HighestCategory})
-}
-
-// Note: this mutates the error, so ensure it's been wrapped or copied first
-func (err *Error) PopCategory() string {
-	if len(err.Categories) == 0 {
-		return ""
-	}
-
-	highestCategory := err.Categories[len(err.Categories)-1]
-	err.Categories = slices.Delete(err.Categories, len(err.Categories)-1, len(err.Categories))
-	return highestCategory
+func (err *Error) LowestCategory() string {
+	return err.Categories[0]
 }
 func (err *Error) AddCategory(category string) *Error {
-	copiedErr := err.Copy()
-	copiedErr.Categories = append(copiedErr.Categories, category)
+	copiedErr := err.Clone()
+
+	_, packageTagIndex, _ := GetLastCategoryWithTag(err.Categories, CategoryTagPackage)
+	if packageTagIndex == -1 {
+		copiedErr.Categories = append(copiedErr.Categories, category)
+	} else {
+		copiedErr.Categories = slices.Insert(copiedErr.Categories, packageTagIndex, category)
+	}
+
 	return copiedErr
 }
-func (err Error) Copy() *Error {
+func (err Error) Clone() *Error {
 	copiedErr := err
 	copiedErr.Categories = slices.Clone(err.Categories)
 
 	return &copiedErr
 }
 
-// e.g err.HasCategories(common.ErrTypeDatabase, "create user")
+// requiredCategories is highest to lowest level e.g "auth [package]", "create user", common.ErrTypeDatabase
 func (err *Error) HasCategories(requiredCategories ...string) bool {
-	allCategories := err.AllCategories()
-	if len(requiredCategories) > len(allCategories) {
+	// TODO: support "**" to match any number of categories
+	if len(requiredCategories) > len(err.Categories) {
 		return false
 	}
 
-	slices.Reverse(allCategories) // Check from the highest level first, so lower level can be implicitly ignored
-	for i, requiredCategory := range requiredCategories {
-		if requiredCategory != "*" && allCategories[i] != requiredCategory {
+	// Check from the highest level first, so lower level can be implicitly ignored
+	for requiredIndex, requiredCategory := range requiredCategories {
+		if requiredCategory != "*" &&
+			err.Categories[(len(err.Categories)-1)-requiredIndex] != requiredCategory {
 			return false
 		}
 	}
 	return true
 }
 
-// categories is lowest to highest level, e.g. "create profile", "create user"
-func NewErrorWithCategories(message string, highestCategory string, categories ...string) *Error {
+// categories is lowest to highest level, e.g. "constraint", common.ErrTypeDatabase, "create profile", "create user", "auth [package]"
+func NewErrorWithCategories(message string, categories ...string) *Error {
 	return &Error{
 		Err:                   errors.New(message),
 		Categories:            slices.Concat([]string{message}, categories),
-		HighestCategory:       highestCategory,
 		ErrDuplicatesCategory: true,
 	}
 }
 
-// categories is lowest to highest level, e.g. "create profile", "create user"
-func WrapErrorWithCategories(err error, highestCategory string, categories ...string) *Error {
+// categories is lowest to highest level, e.g. "constraint", common.ErrTypeDatabase, "create profile", "create user", "auth [package]"
+func WrapErrorWithCategories(err error, categories ...string) *Error {
 	return &Error{
-		Err:             err,
-		Categories:      categories,
-		HighestCategory: highestCategory,
+		Err:        err,
+		Categories: categories,
 	}
+}
+
+const (
+	CategoryTagGeneral = "general"
+	CategoryTagPackage = "package"
+)
+
+func ParseCategoryTags(category string) []string {
+	rawTags := strings.Split(GetStringBetween(category, "[", "]"), ",")
+
+	knownTags := []string{CategoryTagGeneral, CategoryTagPackage}
+	tags := []string{}
+	for _, rawTag := range rawTags {
+		tag := strings.Trim(rawTag, " ")
+		if tag == "" {
+			continue
+		}
+
+		if !slices.Contains(knownTags, tag) {
+			panic(fmt.Sprintf("ParseCategoryTags: %v is not a valid tag. category string:\n%v", tag, category))
+		}
+		tags = append(tags, tag)
+	}
+	return tags
+}
+func GetCategoryType(categoryTags []string) string {
+	knownCategories := []string{CategoryTagGeneral, CategoryTagPackage}
+
+	for _, tag := range categoryTags {
+		if slices.Contains(knownCategories, tag) {
+			return tag
+		}
+	}
+	return ""
+}
+func GetLastCategoryWithTag(categories []string, requiredTag string) (string, int, []string) {
+	for i, category := range slices.Backward(categories) {
+		tags := ParseCategoryTags(category)
+		if slices.Contains(tags, requiredTag) {
+			return category, i, tags
+		}
+	}
+	return "", -1, []string{}
 }
 
 func CategorizeError(err error) string {
 	var commErr *Error
 	if errors.As(err, &commErr) {
-		return commErr.HighestCategory
+		return commErr.GeneralCategory()
 	}
 	if errors.As(err, &sqlite3.Error{}) {
 		return ErrTypeDatabase
@@ -171,7 +206,7 @@ func CategorizeError(err error) string {
 		return ErrTypeDatabase
 	}
 
-	return ErrTypeOther
+	return ""
 }
 
 type ContextPanic struct {

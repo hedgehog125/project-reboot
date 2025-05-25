@@ -19,7 +19,7 @@ func NewUnauthorizedError() *ContextError {
 		Err:        ErrUnauthorized,
 		Status:     http.StatusUnauthorized,
 		ErrorCodes: []string{},
-		Category:   ErrUnauthorized.HighestCategory,
+		Category:   ErrUnauthorized.GeneralCategory(),
 		ShouldLog:  true,
 	}
 }
@@ -29,7 +29,7 @@ func NewNotFoundError() *ContextError {
 		Err:        ErrNotFound,
 		Status:     http.StatusNotFound,
 		ErrorCodes: []string{},
-		Category:   ErrNotFound.HighestCategory,
+		Category:   ErrNotFound.GeneralCategory(),
 		ShouldLog:  false,
 	}
 }
@@ -40,7 +40,7 @@ func NewBadRequestError(fieldName string, message string) *ContextError {
 		Err:        err,
 		Status:     http.StatusBadRequest,
 		ErrorCodes: []string{}, // TODO: add error code?
-		Category:   err.HighestCategory,
+		Category:   err.GeneralCategory(),
 		ShouldLog:  false,
 	}
 }

@@ -27,8 +27,11 @@ const (
 
 // Create ErrorWrapper to reduce repetition. Has a Wrap method that returns an *common.Error given an error
 
+// Log categorisation should be done with GeneralCategory field. The common error values could have a prefix so the general category can be anywhere in the hierarchy
+// e.g "constraint", common.ErrTypeDatabase, "create user"
+
 var ErrUnknownActionType = common.NewErrorWithCategories(
-	"unknown action type", common.ErrTypeOther, common.ErrTypeTwoFactorAction,
+	"unknown action type", common.ErrTypeTwoFactorAction,
 )
 
 func (registry *Registry) Encode(fullType string, data any) (string, *common.Error) {
@@ -40,7 +43,7 @@ func (registry *Registry) Encode(fullType string, data any) (string, *common.Err
 	encoded, err := json.Marshal(data)
 	if err != nil {
 		return "", common.WrapErrorWithCategories(
-			err, common.ErrTypeOther, common.ErrTypeTwoFactorAction, ErrTypeInvalidData, ErrTypeEncoding,
+			err, ErrTypeInvalidData, ErrTypeEncoding, common.ErrTypeTwoFactorAction,
 		)
 	}
 
@@ -49,7 +52,7 @@ func (registry *Registry) Encode(fullType string, data any) (string, *common.Err
 	err = json.Unmarshal(encoded, &temp)
 	if err != nil {
 		return "", common.WrapErrorWithCategories(
-			err, common.ErrTypeOther, common.ErrTypeTwoFactorAction, ErrTypeInvalidData, ErrTypeEncoding,
+			err, ErrTypeInvalidData, ErrTypeEncoding, common.ErrTypeTwoFactorAction,
 		)
 	}
 

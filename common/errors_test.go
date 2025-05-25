@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const errTypeTest = "test category [general]"
+
 func TestGetSuccessfulActionIDs_returnsCorrectIDs(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
@@ -85,7 +87,7 @@ func TestError_Error_returnsCorrectMessage(t *testing.T) {
 	t.Parallel()
 	sentinelErr := NewErrorWithCategories(
 		"test error",
-		ErrTypeOther,
+		errTypeTest,
 	)
 	wrappedSentinelErr := sentinelErr.AddCategory("test function")
 	databaseErr := WrapErrorWithCategories(
@@ -104,7 +106,7 @@ func TestError_worksWithIs(t *testing.T) {
 	t.Parallel()
 	sentinelErr := NewErrorWithCategories(
 		"test error, no details",
-		ErrTypeOther,
+		errTypeTest,
 	)
 	wrappedSentinelErr := sentinelErr.AddCategory("test function")
 	databaseErr := WrapErrorWithCategories(
@@ -128,7 +130,7 @@ func TestError_HasCategories(t *testing.T) {
 	t.Parallel()
 	sentinelErr := NewErrorWithCategories(
 		"test error, no details",
-		ErrTypeOther,
+		errTypeTest,
 	)
 	flatDatabaseErr := WrapErrorWithCategories(
 		errors.New("database connection failed. details: ..."),
@@ -140,33 +142,40 @@ func TestError_HasCategories(t *testing.T) {
 		"create user",
 	)
 
-	require.True(t, sentinelErr.HasCategories(ErrTypeOther))
+	require.True(t, sentinelErr.HasCategories(errTypeTest))
 	require.True(t, sentinelErr.HasCategories("*"))
 	require.False(t, sentinelErr.HasCategories(ErrTypeDatabase))
-	require.True(t, sentinelErr.HasCategories(ErrTypeOther, sentinelErr.HighestSpecificCategory()))
-	require.True(t, sentinelErr.HasCategories("*", sentinelErr.HighestSpecificCategory()))
-	require.False(t, sentinelErr.HasCategories(ErrTypeDatabase, sentinelErr.HighestSpecificCategory()))
+	require.True(t, sentinelErr.HasCategories(errTypeTest, "test error, no details"))
+	require.True(t, sentinelErr.HasCategories(errTypeTest, "*"))
+	require.True(t, sentinelErr.HasCategories("*", "test error, no details"))
+	require.False(t, sentinelErr.HasCategories(ErrTypeDatabase, "test error, no details"))
+	require.False(t, sentinelErr.HasCategories(ErrTypeDatabase, "*"))
 
 	require.True(t, flatDatabaseErr.HasCategories(ErrTypeDatabase))
 	require.True(t, flatDatabaseErr.HasCategories("*"))
-	require.False(t, flatDatabaseErr.HasCategories(ErrTypeOther))
+	require.False(t, flatDatabaseErr.HasCategories(errTypeTest))
 	require.False(t, flatDatabaseErr.HasCategories(ErrTypeDatabase, "some other category"))
+	require.False(t, flatDatabaseErr.HasCategories(ErrTypeDatabase, "*"))
 	require.False(t, flatDatabaseErr.HasCategories("*", "some other category"))
+	require.False(t, flatDatabaseErr.HasCategories("*", "*"))
 
-	require.True(t, detailedDatabaseErr.HasCategories(ErrTypeDatabase))
-	require.False(t, detailedDatabaseErr.HasCategories(ErrTypeOther))
-	require.True(t, detailedDatabaseErr.HasCategories(ErrTypeDatabase, detailedDatabaseErr.HighestSpecificCategory()))
-	require.True(t, detailedDatabaseErr.HasCategories("*", detailedDatabaseErr.HighestSpecificCategory()))
-	require.False(t, detailedDatabaseErr.HasCategories(ErrTypeOther, detailedDatabaseErr.HighestSpecificCategory()))
+	require.False(t, detailedDatabaseErr.HasCategories(ErrTypeDatabase))
+	require.False(t, detailedDatabaseErr.HasCategories(errTypeTest))
+	require.True(t, detailedDatabaseErr.HasCategories("create user", ErrTypeDatabase))
+	require.True(t, detailedDatabaseErr.HasCategories("create user", "*"))
+	require.False(t, detailedDatabaseErr.HasCategories("create user", errTypeTest))
+	require.True(t, detailedDatabaseErr.HasCategories("*", ErrTypeDatabase))
+	require.True(t, detailedDatabaseErr.HasCategories("*", "*"))
+	require.False(t, detailedDatabaseErr.HasCategories("*", errTypeTest))
 }
 
-func TestError_Copy(t *testing.T) {
+func TestError_Clone(t *testing.T) {
 	t.Parallel()
 	sentinelErr := NewErrorWithCategories(
 		"test error, no details",
-		ErrTypeOther,
+		errTypeTest,
 	)
-	copiedErr := sentinelErr.Copy()
+	copiedErr := sentinelErr.Clone()
 
 	require.Equal(t, sentinelErr, copiedErr)
 	require.NotSame(t, sentinelErr, copiedErr)

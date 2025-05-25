@@ -8,6 +8,10 @@ import (
 
 func TestEncode_DoesNotMutateTypeMap(t *testing.T) {
 	registry := NewRegistry(nil)
+
+	type NoAction1 struct {
+		Foo string `json:"foo"`
+	}
 	registry.RegisterAction(ActionDefinition[any]{
 		ID:       "NO_ACTION",
 		Version:  1,

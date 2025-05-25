@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -15,6 +14,12 @@ import (
 const CODE_LENGTH = 9
 
 var DEFAULT_CODE_LIFETIME = 2 * time.Minute
+
+const (
+	ErrTypeConfirm = "confirm"
+)
+
+// TODO: move functions to separate files
 
 func (registry *Registry) Create(
 	actionType string,
@@ -45,9 +50,15 @@ func (registry *Registry) Create(
 	return action.ID, code, nil
 }
 
-var ErrNotFound = errors.New("no action with given ID")
-var ErrWrongCode = errors.New("wrong 2FA code")
-var ErrExpired = errors.New("action has expired")
+var ErrNotFound = common.NewErrorWithCategories(
+	"no action with given ID", common.ErrTypeTwoFactorAction,
+)
+var ErrWrongCode = common.NewErrorWithCategories(
+	"wrong 2FA code", common.ErrTypeTwoFactorAction,
+)
+var ErrExpired = common.NewErrorWithCategories(
+	"action has expired", common.ErrTypeTwoFactorAction,
+)
 
 // TODO: maybe the approach used for errors in Encode doesn't make sense?
 // It seems weird to wrap these all in a category when ErrInvalidData is the only one that needs it
@@ -59,33 +70,38 @@ func (registry *Registry) Confirm(actionID uuid.UUID, code string) error {
 	action, err := dbClient.TwoFactorAction.Get(context.Background(), actionID)
 	if err != nil {
 		mu.Unlock()
-		return ErrNotFound
+		return ErrNotFound.AddCategory(ErrTypeConfirm)
 	}
 	if subtle.ConstantTimeCompare([]byte(code), []byte(action.Code)) == 0 {
 		mu.Unlock()
-		return ErrWrongCode
+		return ErrWrongCode.AddCategory(ErrTypeConfirm)
 	}
 
 	err = dbClient.TwoFactorAction.DeleteOne(action).Exec(context.Background())
 	mu.Unlock()
 	if err != nil {
-		return ErrDatabase
+		return common.WrapErrorWithCategories(
+			err, common.ErrTypeDatabase,
+			ErrTypeConfirm, common.ErrTypeTwoFactorAction,
+		)
 	}
 
 	if action.ExpiresAt.Before(registry.App.Clock.Now()) {
-		return ErrExpired
+		return ErrExpired.AddCategory(ErrTypeConfirm)
 	}
 	fullType := GetFullType(action.Type, action.Version)
 	actionDef, ok := registry.actions[fullType]
 	if !ok {
-		return ErrUnknownActionType
+		return ErrUnknownActionType.AddCategory(ErrTypeConfirm)
 	}
 
 	parsed := actionDef.BodyType
 	err = json.Unmarshal([]byte(action.Data), &parsed)
 	if err != nil {
-		// TODO: add the JSON decode error to this
-		return ErrInvalidData
+		return common.WrapErrorWithCategories(
+			err, ErrTypeInvalidData, ErrTypeConfirm,
+			common.ErrTypeTwoFactorAction,
+		)
 	}
 
 	return actionDef.Handler(&Action[any]{
