@@ -119,13 +119,18 @@ func (err Error) Clone() *Error {
 
 // requiredCategories is highest to lowest level e.g "auth [package]", "create user", common.ErrTypeDatabase
 func (err *Error) HasCategories(requiredCategories ...string) bool {
-	// TODO: support "**" to match any number of categories
+	return CheckPathPattern(err.Categories, slices.Concat(requiredCategories, []string{"***"}))
+
 	if len(requiredCategories) > len(err.Categories) {
 		return false
 	}
 
 	// Check from the highest level first, so lower level can be implicitly ignored
 	for requiredIndex, requiredCategory := range requiredCategories {
+		if requiredCategory == "**" { // TODO: implement. What's the big O though? :grimace:
+			panic("HasCategories: ** can currently only be used at the start and/or end of requiredCategories")
+		}
+
 		if requiredCategory != "*" &&
 			err.Categories[(len(err.Categories)-1)-requiredIndex] != requiredCategory {
 			return false
@@ -212,6 +217,38 @@ func CategorizeError(err error) string {
 	}
 
 	return ""
+}
+
+type ErrorWrapper struct {
+	Categories []string
+}
+
+func NewErrorWrapper(categories ...string) *ErrorWrapper {
+	return &ErrorWrapper{
+		Categories: categories,
+	}
+}
+
+func (errWrapper *ErrorWrapper) Wrap(err error) *Error {
+	return WrapErrorWithCategories(err, errWrapper.Categories...)
+}
+func (errWrapper *ErrorWrapper) HasWrapped(err error) bool {
+	var commErr *Error
+	if !errors.As(err, &commErr) {
+		return false
+	}
+
+	return CheckPathPattern(commErr.Categories, slices.Concat([]string{"***"}, errWrapper.Categories, []string{"***"}))
+	// return commErr.HasCategories(slices.Concat([]string{"***"}, commErr.Categories)...)
+	return false
+}
+
+// TODO: add some kind of AddCategory method?
+func (errWrapper ErrorWrapper) Clone() *ErrorWrapper {
+	copiedErrWrapper := errWrapper
+	copiedErrWrapper.Categories = slices.Clone(copiedErrWrapper.Categories)
+
+	return &copiedErrWrapper
 }
 
 type ContextPanic struct {

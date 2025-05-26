@@ -27,6 +27,7 @@
 -   Review contexts. Possibly want to give them all a timeout, partly to make shutdowns more predictable
 -   SMS messenger
 -   Split endpoints into admin and normal?
+-   Switch to Railpack on Railway? Seems to automatically work with CGO when enabled
 
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 

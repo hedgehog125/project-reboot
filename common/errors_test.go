@@ -208,3 +208,83 @@ func TestError_Clone(t *testing.T) {
 	copiedErr.AddCategory("new category")
 	require.NotEqual(t, sentinelErr, copiedErr)
 }
+
+func TestErrorWrapper(t *testing.T) {
+	t.Parallel()
+	databaseErrWrapper := NewErrorWrapper(
+		ErrTypeDatabase,
+	)
+	createUserErrNoPackageWrapper := NewErrorWrapper(
+		ErrTypeDatabase,
+		"create user",
+	)
+	createUserErrWrapper := NewErrorWrapper(
+		ErrTypeDatabase,
+		"create user",
+		"auth [package]",
+	)
+
+	rootError := errors.New("duplicate key error. details: ...")
+	require.Equal(
+		t,
+		WrapErrorWithCategories(rootError, ErrTypeDatabase),
+		databaseErrWrapper.Wrap(rootError),
+	)
+	require.Equal(
+		t,
+		WrapErrorWithCategories(rootError, ErrTypeDatabase, "create user"),
+		createUserErrNoPackageWrapper.Wrap(rootError),
+	)
+	require.Equal(
+		t,
+		WrapErrorWithCategories(rootError, ErrTypeDatabase, "create user", "auth [package]"),
+		createUserErrWrapper.Wrap(rootError),
+	)
+}
+
+func TestErrorWrapper_HasWrapped(t *testing.T) {
+	t.Parallel()
+	databaseErrWrapper := NewErrorWrapper(
+		ErrTypeDatabase,
+	)
+	createUserErrWrapper := NewErrorWrapper(
+		ErrTypeDatabase,
+		"create user",
+		"auth [package]",
+	)
+	createUserAbstractionErrWrapper := NewErrorWrapper(
+		ErrTypeDatabase,
+		"create user",
+		"auth [package]",
+		"auth abstraction [package]",
+		"abstraction function",
+	)
+	authPackageWrapper := NewErrorWrapper(
+		"auth [package]",
+	)
+
+	rootError := errors.New("duplicate key error. details: ...")
+	wrappedDatabaseErr := databaseErrWrapper.Wrap(rootError)
+	wrappedCreateUserErr := createUserErrWrapper.Wrap(rootError)
+	wrappedCreateUserAbstractionErr := createUserAbstractionErrWrapper.Wrap(rootError)
+
+	require.False(t, createUserErrWrapper.HasWrapped(errors.New("generic error")))
+	require.True(t, databaseErrWrapper.HasWrapped(wrappedDatabaseErr))
+	require.False(t, createUserErrWrapper.HasWrapped(wrappedDatabaseErr))
+	require.True(t, databaseErrWrapper.HasWrapped(wrappedCreateUserErr)) // It compares the categories by value rather than tracking which wrappers were used
+
+	require.True(t, createUserErrWrapper.HasWrapped(wrappedCreateUserErr))
+	require.False(t, createUserAbstractionErrWrapper.HasWrapped(wrappedCreateUserErr))
+	require.True(t, createUserErrWrapper.HasWrapped(
+		wrappedCreateUserErr.
+			AddCategory("auth abstraction [package]").
+			AddCategory("abstraction function"),
+	))
+	require.True(t, createUserErrWrapper.HasWrapped(
+		wrappedCreateUserAbstractionErr,
+	))
+
+	require.True(t, authPackageWrapper.HasWrapped(
+		wrappedCreateUserAbstractionErr,
+	))
+}

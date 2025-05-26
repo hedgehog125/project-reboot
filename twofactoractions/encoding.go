@@ -15,6 +15,7 @@ const (
 var ErrUnknownActionType = common.NewErrorWithCategories(
 	"unknown action type", common.ErrTypeTwoFactorAction,
 )
+var ErrWrapperInvalidData = common.NewErrorWrapper(ErrTypeInvalidData, common.ErrTypeTwoFactorAction)
 
 func (registry *Registry) Encode(fullType string, data any) (string, *common.Error) {
 	actionDef, ok := registry.actions[fullType]
@@ -24,18 +25,14 @@ func (registry *Registry) Encode(fullType string, data any) (string, *common.Err
 
 	encoded, err := json.Marshal(data)
 	if err != nil {
-		return "", common.WrapErrorWithCategories(
-			err, ErrTypeInvalidData, ErrTypeEncoding, common.ErrTypeTwoFactorAction,
-		)
+		return "", ErrWrapperInvalidData.Wrap(err).AddCategory(ErrTypeEncoding)
 	}
 
 	// TODO: is there a better way to do this? With reflection maybe?
 	temp := actionDef.BodyType
 	err = json.Unmarshal(encoded, &temp)
 	if err != nil {
-		return "", common.WrapErrorWithCategories(
-			err, ErrTypeInvalidData, ErrTypeEncoding, common.ErrTypeTwoFactorAction,
-		)
+		return "", ErrWrapperInvalidData.Wrap(err).AddCategory(ErrTypeEncoding)
 	}
 
 	return string(encoded), nil
