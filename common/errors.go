@@ -119,24 +119,9 @@ func (err Error) Clone() *Error {
 
 // requiredCategories is highest to lowest level e.g "auth [package]", "create user", common.ErrTypeDatabase
 func (err *Error) HasCategories(requiredCategories ...string) bool {
-	return CheckPathPattern(err.Categories, slices.Concat(requiredCategories, []string{"***"}))
-
-	if len(requiredCategories) > len(err.Categories) {
-		return false
-	}
-
-	// Check from the highest level first, so lower level can be implicitly ignored
-	for requiredIndex, requiredCategory := range requiredCategories {
-		if requiredCategory == "**" { // TODO: implement. What's the big O though? :grimace:
-			panic("HasCategories: ** can currently only be used at the start and/or end of requiredCategories")
-		}
-
-		if requiredCategory != "*" &&
-			err.Categories[(len(err.Categories)-1)-requiredIndex] != requiredCategory {
-			return false
-		}
-	}
-	return true
+	reversedRequiredCategories := slices.Clone(requiredCategories)
+	slices.Reverse(reversedRequiredCategories) // Lowest to highest level
+	return CheckPathPattern(err.Categories, slices.Concat([]string{"***"}, reversedRequiredCategories))
 }
 
 // categories is lowest to highest level, e.g. "constraint", common.ErrTypeDatabase, "create profile", "create user", "auth [package]"
@@ -239,8 +224,6 @@ func (errWrapper *ErrorWrapper) HasWrapped(err error) bool {
 	}
 
 	return CheckPathPattern(commErr.Categories, slices.Concat([]string{"***"}, errWrapper.Categories, []string{"***"}))
-	// return commErr.HasCategories(slices.Concat([]string{"***"}, commErr.Categories)...)
-	return false
 }
 
 // TODO: add some kind of AddCategory method?
