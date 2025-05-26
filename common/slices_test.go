@@ -96,4 +96,12 @@ func TestCheckPathPattern(t *testing.T) {
 		[]string{"something", "apple", "banana"},
 		[]string{"*", "***", "apple", "*"},
 	))
+	require.False(t, CheckPathPattern(
+		[]string{},
+		[]string{"***", "*"},
+	))
+	require.True(t, CheckPathPattern(
+		[]string{"something", "else"},
+		[]string{"***", "*"},
+	))
 }

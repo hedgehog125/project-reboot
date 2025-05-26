@@ -18,7 +18,7 @@ func CheckPathPattern(path []string, pattern []string) bool {
 	for patternIndex := 0; patternIndex < len(remainingPattern); {
 		patternItem := remainingPattern[patternIndex]
 		if pathIndex > len(remainingPath)-1 {
-			return patternItem == "***"
+			return patternItem == "***" && patternIndex == len(remainingPattern)-1
 		}
 
 		if patternItem == "*" {
