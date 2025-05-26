@@ -6,6 +6,32 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestSimplifyPathPattern(t *testing.T) {
+	// TODO: add more cases? Should largely be covered by CheckPathPattern
+	t.Parallel()
+
+	require.Equal(t,
+		[]string{"**", "documents", "projects", "**", "assets", "**"},
+		simplifyPathPattern([]string{"**", "documents", "projects", "**", "assets", "**"}),
+	) // Unchanged
+	require.Equal(t,
+		[]string{"**", "**", "documents", "projects", "**", "assets", "**"},
+		simplifyPathPattern([]string{"**", "**", "documents", "projects", "**", "assets", "**"}),
+	) // Unchanged
+	require.Equal(t,
+		[]string{"**", "documents", "projects", "**", "assets", "**"},
+		simplifyPathPattern([]string{"***", "**", "documents", "projects", "**", "assets", "**"}),
+	) // Merge *** and ** into **
+	require.Equal(t,
+		[]string{"**", "documents", "projects", "**", "assets", "**"},
+		simplifyPathPattern([]string{"**", "***", "documents", "projects", "**", "assets", "**"}),
+	) // Merge ** and *** into **
+	require.Equal(t,
+		[]string{"**", "documents", "projects", "**", "assets", "**"},
+		simplifyPathPattern([]string{"***", "*", "documents", "projects", "**", "assets", "**"}),
+	) // Merge *** and * into **
+}
+
 func TestCheckPathPattern(t *testing.T) {
 	t.Parallel()
 	pattern1 := []string{"**", "documents", "projects", "**", "assets", "**"}

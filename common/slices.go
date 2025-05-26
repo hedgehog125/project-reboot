@@ -12,6 +12,66 @@ func DeleteSliceIndex[T any](slice []T, index int) []T {
 }
 
 func CheckPathPattern(path []string, pattern []string) bool {
+	return checkPathPattern(path, simplifyPathPattern(pattern))
+}
+func simplifyPathPattern(pattern []string) []string {
+	simplifiedPattern := []string{}
+
+	inDoubleWildcardChain := false
+
+	inTripleWildcardChain := false
+	tripleWildcardReplacement := ""
+	finishTripleWildcardChain := func() {
+		simplifiedPattern = append(simplifiedPattern, tripleWildcardReplacement)
+		inTripleWildcardChain = false
+	}
+
+	for _, item := range pattern {
+		if inDoubleWildcardChain {
+			if item == "***" {
+				continue
+			}
+
+			inDoubleWildcardChain = false
+		}
+		if inTripleWildcardChain {
+			if item == "***" {
+				continue
+			}
+			if item == "**" {
+				if tripleWildcardReplacement == "**" {
+					finishTripleWildcardChain()
+					inTripleWildcardChain = true
+				} else {
+					tripleWildcardReplacement = "**"
+				}
+				continue
+			}
+			if item == "*" && tripleWildcardReplacement == "***" {
+				tripleWildcardReplacement = "**"
+				continue
+			}
+
+			finishTripleWildcardChain()
+		}
+
+		if item == "***" {
+			tripleWildcardReplacement = "***"
+			inTripleWildcardChain = true
+			continue
+		}
+		if item == "**" {
+			inDoubleWildcardChain = true
+		}
+
+		simplifiedPattern = append(simplifiedPattern, item)
+	}
+	if inTripleWildcardChain {
+		finishTripleWildcardChain()
+	}
+	return simplifiedPattern
+}
+func checkPathPattern(path []string, pattern []string) bool {
 	remainingPattern := slices.Clone(pattern)
 	remainingPath := slices.Clone(path)
 	pathIndex := 0
@@ -33,39 +93,21 @@ func CheckPathPattern(path []string, pattern []string) bool {
 			}
 			remainingPattern = remainingPattern[patternIndex+1:]
 			patternIndex = 0
-			combinedPatternItem := patternItem
-			foundMatch := false
-			for i, value := range remainingPattern {
-				if value == "**" {
-					combinedPatternItem = "**"
-				}
-
-				if value != "**" && value != "***" {
-					remainingPattern = remainingPattern[i:]
-					patternItem = combinedPatternItem
-					foundMatch = true
-					break
-				}
-			}
-			if !foundMatch {
-				return true
-			}
 			remainingPath = remainingPath[pathIndex:]
 			pathIndex = 0
 
-			firstLiteralIndex := 0
 			firstLiteralString := remainingPattern[0]
-			if firstLiteralString != "*" {
-				firstLiteralIndex = slices.Index(remainingPath, firstLiteralString)
-			}
-			if firstLiteralIndex == -1 {
-				return false
-			}
-			if firstLiteralIndex == 0 && patternItem == "**" { // "**" must match at least one item
-				return false
+			if !(firstLiteralString == "*" || firstLiteralString == "**" || firstLiteralString == "***") {
+				firstLiteralIndex := slices.Index(remainingPath, firstLiteralString)
+				if firstLiteralIndex == -1 {
+					return false
+				}
+				if firstLiteralIndex == 0 && patternItem == "**" { // "**" must match at least one item
+					return false
+				}
+				remainingPath = remainingPath[firstLiteralIndex:]
 			}
 
-			remainingPath = remainingPath[firstLiteralIndex:]
 			for pathIndex < len(remainingPath) {
 				pathItem := remainingPath[pathIndex]
 				patternItem = remainingPattern[patternIndex]
@@ -84,7 +126,7 @@ func CheckPathPattern(path []string, pattern []string) bool {
 				}
 				if patternItem == "**" || patternItem == "***" {
 					// Recursive so that nested backtracking works correctly
-					return CheckPathPattern(remainingPath[pathIndex:], remainingPattern[patternIndex:])
+					return checkPathPattern(remainingPath[pathIndex:], remainingPattern[patternIndex:])
 				}
 
 				if patternItem != "*" && pathItem != patternItem {
