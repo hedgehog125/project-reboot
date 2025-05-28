@@ -72,6 +72,17 @@ func simplifyPathPattern(pattern []string) []string {
 	return simplifiedPattern
 }
 func checkPathPattern(path []string, pattern []string) bool {
+	/*
+			** seems to be the only wildcard that can be chained
+
+		Loop:
+		    Find first occurrence of the next literal in the pattern or *. If *, use first item
+		    Check backwards that it matches the pattern if the pattern is ** or a chain of them
+		    If not, find next occurrence
+		    Check forward
+		    If it doesn't match, find next occurrence
+	*/
+
 	remainingPattern := slices.Clone(pattern)
 	remainingPath := slices.Clone(path)
 	pathIndex := 0
@@ -88,58 +99,47 @@ func checkPathPattern(path []string, pattern []string) bool {
 		}
 		if patternItem == "**" || patternItem == "***" {
 			if patternIndex == len(remainingPattern)-1 {
-				// TODO: test this branch
-				return patternItem == "***" || pathIndex < len(remainingPath)-1
+				return true // ** matches this item and any after it
 			}
-			remainingPattern = remainingPattern[patternIndex+1:]
+
+			remainingPattern = remainingPattern[patternIndex:]
 			patternIndex = 0
-			remainingPath = remainingPath[pathIndex:]
+			firstPatternLiteralIndex := slices.IndexFunc(remainingPattern, func(value string) bool {
+				return !(value == "**" || value == "***") // Find first literal or *
+			})
+			if firstPatternLiteralIndex == -1 { // Pattern ends with 2 or more **s
+				// Check there are enough items left for the number of **s
+				return len(remainingPath)-pathIndex >= len(remainingPattern)
+			}
+
+			minItemsBefore := 0
+			outerPattern := remainingPattern[:firstPatternLiteralIndex]
+			if outerPattern[0] == "**" {
+				minItemsBefore = len(outerPattern)
+			}
+			remainingPattern = remainingPattern[firstPatternLiteralIndex:] // It might loop back around to the start of this
+
+			remainingPath = remainingPath[pathIndex+minItemsBefore:]
 			pathIndex = 0
 
-			firstLiteralString := remainingPattern[0]
-			if !(firstLiteralString == "*" || firstLiteralString == "**" || firstLiteralString == "***") {
-				firstLiteralIndex := slices.Index(remainingPath, firstLiteralString)
-				if firstLiteralIndex == -1 {
-					return false
-				}
-				if firstLiteralIndex == 0 && patternItem == "**" { // "**" must match at least one item
-					return false
-				}
-				remainingPath = remainingPath[firstLiteralIndex:]
-			}
-
 			for pathIndex < len(remainingPath) {
-				pathItem := remainingPath[pathIndex]
-				patternItem = remainingPattern[patternIndex]
-				if patternIndex == len(remainingPattern)-1 {
-					// TODO: test this branch
-					if patternItem == "**" || patternItem == "***" {
-						return true
+				firstLiteralString := remainingPattern[0]
+				if firstLiteralString != "*" {
+					firstPathMatchIndex := slices.Index(remainingPath, firstLiteralString)
+					if firstPathMatchIndex == -1 {
+						return false
 					}
-					if pathIndex == len(remainingPath)-1 &&
-						(patternItem == "*" || pathItem == patternItem) {
-						return true
-					}
-
-					// There's still more of the path but no pattern to match it
+					remainingPath = remainingPath[firstPathMatchIndex:]
+				}
+				if checkPathPattern(remainingPath, remainingPattern) {
+					return true
+				}
+				if len(remainingPath) == 1 {
 					return false
 				}
-				if patternItem == "**" || patternItem == "***" {
-					// Recursive so that nested backtracking works correctly
-					return checkPathPattern(remainingPath[pathIndex:], remainingPattern[patternIndex:])
-				}
-
-				if patternItem != "*" && pathItem != patternItem {
-					patternIndex = 0
-					if pathItem != firstLiteralString {
-						pathIndex++
-					}
-					continue
-				}
-				pathIndex++
-				patternIndex++
+				remainingPath = remainingPath[1:]
 			}
-			continue
+			return false
 		}
 
 		pathItem := remainingPath[pathIndex]

@@ -18,6 +18,7 @@ func TestSimplifyPathPattern(t *testing.T) {
 		[]string{"**", "**", "documents", "projects", "**", "assets", "**"},
 		simplifyPathPattern([]string{"**", "**", "documents", "projects", "**", "assets", "**"}),
 	) // Unchanged
+
 	require.Equal(t,
 		[]string{"**", "documents", "projects", "**", "assets", "**"},
 		simplifyPathPattern([]string{"***", "**", "documents", "projects", "**", "assets", "**"}),
@@ -30,6 +31,10 @@ func TestSimplifyPathPattern(t *testing.T) {
 		[]string{"**", "documents", "projects", "**", "assets", "**"},
 		simplifyPathPattern([]string{"***", "*", "documents", "projects", "**", "assets", "**"}),
 	) // Merge *** and * into **
+	require.Equal(t,
+		[]string{"**", "*", "documents", "projects", "**", "assets", "**"},
+		simplifyPathPattern([]string{"***", "*", "*", "documents", "projects", "**", "assets", "**"}),
+	) // Merge *** and * into ** while leaving the * after
 }
 
 func TestCheckPathPattern(t *testing.T) {
@@ -129,5 +134,29 @@ func TestCheckPathPattern(t *testing.T) {
 	require.True(t, CheckPathPattern(
 		[]string{"something", "else"},
 		[]string{"***", "*"},
+	))
+	require.True(t, CheckPathPattern(
+		[]string{"something"},
+		[]string{"**"},
+	))
+	require.True(t, CheckPathPattern(
+		[]string{"something"},
+		[]string{"***", "*"}, // Equivalent to above
+	))
+	require.False(t, CheckPathPattern(
+		[]string{},
+		[]string{"***", "*"},
+	))
+	require.False(t, CheckPathPattern(
+		[]string{"something"},
+		[]string{"**", "**"},
+	))
+	require.False(t, CheckPathPattern(
+		[]string{"something"},
+		[]string{"***", "*", "*"}, // Equivalent to above
+	))
+	require.False(t, CheckPathPattern(
+		[]string{},
+		[]string{"***", "*", "*"}, // Equivalent to above
 	))
 }

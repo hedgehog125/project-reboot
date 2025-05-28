@@ -119,6 +119,7 @@ func (err Error) Clone() *Error {
 
 // requiredCategories is highest to lowest level e.g "auth [package]", "create user", common.ErrTypeDatabase
 func (err *Error) HasCategories(requiredCategories ...string) bool {
+	// TODO: it's probably more efficient to do the reverse, so the end is *** and can be ignored
 	reversedRequiredCategories := slices.Clone(requiredCategories)
 	slices.Reverse(reversedRequiredCategories) // Lowest to highest level
 	return CheckPathPattern(err.Categories, slices.Concat([]string{"***"}, reversedRequiredCategories))
