@@ -68,7 +68,7 @@ type DatabaseService interface {
 	Client() *ent.Client
 	Shutdown() // Should log warning rather than return an error
 	TwoFactorActionMutex() *sync.Mutex
-	ReadMessageUserInfo(username string) (*MessageUserInfo, error)
+	ReadMessageUserInfo(username string) (*MessageUserInfo, *Error)
 }
 
 type ServerService interface {
@@ -78,13 +78,13 @@ type ServerService interface {
 
 type TwoFactorActionService interface {
 	Shutdown() // Should log warning rather than return an error
-	Confirm(actionID uuid.UUID, code string) error
+	Confirm(actionID uuid.UUID, code string) *Error
 	Create(
 		actionType string,
 		version int,
 		expiresAt time.Time,
 		data any,
-	) (uuid.UUID, string, error)
+	) (uuid.UUID, string, *Error)
 }
 
 type SchedulerService interface {

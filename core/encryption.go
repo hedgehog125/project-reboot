@@ -4,7 +4,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/subtle"
-	"errors"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"golang.org/x/crypto/argon2"
@@ -43,17 +42,17 @@ type HashSettings struct {
 }
 
 // Adapted from: https://tutorialedge.net/golang/go-encrypt-decrypt-aes-tutorial/
-func Encrypt(data []byte, password string) (*EncryptedData, error) {
+func Encrypt(data []byte, password string) (*EncryptedData, *common.Error) {
 	passwordHash, passwordSalt := hash(password, defaultHashSettings)
 	encryptionKey, encryptionKeySalt := hash(password, defaultHashSettings)
 
 	passwordCipher, err := aes.NewCipher(encryptionKey)
 	if err != nil {
-		return nil, err
+		return nil, ErrWrapperEncrypt.Wrap(err)
 	}
 	gcm, err := cipher.NewGCM(passwordCipher)
 	if err != nil {
-		return nil, err
+		return nil, ErrWrapperEncrypt.Wrap(err)
 	}
 	nonce := common.CryptoRandomBytes(gcm.NonceSize())
 
@@ -73,27 +72,25 @@ func CheckPassword(givenPassword string, passwordHash []byte, passwordSalt []byt
 	return subtle.ConstantTimeCompare(givenPasswordHash, passwordHash) == 1
 }
 
-var ErrIncorrectPassword = errors.New("incorrect password")
-
-func Decrypt(password string, encryptedData *EncryptedData) ([]byte, error) {
+func Decrypt(password string, encryptedData *EncryptedData) ([]byte, *common.Error) {
 	if !CheckPassword(password, encryptedData.PasswordHash, encryptedData.PasswordSalt, encryptedData.HashSettings) {
-		return nil, ErrIncorrectPassword
+		return nil, ErrIncorrectPassword.RemoveHighestCategory().AddCategory(ErrTypeDecrypt)
 	}
 
 	encryptionKey := hashWithSalt(password, encryptedData.KeySalt, encryptedData.HashSettings)
 	passwordCipher, err := aes.NewCipher(encryptionKey)
 	if err != nil {
-		return nil, err
+		return nil, ErrWrapperDecrypt.Wrap(err)
 	}
 
 	gcm, err := cipher.NewGCM(passwordCipher)
 	if err != nil {
-		return nil, err
+		return nil, ErrWrapperDecrypt.Wrap(err)
 	}
 
 	decrypted, err := gcm.Open(nil, encryptedData.Nonce, encryptedData.Data, nil)
 	if err != nil {
-		return nil, err
+		return nil, ErrWrapperDecrypt.Wrap(err)
 	}
 	return decrypted, nil
 }

@@ -21,33 +21,37 @@ func NewDiscord(env *common.Env) Discord {
 	}
 
 	// Check we can create a session, even though it won't be cached due to the extra complexity
-	session, err := discord.getSession()
-	if err != nil {
-		log.Fatalf("error creating Discord session:\n%v", err)
+	session, sessionErr := discord.getSession()
+	if sessionErr != nil {
+		log.Fatalf("error creating Discord session:\n%v", sessionErr)
 	}
-	err = session.Close()
-	if err != nil {
-		log.Fatalf("error closing Discord session:\n%v", err)
+	closeErr := session.Close()
+	if closeErr != nil {
+		log.Fatalf("error closing Discord session:\n%v", closeErr)
 	}
 	return discord
 }
 
-func (discord *discord) getSession() (*discordgo.Session, error) {
-	return discordgo.New("Bot " + discord.env.DISCORD_TOKEN)
+func (discord *discord) getSession() (*discordgo.Session, *common.Error) {
+	session, err := discordgo.New("Bot " + discord.env.DISCORD_TOKEN)
+	if err != nil {
+		return nil, ErrWrapperAPI.Wrap(err)
+	}
+	return session, nil
 }
 
 func (discord *discord) Id() string {
 	return "discord"
 }
 
-func (discord *discord) Send(message common.Message) error {
-	session, err := discord.getSession()
-	if err != nil {
-		return err
+func (discord *discord) Send(message common.Message) *common.Error {
+	session, sessionErr := discord.getSession()
+	if sessionErr != nil {
+		return sessionErr.AddCategory(ErrTypeSend)
 	}
-	err = session.Open()
-	if err != nil {
-		return err
+	openErr := session.Open()
+	if openErr != nil {
+		return ErrWrapperAPI.Wrap(openErr).AddCategory(ErrTypeSend)
 	}
 
 	// TODO: why does calling close and returning here cause a log?
@@ -55,18 +59,18 @@ func (discord *discord) Send(message common.Message) error {
 	// Maybe need to explicitly stop listening for VC events since they aren't being used?
 	defer session.Close()
 
-	formattedMessage, err := formatDefaultMessage(message)
-	if err != nil {
-		return err
+	formattedMessage, formatErr := formatDefaultMessage(message)
+	if formatErr != nil {
+		return formatErr.AddCategory(ErrTypeSend)
 	}
 
-	channel, err := session.UserChannelCreate(message.User.AlertDiscordId)
-	if err != nil {
-		return err
+	channel, createErr := session.UserChannelCreate(message.User.AlertDiscordId)
+	if createErr != nil {
+		return ErrWrapperAPI.Wrap(createErr).AddCategory(ErrTypeSend)
 	}
-	_, err = session.ChannelMessageSend(channel.ID, formattedMessage)
-	if err != nil {
-		return err
+	_, sendErr := session.ChannelMessageSend(channel.ID, formattedMessage)
+	if sendErr != nil {
+		return ErrWrapperAPI.Wrap(sendErr).AddCategory(ErrTypeSend)
 	}
 
 	return nil

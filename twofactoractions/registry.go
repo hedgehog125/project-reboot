@@ -15,7 +15,7 @@ type Registry struct {
 type ActionDefinition[Body any] struct {
 	ID       string
 	Version  int
-	Handler  func(action *Action[Body]) error
+	Handler  func(action *Action[Body]) *common.Error
 	BodyType Body
 }
 

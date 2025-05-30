@@ -34,6 +34,7 @@ func (service *messengerService) IDs() []string {
 	return ids
 }
 
+// TODO: how can this be adapted to work better with common.Error?
 func (service *messengerService) SendUsingAll(message common.Message) []*common.ErrWithStrId {
 	errChan := make(chan common.ErrWithStrId, 3)
 	for _, messenger := range service.messengers {

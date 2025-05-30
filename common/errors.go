@@ -36,11 +36,14 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 const (
 	// General categories
 	ErrTypeDatabase = "database [general]"
+	ErrTypeAPI      = "api [general]"
 	ErrTypeClient   = "client [general]"
 	// If there's no applicable general category, there should be no [general] category on the error. Functions that return a category should return an empty string
 
 	// Package categories
+	ErrTypeCore            = "core [package]"
 	ErrTypeTwoFactorAction = "two factor action [package]"
+	ErrTypeMessengers      = "messengers [package]"
 	// Similar idea here if it's unknown
 )
 
@@ -106,6 +109,15 @@ func (err *Error) AddCategory(category string) *Error {
 		copiedErr.Categories = append(copiedErr.Categories, category)
 	} else {
 		copiedErr.Categories = slices.Insert(copiedErr.Categories, insertIndex, category)
+	}
+
+	return copiedErr
+}
+func (err *Error) RemoveHighestCategory() *Error {
+	copiedErr := err.Clone()
+	catCount := len(copiedErr.Categories)
+	if catCount != 0 {
+		copiedErr.Categories = slices.Delete(copiedErr.Categories, catCount-1, catCount)
 	}
 
 	return copiedErr

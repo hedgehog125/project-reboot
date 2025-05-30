@@ -6,5 +6,5 @@ import (
 
 type Messenger interface {
 	Id() string
-	Send(message common.Message) error
+	Send(message common.Message) *common.Error
 }

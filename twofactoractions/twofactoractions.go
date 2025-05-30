@@ -15,10 +15,6 @@ const CODE_LENGTH = 9
 
 var DEFAULT_CODE_LIFETIME = 2 * time.Minute
 
-const (
-	ErrTypeConfirm = "confirm"
-)
-
 // TODO: move functions to separate files
 
 func (registry *Registry) Create(
@@ -26,13 +22,13 @@ func (registry *Registry) Create(
 	version int,
 	expiresAt time.Time,
 	data any,
-) (uuid.UUID, string, error) {
+) (uuid.UUID, string, *common.Error) {
 	encoded, encodeErr := registry.Encode(
 		GetFullType(actionType, version),
 		data,
 	)
 	if encodeErr != nil {
-		return uuid.UUID{}, "", encodeErr
+		return uuid.UUID{}, "", encodeErr.AddCategory(ErrTypeCreate)
 	}
 
 	code := common.CryptoRandomAlphaNum(CODE_LENGTH)
@@ -44,23 +40,13 @@ func (registry *Registry) Create(
 		SetExpiresAt(expiresAt).
 		SetCode(code).Save(context.Background())
 	if err != nil {
-		return uuid.UUID{}, code, common.WrapErrorWithCategories(err, common.ErrTypeDatabase, common.ErrTypeTwoFactorAction)
+		return uuid.UUID{}, code, ErrWrapperDatabase.Wrap(err).AddCategory(ErrTypeCreate)
 	}
 
 	return action.ID, code, nil
 }
 
-var ErrNotFound = common.NewErrorWithCategories(
-	"no action with given ID", common.ErrTypeTwoFactorAction,
-)
-var ErrWrongCode = common.NewErrorWithCategories(
-	"wrong 2FA code", common.ErrTypeTwoFactorAction,
-)
-var ErrExpired = common.NewErrorWithCategories(
-	"action has expired", common.ErrTypeTwoFactorAction,
-)
-
-func (registry *Registry) Confirm(actionID uuid.UUID, code string) error {
+func (registry *Registry) Confirm(actionID uuid.UUID, code string) *common.Error {
 	mu := registry.App.Database.TwoFactorActionMutex()
 	dbClient := registry.App.Database.Client()
 	mu.Lock()
@@ -78,10 +64,7 @@ func (registry *Registry) Confirm(actionID uuid.UUID, code string) error {
 	err = dbClient.TwoFactorAction.DeleteOne(action).Exec(context.Background())
 	mu.Unlock()
 	if err != nil {
-		return common.WrapErrorWithCategories(
-			err, common.ErrTypeDatabase,
-			ErrTypeConfirm, common.ErrTypeTwoFactorAction,
-		)
+		return ErrWrapperDatabase.Wrap(err).AddCategory(ErrTypeConfirm)
 	}
 
 	if action.ExpiresAt.Before(registry.App.Clock.Now()) {
@@ -96,10 +79,7 @@ func (registry *Registry) Confirm(actionID uuid.UUID, code string) error {
 	parsed := actionDef.BodyType
 	err = json.Unmarshal([]byte(action.Data), &parsed)
 	if err != nil {
-		return common.WrapErrorWithCategories(
-			err, ErrTypeInvalidData, ErrTypeConfirm,
-			common.ErrTypeTwoFactorAction,
-		)
+		return ErrWrapperInvalidData.Wrap(err).AddCategory(ErrTypeConfirm)
 	}
 
 	return actionDef.Handler(&Action[any]{

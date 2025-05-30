@@ -19,10 +19,12 @@ var defaultMessageMap = map[common.MessageType]func(message common.Message) stri
 }
 
 // For messengers like SMS where the messages should be as short as possible with no formatting
-func formatDefaultMessage(message common.Message) (string, error) {
+func formatDefaultMessage(message common.Message) (string, *common.Error) {
 	formatter, ok := defaultMessageMap[message.Type]
 	if !ok {
-		return "", fmt.Errorf("message type \"%v\" hasn't been implemented", message.Type)
+		return "", ErrWrapperFormat.Wrap(
+			fmt.Errorf("message type \"%v\" hasn't been implemented", message.Type),
+		)
 	}
 
 	return formatter(message), nil

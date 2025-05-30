@@ -72,17 +72,6 @@ func simplifyPathPattern(pattern []string) []string {
 	return simplifiedPattern
 }
 func checkPathPattern(path []string, pattern []string) bool {
-	/*
-			** seems to be the only wildcard that can be chained
-
-		Loop:
-		    Find first occurrence of the next literal in the pattern or *. If *, use first item
-		    Check backwards that it matches the pattern if the pattern is ** or a chain of them
-		    If not, find next occurrence
-		    Check forward
-		    If it doesn't match, find next occurrence
-	*/
-
 	remainingPattern := slices.Clone(pattern)
 	remainingPath := slices.Clone(path)
 	pathIndex := 0

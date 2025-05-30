@@ -59,7 +59,7 @@ func (service *databaseService) Shutdown() {
 
 // TODO: this should go in a different package but where?
 // These db util functions should take an *ent.Client rather than common.DatabaseService
-func (service *databaseService) ReadMessageUserInfo(username string) (*common.MessageUserInfo, error) {
+func (service *databaseService) ReadMessageUserInfo(username string) (*common.MessageUserInfo, *common.Error) {
 	row, err := service.client.User.Query().
 		Where(user.Username(username)).
 		Select(user.FieldAlertDiscordId, user.FieldAlertEmail).

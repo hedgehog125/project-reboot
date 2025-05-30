@@ -14,7 +14,7 @@ func TempSelfLock1(app *common.App) twofactoractions.ActionDefinition[any] {
 	return twofactoractions.ActionDefinition[any]{
 		ID:      "TEMP_SELF_LOCK",
 		Version: 1,
-		Handler: func(action *twofactoractions.Action[any]) error {
+		Handler: func(action *twofactoractions.Action[any]) *common.Error {
 			// TODO: do I really have to cast it back to the struct type? Can I improve the generics?
 
 			// TODO: implement

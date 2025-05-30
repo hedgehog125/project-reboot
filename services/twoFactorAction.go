@@ -32,7 +32,7 @@ func (service *twoFactorActionService) Shutdown() {
 	}
 }
 
-func (service *twoFactorActionService) Confirm(actionID uuid.UUID, code string) error {
+func (service *twoFactorActionService) Confirm(actionID uuid.UUID, code string) *common.Error {
 	service.runningActionsWaitGroup.Add(1)
 	defer service.runningActionsWaitGroup.Done()
 
@@ -43,7 +43,7 @@ func (service *twoFactorActionService) Create(
 	version int,
 	expiresAt time.Time,
 	data any,
-) (uuid.UUID, string, error) {
+) (uuid.UUID, string, *common.Error) {
 	return service.registry.Create(
 		actionType,
 		version,

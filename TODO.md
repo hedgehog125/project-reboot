@@ -1,6 +1,5 @@
 # TODO
 
--   Are categories supposed to be vague? They were originally intended for log grouping, but maybe they still can be if they're unwrapped as deep as possible?
 -   Functions should wrap their errors with themself as the category. It can always be unwrapped if you want more control
 -   Create 2FA actions registry. Should be initialised with App and action callbacks should be passed it
 -   -   Then implement the self lock action
@@ -28,6 +27,7 @@
 -   SMS messenger
 -   Split endpoints into admin and normal?
 -   Switch to Railpack on Railway? Seems to automatically work with CGO when enabled
+-   Does log.Fatalf stop the shutdown logic running if the server crashes on startup?
 
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 

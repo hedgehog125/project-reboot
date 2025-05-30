@@ -20,10 +20,10 @@ func (develop *develop) Id() string {
 	return "develop"
 }
 
-func (develop *develop) Send(message common.Message) error {
+func (develop *develop) Send(message common.Message) *common.Error {
 	formattedMessage, err := formatDefaultMessage(message)
 	if err != nil {
-		return err
+		return err.AddCategory(ErrTypeSend)
 	}
 
 	fmt.Printf("\nmessage sent to user \"%v\":\n%v\n\n", message.User.Username, formattedMessage)
