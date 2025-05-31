@@ -68,7 +68,6 @@ type DatabaseService interface {
 	Client() *ent.Client
 	Shutdown() // Should log warning rather than return an error
 	TwoFactorActionMutex() *sync.Mutex
-	ReadMessageUserInfo(username string) (*MessageUserInfo, *Error)
 }
 
 type ServerService interface {

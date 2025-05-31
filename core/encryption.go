@@ -74,7 +74,7 @@ func CheckPassword(givenPassword string, passwordHash []byte, passwordSalt []byt
 
 func Decrypt(password string, encryptedData *EncryptedData) ([]byte, *common.Error) {
 	if !CheckPassword(password, encryptedData.PasswordHash, encryptedData.PasswordSalt, encryptedData.HashSettings) {
-		return nil, ErrIncorrectPassword.RemoveHighestCategory().AddCategory(ErrTypeDecrypt)
+		return nil, ErrIncorrectPassword.RemoveLowestCategory().AddCategory(ErrTypeDecrypt)
 	}
 
 	encryptionKey := hashWithSalt(password, encryptedData.KeySalt, encryptedData.HashSettings)

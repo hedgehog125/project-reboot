@@ -10,6 +10,7 @@ import (
 	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
+	"github.com/hedgehog125/project-reboot/messengers/messengerscommon"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
@@ -66,7 +67,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		userInfo, err := app.App.Database.ReadMessageUserInfo(body.Username)
+		userInfo, err := messengerscommon.ReadMessageUserInfo(body.Username, dbClient)
 		if err == nil {
 			// TODO: if this fails, let the user know using other methods
 			_ = app.App.Messenger.SendUsingAll(common.Message{

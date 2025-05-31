@@ -114,10 +114,19 @@ func (err *Error) AddCategory(category string) *Error {
 	return copiedErr
 }
 func (err *Error) RemoveHighestCategory() *Error {
+	// TODO: should highest category include packages for this and HighestCategory()?
 	copiedErr := err.Clone()
 	catCount := len(copiedErr.Categories)
 	if catCount != 0 {
 		copiedErr.Categories = slices.Delete(copiedErr.Categories, catCount-1, catCount)
+	}
+
+	return copiedErr
+}
+func (err *Error) RemoveLowestCategory() *Error {
+	copiedErr := err.Clone()
+	if len(copiedErr.Categories) != 0 {
+		copiedErr.Categories = slices.Delete(copiedErr.Categories, 0, 1)
 	}
 
 	return copiedErr

@@ -10,7 +10,6 @@ import (
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/user"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -55,23 +54,4 @@ func (service *databaseService) Shutdown() {
 	if err != nil {
 		fmt.Printf("warning: an error occurred while shutting down the database:\n%v\n", err.Error())
 	}
-}
-
-// TODO: this should go in a different package but where?
-// These db util functions should take an *ent.Client rather than common.DatabaseService
-func (service *databaseService) ReadMessageUserInfo(username string) (*common.MessageUserInfo, *common.Error) {
-	row, err := service.client.User.Query().
-		Where(user.Username(username)).
-		Select(user.FieldAlertDiscordId, user.FieldAlertEmail).
-		Only(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	//exhaustruct:enforce
-	return &common.MessageUserInfo{
-		Username:       username,
-		AlertDiscordId: row.AlertDiscordId,
-		AlertEmail:     row.AlertEmail,
-	}, nil
 }

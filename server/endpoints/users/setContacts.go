@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent/user"
+	"github.com/hedgehog125/project-reboot/messengers/messengerscommon"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
@@ -37,7 +38,7 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		userInfo, err := app.App.Database.ReadMessageUserInfo(body.Username)
+		userInfo, err := messengerscommon.ReadMessageUserInfo(body.Username, dbClient)
 		if err != nil {
 			ctx.Error(err)
 			return

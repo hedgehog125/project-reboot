@@ -8,6 +8,7 @@ import (
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/messengers"
+	"github.com/hedgehog125/project-reboot/messengers/messengerscommon"
 	"github.com/hedgehog125/project-reboot/services"
 )
 
@@ -23,7 +24,7 @@ func main() {
 	defer databaseService.Shutdown()
 
 	discord := messengers.NewDiscord(env)
-	userInfo, err := databaseService.ReadMessageUserInfo(*username)
+	userInfo, err := messengerscommon.ReadMessageUserInfo(*username, databaseService.Client())
 	if err != nil {
 		panic(fmt.Sprintf("couldn't read user. error:\n%v", err.Error()))
 	}
