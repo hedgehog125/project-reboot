@@ -34,24 +34,25 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 		body := DownloadPayload{}
-		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?
+		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+			ctx.Error(ctxErr)
 			return
 		}
 
-		givenAuthCodeBytes, err := base64.StdEncoding.DecodeString(body.AuthorizationCode)
-		if err != nil {
+		givenAuthCodeBytes, stdErr := base64.StdEncoding.DecodeString(body.AuthorizationCode)
+		if stdErr != nil {
 			ctx.JSON(http.StatusBadRequest, DownloadResponse{
 				Errors: []string{"MALFORMED_AUTH_CODE"},
 			})
 			return
 		}
 
-		sessionRow, err := dbClient.Session.Query().
+		sessionRow, stdErr := dbClient.Session.Query().
 			Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
 			Select(session.FieldCode, session.FieldCodeValidFrom).
 			First(context.Background())
-		if err != nil {
-			ctx.Error(servercommon.SendUnauthorizedIfNotFound(err))
+		if stdErr != nil {
+			ctx.Error(servercommon.SendUnauthorizedIfNotFound(stdErr))
 			return
 		}
 
@@ -63,7 +64,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		userRow, err := dbClient.User.Query().
+		userRow, stdErr := dbClient.User.Query().
 			Where(user.Username(body.Username)).
 			Select(
 				user.FieldUsername,
@@ -81,12 +82,12 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				user.FieldHashKeyLen,
 			).
 			Only(context.Background())
-		if err != nil {
-			ctx.Error(err)
+		if stdErr != nil {
+			ctx.Error(stdErr)
 			return
 		}
 
-		decrypted, err := core.Decrypt(body.Password, &core.EncryptedData{
+		decrypted, commErr := core.Decrypt(body.Password, &core.EncryptedData{
 			Data:         userRow.Content,
 			Nonce:        userRow.Nonce,
 			KeySalt:      userRow.KeySalt,
@@ -98,8 +99,8 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				KeyLen: userRow.HashKeyLen,
 			},
 		})
-		if err != nil {
-			ctx.Error(servercommon.ExpectError(err, core.ErrIncorrectPassword, http.StatusUnauthorized, "UNAUTHORIZED"))
+		if commErr != nil {
+			ctx.Error(servercommon.ExpectError(commErr, core.ErrIncorrectPassword, http.StatusUnauthorized, "UNAUTHORIZED"))
 			return
 		}
 

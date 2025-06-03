@@ -30,25 +30,26 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 		body := RegisterPayload{}
-		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?
+		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+			ctx.Error(ctxErr)
 			return
 		}
 
-		contentBytes, err := base64.StdEncoding.DecodeString(body.Content)
-		if err != nil {
+		contentBytes, stdErr := base64.StdEncoding.DecodeString(body.Content)
+		if stdErr != nil {
 			ctx.JSON(http.StatusBadRequest, RegisterOrUpdateResponse{
 				Errors: []string{"MALFORMED_CONTENT"},
 			})
 			return
 		}
 
-		encrypted, err := core.Encrypt(contentBytes, body.Password)
-		if err != nil {
-			ctx.Error(err)
+		encrypted, commErr := core.Encrypt(contentBytes, body.Password)
+		if commErr != nil {
+			ctx.Error(commErr)
 			return
 		}
 
-		err = dbClient.User.Create().
+		stdErr = dbClient.User.Create().
 			SetUsername(body.Username).
 			SetContent(encrypted.Data).
 			SetFileName(body.Filename).
@@ -62,13 +63,13 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			SetHashKeyLen(encrypted.HashSettings.KeyLen).
 			OnConflict().UpdateNewValues().
 			Exec(context.Background())
-		if err != nil {
-			ctx.Error(err)
+		if stdErr != nil {
+			ctx.Error(stdErr)
 			return
 		}
 
-		userInfo, err := messengerscommon.ReadMessageUserInfo(body.Username, dbClient)
-		if err == nil {
+		userInfo, commErr := messengerscommon.ReadMessageUserInfo(body.Username, dbClient)
+		if commErr == nil {
 			// TODO: if this fails, let the user know using other methods
 			_ = app.App.Messenger.SendUsingAll(common.Message{
 				Type: common.MessageReset,
@@ -76,11 +77,11 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			})
 		}
 
-		_, err = dbClient.Session.Delete().Where(
+		_, stdErr = dbClient.Session.Delete().Where(
 			session.HasUserWith(user.Username(body.Username)),
 		).Exec(context.Background())
-		if err != nil {
-			ctx.Error(err)
+		if stdErr != nil {
+			ctx.Error(stdErr)
 			return
 		}
 

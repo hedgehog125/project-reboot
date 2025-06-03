@@ -20,22 +20,23 @@ type ConfirmResponse struct {
 func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		body := ConfirmPayload{}
-		if err := ctx.BindJSON(&body); err != nil {
+		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+			ctx.Error(ctxErr)
 			return
 		}
 
-		parsedId, err := uuid.Parse(ctx.Param("id"))
-		if err != nil {
+		parsedId, stdErr := uuid.Parse(ctx.Param("id"))
+		if stdErr != nil {
 			ctx.JSON(http.StatusBadRequest, ConfirmResponse{
 				Errors: []string{"ID_NOT_VALID_UUID"},
 			})
 			return
 		}
 
-		err = app.App.TwoFactorAction.Confirm(parsedId, body.Code)
-		if err != nil {
+		commErr := app.App.TwoFactorAction.Confirm(parsedId, body.Code)
+		if commErr != nil {
 			ctx.Error(servercommon.ExpectAnyOfErrors(
-				err,
+				commErr,
 				[]error{
 					twofactoractions.ErrNotFound,
 					twofactoractions.ErrExpired,

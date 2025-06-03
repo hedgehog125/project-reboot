@@ -26,21 +26,22 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 		body := SetContactsPayload{}
-		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?
+		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+			ctx.Error(ctxErr)
 			return
 		}
 
-		_, err := dbClient.User.Update().
+		_, stdErr := dbClient.User.Update().
 			Where(user.Username(body.Username)).
 			SetAlertDiscordId(body.DiscordUserId).SetAlertEmail(body.Email).Save(ctx.Request.Context())
-		if err != nil {
-			ctx.Error(servercommon.Send404IfNotFound(err))
+		if stdErr != nil {
+			ctx.Error(servercommon.Send404IfNotFound(stdErr))
 			return
 		}
 
-		userInfo, err := messengerscommon.ReadMessageUserInfo(body.Username, dbClient)
-		if err != nil {
-			ctx.Error(err)
+		userInfo, commErr := messengerscommon.ReadMessageUserInfo(body.Username, dbClient)
+		if commErr != nil {
+			ctx.Error(commErr)
 			return
 		}
 		errs := messenger.SendUsingAll(common.Message{

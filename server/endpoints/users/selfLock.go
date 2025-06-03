@@ -15,28 +15,6 @@ import (
 
 const MAX_SELF_LOCK_DURATION = 14 * (24 * time.Hour)
 
-type LockPayload struct {
-	Username string `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
-}
-type LockResponse struct {
-	Errors []string `binding:"required"  json:"errors"`
-}
-
-// Admin route
-func Lock(app *servercommon.ServerApp) gin.HandlerFunc {
-	// dbClient := app.App.Database.Client()
-	// messenger := app.App.Messenger
-
-	return func(ctx *gin.Context) {
-		body := LockPayload{}
-		if err := ctx.BindJSON(&body); err != nil {
-			return
-		}
-
-		// TODO: implement
-	}
-}
-
 type SelfLockPayload struct {
 	Username string               `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
 	Password string               `binding:"required,min=8,max=256"                   json:"password"`
@@ -54,8 +32,8 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 		body := SelfLockPayload{}
-		if err := servercommon.ParseBody(&body, ctx); err != nil {
-			ctx.Error(err)
+		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+			ctx.Error(ctxErr)
 			return
 		}
 		until := clock.Now().Add(
@@ -65,7 +43,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			),
 		)
 
-		userRow, err := dbClient.User.Query().
+		userRow, stdErr := dbClient.User.Query().
 			Where(user.Username(body.Username)).
 			Select(
 				user.FieldPasswordHash, user.FieldPasswordSalt,
@@ -75,8 +53,8 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 				user.FieldAlertEmail,
 			).
 			Only(ctx)
-		if err != nil {
-			ctx.Error(servercommon.SendUnauthorizedIfNotFound(err))
+		if stdErr != nil {
+			ctx.Error(servercommon.SendUnauthorizedIfNotFound(stdErr))
 			return
 		}
 
@@ -94,7 +72,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		actionID, code, err := app.App.TwoFactorAction.Create(
+		actionID, code, commErr := app.App.TwoFactorAction.Create(
 			"users/TEMP_SELF_LOCK", 1,
 			clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
 			//exhaustruct:enforce
@@ -104,9 +82,8 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 				Until:    common.ISOTimeString{Time: until},
 			},
 		)
-		if err != nil {
-			// TODO: categorise the database errors properly
-			ctx.Error(err)
+		if commErr != nil {
+			ctx.Error(commErr)
 			return
 		}
 

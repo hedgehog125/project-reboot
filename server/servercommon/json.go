@@ -12,7 +12,7 @@ func ParseBody(obj any, ctx *gin.Context) *ContextError {
 		return &ContextError{
 			Err:        err,
 			Status:     http.StatusBadRequest,
-			ErrorCodes: []string{"INVALID_BODY"},
+			ErrorCodes: []string{"INVALID_BODY_JSON"},
 			Category:   common.ErrTypeClient,
 			ShouldLog:  false,
 		}

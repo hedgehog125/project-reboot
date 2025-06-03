@@ -33,11 +33,12 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
 		body := GetAuthorizationCodePayload{}
-		if err := ctx.BindJSON(&body); err != nil { // TODO: request size limits?
+		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+			ctx.Error(ctxErr)
 			return
 		}
 
-		userRow, err := dbClient.User.Query().
+		userRow, stdErr := dbClient.User.Query().
 			Where(user.Username(body.Username)).
 			Select(
 				user.FieldPasswordHash, user.FieldPasswordSalt,
@@ -47,8 +48,8 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				user.FieldAlertEmail,
 			).
 			Only(context.Background())
-		if err != nil {
-			ctx.Error(servercommon.SendUnauthorizedIfNotFound(err))
+		if stdErr != nil {
+			ctx.Error(servercommon.SendUnauthorizedIfNotFound(stdErr))
 			return
 		}
 
@@ -91,15 +92,15 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		authCode := core.RandomAuthCode()
 		validAt := clock.Now().UTC().Add(unlockTime)
 
-		_, err = dbClient.Session.Create().
+		_, stdErr = dbClient.Session.Create().
 			SetUser(userRow).
 			SetCode(authCode).
 			SetCodeValidFrom(validAt).
 			SetUserAgent(ctx.Request.UserAgent()).
 			SetIP(ctx.ClientIP()).
 			Save(context.Background())
-		if err != nil {
-			ctx.Error(err)
+		if stdErr != nil {
+			ctx.Error(stdErr)
 			return
 		}
 
