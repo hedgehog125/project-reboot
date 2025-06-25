@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"slices"
@@ -9,6 +10,52 @@ import (
 	"github.com/hedgehog125/project-reboot/ent" // Note: will have to reorganise if I end up needing to use the common module in schemas
 	"github.com/mattn/go-sqlite3"
 )
+
+// TODO: rename to ErrType1 and ErrType2?
+const (
+	// General categories
+	ErrTypeDatabase = "database [general]"
+	ErrTypeTimeout  = "timeout [general]"
+	ErrTypeNetwork  = "network [general]"
+	ErrTypeDisk     = "disk [general]"
+	ErrTypeMemory   = "memory [general]"
+	ErrTypeAPI      = "api [general]"
+	ErrTypeClient   = "client [general]"
+	// If there's no applicable general category, there should be no [general] category on the error. Functions that return a category should return an empty string
+	ErrTypeOther = "other" // Used to maintain the hierarchy, but doesn't have a [general] tag because the lower level error is more useful
+
+	// Package categories
+	ErrTypeCore            = "core [package]"
+	ErrTypeTwoFactorAction = "two factor action [package]"
+	ErrTypeMessengers      = "messengers [package]"
+	ErrTypeDbCommon        = "db common [package]"
+	// Similar idea here if it's unknown
+)
+
+var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
+	wrappedErr := WrapErrorWithCategories(err)
+	sqliteErr := sqlite3.Error{}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return wrappedErr.AddCategories(ErrTypeTimeout, ErrTypeDatabase)
+	} else if errors.As(err, &sqliteErr) {
+		if slices.Index([]sqlite3.ErrNo{
+			sqlite3.ErrFull,
+			sqlite3.ErrAuth,
+			sqlite3.ErrReadonly,
+			sqlite3.ErrBusy,
+			sqlite3.ErrNoLFS,
+			sqlite3.ErrCantOpen,
+			sqlite3.ErrIoErr,
+			sqlite3.ErrLocked,
+		}, sqliteErr.Code) != -1 {
+			return wrappedErr.AddCategories(ErrTypeDisk, ErrTypeDatabase)
+		} else if sqliteErr.Code == sqlite3.ErrNomem {
+			return wrappedErr.AddCategories(ErrTypeMemory, ErrTypeDatabase)
+		}
+	}
+
+	return wrappedErr.AddCategories(ErrTypeOther, ErrTypeDatabase)
+})
 
 func HasErrors(errs []error) bool {
 	for _, err := range errs {
@@ -32,21 +79,6 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 	return successfulActionIDs
 }
 
-// TODO: rename to ErrType1 and ErrType2?
-const (
-	// General categories
-	ErrTypeDatabase = "database [general]"
-	ErrTypeAPI      = "api [general]"
-	ErrTypeClient   = "client [general]"
-	// If there's no applicable general category, there should be no [general] category on the error. Functions that return a category should return an empty string
-
-	// Package categories
-	ErrTypeCore            = "core [package]"
-	ErrTypeTwoFactorAction = "two factor action [package]"
-	ErrTypeMessengers      = "messengers [package]"
-	// Similar idea here if it's unknown
-)
-
 type Error struct {
 	Err                   error
 	Categories            []string
@@ -67,6 +99,12 @@ func (err *Error) Error() string {
 	}
 
 	return message + err.Err.Error()
+}
+func (err *Error) StandardError() error {
+	if err == nil {
+		return nil
+	}
+	return err
 }
 func (err *Error) Unwrap() error {
 	return err.Err
@@ -96,22 +134,25 @@ func (err *Error) HighestCategory() string {
 func (err *Error) LowestCategory() string {
 	return err.Categories[0]
 }
-func (err *Error) AddCategory(category string) *Error {
+func (err *Error) AddCategories(categories ...string) *Error {
 	copiedErr := err.Clone()
+	for _, category := range categories {
+		hasCategoryTag := slices.Contains(ParseCategoryTags(category), CategoryTagPackage)
+		insertIndex := -1
+		if !hasCategoryTag {
+			_, insertIndex = GetLastCategoryWithTag(err.Categories, CategoryTagPackage)
+		}
 
-	hasCategoryTag := slices.Contains(ParseCategoryTags(category), CategoryTagPackage)
-	insertIndex := -1
-	if !hasCategoryTag {
-		_, insertIndex = GetLastCategoryWithTag(err.Categories, CategoryTagPackage)
+		if insertIndex == -1 {
+			copiedErr.Categories = append(copiedErr.Categories, category)
+		} else {
+			copiedErr.Categories = slices.Insert(copiedErr.Categories, insertIndex, category)
+		}
 	}
-
-	if insertIndex == -1 {
-		copiedErr.Categories = append(copiedErr.Categories, category)
-	} else {
-		copiedErr.Categories = slices.Insert(copiedErr.Categories, insertIndex, category)
-	}
-
 	return copiedErr
+}
+func (err *Error) AddCategory(category string) *Error {
+	return err.AddCategories(category)
 }
 func (err *Error) RemoveHighestCategory() *Error {
 	// TODO: should highest category include packages for this and HighestCategory()?
@@ -156,6 +197,11 @@ func NewErrorWithCategories(message string, categories ...string) *Error {
 
 // categories is lowest to highest level, e.g. "constraint", common.ErrTypeDatabase, "create profile", "create user", "auth [package]"
 func WrapErrorWithCategories(err error, categories ...string) *Error {
+	commErr, ok := err.(*Error)
+	if ok {
+		return commErr.AddCategories(categories...)
+	}
+
 	return &Error{
 		Err:        err,
 		Categories: categories,
@@ -225,20 +271,28 @@ func CategorizeError(err error) string {
 	return ""
 }
 
-type ErrorWrapper struct {
+type ErrorWrapper interface {
+	Wrap(err error) *Error
+}
+type ConstantErrorWrapper struct {
 	Categories []string
+	Child      ErrorWrapper
 }
 
-func NewErrorWrapper(categories ...string) *ErrorWrapper {
-	return &ErrorWrapper{
+func NewErrorWrapper(categories ...string) *ConstantErrorWrapper {
+	return &ConstantErrorWrapper{
 		Categories: categories,
 	}
 }
 
-func (errWrapper *ErrorWrapper) Wrap(err error) *Error {
-	return WrapErrorWithCategories(err, errWrapper.Categories...)
+func (errWrapper *ConstantErrorWrapper) Wrap(err error) *Error {
+	if errWrapper.Child != nil {
+		return errWrapper.Child.Wrap(err).AddCategories(errWrapper.Categories...)
+	} else {
+		return WrapErrorWithCategories(err, errWrapper.Categories...)
+	}
 }
-func (errWrapper *ErrorWrapper) HasWrapped(err error) bool {
+func (errWrapper *ConstantErrorWrapper) HasWrapped(err error) bool {
 	var commErr *Error
 	if !errors.As(err, &commErr) {
 		return false
@@ -247,12 +301,31 @@ func (errWrapper *ErrorWrapper) HasWrapped(err error) bool {
 	return CheckPathPattern(commErr.Categories, slices.Concat([]string{"***"}, errWrapper.Categories, []string{"***"}))
 }
 
+func (errWrapper *ConstantErrorWrapper) SetChild(child ErrorWrapper) *ConstantErrorWrapper {
+	newErrWrapper := errWrapper.Clone()
+	newErrWrapper.Child = child
+	return newErrWrapper
+}
+
 // TODO: add some kind of AddCategory method?
-func (errWrapper ErrorWrapper) Clone() *ErrorWrapper {
+func (errWrapper ConstantErrorWrapper) Clone() *ConstantErrorWrapper {
 	copiedErrWrapper := errWrapper
 	copiedErrWrapper.Categories = slices.Clone(copiedErrWrapper.Categories)
 
 	return &copiedErrWrapper
+}
+
+type DynamicErrorWrapper struct {
+	callback func(err error) *Error // Mostly just private so IDEs autocomplete to Wrap instead
+}
+
+func NewDynamicErrorWrapper(callback func(err error) *Error) *DynamicErrorWrapper {
+	return &DynamicErrorWrapper{
+		callback: callback,
+	}
+}
+func (errWrapper *DynamicErrorWrapper) Wrap(err error) *Error {
+	return errWrapper.callback(err)
 }
 
 type ContextPanic struct {

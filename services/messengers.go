@@ -39,9 +39,9 @@ func (service *messengerService) SendUsingAll(message common.Message) []*common.
 	errChan := make(chan common.ErrWithStrId, 3)
 	for _, messenger := range service.messengers {
 		go func() {
-			err := messenger.Send(message)
+			commErr := messenger.Send(message)
 			errChan <- common.ErrWithStrId{
-				Err: err,
+				Err: commErr.StandardError(),
 				Id:  messenger.Id(),
 			}
 		}()

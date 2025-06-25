@@ -98,11 +98,10 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 				AlertEmail:     userRow.AlertEmail,
 			}),
 		})
-		messengerIDs := messenger.IDs()
-		if len(errs) == len(messengerIDs) {
+		if len(errs) == len(messenger.IDs()) {
 			// We aren't sure if this error is the client or server's fault
 			ctx.JSON(http.StatusBadRequest, SetContactsResponse{
-				Errors:       []string{"ALL_TEST_MESSAGES_FAILED"},
+				Errors:       []string{"ALL_MESSAGES_FAILED"},
 				MessagesSent: []string{},
 			})
 			return

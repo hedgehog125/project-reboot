@@ -17,7 +17,7 @@ func TestEncode_DoesNotMutateTypeMap(t *testing.T) {
 		Version:  1,
 		BodyType: NoAction1{},
 	})
-	fullID := GetFullType("NO_ACTION", 1)
+	fullID := GetVersionedType("NO_ACTION", 1)
 
 	actionDef, ok := registry.actions[fullID]
 	require.True(t, ok)

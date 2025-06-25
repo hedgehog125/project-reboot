@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/subtle"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 const CODE_LENGTH = 9
 
 var DEFAULT_CODE_LIFETIME = 2 * time.Minute
+var MAX_ACTION_RUN_TIME = 15 * time.Second
 
 // TODO: move functions to separate files
 
@@ -24,7 +26,7 @@ func (registry *Registry) Create(
 	data any,
 ) (uuid.UUID, string, *common.Error) {
 	encoded, encodeErr := registry.Encode(
-		GetFullType(actionType, version),
+		GetVersionedType(actionType, version),
 		data,
 	)
 	if encodeErr != nil {
@@ -51,8 +53,8 @@ func (registry *Registry) Confirm(actionID uuid.UUID, code string) *common.Error
 	dbClient := registry.App.Database.Client()
 	mu.Lock()
 
-	action, err := dbClient.TwoFactorAction.Get(context.Background(), actionID)
-	if err != nil {
+	action, stdErr := dbClient.TwoFactorAction.Get(context.Background(), actionID)
+	if stdErr != nil {
 		mu.Unlock()
 		return ErrNotFound.AddCategory(ErrTypeConfirm)
 	}
@@ -61,34 +63,43 @@ func (registry *Registry) Confirm(actionID uuid.UUID, code string) *common.Error
 		return ErrWrongCode.AddCategory(ErrTypeConfirm)
 	}
 
-	err = dbClient.TwoFactorAction.DeleteOne(action).Exec(context.Background())
+	stdErr = dbClient.TwoFactorAction.DeleteOne(action).Exec(context.Background())
 	mu.Unlock()
-	if err != nil {
-		return ErrWrapperDatabase.Wrap(err).AddCategory(ErrTypeConfirm)
+	if stdErr != nil {
+		return ErrWrapperDatabase.Wrap(stdErr).AddCategory(ErrTypeConfirm)
 	}
 
 	if action.ExpiresAt.Before(registry.App.Clock.Now()) {
 		return ErrExpired.AddCategory(ErrTypeConfirm)
 	}
-	fullType := GetFullType(action.Type, action.Version)
+	fullType := GetVersionedType(action.Type, action.Version)
 	actionDef, ok := registry.actions[fullType]
 	if !ok {
 		return ErrUnknownActionType.AddCategory(ErrTypeConfirm)
 	}
 
 	parsed := actionDef.BodyType
-	err = json.Unmarshal([]byte(action.Data), &parsed)
-	if err != nil {
-		return ErrWrapperInvalidData.Wrap(err).AddCategory(ErrTypeConfirm)
+	stdErr = json.Unmarshal([]byte(action.Data), &parsed)
+	// TODO: data is an interface {} (map[string]any)
+	// Maybe just do the JSON decoding in the action handler?
+	if stdErr != nil {
+		return ErrWrapperInvalidData.Wrap(stdErr).AddCategory(ErrTypeConfirm)
 	}
+
+	// TODO: standardise this error
+	ctx, cancel := context.WithTimeoutCause(context.Background(), MAX_ACTION_RUN_TIME, errors.New("action run time exceeded"))
+	defer cancel()
+	// TODO: how should this be coordinated with the service?
+	// TODO: should also stop new actions from being run during shutdown, that way the server service can be shut down at the same time. This service will just need a slightly longer timeout than it
 
 	return actionDef.Handler(&Action[any]{
 		Definition: &actionDef,
 		ExpiresAt:  action.ExpiresAt,
+		Context:    ctx,
 		Body:       &parsed,
 	})
 }
 
-func GetFullType(actionType string, version int) string {
+func GetVersionedType(actionType string, version int) string {
 	return fmt.Sprintf("%v_%v", actionType, version)
 }

@@ -42,13 +42,13 @@ type MessengerService interface {
 type MessageType string
 
 const (
-	MessageTest    = "test"
-	MessageRegular = "regular"
-	MessageLogin   = "login"
-	MessageReset   = "reset"
-	MessageLock    = "lock"
-	MessageFreeze  = "freeze"
-	Message2FA     = "2FA"
+	MessageTest     = "test"
+	MessageRegular  = "regular"
+	MessageLogin    = "login"
+	MessageReset    = "reset"
+	MessageLock     = "lock"
+	MessageSelfLock = "selfLock"
+	Message2FA      = "2FA"
 )
 
 type Message struct {

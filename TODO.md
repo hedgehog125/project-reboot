@@ -1,5 +1,8 @@
 # TODO
 
+-   Make util that allows returning a ContextError from endpoint handlers
+-   Use common.ErrWrapperDatabase as base for DB error wrappers
+-   Replace CategorizeError with AutoWrapError? ContextError could require common.Error rather than a standard error
 -   Account locking until a specified date for if you know you won't have access to your devices for a while
 -   Automatically delete expired 2FA actions
 -   Store timestamp in session so it can be double checked to ensure it's still valid by comparing to auth_timestamps_valid_from in users table
@@ -21,6 +24,7 @@
 -   Split endpoints into admin and normal?
 -   Switch to Railpack on Railway? Seems to automatically work with CGO when enabled
 -   Does log.Fatalf stop the shutdown logic running if the server crashes on startup?
+-   Use single mutex around database for simplicity, I'm already using SQLite and security is more important than performance
 
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 

@@ -1,6 +1,7 @@
 package twofactoractions
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -12,17 +13,19 @@ type Registry struct {
 	App     *common.App
 }
 
+type HandlerFunc[Body any] func(action *Action[Body]) *common.Error
 type ActionDefinition[Body any] struct {
 	ID       string
 	Version  int
-	Handler  func(action *Action[Body]) *common.Error
+	Handler  HandlerFunc[Body]
 	BodyType Body
 }
 
 type Action[T any] struct {
 	Definition *ActionDefinition[T]
 	ExpiresAt  time.Time
-	Body       *T
+	Context    context.Context
+	Body       T
 }
 
 func NewRegistry(app *common.App) *Registry {
@@ -33,7 +36,7 @@ func NewRegistry(app *common.App) *Registry {
 }
 
 func (registry *Registry) RegisterAction(action ActionDefinition[any]) {
-	fullID := GetFullType(action.ID, action.Version)
+	fullID := GetVersionedType(action.ID, action.Version)
 	if _, exists := registry.actions[fullID]; exists {
 		log.Fatalf("action with ID \"%s\" already exists", fullID)
 	}

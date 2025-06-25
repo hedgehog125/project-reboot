@@ -23,5 +23,10 @@ var ErrUnknownActionType = common.NewErrorWithCategories(
 	"unknown action type", common.ErrTypeTwoFactorAction,
 )
 
+// Note: this error shouldn't happen as ErrWrapperInvalidData should be returned when the action is created instead
+var ErrActionInvalidBody = common.NewErrorWithCategories(
+	"invalid body", // No package category as it's meant to be returned by action definition callbacks
+)
+
 var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeDatabase, common.ErrTypeTwoFactorAction)
 var ErrWrapperInvalidData = common.NewErrorWrapper(ErrTypeInvalidData, common.ErrTypeTwoFactorAction)

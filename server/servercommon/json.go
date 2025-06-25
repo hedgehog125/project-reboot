@@ -8,6 +8,7 @@ import (
 )
 
 func ParseBody(obj any, ctx *gin.Context) *ContextError {
+	// TODO: return the content of the error
 	if err := ctx.ShouldBindJSON(obj); err != nil {
 		return &ContextError{
 			Err:        err,
