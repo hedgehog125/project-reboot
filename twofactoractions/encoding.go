@@ -12,16 +12,16 @@ func (registry *Registry) Encode(fullType string, data any) (string, *common.Err
 		return "", ErrUnknownActionType.AddCategory(ErrTypeEncode)
 	}
 
-	encoded, err := json.Marshal(data)
-	if err != nil {
-		return "", ErrWrapperInvalidData.Wrap(err).AddCategory(ErrTypeEncode)
+	encoded, stdErr := json.Marshal(data)
+	if stdErr != nil {
+		return "", ErrWrapperInvalidData.Wrap(stdErr).AddCategory(ErrTypeEncode)
 	}
 
 	// TODO: is there a better way to do this? With reflection maybe?
-	temp := actionDef.BodyType
-	err = json.Unmarshal(encoded, &temp)
-	if err != nil {
-		return "", ErrWrapperInvalidData.Wrap(err).AddCategory(ErrTypeEncode)
+	temp := actionDef.BodyType()
+	stdErr = json.Unmarshal(encoded, temp)
+	if stdErr != nil {
+		return "", ErrWrapperInvalidData.Wrap(stdErr).AddCategory(ErrTypeEncode)
 	}
 
 	return string(encoded), nil

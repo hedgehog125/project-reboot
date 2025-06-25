@@ -52,9 +52,10 @@ const (
 )
 
 type Message struct {
-	Type MessageType
-	User *MessageUserInfo
-	Code string
+	Type  MessageType
+	User  *MessageUserInfo
+	Code  string
+	Until time.Time
 }
 
 // The info about the user provided to a Messenger

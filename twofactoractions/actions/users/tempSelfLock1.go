@@ -1,6 +1,8 @@
 package users
 
 import (
+	"fmt"
+
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
@@ -13,17 +15,18 @@ type TempSelfLock1Body struct {
 	Until    common.ISOTimeString `binding:"required" json:"until"`
 }
 
-func TempSelfLock1(app *common.App) twofactoractions.ActionDefinition[any] {
+func TempSelfLock1(app *common.App) twofactoractions.ActionDefinition {
 	dbClient := app.Database.Client()
 
-	return twofactoractions.ActionDefinition[any]{
-		ID:      "TEMP_SELF_LOCK",
-		Version: 1,
-		Handler: twofactoractions.TxHandler(dbClient, func(action *twofactoractions.Action[any], tx *ent.Tx) *common.Error {
-			// TODO: this is getting turned into a map somehow and not casting back?
-			body, ok := action.Body.(*TempSelfLock1Body)
-			if !ok {
-				return twofactoractions.ErrActionInvalidBody.Clone()
+	return twofactoractions.ActionDefinition{
+		ID:       "TEMP_SELF_LOCK",
+		Version:  1,
+		BodyType: func() any { return &TempSelfLock1Body{} },
+		Handler: twofactoractions.TxHandler(dbClient, func(action *twofactoractions.Action, tx *ent.Tx) *common.Error {
+			body := &TempSelfLock1Body{}
+			commErr := action.Decode(body)
+			if commErr != nil {
+				return commErr
 			}
 
 			_, stdErr := tx.User.Update().
@@ -38,13 +41,14 @@ func TempSelfLock1(app *common.App) twofactoractions.ActionDefinition[any] {
 				return commErr
 			}
 
-			app.Messenger.SendUsingAll(common.Message{
-				Type: common.MessageSelfLock,
-				User: userInfo,
+			errs := app.Messenger.SendUsingAll(common.Message{
+				Type:  common.MessageSelfLock,
+				User:  userInfo,
+				Until: body.Until.Time,
 			})
+			fmt.Println(errs) // TODO
 
 			return nil
 		}),
-		BodyType: TempSelfLock1Body{},
 	}
 }

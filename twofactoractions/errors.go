@@ -3,9 +3,10 @@ package twofactoractions
 import "github.com/hedgehog125/project-reboot/common"
 
 const (
-	ErrTypeCreate  = "create"
-	ErrTypeConfirm = "confirm"
-	ErrTypeEncode  = "encode"
+	ErrTypeCreate       = "create"
+	ErrTypeConfirm      = "confirm"
+	ErrTypeEncode       = "encode"
+	ErrTypeDecodeAction = "decode action" // From Action.Decode() method
 	// Lower level
 	ErrTypeInvalidData = "invalid data"
 )
@@ -23,10 +24,9 @@ var ErrUnknownActionType = common.NewErrorWithCategories(
 	"unknown action type", common.ErrTypeTwoFactorAction,
 )
 
-// Note: this error shouldn't happen as ErrWrapperInvalidData should be returned when the action is created instead
-var ErrActionInvalidBody = common.NewErrorWithCategories(
-	"invalid body", // No package category as it's meant to be returned by action definition callbacks
-)
-
 var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeDatabase, common.ErrTypeTwoFactorAction)
 var ErrWrapperInvalidData = common.NewErrorWrapper(ErrTypeInvalidData, common.ErrTypeTwoFactorAction)
+
+var ErrWrapperDecodeAction = common.NewErrorWrapper(
+	ErrTypeDecodeAction, common.ErrTypeTwoFactorAction,
+)

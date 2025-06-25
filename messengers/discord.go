@@ -45,13 +45,19 @@ func (discord *discord) Id() string {
 }
 
 func (discord *discord) Send(message common.Message) *common.Error {
-	session, sessionErr := discord.getSession()
-	if sessionErr != nil {
-		return sessionErr.AddCategory(ErrTypeSend)
+	// TODO: only sending the message once we know we have a format for it prevents the warning, but why does it happen in the first place?
+	formattedMessage, commErr := formatDefaultMessage(message)
+	if commErr != nil {
+		return commErr.AddCategory(ErrTypeSend)
 	}
-	openErr := session.Open()
-	if openErr != nil {
-		return ErrWrapperAPI.Wrap(openErr).AddCategory(ErrTypeSend)
+
+	session, commErr := discord.getSession()
+	if commErr != nil {
+		return commErr.AddCategory(ErrTypeSend)
+	}
+	stdErr := session.Open()
+	if stdErr != nil {
+		return ErrWrapperAPI.Wrap(stdErr).AddCategory(ErrTypeSend)
 	}
 
 	// TODO: why does calling close and returning here cause a log?
@@ -59,18 +65,13 @@ func (discord *discord) Send(message common.Message) *common.Error {
 	// Maybe need to explicitly stop listening for VC events since they aren't being used?
 	defer session.Close()
 
-	formattedMessage, formatErr := formatDefaultMessage(message)
-	if formatErr != nil {
-		return formatErr.AddCategory(ErrTypeSend)
+	channel, stdErr := session.UserChannelCreate(message.User.AlertDiscordId)
+	if stdErr != nil {
+		return ErrWrapperAPI.Wrap(stdErr).AddCategory(ErrTypeSend)
 	}
-
-	channel, createErr := session.UserChannelCreate(message.User.AlertDiscordId)
-	if createErr != nil {
-		return ErrWrapperAPI.Wrap(createErr).AddCategory(ErrTypeSend)
-	}
-	_, sendErr := session.ChannelMessageSend(channel.ID, formattedMessage)
-	if sendErr != nil {
-		return ErrWrapperAPI.Wrap(sendErr).AddCategory(ErrTypeSend)
+	_, stdErr = session.ChannelMessageSend(channel.ID, formattedMessage)
+	if stdErr != nil {
+		return ErrWrapperAPI.Wrap(stdErr).AddCategory(ErrTypeSend)
 	}
 
 	return nil

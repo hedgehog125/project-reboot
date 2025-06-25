@@ -3,7 +3,6 @@ package twofactoractions
 import (
 	"context"
 	"crypto/subtle"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -78,25 +77,17 @@ func (registry *Registry) Confirm(actionID uuid.UUID, code string) *common.Error
 		return ErrUnknownActionType.AddCategory(ErrTypeConfirm)
 	}
 
-	parsed := actionDef.BodyType
-	stdErr = json.Unmarshal([]byte(action.Data), &parsed)
-	// TODO: data is an interface {} (map[string]any)
-	// Maybe just do the JSON decoding in the action handler?
-	if stdErr != nil {
-		return ErrWrapperInvalidData.Wrap(stdErr).AddCategory(ErrTypeConfirm)
-	}
-
 	// TODO: standardise this error
 	ctx, cancel := context.WithTimeoutCause(context.Background(), MAX_ACTION_RUN_TIME, errors.New("action run time exceeded"))
 	defer cancel()
 	// TODO: how should this be coordinated with the service?
 	// TODO: should also stop new actions from being run during shutdown, that way the server service can be shut down at the same time. This service will just need a slightly longer timeout than it
 
-	return actionDef.Handler(&Action[any]{
+	return actionDef.Handler(&Action{
 		Definition: &actionDef,
 		ExpiresAt:  action.ExpiresAt,
 		Context:    ctx,
-		Body:       &parsed,
+		Body:       []byte(action.Data),
 	})
 }
 

@@ -22,7 +22,7 @@ func (group *RegistryGroup) Group(relativePath string) *RegistryGroup {
 	}
 }
 
-func (group *RegistryGroup) RegisterAction(action ActionDefinition[any]) {
+func (group *RegistryGroup) RegisterAction(action ActionDefinition) {
 	action.ID = joinPaths(group.path, action.ID)
 	group.Registry.RegisterAction(action)
 }

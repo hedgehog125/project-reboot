@@ -57,6 +57,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			ctx.Error(servercommon.SendUnauthorizedIfNotFound(stdErr))
 			return
 		}
+		// TODO: check the user isn't locked
 
 		if !core.CheckPassword(
 			body.Password,

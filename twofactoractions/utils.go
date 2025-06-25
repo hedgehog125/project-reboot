@@ -8,9 +8,9 @@ import (
 
 func TxHandler(
 	dbClient *ent.Client,
-	handler func(action *Action[any], tx *ent.Tx) *common.Error,
-) HandlerFunc[any] {
-	return func(action *Action[any]) *common.Error {
+	handler func(action *Action, tx *ent.Tx) *common.Error,
+) HandlerFunc {
+	return func(action *Action) *common.Error {
 		return dbcommon.WithTx(
 			action.Context,
 			dbClient,
