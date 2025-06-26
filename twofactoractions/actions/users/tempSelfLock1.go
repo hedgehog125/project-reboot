@@ -15,10 +15,10 @@ type TempSelfLock1Body struct {
 	Until    common.ISOTimeString `binding:"required" json:"until"`
 }
 
-func TempSelfLock1(app *common.App) twofactoractions.ActionDefinition {
+func TempSelfLock1(app *common.App) *twofactoractions.ActionDefinition {
 	dbClient := app.Database.Client()
 
-	return twofactoractions.ActionDefinition{
+	return &twofactoractions.ActionDefinition{
 		ID:       "TEMP_SELF_LOCK",
 		Version:  1,
 		BodyType: func() any { return &TempSelfLock1Body{} },

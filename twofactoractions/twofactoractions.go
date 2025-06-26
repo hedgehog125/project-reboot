@@ -71,8 +71,8 @@ func (registry *Registry) Confirm(actionID uuid.UUID, code string) *common.Error
 	if action.ExpiresAt.Before(registry.App.Clock.Now()) {
 		return ErrExpired.AddCategory(ErrTypeConfirm)
 	}
-	fullType := GetVersionedType(action.Type, action.Version)
-	actionDef, ok := registry.actions[fullType]
+	versionedType := GetVersionedType(action.Type, action.Version)
+	actionDef, ok := registry.actions[versionedType]
 	if !ok {
 		return ErrUnknownActionType.AddCategory(ErrTypeConfirm)
 	}
@@ -84,7 +84,7 @@ func (registry *Registry) Confirm(actionID uuid.UUID, code string) *common.Error
 	// TODO: should also stop new actions from being run during shutdown, that way the server service can be shut down at the same time. This service will just need a slightly longer timeout than it
 
 	return actionDef.Handler(&Action{
-		Definition: &actionDef,
+		Definition: actionDef,
 		ExpiresAt:  action.ExpiresAt,
 		Context:    ctx,
 		Body:       []byte(action.Data),
