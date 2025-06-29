@@ -14,7 +14,7 @@ type ConfirmPayload struct {
 }
 
 type ConfirmResponse struct {
-	Errors []string `binding:"required" json:"errors"`
+	Errors []servercommon.ErrorDetail `binding:"required" json:"errors"`
 }
 
 func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -28,7 +28,12 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 		parsedId, stdErr := uuid.Parse(ctx.Param("id"))
 		if stdErr != nil {
 			ctx.JSON(http.StatusBadRequest, ConfirmResponse{
-				Errors: []string{"ID_NOT_VALID_UUID"},
+				Errors: []servercommon.ErrorDetail{
+					{
+						Message: "ID is not a valid UUID",
+						Code:    "ID_NOT_VALID_UUID",
+					},
+				},
 			})
 			return
 		}
@@ -42,13 +47,13 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 					twofactoractions.ErrExpired,
 					twofactoractions.ErrWrongCode,
 				},
-				http.StatusUnauthorized, "",
+				http.StatusUnauthorized, nil,
 			))
 			return
 		}
 
 		ctx.JSON(http.StatusOK, ConfirmResponse{
-			Errors: []string{},
+			Errors: []servercommon.ErrorDetail{},
 		})
 	}
 }

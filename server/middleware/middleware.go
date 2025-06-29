@@ -3,7 +3,6 @@ package middleware
 // TODO: return ContextErrors
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -21,27 +20,35 @@ func NewErrorMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Next()
 
+		statusCode := -1
+		mergedDetails := []servercommon.ErrorDetail{}
 		for _, ginError := range ctx.Errors {
-			err := &servercommon.ContextError{}
-			if !errors.As(ginError.Err, &err) {
-				err = servercommon.NewContextError(ginError.Err)
-			}
-			err.Finish()
-
-			if err.ErrorCodes == nil {
-				if err.Status != -1 {
-					ctx.Status(err.Status)
+			serverErr := servercommon.NewError(ginError.Err)
+			if serverErr.Status != -1 {
+				if statusCode == -1 {
+					statusCode = serverErr.Status
+				} else {
+					statusCode = http.StatusInternalServerError
+					fmt.Printf(
+						"warning: API errors have different status codes: %d and %d\n",
+						statusCode, serverErr.Status,
+					)
 				}
-			} else {
-				ctx.JSON(err.Status, gin.H{
-					"errors": err.ErrorCodes,
-				})
 			}
+			mergedDetails = append(mergedDetails, serverErr.Details...)
 
-			common.DumpJSON(err)
-			fmt.Printf("request error:\n%v\n\n", err.Error())
+			// TODO: use slog
+			common.DumpJSON(serverErr)
+			fmt.Printf("request error:\n%v\n\n", serverErr.Error())
+		}
 
-			// TODO:
+		if len(ctx.Errors) != 0 {
+			if statusCode == -1 {
+				statusCode = http.StatusInternalServerError
+			}
+			ctx.JSON(statusCode, gin.H{
+				"errors": mergedDetails,
+			})
 		}
 	}
 }
@@ -61,7 +68,12 @@ func NewTimeoutMiddleware() gin.HandlerFunc {
 				return
 			}
 			ctx.AbortWithStatusJSON(http.StatusRequestTimeout, gin.H{
-				"errors": []string{"REQUEST_TIMED_OUT"},
+				"errors": []servercommon.ErrorDetail{
+					{
+						Message: "request timed out",
+						Code:    "REQUEST_TIMEOUT",
+					},
+				},
 			})
 		}),
 	)
@@ -72,21 +84,35 @@ func NewAdminProtectedMiddleware(state *common.State) gin.HandlerFunc {
 		headerValue := ctx.GetHeader("authorization")
 		if headerValue == "" {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"errors": []string{"MISSING_AUTHORIZATION_HEADER"},
+				"errors": []servercommon.ErrorDetail{
+					{
+						Message: "authorization header is required",
+						Code:    "MISSING_AUTHORIZATION_HEADER",
+					},
+				},
 			})
 			return
 		}
 		headerParts := strings.SplitN(headerValue, " ", 2)
-
 		if len(headerParts) != 2 {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"errors": []string{"MALFORMED_AUTHORIZATION_HEADER"},
+				"errors": []servercommon.ErrorDetail{
+					{
+						Message: "malformed authorization header",
+						Code:    "MALFORMED_AUTHORIZATION_HEADER",
+					},
+				},
 			})
 			return
 		}
 		if headerParts[0] != "AdminCode" {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"errors": []string{"UNSUPPORTED_AUTHORIZATION_SCHEME"},
+				"errors": []servercommon.ErrorDetail{
+					{
+						Message: "unsupported authorization scheme",
+						Code:    "UNSUPPORTED_AUTHORIZATION_SCHEME",
+					},
+				},
 			})
 			return
 		}
@@ -95,7 +121,12 @@ func NewAdminProtectedMiddleware(state *common.State) gin.HandlerFunc {
 			ctx.Next()
 		} else {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"errors": []string{"INVALID_ADMIN_CODE"},
+				"errors": []servercommon.ErrorDetail{
+					{
+						Message: "invalid admin code",
+						Code:    "INVALID_ADMIN_CODE",
+					},
+				},
 			})
 			return
 		}

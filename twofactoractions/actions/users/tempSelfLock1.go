@@ -21,7 +21,7 @@ func TempSelfLock1(app *common.App) *twofactoractions.ActionDefinition {
 	return &twofactoractions.ActionDefinition{
 		ID:       "TEMP_SELF_LOCK",
 		Version:  1,
-		BodyType: func() any { return &TempSelfLock1Body{} },
+		BodyType: &TempSelfLock1Body{},
 		Handler: twofactoractions.TxHandler(dbClient, func(action *twofactoractions.Action, tx *ent.Tx) *common.Error {
 			body := &TempSelfLock1Body{}
 			commErr := action.Decode(body)

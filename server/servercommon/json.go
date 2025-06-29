@@ -4,19 +4,18 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hedgehog125/project-reboot/common"
 )
 
-func ParseBody(obj any, ctx *gin.Context) *ContextError {
-	// TODO: return the content of the error
+func ParseBody(obj any, ctx *gin.Context) *Error {
+	// TODO: this is not secure. The error type should is a validator.ValidationErrors which should be processed
 	if err := ctx.ShouldBindJSON(obj); err != nil {
-		return &ContextError{
-			Err:        err,
-			Status:     http.StatusBadRequest,
-			ErrorCodes: []string{"INVALID_BODY_JSON"},
-			Category:   common.ErrTypeClient,
-			ShouldLog:  false,
-		}
+		return NewError(ErrWrapperParseBodyJson.Wrap(err)).
+			SetStatus(http.StatusBadRequest).
+			AddDetail(ErrorDetail{
+				Message: err.Error(),
+				Code:    "INVALID_BODY_JSON",
+			}).
+			DisableLogging()
 	}
 	return nil
 }

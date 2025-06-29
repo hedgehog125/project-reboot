@@ -1,8 +1,10 @@
 # TODO
 
--   Make util that allows returning a ContextError from endpoint handlers
+-   Job system
+-   -   Jobs should have a category. Maybe 10 network jobs can run simultaneously but only (1/4 \* max processes) compute at a time
+-   -   Would replace the current cron system
+-   Make util that allows returning a servercommon.Error from endpoint handlers
 -   Use common.ErrWrapperDatabase as base for DB error wrappers
--   Replace CategorizeError with AutoWrapError? ContextError could require common.Error rather than a standard error
 -   Account locking until a specified date for if you know you won't have access to your devices for a while
 -   Automatically delete expired 2FA actions
 -   Store timestamp in session so it can be double checked to ensure it's still valid by comparing to auth_timestamps_valid_from in users table
@@ -25,6 +27,7 @@
 -   Switch to Railpack on Railway? Seems to automatically work with CGO when enabled
 -   Does log.Fatalf stop the shutdown logic running if the server crashes on startup?
 -   Use single mutex around database for simplicity, I'm already using SQLite and security is more important than performance
+-   Require both admin and users to click a link every 2 weeks (unless already locked) to confirm their contacts are working. If they don't click it, users will automatically lock and have to be unlocked by an admin. If the admin doesn't, all users will automatically lock
 
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 

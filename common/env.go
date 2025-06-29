@@ -48,9 +48,10 @@ func RequireBoolEnv(name string) bool {
 	rawValue := RequireEnv(name)
 	lower := strings.ToLower(rawValue)
 
-	if lower == "true" {
+	switch lower {
+	case "true":
 		return true
-	} else if lower == "false" {
+	case "false":
 		return false
 	}
 

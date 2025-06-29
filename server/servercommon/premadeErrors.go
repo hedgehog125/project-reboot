@@ -1,6 +1,7 @@
 package servercommon
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -11,36 +12,27 @@ const (
 	ErrTypeBadRequest = "bad request"
 )
 
-var ErrUnauthorized = common.NewErrorWithCategories("unauthorized", common.ErrTypeClient)
-var ErrNotFound = common.NewErrorWithCategories("not found", common.ErrTypeClient)
+var ErrUnauthorized = NewError(common.NewErrorWithCategories(
+	"unauthorized", common.ErrTypeClient, common.ErrTypeServerCommon,
+)).SetStatus(http.StatusUnauthorized)
+var ErrNotFound = NewError(common.NewErrorWithCategories(
+	"not found", common.ErrTypeClient, common.ErrTypeServerCommon,
+)).SetStatus(http.StatusNotFound).DisableLogging()
+var ErrWrapperBadRequest = common.NewErrorWrapper(ErrTypeBadRequest, common.ErrTypeClient, common.ErrTypeServerCommon)
 
-func NewUnauthorizedError() *ContextError {
-	return &ContextError{
-		Err:        ErrUnauthorized,
-		Status:     http.StatusUnauthorized,
-		ErrorCodes: []string{},
-		Category:   ErrUnauthorized.GeneralCategory(),
-		ShouldLog:  true,
-	}
+func NewUnauthorizedError() *Error {
+	return ErrUnauthorized.Clone()
+}
+func NewNotFoundError() *Error {
+	return ErrNotFound.Clone()
 }
 
-func NewNotFoundError() *ContextError {
-	return &ContextError{
-		Err:        ErrNotFound,
-		Status:     http.StatusNotFound,
-		ErrorCodes: []string{},
-		Category:   ErrNotFound.GeneralCategory(),
-		ShouldLog:  false,
-	}
-}
-
-func NewBadRequestError(fieldName string, message string) *ContextError {
-	err := common.NewErrorWithCategories(fmt.Sprintf("%v: %v", fieldName, message), common.ErrTypeClient, ErrTypeBadRequest)
-	return &ContextError{
-		Err:        err,
-		Status:     http.StatusBadRequest,
-		ErrorCodes: []string{}, // TODO: add error code?
-		Category:   err.GeneralCategory(),
-		ShouldLog:  false,
-	}
+func NewBadRequestError(fieldName string, message string, errorCode string) *Error {
+	fullMessage := fmt.Sprintf("%v: %v", fieldName, message)
+	return NewError(ErrWrapperBadRequest.Wrap(errors.New(fullMessage))).
+		SetStatus(http.StatusBadRequest).
+		AddDetail(ErrorDetail{
+			Message: fullMessage,
+			Code:    errorCode,
+		}).DisableLogging()
 }

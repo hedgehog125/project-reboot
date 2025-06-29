@@ -9,7 +9,7 @@ type AdminLockPayload struct {
 	Username string `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
 }
 type AdminLockResponse struct {
-	Errors []string `binding:"required"  json:"errors"`
+	Errors []servercommon.ErrorDetail `binding:"required" json:"errors"`
 }
 
 // Admin route

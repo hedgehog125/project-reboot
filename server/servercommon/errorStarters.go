@@ -1,17 +1,23 @@
-// Boilerplate to shorten the start of a ContextError chain
+// Boilerplate to shorten the start of a servercommon.Error chain
 package servercommon
 
-func Send404IfNotFound(err error) *ContextError {
-	return NewContextError(err).Send404IfNotFound()
+func Send404IfNotFound(err error) *Error {
+	return NewError(err).Send404IfNotFound()
 }
 
-func SendUnauthorizedIfNotFound(err error) *ContextError {
-	return NewContextError(err).SendUnauthorizedIfNotFound()
+func SendUnauthorizedIfNotFound(err error) *Error {
+	return NewError(err).SendUnauthorizedIfNotFound()
 }
 
-func ExpectError(err error, expectedError error, statusCode int, errorCode string) *ContextError {
-	return NewContextError(err).Expect(expectedError, statusCode, errorCode)
+func ExpectError(
+	err error, expectedError error,
+	statusCode int, detail *ErrorDetail,
+) *Error {
+	return NewError(err).Expect(expectedError, statusCode, detail)
 }
-func ExpectAnyOfErrors(err error, expectedErrors []error, statusCode int, errorCode string) *ContextError {
-	return NewContextError(err).ExpectAnyOf(expectedErrors, statusCode, errorCode)
+func ExpectAnyOfErrors(
+	err error, expectedErrors []error,
+	statusCode int, detail *ErrorDetail,
+) *Error {
+	return NewError(err).ExpectAnyOf(expectedErrors, statusCode, detail)
 }

@@ -22,7 +22,7 @@ type RegisterPayload struct {
 	Mime     string `binding:"required,min=1,max=256"                   json:"mime"`
 }
 type RegisterOrUpdateResponse struct {
-	Errors []string `binding:"required" json:"errors"`
+	Errors []servercommon.ErrorDetail `binding:"required" json:"errors"`
 }
 
 func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -38,7 +38,12 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 		contentBytes, stdErr := base64.StdEncoding.DecodeString(body.Content)
 		if stdErr != nil {
 			ctx.JSON(http.StatusBadRequest, RegisterOrUpdateResponse{
-				Errors: []string{"MALFORMED_CONTENT"},
+				Errors: []servercommon.ErrorDetail{
+					{
+						Message: "content is not valid base64",
+						Code:    "MALFORMED_CONTENT",
+					},
+				},
 			})
 			return
 		}
@@ -86,7 +91,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusCreated, RegisterOrUpdateResponse{
-			Errors: []string{},
+			Errors: []servercommon.ErrorDetail{},
 		})
 	}
 }

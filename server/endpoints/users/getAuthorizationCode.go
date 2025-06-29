@@ -19,10 +19,10 @@ type GetAuthorizationCodePayload struct {
 }
 
 type GetAuthorizationCodeResponse struct {
-	Errors                   []string  `binding:"required"              json:"errors"`
-	MessagesSent             []string  `json:"messagesSent"`
-	AuthorizationCode        string    `json:"authorizationCode"`
-	AuthorizationCodeValidAt time.Time `json:"authorizationCodeValidAt"`
+	Errors                   []servercommon.ErrorDetail `binding:"required" json:"errors"`
+	MessagesSent             []string                   `json:"messagesSent"`
+	AuthorizationCode        string                     `json:"authorizationCode"`
+	AuthorizationCodeValidAt time.Time                  `json:"authorizationCodeValidAt"`
 }
 
 func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -81,7 +81,12 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		if len(errs) == len(messengerIDs) {
 			// We aren't sure if this error is the client or server's fault
 			ctx.JSON(http.StatusBadRequest, SetContactsResponse{
-				Errors:       []string{"ALL_TEST_MESSAGES_FAILED"},
+				Errors: []servercommon.ErrorDetail{
+					{
+						Message: "all messages failed",
+						Code:    "ALL_MESSAGES_FAILED",
+					},
+				},
 				MessagesSent: []string{},
 			})
 			return
@@ -105,7 +110,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusOK, GetAuthorizationCodeResponse{
-			Errors:                   []string{},
+			Errors:                   []servercommon.ErrorDetail{},
 			MessagesSent:             common.GetSuccessfulActionIDs(messengerIDs, errs),
 			AuthorizationCode:        base64.StdEncoding.EncodeToString(authCode),
 			AuthorizationCodeValidAt: validAt,

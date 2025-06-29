@@ -29,6 +29,7 @@ const (
 	ErrTypeTwoFactorAction = "two factor action [package]"
 	ErrTypeMessengers      = "messengers [package]"
 	ErrTypeDbCommon        = "db common [package]"
+	ErrTypeServerCommon    = "server common [package]"
 	// Similar idea here if it's unknown
 )
 
@@ -128,6 +129,12 @@ func (err *Error) GeneralCategory() string {
 	return category
 }
 
+// requiredCategories is highest to lowest level e.g "auth [package]", "create user", common.ErrTypeDatabase
+func (err *Error) HasCategories(requiredCategories ...string) bool {
+	reversedCategories := slices.Clone(err.Categories)
+	slices.Reverse(reversedCategories) // Highest to lowest level
+	return CheckPathPattern(reversedCategories, slices.Concat(requiredCategories, []string{"***"}))
+}
 func (err *Error) HighestCategory() string {
 	return err.Categories[len(err.Categories)-1]
 }
@@ -172,18 +179,12 @@ func (err *Error) RemoveLowestCategory() *Error {
 
 	return copiedErr
 }
+
 func (err Error) Clone() *Error {
 	copiedErr := err
 	copiedErr.Categories = slices.Clone(err.Categories)
 
 	return &copiedErr
-}
-
-// requiredCategories is highest to lowest level e.g "auth [package]", "create user", common.ErrTypeDatabase
-func (err *Error) HasCategories(requiredCategories ...string) bool {
-	reversedCategories := slices.Clone(err.Categories)
-	slices.Reverse(reversedCategories) // Highest to lowest level
-	return CheckPathPattern(reversedCategories, slices.Concat(requiredCategories, []string{"***"}))
 }
 
 // categories is lowest to highest level, e.g. "constraint", common.ErrTypeDatabase, "create profile", "create user", "auth [package]"
@@ -251,13 +252,15 @@ func GetLastCategoryWithTag(categories []string, requiredTag string) (string, in
 	return "", -1
 }
 
-func CategorizeError(err error) string {
+func AutoWrapError(err error) *Error {
 	var commErr *Error
 	if errors.As(err, &commErr) {
-		return commErr.GeneralCategory()
+		return commErr
 	}
+
+	commErr = WrapErrorWithCategories(err, "auto wrapped")
 	if errors.As(err, &sqlite3.Error{}) {
-		return ErrTypeDatabase
+		return ErrWrapperDatabase.Wrap(commErr)
 	}
 	if ent.IsConstraintError(err) ||
 		ent.IsNotFound(err) ||
@@ -265,10 +268,10 @@ func CategorizeError(err error) string {
 		ent.IsNotSingular(err) ||
 		ent.IsValidationError(err) ||
 		errors.Is(err, ent.ErrTxStarted) {
-		return ErrTypeDatabase
+		return ErrWrapperDatabase.Wrap(commErr)
 	}
 
-	return ""
+	return commErr
 }
 
 type ErrorWrapper interface {
@@ -328,6 +331,7 @@ func (errWrapper *DynamicErrorWrapper) Wrap(err error) *Error {
 	return errWrapper.callback(err)
 }
 
+// TODO: rename and probably rework
 type ContextPanic struct {
 	Message       string
 	ShouldRecover bool

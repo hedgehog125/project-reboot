@@ -16,8 +16,8 @@ type SetContactsPayload struct {
 	Email         string `binding:"max=256"                                  json:"email"`
 }
 type SetContactsResponse struct {
-	Errors       []string `binding:"required"  json:"errors"`
-	MessagesSent []string `json:"messagesSent"`
+	Errors       []servercommon.ErrorDetail `binding:"required" json:"errors"`
+	MessagesSent []string                   `json:"messagesSent"`
 }
 
 func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -51,7 +51,12 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 		messengerIds := messenger.IDs()
 		if len(errs) == len(messengerIds) {
 			ctx.JSON(http.StatusInternalServerError, SetContactsResponse{ // We aren't sure if this error is the client or server's fault
-				Errors:       []string{"ALL_TEST_MESSAGES_FAILED"},
+				Errors: []servercommon.ErrorDetail{
+					{
+						Message: "all messages failed",
+						Code:    "ALL_MESSAGES_FAILED",
+					},
+				},
 				MessagesSent: []string{},
 			})
 			return
@@ -60,7 +65,7 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 		// TODO: log these errors
 
 		ctx.JSON(http.StatusOK, SetContactsResponse{
-			Errors:       []string{},
+			Errors:       []servercommon.ErrorDetail{},
 			MessagesSent: common.GetSuccessfulActionIDs(messengerIds, errs),
 		})
 	}

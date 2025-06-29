@@ -21,8 +21,8 @@ type SelfLockPayload struct {
 	Until    common.ISOTimeString `binding:"required" json:"until"`
 }
 type SelfLockResponse struct {
-	Errors            []string `binding:"required"  json:"errors"`
-	TwoFactorActionID string   `json:"twoFactorActionID"`
+	Errors            []servercommon.ErrorDetail `binding:"required" json:"errors"`
+	TwoFactorActionID string                     `json:"twoFactorActionID"`
 }
 
 func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -102,7 +102,12 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		if len(errs) == len(messenger.IDs()) {
 			// We aren't sure if this error is the client or server's fault
 			ctx.JSON(http.StatusBadRequest, SetContactsResponse{
-				Errors:       []string{"ALL_MESSAGES_FAILED"},
+				Errors: []servercommon.ErrorDetail{
+					{
+						Message: "all messages failed",
+						Code:    "ALL_MESSAGES_FAILED",
+					},
+				},
 				MessagesSent: []string{},
 			})
 			return
@@ -111,7 +116,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		// TODO: log these errors
 
 		ctx.JSON(http.StatusCreated, SelfLockResponse{
-			Errors:            []string{},
+			Errors:            []servercommon.ErrorDetail{},
 			TwoFactorActionID: actionID.String(),
 		})
 	}

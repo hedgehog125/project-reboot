@@ -24,7 +24,8 @@ var ErrUnknownActionType = common.NewErrorWithCategories(
 	"unknown action type", common.ErrTypeTwoFactorAction,
 )
 
-var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeDatabase, common.ErrTypeTwoFactorAction)
+// TODO: test this
+var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeTwoFactorAction).SetChild(common.ErrWrapperDatabase)
 var ErrWrapperInvalidData = common.NewErrorWrapper(ErrTypeInvalidData, common.ErrTypeTwoFactorAction)
 
 var ErrWrapperDecodeAction = common.NewErrorWrapper(

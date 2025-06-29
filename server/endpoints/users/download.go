@@ -21,11 +21,11 @@ type DownloadPayload struct {
 }
 
 type DownloadResponse struct {
-	Errors                   []string   `binding:"required"              json:"errors"`
-	AuthorizationCodeValidAt *time.Time `json:"authorizationCodeValidAt"`
-	Content                  []byte     `json:"content"`
-	Filename                 string     `json:"filename"`
-	Mime                     string     `json:"mime"`
+	Errors                   []servercommon.ErrorDetail `binding:"required" json:"errors"`
+	AuthorizationCodeValidAt *time.Time                 `json:"authorizationCodeValidAt"`
+	Content                  []byte                     `json:"content"`
+	Filename                 string                     `json:"filename"`
+	Mime                     string                     `json:"mime"`
 }
 
 func Download(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -42,7 +42,12 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 		givenAuthCodeBytes, stdErr := base64.StdEncoding.DecodeString(body.AuthorizationCode)
 		if stdErr != nil {
 			ctx.JSON(http.StatusBadRequest, DownloadResponse{
-				Errors: []string{"MALFORMED_AUTH_CODE"},
+				Errors: []servercommon.ErrorDetail{
+					{
+						Message: "auth code is not valid base64",
+						Code:    "MALFORMED_AUTH_CODE",
+					},
+				},
 			})
 			return
 		}
@@ -58,7 +63,12 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		if clock.Now().UTC().Before(sessionRow.CodeValidFrom) {
 			ctx.JSON(http.StatusConflict, DownloadResponse{
-				Errors:                   []string{"CODE_NOT_VALID_YET"},
+				Errors: []servercommon.ErrorDetail{
+					{
+						Message: "authorization code is not valid yet",
+						Code:    "CODE_NOT_VALID_YET",
+					},
+				},
 				AuthorizationCodeValidAt: &sessionRow.CodeValidFrom,
 			})
 			return
@@ -100,12 +110,15 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			},
 		})
 		if commErr != nil {
-			ctx.Error(servercommon.ExpectError(commErr, core.ErrIncorrectPassword, http.StatusUnauthorized, "UNAUTHORIZED"))
+			ctx.Error(servercommon.ExpectError(
+				commErr, core.ErrIncorrectPassword,
+				http.StatusUnauthorized, nil,
+			))
 			return
 		}
 
 		ctx.JSON(http.StatusOK, DownloadResponse{
-			Errors:                   []string{},
+			Errors:                   []servercommon.ErrorDetail{},
 			AuthorizationCodeValidAt: nil,
 			Content:                  decrypted,
 			Filename:                 userRow.FileName,

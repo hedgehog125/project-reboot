@@ -2,66 +2,101 @@ package servercommon
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
-type ContextError struct {
-	Err        error
-	Status     int // Set to -1 to keep the current code
-	ErrorCodes []string
-	Category   string
-	ShouldLog  bool
+const (
+	ErrTypeParseBodyJson = "parse body json"
+)
+
+var ErrWrapperParseBodyJson = common.NewErrorWrapper(
+	ErrTypeParseBodyJson, common.ErrTypeClient,
+	common.ErrTypeServerCommon,
+)
+
+type CommonError = common.Error
+type Error struct {
+	CommonError
+	Status    int // Set to -1 to keep the current code
+	Details   []ErrorDetail
+	ShouldLog bool
+}
+type ErrorDetail struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
 }
 
-func (err *ContextError) Error() string {
-	return err.Err.Error()
-}
+func NewError(err error) *Error {
+	serverErr := &Error{}
+	if errors.As(err, &serverErr) {
+		return serverErr.Clone()
+	}
 
-func (err *ContextError) Unwrap() error {
-	return err.Err
-}
-
-func NewContextError(err error) *ContextError {
-	return &ContextError{
-		Err:        err,
-		Status:     500,
-		ErrorCodes: []string{},
-		Category:   common.CategorizeError(err),
-		ShouldLog:  true,
+	commErr := &common.Error{}
+	if !errors.As(err, &commErr) {
+		commErr = common.AutoWrapError(err)
+	}
+	return &Error{
+		CommonError: *commErr,
+		Status:      -1,
+		Details:     []ErrorDetail{},
+		ShouldLog:   true,
 	}
 }
 
-// Adds the final defaults
-func (err *ContextError) Finish() *ContextError {
-	if err.Status == 500 {
-		if err.ErrorCodes != nil {
-			err.ErrorCodes = append(err.ErrorCodes, "INTERNAL")
-		}
+func (err *Error) Clone() *Error {
+	copiedErr := &Error{
+		CommonError: *err.CommonError.Clone(),
+		Status:      err.Status,
+		Details:     slices.Clone(err.Details),
+		ShouldLog:   err.ShouldLog,
 	}
-
-	return err
+	return copiedErr
+}
+func (err *Error) AddDetails(details ...ErrorDetail) *Error {
+	copiedErr := err.Clone()
+	copiedErr.Details = append(copiedErr.Details, details...)
+	return copiedErr
+}
+func (err *Error) AddDetail(detail ErrorDetail) *Error {
+	return err.AddDetails(detail)
+}
+func (err *Error) SetStatus(code int) *Error {
+	copiedErr := err.Clone()
+	copiedErr.Status = code
+	return copiedErr
+}
+func (err *Error) SetShouldLog(shouldLog bool) *Error {
+	copiedErr := err.Clone()
+	copiedErr.ShouldLog = shouldLog
+	return copiedErr
+}
+func (err *Error) DisableLogging() *Error {
+	return err.SetShouldLog(false)
+}
+func (err *Error) EnableLogging() *Error {
+	return err.SetShouldLog(true)
 }
 
-func (err *ContextError) Send404IfNotFound() *ContextError {
-	return sendStatusIfNotFound(err, 404, "", true)
+func (err *Error) Send404IfNotFound() *Error {
+	return err.sendStatusIfNotFound(404, nil, true)
 }
-
-func (err *ContextError) SendUnauthorizedIfNotFound() *ContextError {
-	return sendStatusIfNotFound(err, 401, "", false)
+func (err *Error) SendUnauthorizedIfNotFound() *Error {
+	return err.sendStatusIfNotFound(401, nil, false)
 }
-
-func (err *ContextError) Expect(
+func (err *Error) Expect(
 	expectedError error,
-	statusCode int, errorCode string,
-) *ContextError {
-	return sendStatusAndCodeIfCondition(err, errors.Is(err, expectedError), statusCode, errorCode, true)
+	statusCode int, detail *ErrorDetail,
+) *Error {
+	return err.sendStatusAndDetailIfCondition(errors.Is(err, expectedError), statusCode, detail, true)
 }
-func (err *ContextError) ExpectAnyOf(
+func (err *Error) ExpectAnyOf(
 	expectedErrors []error,
-	statusCode int, errorCode string,
-) *ContextError {
+	statusCode int, detail *ErrorDetail,
+) *Error {
 	isExpected := false
 	for _, expectedErr := range expectedErrors {
 		if errors.Is(err, expectedErr) {
@@ -69,31 +104,30 @@ func (err *ContextError) ExpectAnyOf(
 			break
 		}
 	}
-	return sendStatusAndCodeIfCondition(err, isExpected, statusCode, errorCode, true)
+	return err.sendStatusAndDetailIfCondition(isExpected, statusCode, detail, true)
+}
+func (err *Error) sendStatusIfNotFound(
+	statusCode int, detail *ErrorDetail,
+	preventLog bool,
+) *Error {
+	return err.sendStatusAndDetailIfCondition(ent.IsNotFound(err.Err), statusCode, detail, preventLog)
 }
 
-func sendStatusIfNotFound(
-	err *ContextError, statusCode int,
-	errorCode string, preventLog bool,
-) *ContextError {
-	return sendStatusAndCodeIfCondition(err, ent.IsNotFound(err.Err), statusCode, errorCode, preventLog)
-}
-
-func sendStatusAndCodeIfCondition(
-	err *ContextError, condition bool, statusCode int,
-	errorCode string, preventLog bool,
-) *ContextError {
+func (err *Error) sendStatusAndDetailIfCondition(
+	condition bool, statusCode int,
+	detail *ErrorDetail, preventLog bool,
+) *Error {
+	copiedErr := err.Clone()
 	if condition {
-		err.Category = common.ErrTypeClient
 		if statusCode != -1 {
-			err.Status = statusCode
+			copiedErr.Status = statusCode
 		}
-		if errorCode != "" {
-			err.ErrorCodes = append(err.ErrorCodes, errorCode)
+		if detail != nil {
+			copiedErr.Details = append(copiedErr.Details, *detail)
 		}
 		if preventLog {
-			err.ShouldLog = false
+			copiedErr.ShouldLog = false
 		}
 	}
-	return err
+	return copiedErr
 }
