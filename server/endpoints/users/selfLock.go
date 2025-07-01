@@ -77,7 +77,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			"users/TEMP_SELF_LOCK", 1,
 			clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
 			//exhaustruct:enforce
-			useractions.TempSelfLock1Body{
+			&useractions.TempSelfLock1Body{
 				// TODO: can this be accessed through the registry instead?
 				Username: body.Username,
 				Until:    common.ISOTimeString{Time: until},
