@@ -47,6 +47,9 @@ func NewError(err error) *Error {
 	}
 }
 
+func (err *Error) Unwrap() error {
+	return err.StandardError()
+}
 func (err *Error) Clone() *Error {
 	copiedErr := &Error{
 		CommonError: *err.CommonError.Clone(),
