@@ -25,11 +25,9 @@ func (User) Fields() []ent.Field {
 		field.String("mime").NotEmpty(),
 		field.Bytes("nonce").NotEmpty(),
 		field.Bytes("keySalt").NotEmpty(),
-		field.Bytes("passwordHash").NotEmpty(),
-		field.Bytes("passwordSalt").NotEmpty(),
 		field.Uint32("hashTime"),
 		field.Uint32("hashMemory"),
-		field.Uint32("hashKeyLen"),
+		field.Uint8("hashThreads"),
 	}
 }
 

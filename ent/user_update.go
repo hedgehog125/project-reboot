@@ -151,18 +151,6 @@ func (uu *UserUpdate) SetKeySalt(b []byte) *UserUpdate {
 	return uu
 }
 
-// SetPasswordHash sets the "passwordHash" field.
-func (uu *UserUpdate) SetPasswordHash(b []byte) *UserUpdate {
-	uu.mutation.SetPasswordHash(b)
-	return uu
-}
-
-// SetPasswordSalt sets the "passwordSalt" field.
-func (uu *UserUpdate) SetPasswordSalt(b []byte) *UserUpdate {
-	uu.mutation.SetPasswordSalt(b)
-	return uu
-}
-
 // SetHashTime sets the "hashTime" field.
 func (uu *UserUpdate) SetHashTime(u uint32) *UserUpdate {
 	uu.mutation.ResetHashTime()
@@ -205,24 +193,24 @@ func (uu *UserUpdate) AddHashMemory(u int32) *UserUpdate {
 	return uu
 }
 
-// SetHashKeyLen sets the "hashKeyLen" field.
-func (uu *UserUpdate) SetHashKeyLen(u uint32) *UserUpdate {
-	uu.mutation.ResetHashKeyLen()
-	uu.mutation.SetHashKeyLen(u)
+// SetHashThreads sets the "hashThreads" field.
+func (uu *UserUpdate) SetHashThreads(u uint8) *UserUpdate {
+	uu.mutation.ResetHashThreads()
+	uu.mutation.SetHashThreads(u)
 	return uu
 }
 
-// SetNillableHashKeyLen sets the "hashKeyLen" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableHashKeyLen(u *uint32) *UserUpdate {
+// SetNillableHashThreads sets the "hashThreads" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableHashThreads(u *uint8) *UserUpdate {
 	if u != nil {
-		uu.SetHashKeyLen(*u)
+		uu.SetHashThreads(*u)
 	}
 	return uu
 }
 
-// AddHashKeyLen adds u to the "hashKeyLen" field.
-func (uu *UserUpdate) AddHashKeyLen(u int32) *UserUpdate {
-	uu.mutation.AddHashKeyLen(u)
+// AddHashThreads adds u to the "hashThreads" field.
+func (uu *UserUpdate) AddHashThreads(u int8) *UserUpdate {
+	uu.mutation.AddHashThreads(u)
 	return uu
 }
 
@@ -326,16 +314,6 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.PasswordHash(); ok {
-		if err := user.PasswordHashValidator(v); err != nil {
-			return &ValidationError{Name: "passwordHash", err: fmt.Errorf(`ent: validator failed for field "User.passwordHash": %w`, err)}
-		}
-	}
-	if v, ok := uu.mutation.PasswordSalt(); ok {
-		if err := user.PasswordSaltValidator(v); err != nil {
-			return &ValidationError{Name: "passwordSalt", err: fmt.Errorf(`ent: validator failed for field "User.passwordSalt": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -384,12 +362,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.KeySalt(); ok {
 		_spec.SetField(user.FieldKeySalt, field.TypeBytes, value)
 	}
-	if value, ok := uu.mutation.PasswordHash(); ok {
-		_spec.SetField(user.FieldPasswordHash, field.TypeBytes, value)
-	}
-	if value, ok := uu.mutation.PasswordSalt(); ok {
-		_spec.SetField(user.FieldPasswordSalt, field.TypeBytes, value)
-	}
 	if value, ok := uu.mutation.HashTime(); ok {
 		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
 	}
@@ -402,11 +374,11 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.AddedHashMemory(); ok {
 		_spec.AddField(user.FieldHashMemory, field.TypeUint32, value)
 	}
-	if value, ok := uu.mutation.HashKeyLen(); ok {
-		_spec.SetField(user.FieldHashKeyLen, field.TypeUint32, value)
+	if value, ok := uu.mutation.HashThreads(); ok {
+		_spec.SetField(user.FieldHashThreads, field.TypeUint8, value)
 	}
-	if value, ok := uu.mutation.AddedHashKeyLen(); ok {
-		_spec.AddField(user.FieldHashKeyLen, field.TypeUint32, value)
+	if value, ok := uu.mutation.AddedHashThreads(); ok {
+		_spec.AddField(user.FieldHashThreads, field.TypeUint8, value)
 	}
 	if uu.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -595,18 +567,6 @@ func (uuo *UserUpdateOne) SetKeySalt(b []byte) *UserUpdateOne {
 	return uuo
 }
 
-// SetPasswordHash sets the "passwordHash" field.
-func (uuo *UserUpdateOne) SetPasswordHash(b []byte) *UserUpdateOne {
-	uuo.mutation.SetPasswordHash(b)
-	return uuo
-}
-
-// SetPasswordSalt sets the "passwordSalt" field.
-func (uuo *UserUpdateOne) SetPasswordSalt(b []byte) *UserUpdateOne {
-	uuo.mutation.SetPasswordSalt(b)
-	return uuo
-}
-
 // SetHashTime sets the "hashTime" field.
 func (uuo *UserUpdateOne) SetHashTime(u uint32) *UserUpdateOne {
 	uuo.mutation.ResetHashTime()
@@ -649,24 +609,24 @@ func (uuo *UserUpdateOne) AddHashMemory(u int32) *UserUpdateOne {
 	return uuo
 }
 
-// SetHashKeyLen sets the "hashKeyLen" field.
-func (uuo *UserUpdateOne) SetHashKeyLen(u uint32) *UserUpdateOne {
-	uuo.mutation.ResetHashKeyLen()
-	uuo.mutation.SetHashKeyLen(u)
+// SetHashThreads sets the "hashThreads" field.
+func (uuo *UserUpdateOne) SetHashThreads(u uint8) *UserUpdateOne {
+	uuo.mutation.ResetHashThreads()
+	uuo.mutation.SetHashThreads(u)
 	return uuo
 }
 
-// SetNillableHashKeyLen sets the "hashKeyLen" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableHashKeyLen(u *uint32) *UserUpdateOne {
+// SetNillableHashThreads sets the "hashThreads" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableHashThreads(u *uint8) *UserUpdateOne {
 	if u != nil {
-		uuo.SetHashKeyLen(*u)
+		uuo.SetHashThreads(*u)
 	}
 	return uuo
 }
 
-// AddHashKeyLen adds u to the "hashKeyLen" field.
-func (uuo *UserUpdateOne) AddHashKeyLen(u int32) *UserUpdateOne {
-	uuo.mutation.AddHashKeyLen(u)
+// AddHashThreads adds u to the "hashThreads" field.
+func (uuo *UserUpdateOne) AddHashThreads(u int8) *UserUpdateOne {
+	uuo.mutation.AddHashThreads(u)
 	return uuo
 }
 
@@ -783,16 +743,6 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.PasswordHash(); ok {
-		if err := user.PasswordHashValidator(v); err != nil {
-			return &ValidationError{Name: "passwordHash", err: fmt.Errorf(`ent: validator failed for field "User.passwordHash": %w`, err)}
-		}
-	}
-	if v, ok := uuo.mutation.PasswordSalt(); ok {
-		if err := user.PasswordSaltValidator(v); err != nil {
-			return &ValidationError{Name: "passwordSalt", err: fmt.Errorf(`ent: validator failed for field "User.passwordSalt": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -858,12 +808,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.KeySalt(); ok {
 		_spec.SetField(user.FieldKeySalt, field.TypeBytes, value)
 	}
-	if value, ok := uuo.mutation.PasswordHash(); ok {
-		_spec.SetField(user.FieldPasswordHash, field.TypeBytes, value)
-	}
-	if value, ok := uuo.mutation.PasswordSalt(); ok {
-		_spec.SetField(user.FieldPasswordSalt, field.TypeBytes, value)
-	}
 	if value, ok := uuo.mutation.HashTime(); ok {
 		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
 	}
@@ -876,11 +820,11 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.AddedHashMemory(); ok {
 		_spec.AddField(user.FieldHashMemory, field.TypeUint32, value)
 	}
-	if value, ok := uuo.mutation.HashKeyLen(); ok {
-		_spec.SetField(user.FieldHashKeyLen, field.TypeUint32, value)
+	if value, ok := uuo.mutation.HashThreads(); ok {
+		_spec.SetField(user.FieldHashThreads, field.TypeUint8, value)
 	}
-	if value, ok := uuo.mutation.AddedHashKeyLen(); ok {
-		_spec.AddField(user.FieldHashKeyLen, field.TypeUint32, value)
+	if value, ok := uuo.mutation.AddedHashThreads(); ok {
+		_spec.AddField(user.FieldHashThreads, field.TypeUint8, value)
 	}
 	if uuo.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

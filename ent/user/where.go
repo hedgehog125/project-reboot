@@ -105,16 +105,6 @@ func KeySalt(v []byte) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldKeySalt, v))
 }
 
-// PasswordHash applies equality check predicate on the "passwordHash" field. It's identical to PasswordHashEQ.
-func PasswordHash(v []byte) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPasswordHash, v))
-}
-
-// PasswordSalt applies equality check predicate on the "passwordSalt" field. It's identical to PasswordSaltEQ.
-func PasswordSalt(v []byte) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPasswordSalt, v))
-}
-
 // HashTime applies equality check predicate on the "hashTime" field. It's identical to HashTimeEQ.
 func HashTime(v uint32) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHashTime, v))
@@ -125,9 +115,9 @@ func HashMemory(v uint32) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHashMemory, v))
 }
 
-// HashKeyLen applies equality check predicate on the "hashKeyLen" field. It's identical to HashKeyLenEQ.
-func HashKeyLen(v uint32) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldHashKeyLen, v))
+// HashThreads applies equality check predicate on the "hashThreads" field. It's identical to HashThreadsEQ.
+func HashThreads(v uint8) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldHashThreads, v))
 }
 
 // UsernameEQ applies the EQ predicate on the "username" field.
@@ -635,86 +625,6 @@ func KeySaltLTE(v []byte) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldKeySalt, v))
 }
 
-// PasswordHashEQ applies the EQ predicate on the "passwordHash" field.
-func PasswordHashEQ(v []byte) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPasswordHash, v))
-}
-
-// PasswordHashNEQ applies the NEQ predicate on the "passwordHash" field.
-func PasswordHashNEQ(v []byte) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldPasswordHash, v))
-}
-
-// PasswordHashIn applies the In predicate on the "passwordHash" field.
-func PasswordHashIn(vs ...[]byte) predicate.User {
-	return predicate.User(sql.FieldIn(FieldPasswordHash, vs...))
-}
-
-// PasswordHashNotIn applies the NotIn predicate on the "passwordHash" field.
-func PasswordHashNotIn(vs ...[]byte) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldPasswordHash, vs...))
-}
-
-// PasswordHashGT applies the GT predicate on the "passwordHash" field.
-func PasswordHashGT(v []byte) predicate.User {
-	return predicate.User(sql.FieldGT(FieldPasswordHash, v))
-}
-
-// PasswordHashGTE applies the GTE predicate on the "passwordHash" field.
-func PasswordHashGTE(v []byte) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldPasswordHash, v))
-}
-
-// PasswordHashLT applies the LT predicate on the "passwordHash" field.
-func PasswordHashLT(v []byte) predicate.User {
-	return predicate.User(sql.FieldLT(FieldPasswordHash, v))
-}
-
-// PasswordHashLTE applies the LTE predicate on the "passwordHash" field.
-func PasswordHashLTE(v []byte) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldPasswordHash, v))
-}
-
-// PasswordSaltEQ applies the EQ predicate on the "passwordSalt" field.
-func PasswordSaltEQ(v []byte) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPasswordSalt, v))
-}
-
-// PasswordSaltNEQ applies the NEQ predicate on the "passwordSalt" field.
-func PasswordSaltNEQ(v []byte) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldPasswordSalt, v))
-}
-
-// PasswordSaltIn applies the In predicate on the "passwordSalt" field.
-func PasswordSaltIn(vs ...[]byte) predicate.User {
-	return predicate.User(sql.FieldIn(FieldPasswordSalt, vs...))
-}
-
-// PasswordSaltNotIn applies the NotIn predicate on the "passwordSalt" field.
-func PasswordSaltNotIn(vs ...[]byte) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldPasswordSalt, vs...))
-}
-
-// PasswordSaltGT applies the GT predicate on the "passwordSalt" field.
-func PasswordSaltGT(v []byte) predicate.User {
-	return predicate.User(sql.FieldGT(FieldPasswordSalt, v))
-}
-
-// PasswordSaltGTE applies the GTE predicate on the "passwordSalt" field.
-func PasswordSaltGTE(v []byte) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldPasswordSalt, v))
-}
-
-// PasswordSaltLT applies the LT predicate on the "passwordSalt" field.
-func PasswordSaltLT(v []byte) predicate.User {
-	return predicate.User(sql.FieldLT(FieldPasswordSalt, v))
-}
-
-// PasswordSaltLTE applies the LTE predicate on the "passwordSalt" field.
-func PasswordSaltLTE(v []byte) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldPasswordSalt, v))
-}
-
 // HashTimeEQ applies the EQ predicate on the "hashTime" field.
 func HashTimeEQ(v uint32) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldHashTime, v))
@@ -795,44 +705,44 @@ func HashMemoryLTE(v uint32) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldHashMemory, v))
 }
 
-// HashKeyLenEQ applies the EQ predicate on the "hashKeyLen" field.
-func HashKeyLenEQ(v uint32) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldHashKeyLen, v))
+// HashThreadsEQ applies the EQ predicate on the "hashThreads" field.
+func HashThreadsEQ(v uint8) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldHashThreads, v))
 }
 
-// HashKeyLenNEQ applies the NEQ predicate on the "hashKeyLen" field.
-func HashKeyLenNEQ(v uint32) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldHashKeyLen, v))
+// HashThreadsNEQ applies the NEQ predicate on the "hashThreads" field.
+func HashThreadsNEQ(v uint8) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldHashThreads, v))
 }
 
-// HashKeyLenIn applies the In predicate on the "hashKeyLen" field.
-func HashKeyLenIn(vs ...uint32) predicate.User {
-	return predicate.User(sql.FieldIn(FieldHashKeyLen, vs...))
+// HashThreadsIn applies the In predicate on the "hashThreads" field.
+func HashThreadsIn(vs ...uint8) predicate.User {
+	return predicate.User(sql.FieldIn(FieldHashThreads, vs...))
 }
 
-// HashKeyLenNotIn applies the NotIn predicate on the "hashKeyLen" field.
-func HashKeyLenNotIn(vs ...uint32) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldHashKeyLen, vs...))
+// HashThreadsNotIn applies the NotIn predicate on the "hashThreads" field.
+func HashThreadsNotIn(vs ...uint8) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldHashThreads, vs...))
 }
 
-// HashKeyLenGT applies the GT predicate on the "hashKeyLen" field.
-func HashKeyLenGT(v uint32) predicate.User {
-	return predicate.User(sql.FieldGT(FieldHashKeyLen, v))
+// HashThreadsGT applies the GT predicate on the "hashThreads" field.
+func HashThreadsGT(v uint8) predicate.User {
+	return predicate.User(sql.FieldGT(FieldHashThreads, v))
 }
 
-// HashKeyLenGTE applies the GTE predicate on the "hashKeyLen" field.
-func HashKeyLenGTE(v uint32) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldHashKeyLen, v))
+// HashThreadsGTE applies the GTE predicate on the "hashThreads" field.
+func HashThreadsGTE(v uint8) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldHashThreads, v))
 }
 
-// HashKeyLenLT applies the LT predicate on the "hashKeyLen" field.
-func HashKeyLenLT(v uint32) predicate.User {
-	return predicate.User(sql.FieldLT(FieldHashKeyLen, v))
+// HashThreadsLT applies the LT predicate on the "hashThreads" field.
+func HashThreadsLT(v uint8) predicate.User {
+	return predicate.User(sql.FieldLT(FieldHashThreads, v))
 }
 
-// HashKeyLenLTE applies the LTE predicate on the "hashKeyLen" field.
-func HashKeyLenLTE(v uint32) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldHashKeyLen, v))
+// HashThreadsLTE applies the LTE predicate on the "hashThreads" field.
+func HashThreadsLTE(v uint8) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldHashThreads, v))
 }
 
 // HasSessions applies the HasEdge predicate on the "sessions" edge.

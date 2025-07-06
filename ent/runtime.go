@@ -106,12 +106,4 @@ func init() {
 	userDescKeySalt := userFields[9].Descriptor()
 	// user.KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
 	user.KeySaltValidator = userDescKeySalt.Validators[0].(func([]byte) error)
-	// userDescPasswordHash is the schema descriptor for passwordHash field.
-	userDescPasswordHash := userFields[10].Descriptor()
-	// user.PasswordHashValidator is a validator for the "passwordHash" field. It is called by the builders before save.
-	user.PasswordHashValidator = userDescPasswordHash.Validators[0].(func([]byte) error)
-	// userDescPasswordSalt is the schema descriptor for passwordSalt field.
-	userDescPasswordSalt := userFields[11].Descriptor()
-	// user.PasswordSaltValidator is a validator for the "passwordSalt" field. It is called by the builders before save.
-	user.PasswordSaltValidator = userDescPasswordSalt.Validators[0].(func([]byte) error)
 }

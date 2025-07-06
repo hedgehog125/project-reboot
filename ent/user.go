@@ -37,16 +37,12 @@ type User struct {
 	Nonce []byte `json:"nonce,omitempty"`
 	// KeySalt holds the value of the "keySalt" field.
 	KeySalt []byte `json:"keySalt,omitempty"`
-	// PasswordHash holds the value of the "passwordHash" field.
-	PasswordHash []byte `json:"passwordHash,omitempty"`
-	// PasswordSalt holds the value of the "passwordSalt" field.
-	PasswordSalt []byte `json:"passwordSalt,omitempty"`
 	// HashTime holds the value of the "hashTime" field.
 	HashTime uint32 `json:"hashTime,omitempty"`
 	// HashMemory holds the value of the "hashMemory" field.
 	HashMemory uint32 `json:"hashMemory,omitempty"`
-	// HashKeyLen holds the value of the "hashKeyLen" field.
-	HashKeyLen uint32 `json:"hashKeyLen,omitempty"`
+	// HashThreads holds the value of the "hashThreads" field.
+	HashThreads uint8 `json:"hashThreads,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -76,11 +72,11 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldContent, user.FieldNonce, user.FieldKeySalt, user.FieldPasswordHash, user.FieldPasswordSalt:
+		case user.FieldContent, user.FieldNonce, user.FieldKeySalt:
 			values[i] = new([]byte)
 		case user.FieldLocked:
 			values[i] = new(sql.NullBool)
-		case user.FieldID, user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen:
+		case user.FieldID, user.FieldHashTime, user.FieldHashMemory, user.FieldHashThreads:
 			values[i] = new(sql.NullInt64)
 		case user.FieldUsername, user.FieldAlertDiscordId, user.FieldAlertEmail, user.FieldFileName, user.FieldMime:
 			values[i] = new(sql.NullString)
@@ -168,18 +164,6 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				u.KeySalt = *value
 			}
-		case user.FieldPasswordHash:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field passwordHash", values[i])
-			} else if value != nil {
-				u.PasswordHash = *value
-			}
-		case user.FieldPasswordSalt:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field passwordSalt", values[i])
-			} else if value != nil {
-				u.PasswordSalt = *value
-			}
 		case user.FieldHashTime:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field hashTime", values[i])
@@ -192,11 +176,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.HashMemory = uint32(value.Int64)
 			}
-		case user.FieldHashKeyLen:
+		case user.FieldHashThreads:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field hashKeyLen", values[i])
+				return fmt.Errorf("unexpected type %T for field hashThreads", values[i])
 			} else if value.Valid {
-				u.HashKeyLen = uint32(value.Int64)
+				u.HashThreads = uint8(value.Int64)
 			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
@@ -271,20 +255,14 @@ func (u *User) String() string {
 	builder.WriteString("keySalt=")
 	builder.WriteString(fmt.Sprintf("%v", u.KeySalt))
 	builder.WriteString(", ")
-	builder.WriteString("passwordHash=")
-	builder.WriteString(fmt.Sprintf("%v", u.PasswordHash))
-	builder.WriteString(", ")
-	builder.WriteString("passwordSalt=")
-	builder.WriteString(fmt.Sprintf("%v", u.PasswordSalt))
-	builder.WriteString(", ")
 	builder.WriteString("hashTime=")
 	builder.WriteString(fmt.Sprintf("%v", u.HashTime))
 	builder.WriteString(", ")
 	builder.WriteString("hashMemory=")
 	builder.WriteString(fmt.Sprintf("%v", u.HashMemory))
 	builder.WriteString(", ")
-	builder.WriteString("hashKeyLen=")
-	builder.WriteString(fmt.Sprintf("%v", u.HashKeyLen))
+	builder.WriteString("hashThreads=")
+	builder.WriteString(fmt.Sprintf("%v", u.HashThreads))
 	builder.WriteByte(')')
 	return builder.String()
 }

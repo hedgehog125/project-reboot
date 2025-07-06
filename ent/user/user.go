@@ -32,16 +32,12 @@ const (
 	FieldNonce = "nonce"
 	// FieldKeySalt holds the string denoting the keysalt field in the database.
 	FieldKeySalt = "key_salt"
-	// FieldPasswordHash holds the string denoting the passwordhash field in the database.
-	FieldPasswordHash = "password_hash"
-	// FieldPasswordSalt holds the string denoting the passwordsalt field in the database.
-	FieldPasswordSalt = "password_salt"
 	// FieldHashTime holds the string denoting the hashtime field in the database.
 	FieldHashTime = "hash_time"
 	// FieldHashMemory holds the string denoting the hashmemory field in the database.
 	FieldHashMemory = "hash_memory"
-	// FieldHashKeyLen holds the string denoting the hashkeylen field in the database.
-	FieldHashKeyLen = "hash_key_len"
+	// FieldHashThreads holds the string denoting the hashthreads field in the database.
+	FieldHashThreads = "hash_threads"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
 	// Table holds the table name of the user in the database.
@@ -68,11 +64,9 @@ var Columns = []string{
 	FieldMime,
 	FieldNonce,
 	FieldKeySalt,
-	FieldPasswordHash,
-	FieldPasswordSalt,
 	FieldHashTime,
 	FieldHashMemory,
-	FieldHashKeyLen,
+	FieldHashThreads,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -104,10 +98,6 @@ var (
 	NonceValidator func([]byte) error
 	// KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
 	KeySaltValidator func([]byte) error
-	// PasswordHashValidator is a validator for the "passwordHash" field. It is called by the builders before save.
-	PasswordHashValidator func([]byte) error
-	// PasswordSaltValidator is a validator for the "passwordSalt" field. It is called by the builders before save.
-	PasswordSaltValidator func([]byte) error
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -163,9 +153,9 @@ func ByHashMemory(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHashMemory, opts...).ToFunc()
 }
 
-// ByHashKeyLen orders the results by the hashKeyLen field.
-func ByHashKeyLen(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldHashKeyLen, opts...).ToFunc()
+// ByHashThreads orders the results by the hashThreads field.
+func ByHashThreads(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHashThreads, opts...).ToFunc()
 }
 
 // BySessionsCount orders the results by sessions count.

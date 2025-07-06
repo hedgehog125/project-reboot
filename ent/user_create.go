@@ -115,18 +115,6 @@ func (uc *UserCreate) SetKeySalt(b []byte) *UserCreate {
 	return uc
 }
 
-// SetPasswordHash sets the "passwordHash" field.
-func (uc *UserCreate) SetPasswordHash(b []byte) *UserCreate {
-	uc.mutation.SetPasswordHash(b)
-	return uc
-}
-
-// SetPasswordSalt sets the "passwordSalt" field.
-func (uc *UserCreate) SetPasswordSalt(b []byte) *UserCreate {
-	uc.mutation.SetPasswordSalt(b)
-	return uc
-}
-
 // SetHashTime sets the "hashTime" field.
 func (uc *UserCreate) SetHashTime(u uint32) *UserCreate {
 	uc.mutation.SetHashTime(u)
@@ -139,9 +127,9 @@ func (uc *UserCreate) SetHashMemory(u uint32) *UserCreate {
 	return uc
 }
 
-// SetHashKeyLen sets the "hashKeyLen" field.
-func (uc *UserCreate) SetHashKeyLen(u uint32) *UserCreate {
-	uc.mutation.SetHashKeyLen(u)
+// SetHashThreads sets the "hashThreads" field.
+func (uc *UserCreate) SetHashThreads(u uint8) *UserCreate {
+	uc.mutation.SetHashThreads(u)
 	return uc
 }
 
@@ -268,30 +256,14 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.PasswordHash(); !ok {
-		return &ValidationError{Name: "passwordHash", err: errors.New(`ent: missing required field "User.passwordHash"`)}
-	}
-	if v, ok := uc.mutation.PasswordHash(); ok {
-		if err := user.PasswordHashValidator(v); err != nil {
-			return &ValidationError{Name: "passwordHash", err: fmt.Errorf(`ent: validator failed for field "User.passwordHash": %w`, err)}
-		}
-	}
-	if _, ok := uc.mutation.PasswordSalt(); !ok {
-		return &ValidationError{Name: "passwordSalt", err: errors.New(`ent: missing required field "User.passwordSalt"`)}
-	}
-	if v, ok := uc.mutation.PasswordSalt(); ok {
-		if err := user.PasswordSaltValidator(v); err != nil {
-			return &ValidationError{Name: "passwordSalt", err: fmt.Errorf(`ent: validator failed for field "User.passwordSalt": %w`, err)}
-		}
-	}
 	if _, ok := uc.mutation.HashTime(); !ok {
 		return &ValidationError{Name: "hashTime", err: errors.New(`ent: missing required field "User.hashTime"`)}
 	}
 	if _, ok := uc.mutation.HashMemory(); !ok {
 		return &ValidationError{Name: "hashMemory", err: errors.New(`ent: missing required field "User.hashMemory"`)}
 	}
-	if _, ok := uc.mutation.HashKeyLen(); !ok {
-		return &ValidationError{Name: "hashKeyLen", err: errors.New(`ent: missing required field "User.hashKeyLen"`)}
+	if _, ok := uc.mutation.HashThreads(); !ok {
+		return &ValidationError{Name: "hashThreads", err: errors.New(`ent: missing required field "User.hashThreads"`)}
 	}
 	return nil
 }
@@ -360,14 +332,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldKeySalt, field.TypeBytes, value)
 		_node.KeySalt = value
 	}
-	if value, ok := uc.mutation.PasswordHash(); ok {
-		_spec.SetField(user.FieldPasswordHash, field.TypeBytes, value)
-		_node.PasswordHash = value
-	}
-	if value, ok := uc.mutation.PasswordSalt(); ok {
-		_spec.SetField(user.FieldPasswordSalt, field.TypeBytes, value)
-		_node.PasswordSalt = value
-	}
 	if value, ok := uc.mutation.HashTime(); ok {
 		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
 		_node.HashTime = value
@@ -376,9 +340,9 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldHashMemory, field.TypeUint32, value)
 		_node.HashMemory = value
 	}
-	if value, ok := uc.mutation.HashKeyLen(); ok {
-		_spec.SetField(user.FieldHashKeyLen, field.TypeUint32, value)
-		_node.HashKeyLen = value
+	if value, ok := uc.mutation.HashThreads(); ok {
+		_spec.SetField(user.FieldHashThreads, field.TypeUint8, value)
+		_node.HashThreads = value
 	}
 	if nodes := uc.mutation.SessionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -574,30 +538,6 @@ func (u *UserUpsert) UpdateKeySalt() *UserUpsert {
 	return u
 }
 
-// SetPasswordHash sets the "passwordHash" field.
-func (u *UserUpsert) SetPasswordHash(v []byte) *UserUpsert {
-	u.Set(user.FieldPasswordHash, v)
-	return u
-}
-
-// UpdatePasswordHash sets the "passwordHash" field to the value that was provided on create.
-func (u *UserUpsert) UpdatePasswordHash() *UserUpsert {
-	u.SetExcluded(user.FieldPasswordHash)
-	return u
-}
-
-// SetPasswordSalt sets the "passwordSalt" field.
-func (u *UserUpsert) SetPasswordSalt(v []byte) *UserUpsert {
-	u.Set(user.FieldPasswordSalt, v)
-	return u
-}
-
-// UpdatePasswordSalt sets the "passwordSalt" field to the value that was provided on create.
-func (u *UserUpsert) UpdatePasswordSalt() *UserUpsert {
-	u.SetExcluded(user.FieldPasswordSalt)
-	return u
-}
-
 // SetHashTime sets the "hashTime" field.
 func (u *UserUpsert) SetHashTime(v uint32) *UserUpsert {
 	u.Set(user.FieldHashTime, v)
@@ -634,21 +574,21 @@ func (u *UserUpsert) AddHashMemory(v uint32) *UserUpsert {
 	return u
 }
 
-// SetHashKeyLen sets the "hashKeyLen" field.
-func (u *UserUpsert) SetHashKeyLen(v uint32) *UserUpsert {
-	u.Set(user.FieldHashKeyLen, v)
+// SetHashThreads sets the "hashThreads" field.
+func (u *UserUpsert) SetHashThreads(v uint8) *UserUpsert {
+	u.Set(user.FieldHashThreads, v)
 	return u
 }
 
-// UpdateHashKeyLen sets the "hashKeyLen" field to the value that was provided on create.
-func (u *UserUpsert) UpdateHashKeyLen() *UserUpsert {
-	u.SetExcluded(user.FieldHashKeyLen)
+// UpdateHashThreads sets the "hashThreads" field to the value that was provided on create.
+func (u *UserUpsert) UpdateHashThreads() *UserUpsert {
+	u.SetExcluded(user.FieldHashThreads)
 	return u
 }
 
-// AddHashKeyLen adds v to the "hashKeyLen" field.
-func (u *UserUpsert) AddHashKeyLen(v uint32) *UserUpsert {
-	u.Add(user.FieldHashKeyLen, v)
+// AddHashThreads adds v to the "hashThreads" field.
+func (u *UserUpsert) AddHashThreads(v uint8) *UserUpsert {
+	u.Add(user.FieldHashThreads, v)
 	return u
 }
 
@@ -839,34 +779,6 @@ func (u *UserUpsertOne) UpdateKeySalt() *UserUpsertOne {
 	})
 }
 
-// SetPasswordHash sets the "passwordHash" field.
-func (u *UserUpsertOne) SetPasswordHash(v []byte) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetPasswordHash(v)
-	})
-}
-
-// UpdatePasswordHash sets the "passwordHash" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdatePasswordHash() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdatePasswordHash()
-	})
-}
-
-// SetPasswordSalt sets the "passwordSalt" field.
-func (u *UserUpsertOne) SetPasswordSalt(v []byte) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetPasswordSalt(v)
-	})
-}
-
-// UpdatePasswordSalt sets the "passwordSalt" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdatePasswordSalt() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdatePasswordSalt()
-	})
-}
-
 // SetHashTime sets the "hashTime" field.
 func (u *UserUpsertOne) SetHashTime(v uint32) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
@@ -909,24 +821,24 @@ func (u *UserUpsertOne) UpdateHashMemory() *UserUpsertOne {
 	})
 }
 
-// SetHashKeyLen sets the "hashKeyLen" field.
-func (u *UserUpsertOne) SetHashKeyLen(v uint32) *UserUpsertOne {
+// SetHashThreads sets the "hashThreads" field.
+func (u *UserUpsertOne) SetHashThreads(v uint8) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
-		s.SetHashKeyLen(v)
+		s.SetHashThreads(v)
 	})
 }
 
-// AddHashKeyLen adds v to the "hashKeyLen" field.
-func (u *UserUpsertOne) AddHashKeyLen(v uint32) *UserUpsertOne {
+// AddHashThreads adds v to the "hashThreads" field.
+func (u *UserUpsertOne) AddHashThreads(v uint8) *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
-		s.AddHashKeyLen(v)
+		s.AddHashThreads(v)
 	})
 }
 
-// UpdateHashKeyLen sets the "hashKeyLen" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateHashKeyLen() *UserUpsertOne {
+// UpdateHashThreads sets the "hashThreads" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateHashThreads() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashKeyLen()
+		s.UpdateHashThreads()
 	})
 }
 
@@ -1281,34 +1193,6 @@ func (u *UserUpsertBulk) UpdateKeySalt() *UserUpsertBulk {
 	})
 }
 
-// SetPasswordHash sets the "passwordHash" field.
-func (u *UserUpsertBulk) SetPasswordHash(v []byte) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetPasswordHash(v)
-	})
-}
-
-// UpdatePasswordHash sets the "passwordHash" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdatePasswordHash() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdatePasswordHash()
-	})
-}
-
-// SetPasswordSalt sets the "passwordSalt" field.
-func (u *UserUpsertBulk) SetPasswordSalt(v []byte) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetPasswordSalt(v)
-	})
-}
-
-// UpdatePasswordSalt sets the "passwordSalt" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdatePasswordSalt() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdatePasswordSalt()
-	})
-}
-
 // SetHashTime sets the "hashTime" field.
 func (u *UserUpsertBulk) SetHashTime(v uint32) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
@@ -1351,24 +1235,24 @@ func (u *UserUpsertBulk) UpdateHashMemory() *UserUpsertBulk {
 	})
 }
 
-// SetHashKeyLen sets the "hashKeyLen" field.
-func (u *UserUpsertBulk) SetHashKeyLen(v uint32) *UserUpsertBulk {
+// SetHashThreads sets the "hashThreads" field.
+func (u *UserUpsertBulk) SetHashThreads(v uint8) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
-		s.SetHashKeyLen(v)
+		s.SetHashThreads(v)
 	})
 }
 
-// AddHashKeyLen adds v to the "hashKeyLen" field.
-func (u *UserUpsertBulk) AddHashKeyLen(v uint32) *UserUpsertBulk {
+// AddHashThreads adds v to the "hashThreads" field.
+func (u *UserUpsertBulk) AddHashThreads(v uint8) *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
-		s.AddHashKeyLen(v)
+		s.AddHashThreads(v)
 	})
 }
 
-// UpdateHashKeyLen sets the "hashKeyLen" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateHashKeyLen() *UserUpsertBulk {
+// UpdateHashThreads sets the "hashThreads" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateHashThreads() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashKeyLen()
+		s.UpdateHashThreads()
 	})
 }
 

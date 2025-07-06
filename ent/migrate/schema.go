@@ -60,11 +60,9 @@ var (
 		{Name: "mime", Type: field.TypeString},
 		{Name: "nonce", Type: field.TypeBytes},
 		{Name: "key_salt", Type: field.TypeBytes},
-		{Name: "password_hash", Type: field.TypeBytes},
-		{Name: "password_salt", Type: field.TypeBytes},
 		{Name: "hash_time", Type: field.TypeUint32},
 		{Name: "hash_memory", Type: field.TypeUint32},
-		{Name: "hash_key_len", Type: field.TypeUint32},
+		{Name: "hash_threads", Type: field.TypeUint8},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

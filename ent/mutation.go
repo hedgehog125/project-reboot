@@ -1241,14 +1241,12 @@ type UserMutation struct {
 	mime            *string
 	nonce           *[]byte
 	keySalt         *[]byte
-	passwordHash    *[]byte
-	passwordSalt    *[]byte
 	hashTime        *uint32
 	addhashTime     *int32
 	hashMemory      *uint32
 	addhashMemory   *int32
-	hashKeyLen      *uint32
-	addhashKeyLen   *int32
+	hashThreads     *uint8
+	addhashThreads  *int8
 	clearedFields   map[string]struct{}
 	sessions        map[int]struct{}
 	removedsessions map[int]struct{}
@@ -1729,78 +1727,6 @@ func (m *UserMutation) ResetKeySalt() {
 	m.keySalt = nil
 }
 
-// SetPasswordHash sets the "passwordHash" field.
-func (m *UserMutation) SetPasswordHash(b []byte) {
-	m.passwordHash = &b
-}
-
-// PasswordHash returns the value of the "passwordHash" field in the mutation.
-func (m *UserMutation) PasswordHash() (r []byte, exists bool) {
-	v := m.passwordHash
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPasswordHash returns the old "passwordHash" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldPasswordHash(ctx context.Context) (v []byte, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPasswordHash is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPasswordHash requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPasswordHash: %w", err)
-	}
-	return oldValue.PasswordHash, nil
-}
-
-// ResetPasswordHash resets all changes to the "passwordHash" field.
-func (m *UserMutation) ResetPasswordHash() {
-	m.passwordHash = nil
-}
-
-// SetPasswordSalt sets the "passwordSalt" field.
-func (m *UserMutation) SetPasswordSalt(b []byte) {
-	m.passwordSalt = &b
-}
-
-// PasswordSalt returns the value of the "passwordSalt" field in the mutation.
-func (m *UserMutation) PasswordSalt() (r []byte, exists bool) {
-	v := m.passwordSalt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPasswordSalt returns the old "passwordSalt" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldPasswordSalt(ctx context.Context) (v []byte, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPasswordSalt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPasswordSalt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPasswordSalt: %w", err)
-	}
-	return oldValue.PasswordSalt, nil
-}
-
-// ResetPasswordSalt resets all changes to the "passwordSalt" field.
-func (m *UserMutation) ResetPasswordSalt() {
-	m.passwordSalt = nil
-}
-
 // SetHashTime sets the "hashTime" field.
 func (m *UserMutation) SetHashTime(u uint32) {
 	m.hashTime = &u
@@ -1913,60 +1839,60 @@ func (m *UserMutation) ResetHashMemory() {
 	m.addhashMemory = nil
 }
 
-// SetHashKeyLen sets the "hashKeyLen" field.
-func (m *UserMutation) SetHashKeyLen(u uint32) {
-	m.hashKeyLen = &u
-	m.addhashKeyLen = nil
+// SetHashThreads sets the "hashThreads" field.
+func (m *UserMutation) SetHashThreads(u uint8) {
+	m.hashThreads = &u
+	m.addhashThreads = nil
 }
 
-// HashKeyLen returns the value of the "hashKeyLen" field in the mutation.
-func (m *UserMutation) HashKeyLen() (r uint32, exists bool) {
-	v := m.hashKeyLen
+// HashThreads returns the value of the "hashThreads" field in the mutation.
+func (m *UserMutation) HashThreads() (r uint8, exists bool) {
+	v := m.hashThreads
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldHashKeyLen returns the old "hashKeyLen" field's value of the User entity.
+// OldHashThreads returns the old "hashThreads" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldHashKeyLen(ctx context.Context) (v uint32, err error) {
+func (m *UserMutation) OldHashThreads(ctx context.Context) (v uint8, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHashKeyLen is only allowed on UpdateOne operations")
+		return v, errors.New("OldHashThreads is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHashKeyLen requires an ID field in the mutation")
+		return v, errors.New("OldHashThreads requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHashKeyLen: %w", err)
+		return v, fmt.Errorf("querying old value for OldHashThreads: %w", err)
 	}
-	return oldValue.HashKeyLen, nil
+	return oldValue.HashThreads, nil
 }
 
-// AddHashKeyLen adds u to the "hashKeyLen" field.
-func (m *UserMutation) AddHashKeyLen(u int32) {
-	if m.addhashKeyLen != nil {
-		*m.addhashKeyLen += u
+// AddHashThreads adds u to the "hashThreads" field.
+func (m *UserMutation) AddHashThreads(u int8) {
+	if m.addhashThreads != nil {
+		*m.addhashThreads += u
 	} else {
-		m.addhashKeyLen = &u
+		m.addhashThreads = &u
 	}
 }
 
-// AddedHashKeyLen returns the value that was added to the "hashKeyLen" field in this mutation.
-func (m *UserMutation) AddedHashKeyLen() (r int32, exists bool) {
-	v := m.addhashKeyLen
+// AddedHashThreads returns the value that was added to the "hashThreads" field in this mutation.
+func (m *UserMutation) AddedHashThreads() (r int8, exists bool) {
+	v := m.addhashThreads
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetHashKeyLen resets all changes to the "hashKeyLen" field.
-func (m *UserMutation) ResetHashKeyLen() {
-	m.hashKeyLen = nil
-	m.addhashKeyLen = nil
+// ResetHashThreads resets all changes to the "hashThreads" field.
+func (m *UserMutation) ResetHashThreads() {
+	m.hashThreads = nil
+	m.addhashThreads = nil
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by ids.
@@ -2057,7 +1983,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 13)
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
@@ -2088,20 +2014,14 @@ func (m *UserMutation) Fields() []string {
 	if m.keySalt != nil {
 		fields = append(fields, user.FieldKeySalt)
 	}
-	if m.passwordHash != nil {
-		fields = append(fields, user.FieldPasswordHash)
-	}
-	if m.passwordSalt != nil {
-		fields = append(fields, user.FieldPasswordSalt)
-	}
 	if m.hashTime != nil {
 		fields = append(fields, user.FieldHashTime)
 	}
 	if m.hashMemory != nil {
 		fields = append(fields, user.FieldHashMemory)
 	}
-	if m.hashKeyLen != nil {
-		fields = append(fields, user.FieldHashKeyLen)
+	if m.hashThreads != nil {
+		fields = append(fields, user.FieldHashThreads)
 	}
 	return fields
 }
@@ -2131,16 +2051,12 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Nonce()
 	case user.FieldKeySalt:
 		return m.KeySalt()
-	case user.FieldPasswordHash:
-		return m.PasswordHash()
-	case user.FieldPasswordSalt:
-		return m.PasswordSalt()
 	case user.FieldHashTime:
 		return m.HashTime()
 	case user.FieldHashMemory:
 		return m.HashMemory()
-	case user.FieldHashKeyLen:
-		return m.HashKeyLen()
+	case user.FieldHashThreads:
+		return m.HashThreads()
 	}
 	return nil, false
 }
@@ -2170,16 +2086,12 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldNonce(ctx)
 	case user.FieldKeySalt:
 		return m.OldKeySalt(ctx)
-	case user.FieldPasswordHash:
-		return m.OldPasswordHash(ctx)
-	case user.FieldPasswordSalt:
-		return m.OldPasswordSalt(ctx)
 	case user.FieldHashTime:
 		return m.OldHashTime(ctx)
 	case user.FieldHashMemory:
 		return m.OldHashMemory(ctx)
-	case user.FieldHashKeyLen:
-		return m.OldHashKeyLen(ctx)
+	case user.FieldHashThreads:
+		return m.OldHashThreads(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -2259,20 +2171,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetKeySalt(v)
 		return nil
-	case user.FieldPasswordHash:
-		v, ok := value.([]byte)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPasswordHash(v)
-		return nil
-	case user.FieldPasswordSalt:
-		v, ok := value.([]byte)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPasswordSalt(v)
-		return nil
 	case user.FieldHashTime:
 		v, ok := value.(uint32)
 		if !ok {
@@ -2287,12 +2185,12 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetHashMemory(v)
 		return nil
-	case user.FieldHashKeyLen:
-		v, ok := value.(uint32)
+	case user.FieldHashThreads:
+		v, ok := value.(uint8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetHashKeyLen(v)
+		m.SetHashThreads(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -2308,8 +2206,8 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addhashMemory != nil {
 		fields = append(fields, user.FieldHashMemory)
 	}
-	if m.addhashKeyLen != nil {
-		fields = append(fields, user.FieldHashKeyLen)
+	if m.addhashThreads != nil {
+		fields = append(fields, user.FieldHashThreads)
 	}
 	return fields
 }
@@ -2323,8 +2221,8 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedHashTime()
 	case user.FieldHashMemory:
 		return m.AddedHashMemory()
-	case user.FieldHashKeyLen:
-		return m.AddedHashKeyLen()
+	case user.FieldHashThreads:
+		return m.AddedHashThreads()
 	}
 	return nil, false
 }
@@ -2348,12 +2246,12 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddHashMemory(v)
 		return nil
-	case user.FieldHashKeyLen:
-		v, ok := value.(int32)
+	case user.FieldHashThreads:
+		v, ok := value.(int8)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddHashKeyLen(v)
+		m.AddHashThreads(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
@@ -2421,20 +2319,14 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldKeySalt:
 		m.ResetKeySalt()
 		return nil
-	case user.FieldPasswordHash:
-		m.ResetPasswordHash()
-		return nil
-	case user.FieldPasswordSalt:
-		m.ResetPasswordSalt()
-		return nil
 	case user.FieldHashTime:
 		m.ResetHashTime()
 		return nil
 	case user.FieldHashMemory:
 		m.ResetHashMemory()
 		return nil
-	case user.FieldHashKeyLen:
-		m.ResetHashKeyLen()
+	case user.FieldHashThreads:
+		m.ResetHashThreads()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
