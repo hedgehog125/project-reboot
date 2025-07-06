@@ -6,8 +6,7 @@ import (
 )
 
 type ServerApp struct {
-	// TODO: struct embed App?
-	App             *common.App
+	*common.App
 	Router          *gin.Engine
 	AdminMiddleware gin.HandlerFunc
 }

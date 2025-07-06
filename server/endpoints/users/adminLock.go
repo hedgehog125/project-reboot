@@ -14,8 +14,8 @@ type AdminLockResponse struct {
 
 // Admin route
 func AdminLock(app *servercommon.ServerApp) gin.HandlerFunc {
-	// dbClient := app.App.Database.Client()
-	// messenger := app.App.Messenger
+	// dbClient := app.Database.Client()
+	// messenger := app.Messenger
 
 	return func(ctx *gin.Context) {
 		body := AdminLockPayload{}

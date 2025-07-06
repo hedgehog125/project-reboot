@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
@@ -29,8 +30,8 @@ type DownloadResponse struct {
 }
 
 func Download(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.App.Database.Client()
-	clock := app.App.Clock
+	dbClient := app.Database.Client()
+	clock := app.Clock
 
 	return func(ctx *gin.Context) {
 		body := DownloadPayload{}
@@ -61,7 +62,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		if clock.Now().UTC().Before(sessionRow.CodeValidFrom) {
+		if clock.Now().Before(sessionRow.CodeValidFrom) {
 			ctx.JSON(http.StatusConflict, DownloadResponse{
 				Errors: []servercommon.ErrorDetail{
 					{
@@ -85,11 +86,9 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				user.FieldMime,
 				user.FieldNonce,
 				user.FieldKeySalt,
-				user.FieldPasswordHash,
-				user.FieldPasswordSalt,
 				user.FieldHashTime,
 				user.FieldHashMemory,
-				user.FieldHashKeyLen,
+				user.FieldHashThreads,
 			).
 			Only(context.Background())
 		if stdErr != nil {
@@ -97,18 +96,16 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		decrypted, commErr := core.Decrypt(body.Password, &core.EncryptedData{
-			Data:         userRow.Content,
-			Nonce:        userRow.Nonce,
-			KeySalt:      userRow.KeySalt,
-			PasswordHash: userRow.PasswordHash,
-			PasswordSalt: userRow.PasswordSalt,
-			HashSettings: core.HashSettings{
-				Time:   userRow.HashTime,
-				Memory: userRow.HashMemory,
-				KeyLen: userRow.HashKeyLen,
+		encryptionKey := core.HashPassword(
+			body.Password,
+			userRow.KeySalt,
+			&common.PasswordHashSettings{
+				Time:    userRow.HashTime,
+				Memory:  userRow.HashMemory,
+				Threads: userRow.HashThreads,
 			},
-		})
+		)
+		decrypted, commErr := core.Decrypt(encryptionKey, userRow.Content, userRow.Nonce)
 		if commErr != nil {
 			ctx.Error(servercommon.ExpectError(
 				commErr, core.ErrIncorrectPassword,
@@ -127,5 +124,6 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		// TODO: log this event to database
 		// TODO: reduce session expiry to 1 hour
+		// TODO: notify user in the background
 	}
 }

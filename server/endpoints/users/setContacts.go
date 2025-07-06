@@ -21,8 +21,8 @@ type SetContactsResponse struct {
 }
 
 func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.App.Database.Client()
-	messenger := app.App.Messenger
+	dbClient := app.Database.Client()
+	messenger := app.Messenger
 
 	return func(ctx *gin.Context) {
 		body := SetContactsPayload{}

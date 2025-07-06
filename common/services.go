@@ -18,9 +18,18 @@ type Env struct {
 	// TODO: implement
 	AUTH_CODE_VALID_FOR int64 // In seconds
 
+	PASSWORD_HASH_SETTINGS *PasswordHashSettings
+
 	DISCORD_TOKEN  string
 	SENDGRID_TOKEN string // TODO: implement
 }
+type PasswordHashSettings struct {
+	Time   uint32
+	Memory uint32
+	// Note: this affects the hash produced
+	Threads uint8
+}
+
 type State struct {
 	AdminCode chan []byte
 }

@@ -26,7 +26,7 @@ type RegisterOrUpdateResponse struct {
 }
 
 func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.App.Database.Client()
+	dbClient := app.Database.Client()
 
 	return func(ctx *gin.Context) {
 		body := RegisterPayload{}
@@ -48,7 +48,10 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		encrypted, commErr := core.Encrypt(contentBytes, body.Password)
+		hashSettings := app.Env.PASSWORD_HASH_SETTINGS
+		salt := core.GenerateSalt()
+		encryptionKey := core.HashPassword(body.Password, salt, hashSettings)
+		encrypted, nonce, commErr := core.Encrypt(contentBytes, encryptionKey)
 		if commErr != nil {
 			ctx.Error(commErr)
 			return
@@ -56,16 +59,14 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		stdErr = dbClient.User.Create().
 			SetUsername(body.Username).
-			SetContent(encrypted.Data).
+			SetContent(encrypted).
 			SetFileName(body.Filename).
 			SetMime(body.Mime).
-			SetNonce(encrypted.Nonce).
-			SetKeySalt(encrypted.KeySalt).
-			SetPasswordHash(encrypted.PasswordHash).
-			SetPasswordSalt(encrypted.PasswordSalt).
-			SetHashTime(encrypted.HashSettings.Time).
-			SetHashMemory(encrypted.HashSettings.Memory).
-			SetHashKeyLen(encrypted.HashSettings.KeyLen).
+			SetNonce(nonce).
+			SetKeySalt(salt).
+			SetHashTime(hashSettings.Time).
+			SetHashMemory(hashSettings.Memory).
+			SetHashThreads(hashSettings.Threads).
 			OnConflict().UpdateNewValues().
 			Exec(context.Background())
 		if stdErr != nil {
@@ -76,7 +77,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 		userInfo, commErr := messengerscommon.ReadMessageUserInfo(body.Username, dbClient)
 		if commErr == nil {
 			// TODO: if this fails, let the user know using other methods
-			_ = app.App.Messenger.SendUsingAll(common.Message{
+			_ = app.Messenger.SendUsingAll(common.Message{
 				Type: common.MessageReset,
 				User: userInfo,
 			})

@@ -6,11 +6,11 @@ import (
 	"log"
 	"math"
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
 )
 
@@ -20,34 +20,63 @@ type guess struct {
 }
 
 func main() {
+	// TODO: revise these explanations, runtime.GC() made a massive difference
 	password := flag.String("password", "", "the password to try to guess")
+	hashTime := flag.Uint("hash-time", 0, "the time parameter for Argon2ID")
+	hashMemory := flag.Uint("hash-memory", 0, "the memory parameter for Argon2ID in KiB")
+	hashThreads := flag.Uint("hash-threads", 0, "the threads parameter for Argon2ID (note: changing this affects the hashes produced)")
+	benchmarkThreads := flag.Uint("benchmark-threads", 0, "the number of simultaneous decryptions to run, should be at most ceil(CPU threads / hash-threads) but ensure you have sufficient RAM to avoid slowdown due to swap (note: each benchmark thread often consumes twice of hash-memory)")
+	spacing := flag.Uint("spacing", 0, "the time in ms that each thread should wait before trying the next attempt. setting this allows the garbage collector to reduce the average RAM usage")
 	flag.Parse()
 	if *password == "" {
 		log.Fatalf("missing required argument \"password\"")
 	}
+	if *hashTime == 0 {
+		log.Fatalf("missing required argument \"hash-time\"")
+	}
+	if *hashMemory == 0 {
+		log.Fatalf("missing required argument \"hash-memory\"")
+	}
+	if *hashThreads == 0 {
+		log.Fatalf("missing required argument \"hash-threads\"")
+	}
+	if *benchmarkThreads == 0 {
+		log.Fatalf("missing required argument \"benchmark-threads\"")
+	}
+	hashSettings := &common.PasswordHashSettings{
+		Time:    uint32(*hashTime),
+		Memory:  uint32(*hashMemory),
+		Threads: uint8(*hashThreads),
+	}
 
 	fmt.Fprintln(os.Stdout, "benchmarking...")
-	threads := runtime.GOMAXPROCS(0)
-	fmt.Fprintf(os.Stdout, "running on %v threads\n\n", threads)
 
-	encrypted, err := core.Encrypt([]byte("Hello world"), *password)
+	salt := core.GenerateSalt()
+	encryptionKey := core.HashPassword(*password, salt, hashSettings)
+	encrypted, nonce, err := core.Encrypt([]byte("Hello world"), encryptionKey)
 	if err != nil {
 		log.Fatalf("unable to encrypt test data. error:\n%v", err.Error())
 	}
 
-	startTime := time.Now().UTC()
-	nextPasswordChan := make(chan string, threads)
+	fmt.Fprintf(os.Stdout, "running on %v threads\n\n", *benchmarkThreads)
+
+	startTime := time.Now()
+	nextPasswordChan := make(chan string, *benchmarkThreads)
 	guessChan := make(chan guess)
 
-	for range threads {
-		go workerLoop(nextPasswordChan, guessChan, encrypted)
+	for range *benchmarkThreads {
+		go workerLoop(
+			nextPasswordChan, guessChan,
+			time.Duration(*spacing)*time.Millisecond,
+			salt, hashSettings, encrypted, nonce,
+		)
 	}
 
 	alphabet := []rune("abcdefghijklmnopqrstuvwxyz")
 	currentPassword := make([]int32, len(*password))
 
-	completedChecks := int64(-threads)
-	go performanceLoop(&completedChecks, currentPassword)
+	completedChecks := int64(-*benchmarkThreads)
+	go performanceLoop(&completedChecks, currentPassword, *benchmarkThreads)
 
 	var successfulGuess guess
 MainLoop:
@@ -75,7 +104,7 @@ MainLoop:
 	fmt.Fprintf(os.Stdout,
 		"\nsuccessfully guessed password after ~%v attempts in %v seconds: \"%v\"\ndecrypted content:\n%v\n",
 		completedChecks,
-		math.Round(time.Now().UTC().Sub(startTime).Seconds()),
+		math.Round(time.Since(startTime).Seconds()),
 		successfulGuess.password,
 		successfulGuess.decryptedContent,
 	)
@@ -101,13 +130,14 @@ func addIntArray(arr []int32, amount int32, maxValue int32) bool {
 }
 
 func workerLoop(
-	nextPasswordChan chan string, guessChan chan guess,
-	encrypted *core.EncryptedData,
+	nextPasswordChan chan string, guessChan chan guess, spacing time.Duration,
+	salt []byte, passwordHashSettings *common.PasswordHashSettings, encrypted []byte, nonce []byte,
 ) {
 	for {
 		select {
 		case password := <-nextPasswordChan:
-			decrypted, err := core.Decrypt(password, encrypted)
+			encryptionKey := core.HashPassword(password, salt, passwordHashSettings)
+			decrypted, err := core.Decrypt(encryptionKey, encrypted, nonce)
 			if err == nil {
 				guessChan <- (
 				//exhaustruct:enforce
@@ -117,12 +147,13 @@ func workerLoop(
 				})
 			}
 		case <-guessChan:
-			break
+			return
 		}
+		time.Sleep(spacing)
 	}
 }
 
-func performanceLoop(completedChecksPointer *int64, currentPassword []int32) {
+func performanceLoop(completedChecksPointer *int64, currentPassword []int32, benchmarkThreads uint) {
 	completedChecksWas := int64(0)
 	for {
 		time.Sleep(time.Minute)
@@ -133,9 +164,15 @@ func performanceLoop(completedChecksPointer *int64, currentPassword []int32) {
 			asStrings[i] = strconv.Itoa(int(charID))
 		}
 
+		completedChange := completedChecks - completedChecksWas
 		fmt.Fprintf(os.Stdout,
-			"\nChecks per minute: %v\nCurrent guess: [%v]\n",
-			completedChecks-completedChecksWas,
+			"\nTotal attempts per minute: %v\nLatency per guess: %vms (not average time, which decreases with more benchmark threads)\nCurrent guess: [%v]\n",
+			completedChange,
+			math.Round(
+				(60_000/
+					float64(completedChange))*
+					float64(benchmarkThreads),
+			),
 			strings.Join(asStrings, ", "),
 		)
 

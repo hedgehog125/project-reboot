@@ -38,7 +38,7 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		commErr := app.App.TwoFactorAction.Confirm(parsedId, body.Code)
+		commErr := app.TwoFactorAction.Confirm(parsedId, body.Code)
 		if commErr != nil {
 			ctx.Error(servercommon.ExpectAnyOfErrors(
 				commErr,

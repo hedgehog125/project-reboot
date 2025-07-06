@@ -26,9 +26,9 @@ type SelfLockResponse struct {
 }
 
 func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.App.Database.Client()
-	clock := app.App.Clock
-	messenger := app.App.Messenger
+	dbClient := app.Database.Client()
+	clock := app.Clock
+	messenger := app.Messenger
 
 	return func(ctx *gin.Context) {
 		body := SelfLockPayload{}
@@ -45,13 +45,6 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		userRow, stdErr := dbClient.User.Query().
 			Where(user.Username(body.Username)).
-			Select(
-				user.FieldPasswordHash, user.FieldPasswordSalt,
-				user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen,
-				// Contacts
-				user.FieldAlertDiscordId,
-				user.FieldAlertEmail,
-			).
 			Only(ctx)
 		if stdErr != nil {
 			ctx.Error(servercommon.SendUnauthorizedIfNotFound(stdErr))
@@ -59,21 +52,22 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 		// TODO: check the user isn't locked
 
-		if !core.CheckPassword(
+		encryptionKey := core.HashPassword(
 			body.Password,
-			userRow.PasswordHash,
-			userRow.PasswordSalt,
-			core.HashSettings{
-				Time:   userRow.HashTime,
-				Memory: userRow.HashMemory,
-				KeyLen: userRow.HashKeyLen,
+			userRow.KeySalt,
+			&common.PasswordHashSettings{
+				Time:    userRow.HashTime,
+				Memory:  userRow.HashMemory,
+				Threads: userRow.HashThreads,
 			},
-		) {
+		)
+		_, commErr := core.Decrypt(userRow.Content, encryptionKey, userRow.Nonce)
+		if commErr != nil {
 			ctx.Error(servercommon.NewUnauthorizedError())
 			return
 		}
 
-		actionID, code, commErr := app.App.TwoFactorAction.Create(
+		actionID, code, commErr := app.TwoFactorAction.Create(
 			"users/TEMP_SELF_LOCK", 1,
 			clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
 			//exhaustruct:enforce

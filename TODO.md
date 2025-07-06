@@ -1,5 +1,7 @@
 # TODO
 
+-   Use hash-wasm on the frontend when backend rate limits the hashing. It's single threaded but multithreaded WASM seems to be patchy at the moment, even in languages with good support like Rust
+-   Make Argon2ID parallelism configurable. Should probably increase to 4 for Railway, but keep in mind that the same CPU will be a quarter the speed running in the browser as it'll be single threaded. Changing parallelism doesn't affect performance but means more threads are used and a different hash is produced
 -   Job system
 -   -   Jobs should have a category. Maybe 10 network jobs can run simultaneously but only (1/4 \* max processes) compute at a time
 -   -   Would replace the current cron system

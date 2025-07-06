@@ -26,10 +26,10 @@ type GetAuthorizationCodeResponse struct {
 }
 
 func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.App.Database.Client()
-	messenger := app.App.Messenger
-	clock := app.App.Clock
-	unlockTime := time.Duration(app.App.Env.UNLOCK_TIME) * time.Second
+	dbClient := app.Database.Client()
+	messenger := app.Messenger
+	clock := app.Clock
+	unlockTime := time.Duration(app.Env.UNLOCK_TIME) * time.Second
 
 	return func(ctx *gin.Context) {
 		body := GetAuthorizationCodePayload{}
@@ -40,29 +40,23 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		userRow, stdErr := dbClient.User.Query().
 			Where(user.Username(body.Username)).
-			Select(
-				user.FieldPasswordHash, user.FieldPasswordSalt,
-				user.FieldHashTime, user.FieldHashMemory, user.FieldHashKeyLen,
-				// Contacts
-				user.FieldAlertDiscordId,
-				user.FieldAlertEmail,
-			).
 			Only(context.Background())
 		if stdErr != nil {
 			ctx.Error(servercommon.SendUnauthorizedIfNotFound(stdErr))
 			return
 		}
 
-		if !core.CheckPassword(
+		encryptionKey := core.HashPassword(
 			body.Password,
-			userRow.PasswordHash,
-			userRow.PasswordSalt,
-			core.HashSettings{
-				Time:   userRow.HashTime,
-				Memory: userRow.HashMemory,
-				KeyLen: userRow.HashKeyLen,
+			userRow.KeySalt,
+			&common.PasswordHashSettings{
+				Time:    userRow.HashTime,
+				Memory:  userRow.HashMemory,
+				Threads: userRow.HashThreads,
 			},
-		) {
+		)
+		_, commErr := core.Decrypt(encryptionKey, userRow.Content, userRow.Nonce)
+		if commErr != nil {
 			ctx.Error(servercommon.NewUnauthorizedError())
 			return
 		}
@@ -95,7 +89,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		// TODO: log these errors
 
 		authCode := core.RandomAuthCode()
-		validAt := clock.Now().UTC().Add(unlockTime)
+		validAt := clock.Now().Add(unlockTime)
 
 		_, stdErr = dbClient.Session.Create().
 			SetUser(userRow).

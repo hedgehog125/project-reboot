@@ -2,6 +2,7 @@ package common
 
 import (
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -38,10 +39,26 @@ func RequireInt64Env(name string) int64 {
 
 	value, err := strconv.ParseInt(rawValue, 10, 0)
 	if err != nil {
-		log.Fatalf("couldn't parse environment variable \"%v\" into an integer", name)
+		log.Fatalf("couldn't parse environment variable \"%v\" into an int64", name)
 	}
 
 	return value
+}
+func RequireUint32Env(name string) uint32 {
+	intValue := RequireIntEnv(name)
+
+	if intValue < 0 || intValue > math.MaxUint32 {
+		log.Fatalf("couldn't parse environment variable \"%v\" into a uint32", name)
+	}
+	return uint32(intValue)
+}
+func RequireUint8Env(name string) uint8 {
+	intValue := RequireIntEnv(name)
+
+	if intValue < 0 || intValue > math.MaxUint8 {
+		log.Fatalf("couldn't parse environment variable \"%v\" into a uint8", name)
+	}
+	return uint8(intValue)
 }
 
 func RequireBoolEnv(name string) bool {

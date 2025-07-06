@@ -6,7 +6,7 @@ import (
 )
 
 func LoadEnvironmentVariables() *common.Env {
-	_ = godotenv.Load(".env")
+	_ = godotenv.Load(".env") // TODO: log some errors
 
 	env := common.Env{
 		IS_DEV:                        common.RequireBoolEnv("IS_DEV"),
@@ -15,6 +15,12 @@ func LoadEnvironmentVariables() *common.Env {
 		PROXY_ORIGINAL_IP_HEADER_NAME: common.RequireEnv("PROXY_ORIGINAL_IP_HEADER_NAME"),
 		UNLOCK_TIME:                   common.RequireInt64Env("UNLOCK_TIME"),
 		AUTH_CODE_VALID_FOR:           common.RequireInt64Env("AUTH_CODE_VALID_FOR"),
+
+		PASSWORD_HASH_SETTINGS: &common.PasswordHashSettings{
+			Time:    common.RequireUint32Env("PASSWORD_HASH_TIME"),
+			Memory:  common.RequireUint32Env("PASSWORD_HASH_MEMORY"),
+			Threads: common.RequireUint8Env("PASSWORD_HASH_THREADS"),
+		},
 
 		DISCORD_TOKEN:  common.OptionalEnv("DISCORD_TOKEN", ""),
 		SENDGRID_TOKEN: common.OptionalEnv("SENDGRID_TOKEN", ""),
