@@ -45,6 +45,8 @@ type JobMutation struct {
 	_type         *string
 	version       *int
 	addversion    *int
+	priority      *int8
+	addpriority   *int8
 	data          *string
 	status        *job.Status
 	retries       *int
@@ -323,6 +325,62 @@ func (m *JobMutation) ResetVersion() {
 	m.addversion = nil
 }
 
+// SetPriority sets the "priority" field.
+func (m *JobMutation) SetPriority(i int8) {
+	m.priority = &i
+	m.addpriority = nil
+}
+
+// Priority returns the value of the "priority" field in the mutation.
+func (m *JobMutation) Priority() (r int8, exists bool) {
+	v := m.priority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPriority returns the old "priority" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldPriority(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPriority is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPriority requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPriority: %w", err)
+	}
+	return oldValue.Priority, nil
+}
+
+// AddPriority adds i to the "priority" field.
+func (m *JobMutation) AddPriority(i int8) {
+	if m.addpriority != nil {
+		*m.addpriority += i
+	} else {
+		m.addpriority = &i
+	}
+}
+
+// AddedPriority returns the value that was added to the "priority" field in this mutation.
+func (m *JobMutation) AddedPriority() (r int8, exists bool) {
+	v := m.addpriority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPriority resets all changes to the "priority" field.
+func (m *JobMutation) ResetPriority() {
+	m.priority = nil
+	m.addpriority = nil
+}
+
 // SetData sets the "data" field.
 func (m *JobMutation) SetData(s string) {
 	m.data = &s
@@ -485,7 +543,7 @@ func (m *JobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *JobMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.created != nil {
 		fields = append(fields, job.FieldCreated)
 	}
@@ -497,6 +555,9 @@ func (m *JobMutation) Fields() []string {
 	}
 	if m.version != nil {
 		fields = append(fields, job.FieldVersion)
+	}
+	if m.priority != nil {
+		fields = append(fields, job.FieldPriority)
 	}
 	if m.data != nil {
 		fields = append(fields, job.FieldData)
@@ -523,6 +584,8 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case job.FieldVersion:
 		return m.Version()
+	case job.FieldPriority:
+		return m.Priority()
 	case job.FieldData:
 		return m.Data()
 	case job.FieldStatus:
@@ -546,6 +609,8 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldType(ctx)
 	case job.FieldVersion:
 		return m.OldVersion(ctx)
+	case job.FieldPriority:
+		return m.OldPriority(ctx)
 	case job.FieldData:
 		return m.OldData(ctx)
 	case job.FieldStatus:
@@ -589,6 +654,13 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVersion(v)
 		return nil
+	case job.FieldPriority:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPriority(v)
+		return nil
 	case job.FieldData:
 		v, ok := value.(string)
 		if !ok {
@@ -621,6 +693,9 @@ func (m *JobMutation) AddedFields() []string {
 	if m.addversion != nil {
 		fields = append(fields, job.FieldVersion)
 	}
+	if m.addpriority != nil {
+		fields = append(fields, job.FieldPriority)
+	}
 	if m.addretries != nil {
 		fields = append(fields, job.FieldRetries)
 	}
@@ -634,6 +709,8 @@ func (m *JobMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case job.FieldVersion:
 		return m.AddedVersion()
+	case job.FieldPriority:
+		return m.AddedPriority()
 	case job.FieldRetries:
 		return m.AddedRetries()
 	}
@@ -651,6 +728,13 @@ func (m *JobMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddVersion(v)
+		return nil
+	case job.FieldPriority:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPriority(v)
 		return nil
 	case job.FieldRetries:
 		v, ok := value.(int)
@@ -697,6 +781,9 @@ func (m *JobMutation) ResetField(name string) error {
 		return nil
 	case job.FieldVersion:
 		m.ResetVersion()
+		return nil
+	case job.FieldPriority:
+		m.ResetPriority()
 		return nil
 	case job.FieldData:
 		m.ResetData()

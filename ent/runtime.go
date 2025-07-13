@@ -46,7 +46,7 @@ func init() {
 		}
 	}()
 	// jobDescRetries is the schema descriptor for retries field.
-	jobDescRetries := jobFields[7].Descriptor()
+	jobDescRetries := jobFields[8].Descriptor()
 	// job.DefaultRetries holds the default value on creation for the retries field.
 	job.DefaultRetries = jobDescRetries.Default.(int)
 	// jobDescID is the schema descriptor for id field.

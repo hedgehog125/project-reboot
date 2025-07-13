@@ -27,6 +27,8 @@ type Job struct {
 	Type string `json:"type,omitempty"`
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
+	// Priority holds the value of the "priority" field.
+	Priority int8 `json:"priority,omitempty"`
 	// Data holds the value of the "data" field.
 	Data string `json:"data,omitempty"`
 	// Status holds the value of the "status" field.
@@ -43,7 +45,7 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case job.FieldData:
 			values[i] = new([]byte)
-		case job.FieldVersion, job.FieldRetries:
+		case job.FieldVersion, job.FieldPriority, job.FieldRetries:
 			values[i] = new(sql.NullInt64)
 		case job.FieldType, job.FieldStatus:
 			values[i] = new(sql.NullString)
@@ -95,6 +97,12 @@ func (j *Job) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
 			} else if value.Valid {
 				j.Version = int(value.Int64)
+			}
+		case job.FieldPriority:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field priority", values[i])
+			} else if value.Valid {
+				j.Priority = int8(value.Int64)
 			}
 		case job.FieldData:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -163,6 +171,9 @@ func (j *Job) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", j.Version))
+	builder.WriteString(", ")
+	builder.WriteString("priority=")
+	builder.WriteString(fmt.Sprintf("%v", j.Priority))
 	builder.WriteString(", ")
 	builder.WriteString("data=")
 	builder.WriteString(fmt.Sprintf("%v", j.Data))

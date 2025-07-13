@@ -23,6 +23,8 @@ const (
 	FieldType = "type"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
+	// FieldPriority holds the string denoting the priority field in the database.
+	FieldPriority = "priority"
 	// FieldData holds the string denoting the data field in the database.
 	FieldData = "data"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -40,6 +42,7 @@ var Columns = []string{
 	FieldDue,
 	FieldType,
 	FieldVersion,
+	FieldPriority,
 	FieldData,
 	FieldStatus,
 	FieldRetries,
@@ -121,6 +124,11 @@ func ByType(opts ...sql.OrderTermOption) OrderOption {
 // ByVersion orders the results by the version field.
 func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
+}
+
+// ByPriority orders the results by the priority field.
+func ByPriority(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPriority, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

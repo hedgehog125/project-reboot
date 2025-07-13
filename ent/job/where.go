@@ -75,6 +75,11 @@ func Version(v int) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldVersion, v))
 }
 
+// Priority applies equality check predicate on the "priority" field. It's identical to PriorityEQ.
+func Priority(v int8) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldPriority, v))
+}
+
 // Retries applies equality check predicate on the "retries" field. It's identical to RetriesEQ.
 func Retries(v int) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldRetries, v))
@@ -263,6 +268,46 @@ func VersionLT(v int) predicate.Job {
 // VersionLTE applies the LTE predicate on the "version" field.
 func VersionLTE(v int) predicate.Job {
 	return predicate.Job(sql.FieldLTE(FieldVersion, v))
+}
+
+// PriorityEQ applies the EQ predicate on the "priority" field.
+func PriorityEQ(v int8) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldPriority, v))
+}
+
+// PriorityNEQ applies the NEQ predicate on the "priority" field.
+func PriorityNEQ(v int8) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldPriority, v))
+}
+
+// PriorityIn applies the In predicate on the "priority" field.
+func PriorityIn(vs ...int8) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldPriority, vs...))
+}
+
+// PriorityNotIn applies the NotIn predicate on the "priority" field.
+func PriorityNotIn(vs ...int8) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldPriority, vs...))
+}
+
+// PriorityGT applies the GT predicate on the "priority" field.
+func PriorityGT(v int8) predicate.Job {
+	return predicate.Job(sql.FieldGT(FieldPriority, v))
+}
+
+// PriorityGTE applies the GTE predicate on the "priority" field.
+func PriorityGTE(v int8) predicate.Job {
+	return predicate.Job(sql.FieldGTE(FieldPriority, v))
+}
+
+// PriorityLT applies the LT predicate on the "priority" field.
+func PriorityLT(v int8) predicate.Job {
+	return predicate.Job(sql.FieldLT(FieldPriority, v))
+}
+
+// PriorityLTE applies the LTE predicate on the "priority" field.
+func PriorityLTE(v int8) predicate.Job {
+	return predicate.Job(sql.FieldLTE(FieldPriority, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

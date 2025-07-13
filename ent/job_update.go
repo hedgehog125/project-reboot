@@ -91,6 +91,27 @@ func (ju *JobUpdate) AddVersion(i int) *JobUpdate {
 	return ju
 }
 
+// SetPriority sets the "priority" field.
+func (ju *JobUpdate) SetPriority(i int8) *JobUpdate {
+	ju.mutation.ResetPriority()
+	ju.mutation.SetPriority(i)
+	return ju
+}
+
+// SetNillablePriority sets the "priority" field if the given value is not nil.
+func (ju *JobUpdate) SetNillablePriority(i *int8) *JobUpdate {
+	if i != nil {
+		ju.SetPriority(*i)
+	}
+	return ju
+}
+
+// AddPriority adds i to the "priority" field.
+func (ju *JobUpdate) AddPriority(i int8) *JobUpdate {
+	ju.mutation.AddPriority(i)
+	return ju
+}
+
 // SetData sets the "data" field.
 func (ju *JobUpdate) SetData(s string) *JobUpdate {
 	ju.mutation.SetData(s)
@@ -214,6 +235,12 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ju.mutation.AddedVersion(); ok {
 		_spec.AddField(job.FieldVersion, field.TypeInt, value)
 	}
+	if value, ok := ju.mutation.Priority(); ok {
+		_spec.SetField(job.FieldPriority, field.TypeInt8, value)
+	}
+	if value, ok := ju.mutation.AddedPriority(); ok {
+		_spec.AddField(job.FieldPriority, field.TypeInt8, value)
+	}
 	if value, ok := ju.mutation.Data(); ok {
 		_spec.SetField(job.FieldData, field.TypeJSON, value)
 	}
@@ -306,6 +333,27 @@ func (juo *JobUpdateOne) SetNillableVersion(i *int) *JobUpdateOne {
 // AddVersion adds i to the "version" field.
 func (juo *JobUpdateOne) AddVersion(i int) *JobUpdateOne {
 	juo.mutation.AddVersion(i)
+	return juo
+}
+
+// SetPriority sets the "priority" field.
+func (juo *JobUpdateOne) SetPriority(i int8) *JobUpdateOne {
+	juo.mutation.ResetPriority()
+	juo.mutation.SetPriority(i)
+	return juo
+}
+
+// SetNillablePriority sets the "priority" field if the given value is not nil.
+func (juo *JobUpdateOne) SetNillablePriority(i *int8) *JobUpdateOne {
+	if i != nil {
+		juo.SetPriority(*i)
+	}
+	return juo
+}
+
+// AddPriority adds i to the "priority" field.
+func (juo *JobUpdateOne) AddPriority(i int8) *JobUpdateOne {
+	juo.mutation.AddPriority(i)
 	return juo
 }
 
@@ -461,6 +509,12 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	}
 	if value, ok := juo.mutation.AddedVersion(); ok {
 		_spec.AddField(job.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := juo.mutation.Priority(); ok {
+		_spec.SetField(job.FieldPriority, field.TypeInt8, value)
+	}
+	if value, ok := juo.mutation.AddedPriority(); ok {
+		_spec.AddField(job.FieldPriority, field.TypeInt8, value)
 	}
 	if value, ok := juo.mutation.Data(); ok {
 		_spec.SetField(job.FieldData, field.TypeJSON, value)

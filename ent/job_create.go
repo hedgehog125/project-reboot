@@ -64,6 +64,12 @@ func (jc *JobCreate) SetVersion(i int) *JobCreate {
 	return jc
 }
 
+// SetPriority sets the "priority" field.
+func (jc *JobCreate) SetPriority(i int8) *JobCreate {
+	jc.mutation.SetPriority(i)
+	return jc
+}
+
 // SetData sets the "data" field.
 func (jc *JobCreate) SetData(s string) *JobCreate {
 	jc.mutation.SetData(s)
@@ -188,6 +194,9 @@ func (jc *JobCreate) check() error {
 	if _, ok := jc.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "Job.version"`)}
 	}
+	if _, ok := jc.mutation.Priority(); !ok {
+		return &ValidationError{Name: "priority", err: errors.New(`ent: missing required field "Job.priority"`)}
+	}
 	if _, ok := jc.mutation.Data(); !ok {
 		return &ValidationError{Name: "data", err: errors.New(`ent: missing required field "Job.data"`)}
 	}
@@ -253,6 +262,10 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 	if value, ok := jc.mutation.Version(); ok {
 		_spec.SetField(job.FieldVersion, field.TypeInt, value)
 		_node.Version = value
+	}
+	if value, ok := jc.mutation.Priority(); ok {
+		_spec.SetField(job.FieldPriority, field.TypeInt8, value)
+		_node.Priority = value
 	}
 	if value, ok := jc.mutation.Data(); ok {
 		_spec.SetField(job.FieldData, field.TypeJSON, value)
@@ -369,6 +382,24 @@ func (u *JobUpsert) UpdateVersion() *JobUpsert {
 // AddVersion adds v to the "version" field.
 func (u *JobUpsert) AddVersion(v int) *JobUpsert {
 	u.Add(job.FieldVersion, v)
+	return u
+}
+
+// SetPriority sets the "priority" field.
+func (u *JobUpsert) SetPriority(v int8) *JobUpsert {
+	u.Set(job.FieldPriority, v)
+	return u
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *JobUpsert) UpdatePriority() *JobUpsert {
+	u.SetExcluded(job.FieldPriority)
+	return u
+}
+
+// AddPriority adds v to the "priority" field.
+func (u *JobUpsert) AddPriority(v int8) *JobUpsert {
+	u.Add(job.FieldPriority, v)
 	return u
 }
 
@@ -522,6 +553,27 @@ func (u *JobUpsertOne) AddVersion(v int) *JobUpsertOne {
 func (u *JobUpsertOne) UpdateVersion() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetPriority sets the "priority" field.
+func (u *JobUpsertOne) SetPriority(v int8) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetPriority(v)
+	})
+}
+
+// AddPriority adds v to the "priority" field.
+func (u *JobUpsertOne) AddPriority(v int8) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.AddPriority(v)
+	})
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdatePriority() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdatePriority()
 	})
 }
 
@@ -849,6 +901,27 @@ func (u *JobUpsertBulk) AddVersion(v int) *JobUpsertBulk {
 func (u *JobUpsertBulk) UpdateVersion() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetPriority sets the "priority" field.
+func (u *JobUpsertBulk) SetPriority(v int8) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetPriority(v)
+	})
+}
+
+// AddPriority adds v to the "priority" field.
+func (u *JobUpsertBulk) AddPriority(v int8) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.AddPriority(v)
+	})
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdatePriority() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdatePriority()
 	})
 }
 
