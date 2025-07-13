@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -16,6 +17,42 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	jobFields := schema.Job{}.Fields()
+	_ = jobFields
+	// jobDescCreated is the schema descriptor for created field.
+	jobDescCreated := jobFields[1].Descriptor()
+	// job.DefaultCreated holds the default value on creation for the created field.
+	job.DefaultCreated = jobDescCreated.Default.(func() time.Time)
+	// jobDescDue is the schema descriptor for due field.
+	jobDescDue := jobFields[2].Descriptor()
+	// job.DefaultDue holds the default value on creation for the due field.
+	job.DefaultDue = jobDescDue.Default.(func() time.Time)
+	// jobDescType is the schema descriptor for type field.
+	jobDescType := jobFields[3].Descriptor()
+	// job.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	job.TypeValidator = func() func(string) error {
+		validators := jobDescType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(_type string) error {
+			for _, fn := range fns {
+				if err := fn(_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// jobDescRetries is the schema descriptor for retries field.
+	jobDescRetries := jobFields[7].Descriptor()
+	// job.DefaultRetries holds the default value on creation for the retries field.
+	job.DefaultRetries = jobDescRetries.Default.(int)
+	// jobDescID is the schema descriptor for id field.
+	jobDescID := jobFields[0].Descriptor()
+	// job.DefaultID holds the default value on creation for the id field.
+	job.DefaultID = jobDescID.Default.(func() uuid.UUID)
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
 	// sessionDescTime is the schema descriptor for time field.

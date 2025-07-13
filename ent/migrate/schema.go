@@ -8,6 +8,30 @@ import (
 )
 
 var (
+	// JobsColumns holds the columns for the "jobs" table.
+	JobsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created", Type: field.TypeTime},
+		{Name: "due", Type: field.TypeTime},
+		{Name: "type", Type: field.TypeString, Size: 128},
+		{Name: "version", Type: field.TypeInt},
+		{Name: "data", Type: field.TypeJSON},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "running", "failed"}, Default: "pending"},
+		{Name: "retries", Type: field.TypeInt, Default: 0},
+	}
+	// JobsTable holds the schema information for the "jobs" table.
+	JobsTable = &schema.Table{
+		Name:       "jobs",
+		Columns:    JobsColumns,
+		PrimaryKey: []*schema.Column{JobsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "job_status_due",
+				Unique:  false,
+				Columns: []*schema.Column{JobsColumns[6], JobsColumns[2]},
+			},
+		},
+	}
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -72,6 +96,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		JobsTable,
 		SessionsTable,
 		TwoFactorActionsTable,
 		UsersTable,

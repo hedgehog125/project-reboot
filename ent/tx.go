@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Job is the client for interacting with the Job builders.
+	Job *JobClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// TwoFactorAction is the client for interacting with the TwoFactorAction builders.
@@ -149,6 +151,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Job = NewJobClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.TwoFactorAction = NewTwoFactorActionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
@@ -161,7 +164,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Session.QueryXXX(), the query will be executed
+// applies a query, for example: Job.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.
