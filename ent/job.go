@@ -23,19 +23,25 @@ type Job struct {
 	Created time.Time `json:"created,omitempty"`
 	// Due holds the value of the "due" field.
 	Due time.Time `json:"due,omitempty"`
+	// Started holds the value of the "started" field.
+	Started time.Time `json:"started,omitempty"`
 	// Type holds the value of the "type" field.
 	Type string `json:"type,omitempty"`
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
 	// Priority holds the value of the "priority" field.
 	Priority int8 `json:"priority,omitempty"`
+	// Weight holds the value of the "weight" field.
+	Weight int `json:"weight,omitempty"`
 	// Data holds the value of the "data" field.
 	Data string `json:"data,omitempty"`
 	// Status holds the value of the "status" field.
 	Status job.Status `json:"status,omitempty"`
 	// Retries holds the value of the "retries" field.
-	Retries      int `json:"retries,omitempty"`
-	selectValues sql.SelectValues
+	Retries int `json:"retries,omitempty"`
+	// LoggedStallWarning holds the value of the "loggedStallWarning" field.
+	LoggedStallWarning bool `json:"loggedStallWarning,omitempty"`
+	selectValues       sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -45,11 +51,13 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case job.FieldData:
 			values[i] = new([]byte)
-		case job.FieldVersion, job.FieldPriority, job.FieldRetries:
+		case job.FieldLoggedStallWarning:
+			values[i] = new(sql.NullBool)
+		case job.FieldVersion, job.FieldPriority, job.FieldWeight, job.FieldRetries:
 			values[i] = new(sql.NullInt64)
 		case job.FieldType, job.FieldStatus:
 			values[i] = new(sql.NullString)
-		case job.FieldCreated, job.FieldDue:
+		case job.FieldCreated, job.FieldDue, job.FieldStarted:
 			values[i] = new(sql.NullTime)
 		case job.FieldID:
 			values[i] = new(uuid.UUID)
@@ -86,6 +94,12 @@ func (j *Job) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				j.Due = value.Time
 			}
+		case job.FieldStarted:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field started", values[i])
+			} else if value.Valid {
+				j.Started = value.Time
+			}
 		case job.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
@@ -103,6 +117,12 @@ func (j *Job) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field priority", values[i])
 			} else if value.Valid {
 				j.Priority = int8(value.Int64)
+			}
+		case job.FieldWeight:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field weight", values[i])
+			} else if value.Valid {
+				j.Weight = int(value.Int64)
 			}
 		case job.FieldData:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -123,6 +143,12 @@ func (j *Job) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field retries", values[i])
 			} else if value.Valid {
 				j.Retries = int(value.Int64)
+			}
+		case job.FieldLoggedStallWarning:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field loggedStallWarning", values[i])
+			} else if value.Valid {
+				j.LoggedStallWarning = value.Bool
 			}
 		default:
 			j.selectValues.Set(columns[i], values[i])
@@ -166,6 +192,9 @@ func (j *Job) String() string {
 	builder.WriteString("due=")
 	builder.WriteString(j.Due.Format(time.ANSIC))
 	builder.WriteString(", ")
+	builder.WriteString("started=")
+	builder.WriteString(j.Started.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(j.Type)
 	builder.WriteString(", ")
@@ -175,6 +204,9 @@ func (j *Job) String() string {
 	builder.WriteString("priority=")
 	builder.WriteString(fmt.Sprintf("%v", j.Priority))
 	builder.WriteString(", ")
+	builder.WriteString("weight=")
+	builder.WriteString(fmt.Sprintf("%v", j.Weight))
+	builder.WriteString(", ")
 	builder.WriteString("data=")
 	builder.WriteString(fmt.Sprintf("%v", j.Data))
 	builder.WriteString(", ")
@@ -183,6 +215,9 @@ func (j *Job) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("retries=")
 	builder.WriteString(fmt.Sprintf("%v", j.Retries))
+	builder.WriteString(", ")
+	builder.WriteString("loggedStallWarning=")
+	builder.WriteString(fmt.Sprintf("%v", j.LoggedStallWarning))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -37,24 +37,28 @@ const (
 // JobMutation represents an operation that mutates the Job nodes in the graph.
 type JobMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	created       *time.Time
-	due           *time.Time
-	_type         *string
-	version       *int
-	addversion    *int
-	priority      *int8
-	addpriority   *int8
-	data          *string
-	status        *job.Status
-	retries       *int
-	addretries    *int
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Job, error)
-	predicates    []predicate.Job
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	created            *time.Time
+	due                *time.Time
+	started            *time.Time
+	_type              *string
+	version            *int
+	addversion         *int
+	priority           *int8
+	addpriority        *int8
+	weight             *int
+	addweight          *int
+	data               *string
+	status             *job.Status
+	retries            *int
+	addretries         *int
+	loggedStallWarning *bool
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*Job, error)
+	predicates         []predicate.Job
 }
 
 var _ ent.Mutation = (*JobMutation)(nil)
@@ -233,6 +237,42 @@ func (m *JobMutation) ResetDue() {
 	m.due = nil
 }
 
+// SetStarted sets the "started" field.
+func (m *JobMutation) SetStarted(t time.Time) {
+	m.started = &t
+}
+
+// Started returns the value of the "started" field in the mutation.
+func (m *JobMutation) Started() (r time.Time, exists bool) {
+	v := m.started
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStarted returns the old "started" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldStarted(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStarted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStarted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStarted: %w", err)
+	}
+	return oldValue.Started, nil
+}
+
+// ResetStarted resets all changes to the "started" field.
+func (m *JobMutation) ResetStarted() {
+	m.started = nil
+}
+
 // SetType sets the "type" field.
 func (m *JobMutation) SetType(s string) {
 	m._type = &s
@@ -381,6 +421,62 @@ func (m *JobMutation) ResetPriority() {
 	m.addpriority = nil
 }
 
+// SetWeight sets the "weight" field.
+func (m *JobMutation) SetWeight(i int) {
+	m.weight = &i
+	m.addweight = nil
+}
+
+// Weight returns the value of the "weight" field in the mutation.
+func (m *JobMutation) Weight() (r int, exists bool) {
+	v := m.weight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWeight returns the old "weight" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldWeight(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWeight: %w", err)
+	}
+	return oldValue.Weight, nil
+}
+
+// AddWeight adds i to the "weight" field.
+func (m *JobMutation) AddWeight(i int) {
+	if m.addweight != nil {
+		*m.addweight += i
+	} else {
+		m.addweight = &i
+	}
+}
+
+// AddedWeight returns the value that was added to the "weight" field in this mutation.
+func (m *JobMutation) AddedWeight() (r int, exists bool) {
+	v := m.addweight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetWeight resets all changes to the "weight" field.
+func (m *JobMutation) ResetWeight() {
+	m.weight = nil
+	m.addweight = nil
+}
+
 // SetData sets the "data" field.
 func (m *JobMutation) SetData(s string) {
 	m.data = &s
@@ -509,6 +605,42 @@ func (m *JobMutation) ResetRetries() {
 	m.addretries = nil
 }
 
+// SetLoggedStallWarning sets the "loggedStallWarning" field.
+func (m *JobMutation) SetLoggedStallWarning(b bool) {
+	m.loggedStallWarning = &b
+}
+
+// LoggedStallWarning returns the value of the "loggedStallWarning" field in the mutation.
+func (m *JobMutation) LoggedStallWarning() (r bool, exists bool) {
+	v := m.loggedStallWarning
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLoggedStallWarning returns the old "loggedStallWarning" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldLoggedStallWarning(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLoggedStallWarning is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLoggedStallWarning requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLoggedStallWarning: %w", err)
+	}
+	return oldValue.LoggedStallWarning, nil
+}
+
+// ResetLoggedStallWarning resets all changes to the "loggedStallWarning" field.
+func (m *JobMutation) ResetLoggedStallWarning() {
+	m.loggedStallWarning = nil
+}
+
 // Where appends a list predicates to the JobMutation builder.
 func (m *JobMutation) Where(ps ...predicate.Job) {
 	m.predicates = append(m.predicates, ps...)
@@ -543,12 +675,15 @@ func (m *JobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *JobMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 11)
 	if m.created != nil {
 		fields = append(fields, job.FieldCreated)
 	}
 	if m.due != nil {
 		fields = append(fields, job.FieldDue)
+	}
+	if m.started != nil {
+		fields = append(fields, job.FieldStarted)
 	}
 	if m._type != nil {
 		fields = append(fields, job.FieldType)
@@ -559,6 +694,9 @@ func (m *JobMutation) Fields() []string {
 	if m.priority != nil {
 		fields = append(fields, job.FieldPriority)
 	}
+	if m.weight != nil {
+		fields = append(fields, job.FieldWeight)
+	}
 	if m.data != nil {
 		fields = append(fields, job.FieldData)
 	}
@@ -567,6 +705,9 @@ func (m *JobMutation) Fields() []string {
 	}
 	if m.retries != nil {
 		fields = append(fields, job.FieldRetries)
+	}
+	if m.loggedStallWarning != nil {
+		fields = append(fields, job.FieldLoggedStallWarning)
 	}
 	return fields
 }
@@ -580,18 +721,24 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.Created()
 	case job.FieldDue:
 		return m.Due()
+	case job.FieldStarted:
+		return m.Started()
 	case job.FieldType:
 		return m.GetType()
 	case job.FieldVersion:
 		return m.Version()
 	case job.FieldPriority:
 		return m.Priority()
+	case job.FieldWeight:
+		return m.Weight()
 	case job.FieldData:
 		return m.Data()
 	case job.FieldStatus:
 		return m.Status()
 	case job.FieldRetries:
 		return m.Retries()
+	case job.FieldLoggedStallWarning:
+		return m.LoggedStallWarning()
 	}
 	return nil, false
 }
@@ -605,18 +752,24 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldCreated(ctx)
 	case job.FieldDue:
 		return m.OldDue(ctx)
+	case job.FieldStarted:
+		return m.OldStarted(ctx)
 	case job.FieldType:
 		return m.OldType(ctx)
 	case job.FieldVersion:
 		return m.OldVersion(ctx)
 	case job.FieldPriority:
 		return m.OldPriority(ctx)
+	case job.FieldWeight:
+		return m.OldWeight(ctx)
 	case job.FieldData:
 		return m.OldData(ctx)
 	case job.FieldStatus:
 		return m.OldStatus(ctx)
 	case job.FieldRetries:
 		return m.OldRetries(ctx)
+	case job.FieldLoggedStallWarning:
+		return m.OldLoggedStallWarning(ctx)
 	}
 	return nil, fmt.Errorf("unknown Job field %s", name)
 }
@@ -640,6 +793,13 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDue(v)
 		return nil
+	case job.FieldStarted:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStarted(v)
+		return nil
 	case job.FieldType:
 		v, ok := value.(string)
 		if !ok {
@@ -660,6 +820,13 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPriority(v)
+		return nil
+	case job.FieldWeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWeight(v)
 		return nil
 	case job.FieldData:
 		v, ok := value.(string)
@@ -682,6 +849,13 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRetries(v)
 		return nil
+	case job.FieldLoggedStallWarning:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLoggedStallWarning(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Job field %s", name)
 }
@@ -695,6 +869,9 @@ func (m *JobMutation) AddedFields() []string {
 	}
 	if m.addpriority != nil {
 		fields = append(fields, job.FieldPriority)
+	}
+	if m.addweight != nil {
+		fields = append(fields, job.FieldWeight)
 	}
 	if m.addretries != nil {
 		fields = append(fields, job.FieldRetries)
@@ -711,6 +888,8 @@ func (m *JobMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedVersion()
 	case job.FieldPriority:
 		return m.AddedPriority()
+	case job.FieldWeight:
+		return m.AddedWeight()
 	case job.FieldRetries:
 		return m.AddedRetries()
 	}
@@ -735,6 +914,13 @@ func (m *JobMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddPriority(v)
+		return nil
+	case job.FieldWeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWeight(v)
 		return nil
 	case job.FieldRetries:
 		v, ok := value.(int)
@@ -776,6 +962,9 @@ func (m *JobMutation) ResetField(name string) error {
 	case job.FieldDue:
 		m.ResetDue()
 		return nil
+	case job.FieldStarted:
+		m.ResetStarted()
+		return nil
 	case job.FieldType:
 		m.ResetType()
 		return nil
@@ -785,6 +974,9 @@ func (m *JobMutation) ResetField(name string) error {
 	case job.FieldPriority:
 		m.ResetPriority()
 		return nil
+	case job.FieldWeight:
+		m.ResetWeight()
+		return nil
 	case job.FieldData:
 		m.ResetData()
 		return nil
@@ -793,6 +985,9 @@ func (m *JobMutation) ResetField(name string) error {
 		return nil
 	case job.FieldRetries:
 		m.ResetRetries()
+		return nil
+	case job.FieldLoggedStallWarning:
+		m.ResetLoggedStallWarning()
 		return nil
 	}
 	return fmt.Errorf("unknown Job field %s", name)

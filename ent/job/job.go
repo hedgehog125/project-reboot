@@ -19,18 +19,24 @@ const (
 	FieldCreated = "created"
 	// FieldDue holds the string denoting the due field in the database.
 	FieldDue = "due"
+	// FieldStarted holds the string denoting the started field in the database.
+	FieldStarted = "started"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// FieldPriority holds the string denoting the priority field in the database.
 	FieldPriority = "priority"
+	// FieldWeight holds the string denoting the weight field in the database.
+	FieldWeight = "weight"
 	// FieldData holds the string denoting the data field in the database.
 	FieldData = "data"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldRetries holds the string denoting the retries field in the database.
 	FieldRetries = "retries"
+	// FieldLoggedStallWarning holds the string denoting the loggedstallwarning field in the database.
+	FieldLoggedStallWarning = "logged_stall_warning"
 	// Table holds the table name of the job in the database.
 	Table = "jobs"
 )
@@ -40,12 +46,15 @@ var Columns = []string{
 	FieldID,
 	FieldCreated,
 	FieldDue,
+	FieldStarted,
 	FieldType,
 	FieldVersion,
 	FieldPriority,
+	FieldWeight,
 	FieldData,
 	FieldStatus,
 	FieldRetries,
+	FieldLoggedStallWarning,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -63,10 +72,14 @@ var (
 	DefaultCreated func() time.Time
 	// DefaultDue holds the default value on creation for the "due" field.
 	DefaultDue func() time.Time
+	// DefaultStarted holds the default value on creation for the "started" field.
+	DefaultStarted func() time.Time
 	// TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	TypeValidator func(string) error
 	// DefaultRetries holds the default value on creation for the "retries" field.
 	DefaultRetries int
+	// DefaultLoggedStallWarning holds the default value on creation for the "loggedStallWarning" field.
+	DefaultLoggedStallWarning bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -116,6 +129,11 @@ func ByDue(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDue, opts...).ToFunc()
 }
 
+// ByStarted orders the results by the started field.
+func ByStarted(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStarted, opts...).ToFunc()
+}
+
 // ByType orders the results by the type field.
 func ByType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldType, opts...).ToFunc()
@@ -131,6 +149,11 @@ func ByPriority(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPriority, opts...).ToFunc()
 }
 
+// ByWeight orders the results by the weight field.
+func ByWeight(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWeight, opts...).ToFunc()
+}
+
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
@@ -139,4 +162,9 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByRetries orders the results by the retries field.
 func ByRetries(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRetries, opts...).ToFunc()
+}
+
+// ByLoggedStallWarning orders the results by the loggedStallWarning field.
+func ByLoggedStallWarning(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLoggedStallWarning, opts...).ToFunc()
 }

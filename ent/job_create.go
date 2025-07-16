@@ -52,6 +52,20 @@ func (jc *JobCreate) SetNillableDue(t *time.Time) *JobCreate {
 	return jc
 }
 
+// SetStarted sets the "started" field.
+func (jc *JobCreate) SetStarted(t time.Time) *JobCreate {
+	jc.mutation.SetStarted(t)
+	return jc
+}
+
+// SetNillableStarted sets the "started" field if the given value is not nil.
+func (jc *JobCreate) SetNillableStarted(t *time.Time) *JobCreate {
+	if t != nil {
+		jc.SetStarted(*t)
+	}
+	return jc
+}
+
 // SetType sets the "type" field.
 func (jc *JobCreate) SetType(s string) *JobCreate {
 	jc.mutation.SetType(s)
@@ -67,6 +81,12 @@ func (jc *JobCreate) SetVersion(i int) *JobCreate {
 // SetPriority sets the "priority" field.
 func (jc *JobCreate) SetPriority(i int8) *JobCreate {
 	jc.mutation.SetPriority(i)
+	return jc
+}
+
+// SetWeight sets the "weight" field.
+func (jc *JobCreate) SetWeight(i int) *JobCreate {
+	jc.mutation.SetWeight(i)
 	return jc
 }
 
@@ -100,6 +120,20 @@ func (jc *JobCreate) SetRetries(i int) *JobCreate {
 func (jc *JobCreate) SetNillableRetries(i *int) *JobCreate {
 	if i != nil {
 		jc.SetRetries(*i)
+	}
+	return jc
+}
+
+// SetLoggedStallWarning sets the "loggedStallWarning" field.
+func (jc *JobCreate) SetLoggedStallWarning(b bool) *JobCreate {
+	jc.mutation.SetLoggedStallWarning(b)
+	return jc
+}
+
+// SetNillableLoggedStallWarning sets the "loggedStallWarning" field if the given value is not nil.
+func (jc *JobCreate) SetNillableLoggedStallWarning(b *bool) *JobCreate {
+	if b != nil {
+		jc.SetLoggedStallWarning(*b)
 	}
 	return jc
 }
@@ -161,6 +195,10 @@ func (jc *JobCreate) defaults() {
 		v := job.DefaultDue()
 		jc.mutation.SetDue(v)
 	}
+	if _, ok := jc.mutation.Started(); !ok {
+		v := job.DefaultStarted()
+		jc.mutation.SetStarted(v)
+	}
 	if _, ok := jc.mutation.Status(); !ok {
 		v := job.DefaultStatus
 		jc.mutation.SetStatus(v)
@@ -168,6 +206,10 @@ func (jc *JobCreate) defaults() {
 	if _, ok := jc.mutation.Retries(); !ok {
 		v := job.DefaultRetries
 		jc.mutation.SetRetries(v)
+	}
+	if _, ok := jc.mutation.LoggedStallWarning(); !ok {
+		v := job.DefaultLoggedStallWarning
+		jc.mutation.SetLoggedStallWarning(v)
 	}
 	if _, ok := jc.mutation.ID(); !ok {
 		v := job.DefaultID()
@@ -183,6 +225,9 @@ func (jc *JobCreate) check() error {
 	if _, ok := jc.mutation.Due(); !ok {
 		return &ValidationError{Name: "due", err: errors.New(`ent: missing required field "Job.due"`)}
 	}
+	if _, ok := jc.mutation.Started(); !ok {
+		return &ValidationError{Name: "started", err: errors.New(`ent: missing required field "Job.started"`)}
+	}
 	if _, ok := jc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Job.type"`)}
 	}
@@ -197,6 +242,9 @@ func (jc *JobCreate) check() error {
 	if _, ok := jc.mutation.Priority(); !ok {
 		return &ValidationError{Name: "priority", err: errors.New(`ent: missing required field "Job.priority"`)}
 	}
+	if _, ok := jc.mutation.Weight(); !ok {
+		return &ValidationError{Name: "weight", err: errors.New(`ent: missing required field "Job.weight"`)}
+	}
 	if _, ok := jc.mutation.Data(); !ok {
 		return &ValidationError{Name: "data", err: errors.New(`ent: missing required field "Job.data"`)}
 	}
@@ -210,6 +258,9 @@ func (jc *JobCreate) check() error {
 	}
 	if _, ok := jc.mutation.Retries(); !ok {
 		return &ValidationError{Name: "retries", err: errors.New(`ent: missing required field "Job.retries"`)}
+	}
+	if _, ok := jc.mutation.LoggedStallWarning(); !ok {
+		return &ValidationError{Name: "loggedStallWarning", err: errors.New(`ent: missing required field "Job.loggedStallWarning"`)}
 	}
 	return nil
 }
@@ -255,6 +306,10 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 		_spec.SetField(job.FieldDue, field.TypeTime, value)
 		_node.Due = value
 	}
+	if value, ok := jc.mutation.Started(); ok {
+		_spec.SetField(job.FieldStarted, field.TypeTime, value)
+		_node.Started = value
+	}
 	if value, ok := jc.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)
 		_node.Type = value
@@ -267,6 +322,10 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 		_spec.SetField(job.FieldPriority, field.TypeInt8, value)
 		_node.Priority = value
 	}
+	if value, ok := jc.mutation.Weight(); ok {
+		_spec.SetField(job.FieldWeight, field.TypeInt, value)
+		_node.Weight = value
+	}
 	if value, ok := jc.mutation.Data(); ok {
 		_spec.SetField(job.FieldData, field.TypeJSON, value)
 		_node.Data = value
@@ -278,6 +337,10 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 	if value, ok := jc.mutation.Retries(); ok {
 		_spec.SetField(job.FieldRetries, field.TypeInt, value)
 		_node.Retries = value
+	}
+	if value, ok := jc.mutation.LoggedStallWarning(); ok {
+		_spec.SetField(job.FieldLoggedStallWarning, field.TypeBool, value)
+		_node.LoggedStallWarning = value
 	}
 	return _node, _spec
 }
@@ -355,6 +418,18 @@ func (u *JobUpsert) UpdateDue() *JobUpsert {
 	return u
 }
 
+// SetStarted sets the "started" field.
+func (u *JobUpsert) SetStarted(v time.Time) *JobUpsert {
+	u.Set(job.FieldStarted, v)
+	return u
+}
+
+// UpdateStarted sets the "started" field to the value that was provided on create.
+func (u *JobUpsert) UpdateStarted() *JobUpsert {
+	u.SetExcluded(job.FieldStarted)
+	return u
+}
+
 // SetType sets the "type" field.
 func (u *JobUpsert) SetType(v string) *JobUpsert {
 	u.Set(job.FieldType, v)
@@ -403,6 +478,24 @@ func (u *JobUpsert) AddPriority(v int8) *JobUpsert {
 	return u
 }
 
+// SetWeight sets the "weight" field.
+func (u *JobUpsert) SetWeight(v int) *JobUpsert {
+	u.Set(job.FieldWeight, v)
+	return u
+}
+
+// UpdateWeight sets the "weight" field to the value that was provided on create.
+func (u *JobUpsert) UpdateWeight() *JobUpsert {
+	u.SetExcluded(job.FieldWeight)
+	return u
+}
+
+// AddWeight adds v to the "weight" field.
+func (u *JobUpsert) AddWeight(v int) *JobUpsert {
+	u.Add(job.FieldWeight, v)
+	return u
+}
+
 // SetData sets the "data" field.
 func (u *JobUpsert) SetData(v string) *JobUpsert {
 	u.Set(job.FieldData, v)
@@ -442,6 +535,18 @@ func (u *JobUpsert) UpdateRetries() *JobUpsert {
 // AddRetries adds v to the "retries" field.
 func (u *JobUpsert) AddRetries(v int) *JobUpsert {
 	u.Add(job.FieldRetries, v)
+	return u
+}
+
+// SetLoggedStallWarning sets the "loggedStallWarning" field.
+func (u *JobUpsert) SetLoggedStallWarning(v bool) *JobUpsert {
+	u.Set(job.FieldLoggedStallWarning, v)
+	return u
+}
+
+// UpdateLoggedStallWarning sets the "loggedStallWarning" field to the value that was provided on create.
+func (u *JobUpsert) UpdateLoggedStallWarning() *JobUpsert {
+	u.SetExcluded(job.FieldLoggedStallWarning)
 	return u
 }
 
@@ -521,6 +626,20 @@ func (u *JobUpsertOne) UpdateDue() *JobUpsertOne {
 	})
 }
 
+// SetStarted sets the "started" field.
+func (u *JobUpsertOne) SetStarted(v time.Time) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetStarted(v)
+	})
+}
+
+// UpdateStarted sets the "started" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateStarted() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateStarted()
+	})
+}
+
 // SetType sets the "type" field.
 func (u *JobUpsertOne) SetType(v string) *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
@@ -577,6 +696,27 @@ func (u *JobUpsertOne) UpdatePriority() *JobUpsertOne {
 	})
 }
 
+// SetWeight sets the "weight" field.
+func (u *JobUpsertOne) SetWeight(v int) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetWeight(v)
+	})
+}
+
+// AddWeight adds v to the "weight" field.
+func (u *JobUpsertOne) AddWeight(v int) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.AddWeight(v)
+	})
+}
+
+// UpdateWeight sets the "weight" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateWeight() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateWeight()
+	})
+}
+
 // SetData sets the "data" field.
 func (u *JobUpsertOne) SetData(v string) *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
@@ -623,6 +763,20 @@ func (u *JobUpsertOne) AddRetries(v int) *JobUpsertOne {
 func (u *JobUpsertOne) UpdateRetries() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateRetries()
+	})
+}
+
+// SetLoggedStallWarning sets the "loggedStallWarning" field.
+func (u *JobUpsertOne) SetLoggedStallWarning(v bool) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetLoggedStallWarning(v)
+	})
+}
+
+// UpdateLoggedStallWarning sets the "loggedStallWarning" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateLoggedStallWarning() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateLoggedStallWarning()
 	})
 }
 
@@ -869,6 +1023,20 @@ func (u *JobUpsertBulk) UpdateDue() *JobUpsertBulk {
 	})
 }
 
+// SetStarted sets the "started" field.
+func (u *JobUpsertBulk) SetStarted(v time.Time) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetStarted(v)
+	})
+}
+
+// UpdateStarted sets the "started" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateStarted() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateStarted()
+	})
+}
+
 // SetType sets the "type" field.
 func (u *JobUpsertBulk) SetType(v string) *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
@@ -925,6 +1093,27 @@ func (u *JobUpsertBulk) UpdatePriority() *JobUpsertBulk {
 	})
 }
 
+// SetWeight sets the "weight" field.
+func (u *JobUpsertBulk) SetWeight(v int) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetWeight(v)
+	})
+}
+
+// AddWeight adds v to the "weight" field.
+func (u *JobUpsertBulk) AddWeight(v int) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.AddWeight(v)
+	})
+}
+
+// UpdateWeight sets the "weight" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateWeight() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateWeight()
+	})
+}
+
 // SetData sets the "data" field.
 func (u *JobUpsertBulk) SetData(v string) *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
@@ -971,6 +1160,20 @@ func (u *JobUpsertBulk) AddRetries(v int) *JobUpsertBulk {
 func (u *JobUpsertBulk) UpdateRetries() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateRetries()
+	})
+}
+
+// SetLoggedStallWarning sets the "loggedStallWarning" field.
+func (u *JobUpsertBulk) SetLoggedStallWarning(v bool) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetLoggedStallWarning(v)
+	})
+}
+
+// UpdateLoggedStallWarning sets the "loggedStallWarning" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateLoggedStallWarning() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateLoggedStallWarning()
 	})
 }
 

@@ -56,6 +56,20 @@ func (ju *JobUpdate) SetNillableDue(t *time.Time) *JobUpdate {
 	return ju
 }
 
+// SetStarted sets the "started" field.
+func (ju *JobUpdate) SetStarted(t time.Time) *JobUpdate {
+	ju.mutation.SetStarted(t)
+	return ju
+}
+
+// SetNillableStarted sets the "started" field if the given value is not nil.
+func (ju *JobUpdate) SetNillableStarted(t *time.Time) *JobUpdate {
+	if t != nil {
+		ju.SetStarted(*t)
+	}
+	return ju
+}
+
 // SetType sets the "type" field.
 func (ju *JobUpdate) SetType(s string) *JobUpdate {
 	ju.mutation.SetType(s)
@@ -112,6 +126,27 @@ func (ju *JobUpdate) AddPriority(i int8) *JobUpdate {
 	return ju
 }
 
+// SetWeight sets the "weight" field.
+func (ju *JobUpdate) SetWeight(i int) *JobUpdate {
+	ju.mutation.ResetWeight()
+	ju.mutation.SetWeight(i)
+	return ju
+}
+
+// SetNillableWeight sets the "weight" field if the given value is not nil.
+func (ju *JobUpdate) SetNillableWeight(i *int) *JobUpdate {
+	if i != nil {
+		ju.SetWeight(*i)
+	}
+	return ju
+}
+
+// AddWeight adds i to the "weight" field.
+func (ju *JobUpdate) AddWeight(i int) *JobUpdate {
+	ju.mutation.AddWeight(i)
+	return ju
+}
+
 // SetData sets the "data" field.
 func (ju *JobUpdate) SetData(s string) *JobUpdate {
 	ju.mutation.SetData(s)
@@ -158,6 +193,20 @@ func (ju *JobUpdate) SetNillableRetries(i *int) *JobUpdate {
 // AddRetries adds i to the "retries" field.
 func (ju *JobUpdate) AddRetries(i int) *JobUpdate {
 	ju.mutation.AddRetries(i)
+	return ju
+}
+
+// SetLoggedStallWarning sets the "loggedStallWarning" field.
+func (ju *JobUpdate) SetLoggedStallWarning(b bool) *JobUpdate {
+	ju.mutation.SetLoggedStallWarning(b)
+	return ju
+}
+
+// SetNillableLoggedStallWarning sets the "loggedStallWarning" field if the given value is not nil.
+func (ju *JobUpdate) SetNillableLoggedStallWarning(b *bool) *JobUpdate {
+	if b != nil {
+		ju.SetLoggedStallWarning(*b)
+	}
 	return ju
 }
 
@@ -226,6 +275,9 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ju.mutation.Due(); ok {
 		_spec.SetField(job.FieldDue, field.TypeTime, value)
 	}
+	if value, ok := ju.mutation.Started(); ok {
+		_spec.SetField(job.FieldStarted, field.TypeTime, value)
+	}
 	if value, ok := ju.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)
 	}
@@ -241,6 +293,12 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ju.mutation.AddedPriority(); ok {
 		_spec.AddField(job.FieldPriority, field.TypeInt8, value)
 	}
+	if value, ok := ju.mutation.Weight(); ok {
+		_spec.SetField(job.FieldWeight, field.TypeInt, value)
+	}
+	if value, ok := ju.mutation.AddedWeight(); ok {
+		_spec.AddField(job.FieldWeight, field.TypeInt, value)
+	}
 	if value, ok := ju.mutation.Data(); ok {
 		_spec.SetField(job.FieldData, field.TypeJSON, value)
 	}
@@ -252,6 +310,9 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ju.mutation.AddedRetries(); ok {
 		_spec.AddField(job.FieldRetries, field.TypeInt, value)
+	}
+	if value, ok := ju.mutation.LoggedStallWarning(); ok {
+		_spec.SetField(job.FieldLoggedStallWarning, field.TypeBool, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ju.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -297,6 +358,20 @@ func (juo *JobUpdateOne) SetDue(t time.Time) *JobUpdateOne {
 func (juo *JobUpdateOne) SetNillableDue(t *time.Time) *JobUpdateOne {
 	if t != nil {
 		juo.SetDue(*t)
+	}
+	return juo
+}
+
+// SetStarted sets the "started" field.
+func (juo *JobUpdateOne) SetStarted(t time.Time) *JobUpdateOne {
+	juo.mutation.SetStarted(t)
+	return juo
+}
+
+// SetNillableStarted sets the "started" field if the given value is not nil.
+func (juo *JobUpdateOne) SetNillableStarted(t *time.Time) *JobUpdateOne {
+	if t != nil {
+		juo.SetStarted(*t)
 	}
 	return juo
 }
@@ -357,6 +432,27 @@ func (juo *JobUpdateOne) AddPriority(i int8) *JobUpdateOne {
 	return juo
 }
 
+// SetWeight sets the "weight" field.
+func (juo *JobUpdateOne) SetWeight(i int) *JobUpdateOne {
+	juo.mutation.ResetWeight()
+	juo.mutation.SetWeight(i)
+	return juo
+}
+
+// SetNillableWeight sets the "weight" field if the given value is not nil.
+func (juo *JobUpdateOne) SetNillableWeight(i *int) *JobUpdateOne {
+	if i != nil {
+		juo.SetWeight(*i)
+	}
+	return juo
+}
+
+// AddWeight adds i to the "weight" field.
+func (juo *JobUpdateOne) AddWeight(i int) *JobUpdateOne {
+	juo.mutation.AddWeight(i)
+	return juo
+}
+
 // SetData sets the "data" field.
 func (juo *JobUpdateOne) SetData(s string) *JobUpdateOne {
 	juo.mutation.SetData(s)
@@ -403,6 +499,20 @@ func (juo *JobUpdateOne) SetNillableRetries(i *int) *JobUpdateOne {
 // AddRetries adds i to the "retries" field.
 func (juo *JobUpdateOne) AddRetries(i int) *JobUpdateOne {
 	juo.mutation.AddRetries(i)
+	return juo
+}
+
+// SetLoggedStallWarning sets the "loggedStallWarning" field.
+func (juo *JobUpdateOne) SetLoggedStallWarning(b bool) *JobUpdateOne {
+	juo.mutation.SetLoggedStallWarning(b)
+	return juo
+}
+
+// SetNillableLoggedStallWarning sets the "loggedStallWarning" field if the given value is not nil.
+func (juo *JobUpdateOne) SetNillableLoggedStallWarning(b *bool) *JobUpdateOne {
+	if b != nil {
+		juo.SetLoggedStallWarning(*b)
+	}
 	return juo
 }
 
@@ -501,6 +611,9 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	if value, ok := juo.mutation.Due(); ok {
 		_spec.SetField(job.FieldDue, field.TypeTime, value)
 	}
+	if value, ok := juo.mutation.Started(); ok {
+		_spec.SetField(job.FieldStarted, field.TypeTime, value)
+	}
 	if value, ok := juo.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)
 	}
@@ -516,6 +629,12 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	if value, ok := juo.mutation.AddedPriority(); ok {
 		_spec.AddField(job.FieldPriority, field.TypeInt8, value)
 	}
+	if value, ok := juo.mutation.Weight(); ok {
+		_spec.SetField(job.FieldWeight, field.TypeInt, value)
+	}
+	if value, ok := juo.mutation.AddedWeight(); ok {
+		_spec.AddField(job.FieldWeight, field.TypeInt, value)
+	}
 	if value, ok := juo.mutation.Data(); ok {
 		_spec.SetField(job.FieldData, field.TypeJSON, value)
 	}
@@ -527,6 +646,9 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	}
 	if value, ok := juo.mutation.AddedRetries(); ok {
 		_spec.AddField(job.FieldRetries, field.TypeInt, value)
+	}
+	if value, ok := juo.mutation.LoggedStallWarning(); ok {
+		_spec.SetField(job.FieldLoggedStallWarning, field.TypeBool, value)
 	}
 	_node = &Job{config: juo.config}
 	_spec.Assign = _node.assignValues

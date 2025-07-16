@@ -13,12 +13,15 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created", Type: field.TypeTime},
 		{Name: "due", Type: field.TypeTime},
+		{Name: "started", Type: field.TypeTime},
 		{Name: "type", Type: field.TypeString, Size: 128},
 		{Name: "version", Type: field.TypeInt},
 		{Name: "priority", Type: field.TypeInt8},
+		{Name: "weight", Type: field.TypeInt},
 		{Name: "data", Type: field.TypeJSON},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "running", "failed"}, Default: "pending"},
 		{Name: "retries", Type: field.TypeInt, Default: 0},
+		{Name: "logged_stall_warning", Type: field.TypeBool, Default: false},
 	}
 	// JobsTable holds the schema information for the "jobs" table.
 	JobsTable = &schema.Table{
@@ -29,7 +32,7 @@ var (
 			{
 				Name:    "job_status_priority_due",
 				Unique:  false,
-				Columns: []*schema.Column{JobsColumns[7], JobsColumns[5], JobsColumns[2]},
+				Columns: []*schema.Column{JobsColumns[9], JobsColumns[6], JobsColumns[2]},
 			},
 		},
 	}

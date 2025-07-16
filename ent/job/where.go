@@ -65,6 +65,11 @@ func Due(v time.Time) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldDue, v))
 }
 
+// Started applies equality check predicate on the "started" field. It's identical to StartedEQ.
+func Started(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldStarted, v))
+}
+
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
 func Type(v string) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldType, v))
@@ -80,9 +85,19 @@ func Priority(v int8) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldPriority, v))
 }
 
+// Weight applies equality check predicate on the "weight" field. It's identical to WeightEQ.
+func Weight(v int) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldWeight, v))
+}
+
 // Retries applies equality check predicate on the "retries" field. It's identical to RetriesEQ.
 func Retries(v int) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldRetries, v))
+}
+
+// LoggedStallWarning applies equality check predicate on the "loggedStallWarning" field. It's identical to LoggedStallWarningEQ.
+func LoggedStallWarning(v bool) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldLoggedStallWarning, v))
 }
 
 // CreatedEQ applies the EQ predicate on the "created" field.
@@ -163,6 +178,46 @@ func DueLT(v time.Time) predicate.Job {
 // DueLTE applies the LTE predicate on the "due" field.
 func DueLTE(v time.Time) predicate.Job {
 	return predicate.Job(sql.FieldLTE(FieldDue, v))
+}
+
+// StartedEQ applies the EQ predicate on the "started" field.
+func StartedEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldStarted, v))
+}
+
+// StartedNEQ applies the NEQ predicate on the "started" field.
+func StartedNEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldStarted, v))
+}
+
+// StartedIn applies the In predicate on the "started" field.
+func StartedIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldStarted, vs...))
+}
+
+// StartedNotIn applies the NotIn predicate on the "started" field.
+func StartedNotIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldStarted, vs...))
+}
+
+// StartedGT applies the GT predicate on the "started" field.
+func StartedGT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGT(FieldStarted, v))
+}
+
+// StartedGTE applies the GTE predicate on the "started" field.
+func StartedGTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGTE(FieldStarted, v))
+}
+
+// StartedLT applies the LT predicate on the "started" field.
+func StartedLT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLT(FieldStarted, v))
+}
+
+// StartedLTE applies the LTE predicate on the "started" field.
+func StartedLTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLTE(FieldStarted, v))
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
@@ -310,6 +365,46 @@ func PriorityLTE(v int8) predicate.Job {
 	return predicate.Job(sql.FieldLTE(FieldPriority, v))
 }
 
+// WeightEQ applies the EQ predicate on the "weight" field.
+func WeightEQ(v int) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldWeight, v))
+}
+
+// WeightNEQ applies the NEQ predicate on the "weight" field.
+func WeightNEQ(v int) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldWeight, v))
+}
+
+// WeightIn applies the In predicate on the "weight" field.
+func WeightIn(vs ...int) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldWeight, vs...))
+}
+
+// WeightNotIn applies the NotIn predicate on the "weight" field.
+func WeightNotIn(vs ...int) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldWeight, vs...))
+}
+
+// WeightGT applies the GT predicate on the "weight" field.
+func WeightGT(v int) predicate.Job {
+	return predicate.Job(sql.FieldGT(FieldWeight, v))
+}
+
+// WeightGTE applies the GTE predicate on the "weight" field.
+func WeightGTE(v int) predicate.Job {
+	return predicate.Job(sql.FieldGTE(FieldWeight, v))
+}
+
+// WeightLT applies the LT predicate on the "weight" field.
+func WeightLT(v int) predicate.Job {
+	return predicate.Job(sql.FieldLT(FieldWeight, v))
+}
+
+// WeightLTE applies the LTE predicate on the "weight" field.
+func WeightLTE(v int) predicate.Job {
+	return predicate.Job(sql.FieldLTE(FieldWeight, v))
+}
+
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v Status) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldStatus, v))
@@ -368,6 +463,16 @@ func RetriesLT(v int) predicate.Job {
 // RetriesLTE applies the LTE predicate on the "retries" field.
 func RetriesLTE(v int) predicate.Job {
 	return predicate.Job(sql.FieldLTE(FieldRetries, v))
+}
+
+// LoggedStallWarningEQ applies the EQ predicate on the "loggedStallWarning" field.
+func LoggedStallWarningEQ(v bool) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldLoggedStallWarning, v))
+}
+
+// LoggedStallWarningNEQ applies the NEQ predicate on the "loggedStallWarning" field.
+func LoggedStallWarningNEQ(v bool) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldLoggedStallWarning, v))
 }
 
 // And groups predicates with the AND operator between them.

@@ -20,12 +20,15 @@ func (Job) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Time("created").Default(time.Now),
 		field.Time("due").Default(time.Now),
+		field.Time("started").Default(time.Now),
 		field.String("type").MinLen(1).MaxLen(128),
 		field.Int("version"),
-		field.Int8("priority"),
+		field.Int8("priority"), // Currently duplicates the definition but needed for sorting and might want to make it dynamic in the future
+		field.Int("weight"),    // Currently duplicates the definition but might make it dynamic in the future
 		field.JSON("data", ""),
 		field.Enum("status").Values("pending", "running", "failed").Default("pending"), // Completed jobs are deleted
 		field.Int("retries").Default(0),
+		field.Bool("loggedStallWarning").Default(false),
 	}
 }
 
