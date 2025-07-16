@@ -14,9 +14,13 @@ type Env struct {
 	PORT                          int
 	MOUNT_PATH                    string
 	PROXY_ORIGINAL_IP_HEADER_NAME string
-	UNLOCK_TIME                   int64 // In seconds
+
+	JOB_POLL_INTERVAL    time.Duration
+	MAX_TOTAL_JOB_WEIGHT int
+
+	UNLOCK_TIME time.Duration
 	// TODO: implement
-	AUTH_CODE_VALID_FOR int64 // In seconds
+	AUTH_CODE_VALID_FOR time.Duration
 
 	PASSWORD_HASH_SETTINGS *PasswordHashSettings
 

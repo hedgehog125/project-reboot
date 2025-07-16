@@ -1,10 +1,15 @@
 # TODO
 
--   Use hash-wasm on the frontend when backend rate limits the hashing. It's single threaded but multithreaded WASM seems to be patchy at the moment, even in languages with good support like Rust
--   Make Argon2ID parallelism configurable. Should probably increase to 4 for Railway, but keep in mind that the same CPU will be a quarter the speed running in the browser as it'll be single threaded. Changing parallelism doesn't affect performance but means more threads are used and a different hash is produced
 -   Job system
--   -   Jobs should have a category. Maybe 10 network jobs can run simultaneously but only (1/4 \* max processes) compute at a time
--   -   Would replace the current cron system
+-   -   Rework 2FA actions so there aren't definitions, they're just a full job type ID, body and a username
+-   -   Add MostlyDatabase option, only one runs simultaneously
+-   -   Continue looking through the job list for lower weight jobs if at max? Maybe only within the priority level?
+-   Only load env files in development
+-   Bump priority of jobs as they get older
+-   Replace cron system with a simple custom job scheduler
+-   Use hash-wasm on the frontend when backend rate limits the hashing. It's single threaded but multithreaded WASM seems to be patchy at the moment, even in languages with good support like Rust
+-   -   Switch to SvelteKit at the same time
+-   -   Backend should limit number of concurrent hash requests to avoid using too much RAM
 -   Make util that allows returning a servercommon.Error from endpoint handlers
 -   Use common.ErrWrapperDatabase as base for DB error wrappers
 -   Account locking until a specified date for if you know you won't have access to your devices for a while
@@ -21,15 +26,16 @@
 -   -   If all messengers fail, send the message to env.ADMIN_USERNAME
 -   Repeat password in sign up form
 -   Use transactions
+-   Does gin.ctx.Context include the timeout info from the middleware?
 -   Move more logic out of endpoints
 -   Rework endpoint system, maybe the endpoint functions could return an Endpoint struct with an array of handlers and some other things? Middleware should be defined there instead of in RegisterEndpoints
 -   Review contexts. Possibly want to give them all a timeout, partly to make shutdowns more predictable
 -   SMS messenger
 -   Split endpoints into admin and normal?
--   Switch to Railpack on Railway? Seems to automatically work with CGO when enabled
+-   Switch to a pure Go SQLite implementation, speed will be fine considering I'm already sacrificing it with the global mutex
 -   Does log.Fatalf stop the shutdown logic running if the server crashes on startup?
 -   Use single mutex around database for simplicity, I'm already using SQLite and security is more important than performance
--   Require both admin and users to click a link every 2 weeks (unless already locked) to confirm their contacts are working. If they don't click it, users will automatically lock and have to be unlocked by an admin. If the admin doesn't, all users will automatically lock
+-   Require both admin and users to click a link every 4 weeks (unless already locked) to confirm their contacts are working. If they don't click it, users will automatically lock and have to be unlocked by an admin. If the admin doesn't, all users will automatically lock
 
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 

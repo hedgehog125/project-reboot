@@ -26,6 +26,7 @@ const (
 
 	// Package categories
 	ErrTypeCore            = "core [package]"
+	ErrTypeJobs            = "jobs [package]"
 	ErrTypeTwoFactorAction = "two factor action [package]"
 	ErrTypeMessengers      = "messengers [package]"
 	ErrTypeDbCommon        = "db common [package]"

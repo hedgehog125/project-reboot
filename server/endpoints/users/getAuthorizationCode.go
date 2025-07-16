@@ -29,7 +29,6 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 	dbClient := app.Database.Client()
 	messenger := app.Messenger
 	clock := app.Clock
-	unlockTime := time.Duration(app.Env.UNLOCK_TIME) * time.Second
 
 	return func(ctx *gin.Context) {
 		body := GetAuthorizationCodePayload{}
@@ -89,7 +88,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		// TODO: log these errors
 
 		authCode := core.RandomAuthCode()
-		validAt := clock.Now().Add(unlockTime)
+		validAt := clock.Now().Add(app.Env.UNLOCK_TIME)
 
 		_, stdErr = dbClient.Session.Create().
 			SetUser(userRow).

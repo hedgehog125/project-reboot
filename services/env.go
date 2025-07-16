@@ -13,8 +13,12 @@ func LoadEnvironmentVariables() *common.Env {
 		PORT:                          common.RequireIntEnv("PORT"),
 		MOUNT_PATH:                    common.RequireEnv("MOUNT_PATH"),
 		PROXY_ORIGINAL_IP_HEADER_NAME: common.RequireEnv("PROXY_ORIGINAL_IP_HEADER_NAME"),
-		UNLOCK_TIME:                   common.RequireInt64Env("UNLOCK_TIME"),
-		AUTH_CODE_VALID_FOR:           common.RequireInt64Env("AUTH_CODE_VALID_FOR"),
+
+		JOB_POLL_INTERVAL:    common.RequireSecondsEnv("JOB_POLL_INTERVAL"),
+		MAX_TOTAL_JOB_WEIGHT: common.RequireIntEnv("MAX_TOTAL_JOB_WEIGHT"),
+
+		UNLOCK_TIME:         common.RequireSecondsEnv("UNLOCK_TIME"),
+		AUTH_CODE_VALID_FOR: common.RequireSecondsEnv("AUTH_CODE_VALID_FOR"),
 
 		PASSWORD_HASH_SETTINGS: &common.PasswordHashSettings{
 			Time:    common.RequireUint32Env("PASSWORD_HASH_TIME"),

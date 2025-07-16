@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func RequireEnv(name string) string {
@@ -59,6 +60,9 @@ func RequireUint8Env(name string) uint8 {
 		log.Fatalf("couldn't parse environment variable \"%v\" into a uint8", name)
 	}
 	return uint8(intValue)
+}
+func RequireSecondsEnv(name string) time.Duration {
+	return time.Duration(RequireInt64Env(name)) * time.Second
 }
 
 func RequireBoolEnv(name string) bool {
