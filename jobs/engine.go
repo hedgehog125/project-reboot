@@ -27,10 +27,10 @@ type Engine struct {
 	mu                   sync.Mutex
 }
 
-func NewEngine(app *common.App) *Engine {
+func NewEngine(registry *Registry) *Engine {
 	return &Engine{
-		App:                  app,
-		Registry:             NewRegistry(app),
+		App:                  registry.App,
+		Registry:             registry,
 		newJobChan:           make(chan struct{}, 1),
 		requestShutdownChan:  make(chan struct{}),
 		shutdownFinishedChan: make(chan struct{}),
@@ -124,11 +124,29 @@ listenLoop:
 	close(engine.shutdownFinishedChan)
 }
 func (engine *Engine) runJob(job *ent.Job, completedJobChan chan completedJob) {
+	jobDefinition, ok := engine.Registry.jobs[jobscommon.GetVersionedType(job.Type, job.Version)]
+	if !ok { // Note: this shouldn't happen
+		completedJobChan <- completedJob{
+			ID:     job.ID,
+			Weight: job.Weight,
+			Err:    NewError(ErrUnknownJobType.AddCategory(ErrTypeRunJob)),
+		}
+		return
+	}
 
+	stdErr := jobDefinition.Handler(&Context{
+		Definition: jobDefinition,
+		Context:    context.TODO(),
+		Body:       []byte(job.Data),
+	})
+	completedJobChan <- completedJob{
+		ID:     job.ID,
+		Weight: job.Weight,
+		Err:    NewError(stdErr).AddCategory(ErrTypeRunJob), // TODO: are these categories correct?
+	}
 }
 
 func (engine *Engine) Shutdown() {
-	engine.mu.Lock()
 	engine.requestShutdownChan <- struct{}{}
 	<-engine.shutdownFinishedChan
 }
@@ -137,6 +155,10 @@ func (engine *Engine) Enqueue(
 	versionedType string,
 	data any,
 ) (uuid.UUID, *common.Error) {
+	jobDefinition, ok := engine.Registry.jobs[versionedType]
+	if !ok {
+		return uuid.UUID{}, ErrUnknownJobType.AddCategory(ErrTypeEnqueue)
+	}
 	encoded, commErr := engine.Registry.Encode(
 		versionedType,
 		data,
@@ -149,11 +171,13 @@ func (engine *Engine) Enqueue(
 	if commErr != nil { // This shouldn't happen because of the Encode call but just in case
 		return uuid.UUID{}, commErr.AddCategory(ErrTypeEnqueue)
 	}
+
 	dbClient := engine.App.Database.Client()
-	// TODO: update
 	action, stdErr := dbClient.Job.Create().
 		SetType(jobType).
 		SetVersion(version).
+		SetPriority(jobDefinition.Priority).
+		SetWeight(jobDefinition.Weight).
 		SetData(encoded).
 		Save(context.Background())
 	if stdErr != nil {

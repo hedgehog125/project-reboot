@@ -2,23 +2,18 @@ package jobs
 
 // Utils for job definitions to use
 
-import (
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/ent"
-)
-
-func TxHandler(
-	dbClient *ent.Client,
-	handler func(ctx *Context, tx *ent.Tx) *common.Error,
-) HandlerFunc {
-	return func(ctx *Context) *common.Error {
-		return dbcommon.WithTx(
-			ctx.Context,
-			dbClient,
-			func(tx *ent.Tx) *common.Error {
-				return handler(ctx, tx)
-			},
-		)
-	}
-}
+// TODO: how should the errors work with this?
+// func TxHandler(
+// 	dbClient *ent.Client,
+// 	handler func(ctx *Context, tx *ent.Tx) error,
+// ) HandlerFunc {
+// 	return func(ctx *Context) error {
+// 		return dbcommon.WithTx(
+// 			ctx.Context,
+// 			dbClient,
+// 			func(tx *ent.Tx) error {
+// 				return handler(ctx, tx)
+// 			},
+// 		)
+// 	}
+// }

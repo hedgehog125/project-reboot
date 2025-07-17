@@ -31,9 +31,9 @@ type Definition struct {
 	reflectedBodyType reflect.Type
 	Weight            int // TODO: schedule jobs based on this and a MAX_JOB_WEIGHT env var
 	// 0 is DefaultPriority.
-	Priority int
+	Priority int8
 }
-type HandlerFunc func(ctx *Context) *common.Error
+type HandlerFunc func(ctx *Context) error
 
 type Context struct {
 	Definition *Definition

@@ -12,6 +12,7 @@ const (
 	ErrTypeEncode  = "encode"
 	ErrTypeDecode  = "decode" // From Job.Decode() method
 	ErrTypeEnqueue = "enqueue"
+	ErrTypeRunJob  = "run job"
 	// Lower level
 	ErrTypeInvalidData = "invalid data"
 )
@@ -52,10 +53,8 @@ func NewError(err error) *Error {
 		commErr = common.AutoWrapError(err)
 	}
 	return &Error{
-		CommonError: *commErr,
-		Status:      -1,
-		Details:     []ErrorDetail{},
-		ShouldLog:   true,
+		CommonError:   *commErr,
+		RetryBackoffs: []time.Duration{},
 	}
 }
 
@@ -64,34 +63,14 @@ func (err *Error) Unwrap() error {
 }
 func (err *Error) Clone() *Error {
 	copiedErr := &Error{
-		CommonError: *err.CommonError.Clone(),
-		Status:      err.Status,
-		Details:     slices.Clone(err.Details),
-		ShouldLog:   err.ShouldLog,
+		CommonError:   *err.CommonError.Clone(),
+		RetryBackoffs: slices.Clone(err.RetryBackoffs),
 	}
 	return copiedErr
 }
-func (err *Error) AddDetails(details ...ErrorDetail) *Error {
+
+func (err *Error) AddCategory(category string) *Error {
 	copiedErr := err.Clone()
-	copiedErr.Details = append(copiedErr.Details, details...)
+	copiedErr.Err = err.CommonError.AddCategory(category)
 	return copiedErr
-}
-func (err *Error) AddDetail(detail ErrorDetail) *Error {
-	return err.AddDetails(detail)
-}
-func (err *Error) SetStatus(code int) *Error {
-	copiedErr := err.Clone()
-	copiedErr.Status = code
-	return copiedErr
-}
-func (err *Error) SetShouldLog(shouldLog bool) *Error {
-	copiedErr := err.Clone()
-	copiedErr.ShouldLog = shouldLog
-	return copiedErr
-}
-func (err *Error) DisableLogging() *Error {
-	return err.SetShouldLog(false)
-}
-func (err *Error) EnableLogging() *Error {
-	return err.SetShouldLog(true)
 }
