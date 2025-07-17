@@ -20,7 +20,7 @@ func (Job) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Time("created").Default(time.Now),
 		field.Time("due").Default(time.Now),
-		field.Time("started").Default(time.Now),
+		field.Time("started").Optional(),
 		field.String("type").MinLen(1).MaxLen(128),
 		field.Int("version"),
 		field.Int8("priority"), // Currently duplicates the definition but needed for sorting and might want to make it dynamic in the future

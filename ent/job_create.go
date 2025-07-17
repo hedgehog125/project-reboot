@@ -195,10 +195,6 @@ func (jc *JobCreate) defaults() {
 		v := job.DefaultDue()
 		jc.mutation.SetDue(v)
 	}
-	if _, ok := jc.mutation.Started(); !ok {
-		v := job.DefaultStarted()
-		jc.mutation.SetStarted(v)
-	}
 	if _, ok := jc.mutation.Status(); !ok {
 		v := job.DefaultStatus
 		jc.mutation.SetStatus(v)
@@ -224,9 +220,6 @@ func (jc *JobCreate) check() error {
 	}
 	if _, ok := jc.mutation.Due(); !ok {
 		return &ValidationError{Name: "due", err: errors.New(`ent: missing required field "Job.due"`)}
-	}
-	if _, ok := jc.mutation.Started(); !ok {
-		return &ValidationError{Name: "started", err: errors.New(`ent: missing required field "Job.started"`)}
 	}
 	if _, ok := jc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Job.type"`)}
@@ -427,6 +420,12 @@ func (u *JobUpsert) SetStarted(v time.Time) *JobUpsert {
 // UpdateStarted sets the "started" field to the value that was provided on create.
 func (u *JobUpsert) UpdateStarted() *JobUpsert {
 	u.SetExcluded(job.FieldStarted)
+	return u
+}
+
+// ClearStarted clears the value of the "started" field.
+func (u *JobUpsert) ClearStarted() *JobUpsert {
+	u.SetNull(job.FieldStarted)
 	return u
 }
 
@@ -637,6 +636,13 @@ func (u *JobUpsertOne) SetStarted(v time.Time) *JobUpsertOne {
 func (u *JobUpsertOne) UpdateStarted() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateStarted()
+	})
+}
+
+// ClearStarted clears the value of the "started" field.
+func (u *JobUpsertOne) ClearStarted() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.ClearStarted()
 	})
 }
 
@@ -1034,6 +1040,13 @@ func (u *JobUpsertBulk) SetStarted(v time.Time) *JobUpsertBulk {
 func (u *JobUpsertBulk) UpdateStarted() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateStarted()
+	})
+}
+
+// ClearStarted clears the value of the "started" field.
+func (u *JobUpsertBulk) ClearStarted() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.ClearStarted()
 	})
 }
 

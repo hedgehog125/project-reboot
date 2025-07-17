@@ -72,8 +72,6 @@ var (
 	DefaultCreated func() time.Time
 	// DefaultDue holds the default value on creation for the "due" field.
 	DefaultDue func() time.Time
-	// DefaultStarted holds the default value on creation for the "started" field.
-	DefaultStarted func() time.Time
 	// TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	TypeValidator func(string) error
 	// DefaultRetries holds the default value on creation for the "retries" field.

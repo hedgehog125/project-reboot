@@ -13,7 +13,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created", Type: field.TypeTime},
 		{Name: "due", Type: field.TypeTime},
-		{Name: "started", Type: field.TypeTime},
+		{Name: "started", Type: field.TypeTime, Nullable: true},
 		{Name: "type", Type: field.TypeString, Size: 128},
 		{Name: "version", Type: field.TypeInt},
 		{Name: "priority", Type: field.TypeInt8},

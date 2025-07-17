@@ -220,6 +220,16 @@ func StartedLTE(v time.Time) predicate.Job {
 	return predicate.Job(sql.FieldLTE(FieldStarted, v))
 }
 
+// StartedIsNil applies the IsNil predicate on the "started" field.
+func StartedIsNil() predicate.Job {
+	return predicate.Job(sql.FieldIsNull(FieldStarted))
+}
+
+// StartedNotNil applies the NotNil predicate on the "started" field.
+func StartedNotNil() predicate.Job {
+	return predicate.Job(sql.FieldNotNull(FieldStarted))
+}
+
 // TypeEQ applies the EQ predicate on the "type" field.
 func TypeEQ(v string) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldType, v))

@@ -268,9 +268,22 @@ func (m *JobMutation) OldStarted(ctx context.Context) (v time.Time, err error) {
 	return oldValue.Started, nil
 }
 
+// ClearStarted clears the value of the "started" field.
+func (m *JobMutation) ClearStarted() {
+	m.started = nil
+	m.clearedFields[job.FieldStarted] = struct{}{}
+}
+
+// StartedCleared returns if the "started" field was cleared in this mutation.
+func (m *JobMutation) StartedCleared() bool {
+	_, ok := m.clearedFields[job.FieldStarted]
+	return ok
+}
+
 // ResetStarted resets all changes to the "started" field.
 func (m *JobMutation) ResetStarted() {
 	m.started = nil
+	delete(m.clearedFields, job.FieldStarted)
 }
 
 // SetType sets the "type" field.
@@ -936,7 +949,11 @@ func (m *JobMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *JobMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(job.FieldStarted) {
+		fields = append(fields, job.FieldStarted)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -949,6 +966,11 @@ func (m *JobMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *JobMutation) ClearField(name string) error {
+	switch name {
+	case job.FieldStarted:
+		m.ClearStarted()
+		return nil
+	}
 	return fmt.Errorf("unknown Job nullable field %s", name)
 }
 

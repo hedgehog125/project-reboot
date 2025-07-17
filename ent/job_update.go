@@ -70,6 +70,12 @@ func (ju *JobUpdate) SetNillableStarted(t *time.Time) *JobUpdate {
 	return ju
 }
 
+// ClearStarted clears the value of the "started" field.
+func (ju *JobUpdate) ClearStarted() *JobUpdate {
+	ju.mutation.ClearStarted()
+	return ju
+}
+
 // SetType sets the "type" field.
 func (ju *JobUpdate) SetType(s string) *JobUpdate {
 	ju.mutation.SetType(s)
@@ -278,6 +284,9 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ju.mutation.Started(); ok {
 		_spec.SetField(job.FieldStarted, field.TypeTime, value)
 	}
+	if ju.mutation.StartedCleared() {
+		_spec.ClearField(job.FieldStarted, field.TypeTime)
+	}
 	if value, ok := ju.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)
 	}
@@ -373,6 +382,12 @@ func (juo *JobUpdateOne) SetNillableStarted(t *time.Time) *JobUpdateOne {
 	if t != nil {
 		juo.SetStarted(*t)
 	}
+	return juo
+}
+
+// ClearStarted clears the value of the "started" field.
+func (juo *JobUpdateOne) ClearStarted() *JobUpdateOne {
+	juo.mutation.ClearStarted()
 	return juo
 }
 
@@ -613,6 +628,9 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	}
 	if value, ok := juo.mutation.Started(); ok {
 		_spec.SetField(job.FieldStarted, field.TypeTime, value)
+	}
+	if juo.mutation.StartedCleared() {
+		_spec.ClearField(job.FieldStarted, field.TypeTime)
 	}
 	if value, ok := juo.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)

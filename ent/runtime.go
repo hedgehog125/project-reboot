@@ -27,10 +27,6 @@ func init() {
 	jobDescDue := jobFields[2].Descriptor()
 	// job.DefaultDue holds the default value on creation for the due field.
 	job.DefaultDue = jobDescDue.Default.(func() time.Time)
-	// jobDescStarted is the schema descriptor for started field.
-	jobDescStarted := jobFields[3].Descriptor()
-	// job.DefaultStarted holds the default value on creation for the started field.
-	job.DefaultStarted = jobDescStarted.Default.(func() time.Time)
 	// jobDescType is the schema descriptor for type field.
 	jobDescType := jobFields[4].Descriptor()
 	// job.TypeValidator is a validator for the "type" field. It is called by the builders before save.
