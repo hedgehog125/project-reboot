@@ -8,7 +8,7 @@ import (
 func LoadEnvironmentVariables() *common.Env {
 	_ = godotenv.Load(".env") // TODO: log some errors
 
-	env := common.Env{
+	return &common.Env{
 		IS_DEV:                        common.RequireBoolEnv("IS_DEV"),
 		PORT:                          common.RequireIntEnv("PORT"),
 		MOUNT_PATH:                    common.RequireEnv("MOUNT_PATH"),
@@ -29,5 +29,4 @@ func LoadEnvironmentVariables() *common.Env {
 		DISCORD_TOKEN:  common.OptionalEnv("DISCORD_TOKEN", ""),
 		SENDGRID_TOKEN: common.OptionalEnv("SENDGRID_TOKEN", ""),
 	}
-	return &env
 }

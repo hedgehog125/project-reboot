@@ -43,9 +43,9 @@ type ErrorDetail struct {
 }
 
 func NewError(err error) *Error {
-	serverErr := &Error{}
-	if errors.As(err, &serverErr) {
-		return serverErr.Clone()
+	jobErr := &Error{}
+	if errors.As(err, &jobErr) {
+		return jobErr.Clone()
 	}
 
 	commErr := &common.Error{}

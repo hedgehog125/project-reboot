@@ -23,11 +23,11 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 		Version:  1,
 		Priority: jobs.HighPriority,
 		BodyType: &TempSelfLock1Body{},
-		Handler: jobs.TxHandler(dbClient, func(ctx *jobs.Context, tx *ent.Tx) *common.Error {
+		Handler: jobs.TxHandler(dbClient, func(ctx *jobs.Context, tx *ent.Tx) error {
 			body := &TempSelfLock1Body{}
-			commErr := ctx.Decode(body)
-			if commErr != nil {
-				return commErr
+			jobErr := ctx.Decode(body)
+			if jobErr != nil {
+				return jobErr
 			}
 
 			_, stdErr := tx.User.Update().

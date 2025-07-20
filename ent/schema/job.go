@@ -40,5 +40,6 @@ func (Job) Edges() []ent.Edge {
 func (Job) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("status", "priority", "due"),
+		index.Fields("due"),
 	}
 }

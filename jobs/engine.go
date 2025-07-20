@@ -8,13 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/jobs/jobscommon"
-)
-
-const (
-	JOB_READ_BATCH_SIZE = 100
 )
 
 type Engine struct {
@@ -55,71 +52,95 @@ func (engine *Engine) Listen() {
 	dbClient := engine.App.Database.Client()
 	completedJobChan := make(chan completedJob, min(engine.App.Env.MAX_TOTAL_JOB_WEIGHT, 100))
 	currentWeight := 0
-	waitForJob := func() {
-		completedJob := <-completedJobChan
+
+	handleCompletedJob := func(completedJob completedJob) {
 		currentWeight -= completedJob.Weight
 		stdErr := dbClient.Job.DeleteOneID(completedJob.ID).Exec(context.TODO())
 		if stdErr != nil {
 			// TODO: log error
-			fmt.Printf("failed to delete job: %v\n", stdErr.Error())
+			panic(fmt.Sprintf("failed to delete job: %v\n", stdErr.Error()))
 		}
 	}
-
-listenLoop:
-	for {
-		var nextJobDue *time.Time = nil
-		jobs, stdErr := dbClient.Job.Query().
-			Where(job.StatusEQ("pending")).
-			Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
-			Limit(JOB_READ_BATCH_SIZE).All(context.TODO())
-		if stdErr != nil {
-			// TODO: retry up to 3 times, logging error each time, then just crash
-			panic("failed to query jobs: " + stdErr.Error())
-		}
-		for _, job := range jobs {
-			if job.Due.After(time.Now()) {
-				if nextJobDue == nil || job.Due.Before(*nextJobDue) {
-					dueCopy := job.Due
-					nextJobDue = &dueCopy
+	runJobs := func() bool {
+		for {
+			dbcommon.WithTx()
+			// TODO: transaction
+			tx, stdErr := engine.App.Database.Tx(context.TODO())
+			if stdErr != nil {
+				// TODO: retry up to 3 times, logging error each time, then just crash
+				fmt.Printf("failed to start transaction: %v\n", stdErr.Error())
+				return true
+			}
+			currentJob, stdErr := dbClient.Job.Query().
+				Where(job.StatusEQ("pending"), job.DueLTE(time.Now())).
+				Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
+				First(context.TODO())
+			if stdErr != nil {
+				if ent.IsNotFound(stdErr) {
+					return false
 				}
-				continue
+				// TODO: retry up to 3 times, logging error each time, then just crash
+				fmt.Printf("failed to query next job: %v\n", stdErr.Error())
+				return true
 			}
 
 			maxTotalWeightToStart := engine.App.Env.MAX_TOTAL_JOB_WEIGHT - currentWeight
 			for currentWeight > maxTotalWeightToStart && currentWeight > 0 {
-				waitForJob()
+				select {
+				case completedJob := <-completedJobChan:
+					handleCompletedJob(completedJob)
+				case <-engine.requestShutdownChan:
+					return true
+				}
 			}
-			stdErr := dbClient.Job.UpdateOneID(job.ID).
+			stdErr = dbClient.Job.UpdateOneID(currentJob.ID).
 				SetStatus("running").SetStarted(time.Now()).
 				Exec(context.TODO())
 			if stdErr != nil {
 				// TODO: retry up to 3 times, logging error each time, then just crash
 				fmt.Printf("failed to update job: %v\n", stdErr.Error())
-				continue
+				return true
 			}
-			currentWeight += job.Weight
-			go engine.runJob(job, completedJobChan)
+			currentWeight += currentJob.Weight
+			go engine.runJob(currentJob, completedJobChan)
 		}
-		if len(jobs) == JOB_READ_BATCH_SIZE { // Will do an extra query if there are exactly JOB_READ_BATCH_SIZE jobs but not worth fixing
-			continue
-		}
-		for currentWeight > 0 {
-			waitForJob()
-		}
+	}
 
+	// TODO: handle panics
+listenLoop:
+	for {
+		if runJobs() { // Shutdown
+			break listenLoop
+		}
 		// TODO: check for stalled jobs, do a similar thing to scheduled jobs. Wait until they should have finished
-		// TODO: don't run any more jobs once shutdown signal is received
+		// Maybe schedule a job to check for stalled jobs every 5 minutes or so
 
 		maxWaitTime := engine.App.Env.JOB_POLL_INTERVAL
-		if nextJobDue != nil && time.Until(*nextJobDue) < maxWaitTime {
-			maxWaitTime = time.Until(*nextJobDue)
+		nextJob, stdErr := dbClient.Job.Query().
+			Where(job.StatusEQ("pending")).
+			Order(ent.Asc(job.FieldDue)).
+			First(context.TODO())
+		if stdErr == nil {
+			timeUntil := time.Until(nextJob.Due)
+			if timeUntil < maxWaitTime {
+				maxWaitTime = timeUntil
+			}
+		} else if !ent.IsNotFound(stdErr) {
+			// TODO: retry up to 3 times, logging error each time, then just crash
+			fmt.Printf("failed to query next due job: %v\n", stdErr.Error())
+			break listenLoop
 		}
+
 		select {
 		case <-time.After(maxWaitTime):
 		case <-engine.newJobChan:
 		case <-engine.requestShutdownChan:
 			break listenLoop
 		}
+	}
+	for currentWeight > 0 {
+		completedJob := <-completedJobChan
+		handleCompletedJob(completedJob)
 	}
 	close(engine.shutdownFinishedChan)
 }
@@ -147,6 +168,8 @@ func (engine *Engine) runJob(job *ent.Job, completedJobChan chan completedJob) {
 }
 
 func (engine *Engine) Shutdown() {
+	// TODO: timeout?
+	// TODO: what if it's not running?
 	engine.requestShutdownChan <- struct{}{}
 	<-engine.shutdownFinishedChan
 }

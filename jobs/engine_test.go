@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetSuccessfulActionIDs_returnsCorrectIDs(t *testing.T) {
+func TestEngine_runsJob(t *testing.T) {
 	t.Parallel()
 	db := testcommon.CreateDB()
 	defer db.Shutdown()
@@ -36,11 +36,10 @@ func TestGetSuccessfulActionIDs_returnsCorrectIDs(t *testing.T) {
 	go engine.Listen()
 	defer engine.Shutdown()
 	_, commErr := engine.Enqueue("test_job_1", &body{})
-	require.Nil(t, commErr)
+	require.NoError(t, commErr.StandardError())
 	select {
 	case <-completeJobChan:
 	case <-time.After(2 * time.Second):
 		t.Fatal("job did not complete in time")
 	}
-	// TODO: hangs. Possibly just because Shutdown does as the job running isn't implemented?
 }

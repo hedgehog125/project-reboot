@@ -64,6 +64,9 @@ func RequireUint8Env(name string) uint8 {
 func RequireSecondsEnv(name string) time.Duration {
 	return time.Duration(RequireInt64Env(name)) * time.Second
 }
+func RequireMillisecondsEnv(name string) time.Duration {
+	return time.Duration(RequireInt64Env(name)) * time.Millisecond
+}
 
 func RequireBoolEnv(name string) bool {
 	rawValue := RequireEnv(name)

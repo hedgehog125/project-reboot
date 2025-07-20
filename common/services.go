@@ -1,7 +1,7 @@
 package common
 
 import (
-	"sync"
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,19 +38,20 @@ type State struct {
 	AdminCode chan []byte
 }
 type App struct {
-	Env             *Env
-	Clock           clockwork.Clock
-	State           *State
-	Messenger       MessengerService
-	Database        DatabaseService
-	Server          ServerService
-	TwoFactorAction TwoFactorActionService
-	Scheduler       SchedulerService
+	Env       *Env
+	Clock     clockwork.Clock
+	State     *State
+	Messenger MessengerService // TODO: does this still need to be a service?
+	Database  DatabaseService
+	Server    ServerService
+	Jobs      JobService
+	Scheduler SchedulerService
 }
 
 type MessengerService interface {
 	IDs() []string
-	SendUsingAll(message Message) []*ErrWithStrId
+	// Note: this should be atomic and call the messengers in the background (usually via jobs)
+	SendUsingAll(message Message) *Error
 }
 type MessageType string
 
@@ -79,9 +80,10 @@ type MessageUserInfo struct {
 }
 
 type DatabaseService interface {
-	Client() *ent.Client
+	Start()    // Should fatalf rather than returning an error
 	Shutdown() // Should log warning rather than return an error
-	TwoFactorActionMutex() *sync.Mutex
+	Client() *ent.Client
+	Tx(ctx context.Context) (*ent.Tx, error)
 }
 
 type ServerService interface {
@@ -89,6 +91,14 @@ type ServerService interface {
 	Shutdown() // Should log warning rather than return an error
 }
 
+type JobService interface {
+	Start()    // Should fatalf rather than returning an error
+	Shutdown() // Should log warning rather than return an error
+	Enqueue(
+		versionedType string,
+		data any,
+	) (uuid.UUID, *Error)
+}
 type TwoFactorActionService interface {
 	Shutdown() // Should log warning rather than return an error
 	Confirm(actionID uuid.UUID, code string) *Error

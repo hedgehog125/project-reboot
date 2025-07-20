@@ -14,7 +14,7 @@ func NewTwoFactorAction(app *common.App) common.TwoFactorActionService {
 	registry := twofactoractions.NewRegistry(app)
 	actions.RegisterActions(registry.Group(""))
 
-	return &twoFactorActionService{
+	return &jobService{
 		registry: registry,
 	}
 }
@@ -24,7 +24,7 @@ type twoFactorActionService struct {
 	runningActionsWaitGroup common.WaitGroupWithCounter
 }
 
-func (service *twoFactorActionService) Shutdown() {
+func (service *jobService) Shutdown() {
 	select {
 	case <-common.NewCallbackChannel(service.runningActionsWaitGroup.Wait):
 	case <-time.After(10 * time.Second):
@@ -32,13 +32,13 @@ func (service *twoFactorActionService) Shutdown() {
 	}
 }
 
-func (service *twoFactorActionService) Confirm(actionID uuid.UUID, code string) *common.Error {
+func (service *jobService) Confirm(actionID uuid.UUID, code string) *common.Error {
 	service.runningActionsWaitGroup.Add(1)
 	defer service.runningActionsWaitGroup.Done()
 
 	return service.registry.Confirm(actionID, code)
 }
-func (service *twoFactorActionService) Create(
+func (service *jobService) Create(
 	actionType string,
 	version int,
 	expiresAt time.Time,

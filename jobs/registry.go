@@ -29,7 +29,7 @@ type Definition struct {
 	Handler           HandlerFunc
 	BodyType          any
 	reflectedBodyType reflect.Type
-	Weight            int // TODO: schedule jobs based on this and a MAX_JOB_WEIGHT env var
+	Weight            int
 	// 0 is DefaultPriority.
 	Priority int8
 }
@@ -41,10 +41,10 @@ type Context struct {
 	Body       []byte
 }
 
-func (ctx *Context) Decode(pointer any) *common.Error {
+func (ctx *Context) Decode(pointer any) *Error {
 	err := json.Unmarshal(ctx.Body, pointer)
 	if err != nil {
-		return ErrWrapperDecode.Wrap(err)
+		return NewError(ErrWrapperDecode.Wrap(err))
 	}
 	return nil
 }

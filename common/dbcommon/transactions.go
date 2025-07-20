@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
-func WithTx(ctx context.Context, client *ent.Client, fn func(tx *ent.Tx) *common.Error) *common.Error {
+func WithTx(ctx context.Context, client *ent.Client, fn func(tx *ent.Tx) error) error {
 	tx, stdErr := client.Tx(ctx)
 	if stdErr != nil {
 		return ErrWrapperStartTx.Wrap(stdErr).AddCategory(ErrTypeWithTx)
@@ -24,14 +23,15 @@ func WithTx(ctx context.Context, client *ent.Client, fn func(tx *ent.Tx) *common
 			panic(pErr)
 		}
 	}()
-	commErr := fn(tx)
+	stdErr = fn(tx)
 	shouldRecover = false
-	if commErr != nil {
+	if stdErr != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
-			panic(fmt.Sprintf("error while rolling back transaction:\n%v\nerror that caused rollback:\n%v", commErr, rollbackErr))
+			// TODO: log instead
+			panic(fmt.Sprintf("error while rolling back transaction:\n%v\nerror that caused rollback:\n%v", stdErr, rollbackErr))
 		}
-		return ErrWrapperCallback.Wrap(commErr).AddCategory(ErrTypeWithTx)
+		return ErrWrapperCallback.Wrap(stdErr).AddCategory(ErrTypeWithTx)
 	}
 	stdErr = tx.Commit()
 	if stdErr != nil {

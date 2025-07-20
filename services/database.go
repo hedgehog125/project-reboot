@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
+	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
@@ -15,41 +15,50 @@ import (
 )
 
 func NewDatabase(env *common.Env) common.DatabaseService {
-	err := os.MkdirAll(env.MOUNT_PATH, 0700)
-	if err != nil {
-		log.Fatalf("couldn't create storage directory. Error:\n%v", err)
-	}
-
-	client, err := ent.Open("sqlite3", fmt.Sprintf("%v?&_fk=1", filepath.Join(env.MOUNT_PATH, "database.sqlite3")))
-	if err != nil {
-		log.Fatalf("couldn't start database. Error:\n%v", err)
-	}
-
-	err = client.Schema.Create(context.Background())
-	if err != nil {
-		client.Close()
-		log.Fatalf("couldn't create schema resources. Error:\n%v", err)
-	}
-
 	return &databaseService{
-		client: client,
+		env:       env,
+		readyChan: make(chan struct{}),
 	}
 }
 
 type databaseService struct {
-	client               *ent.Client
-	twoFactorActionMutex sync.Mutex
+	env       *common.Env
+	client    *ent.Client
+	readyChan chan struct{}
+}
+
+func (service *databaseService) Start() {
+	defer close(service.readyChan)
+
+	err := os.MkdirAll(service.env.MOUNT_PATH, 0700)
+	if err != nil {
+		log.Fatalf("couldn't create storage directory. Error:\n%v", err)
+	}
+
+	client, err := ent.Open("sqlite3", fmt.Sprintf("%v?&_fk=1", filepath.Join(service.env.MOUNT_PATH, "database.sqlite3")))
+	if err != nil {
+		log.Fatalf("couldn't start database. Error:\n%v", err)
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	err = client.Schema.Create(ctx)
+	if err != nil {
+		_ = client.Close()
+		log.Fatalf("couldn't create schema resources. Error:\n%v", err)
+	}
 }
 
 func (service *databaseService) Client() *ent.Client {
+	<-service.readyChan
 	return service.client
 }
-
-func (service *databaseService) TwoFactorActionMutex() *sync.Mutex {
-	return &service.twoFactorActionMutex
+func (service *databaseService) Tx(ctx context.Context) (*ent.Tx, error) {
+	<-service.readyChan
+	return service.client.Tx(ctx)
 }
 
 func (service *databaseService) Shutdown() {
+	<-service.readyChan
 	err := service.client.Close()
 	if err != nil {
 		fmt.Printf("warning: an error occurred while shutting down the database:\n%v\n", err.Error())

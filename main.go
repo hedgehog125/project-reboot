@@ -14,13 +14,16 @@ func main() {
 
 	app.State = services.InitState()
 	app.Database = services.NewDatabase(app.Env)
+	app.Database.Start()
 	app.Messenger = services.NewMessenger(app.Env)
 	app.Scheduler = services.NewScheduler(&app)
-	app.TwoFactorAction = services.NewTwoFactorAction(&app)
+	app.Jobs = services.NewJob(&app)
 	app.Server = services.NewServer(&app)
 
+	// TODO: add panic handling
 	app.Scheduler.Start()
 	app.Server.Start()
+	app.Jobs.Start()
 
 	services.ConfigureShutdown(
 		services.NewShutdownTask(func() {
@@ -31,7 +34,7 @@ func main() {
 		}, true),
 
 		services.NewShutdownTask(func() {
-			app.TwoFactorAction.Shutdown()
+			app.Jobs.Shutdown()
 		}, false),
 		services.NewShutdownTask(func() {
 			app.Database.Shutdown()
