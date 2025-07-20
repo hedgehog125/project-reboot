@@ -38,14 +38,15 @@ type State struct {
 	AdminCode chan []byte
 }
 type App struct {
-	Env       *Env
-	Clock     clockwork.Clock
-	State     *State
-	Messenger MessengerService // TODO: does this still need to be a service?
-	Database  DatabaseService
-	Server    ServerService
-	Jobs      JobService
-	Scheduler SchedulerService
+	Env              *Env
+	Clock            clockwork.Clock
+	State            *State
+	TwoFactorActions TwoFactorActionService
+	Messenger        MessengerService // TODO: does this still need to be a service?
+	Database         DatabaseService
+	Server           ServerService
+	Jobs             JobService
+	Scheduler        SchedulerService
 }
 
 type MessengerService interface {
@@ -67,13 +68,13 @@ const (
 
 type Message struct {
 	Type  MessageType
-	User  *MessageUserInfo
+	User  *UserContacts
 	Code  string
 	Until time.Time
 }
 
 // The info about the user provided to a Messenger
-type MessageUserInfo struct {
+type UserContacts struct {
 	Username       string
 	AlertDiscordId string
 	AlertEmail     string
@@ -97,17 +98,18 @@ type JobService interface {
 	Enqueue(
 		versionedType string,
 		data any,
+		ctx context.Context,
 	) (uuid.UUID, *Error)
+	Encode(versionedType string, data any) (string, *Error)
 }
 type TwoFactorActionService interface {
-	Shutdown() // Should log warning rather than return an error
-	Confirm(actionID uuid.UUID, code string) *Error
 	Create(
-		actionType string,
-		version int,
+		versionedType string,
 		expiresAt time.Time,
 		data any,
+		ctx context.Context,
 	) (uuid.UUID, string, *Error)
+	Confirm(actionID uuid.UUID, code string, ctx context.Context) (uuid.UUID, *Error)
 }
 
 type SchedulerService interface {

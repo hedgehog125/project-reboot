@@ -16,14 +16,12 @@ type TempSelfLock1Body struct {
 }
 
 func TempSelfLock1(app *common.App) *jobs.Definition {
-	dbClient := app.Database.Client()
-
 	return &jobs.Definition{
 		ID:       "TEMP_SELF_LOCK",
 		Version:  1,
 		Priority: jobs.HighPriority,
 		BodyType: &TempSelfLock1Body{},
-		Handler: jobs.TxHandler(dbClient, func(ctx *jobs.Context, tx *ent.Tx) error {
+		Handler: jobs.TxHandler(app.Database, func(ctx *jobs.Context, tx *ent.Tx) error {
 			body := &TempSelfLock1Body{}
 			jobErr := ctx.Decode(body)
 			if jobErr != nil {
@@ -37,7 +35,7 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 				return common.ErrWrapperDatabase.Wrap(stdErr)
 			}
 
-			userInfo, commErr := messengerscommon.ReadMessageUserInfo(body.Username, dbClient)
+			userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, ctx.Context)
 			if commErr != nil {
 				return commErr
 			}

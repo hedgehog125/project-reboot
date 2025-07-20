@@ -74,7 +74,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			return
 		}
 
-		userInfo, commErr := messengerscommon.ReadMessageUserInfo(body.Username, dbClient)
+		userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, dbClient)
 		if commErr == nil {
 			// TODO: if this fails, let the user know using other methods
 			_ = app.Messenger.SendUsingAll(common.Message{

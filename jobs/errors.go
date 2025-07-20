@@ -20,16 +20,17 @@ const (
 var ErrUnknownJobType = common.NewErrorWithCategories(
 	"unknown job type", common.ErrTypeJobs,
 )
+var ErrNoTxInContext = common.ErrNoTxInContext.AddCategory(common.ErrTypeJobs)
 
 var ErrWrapperDecode = common.NewErrorWrapper(
 	ErrTypeDecode, common.ErrTypeJobs,
 )
 
 // TODO: test this
-var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeTwoFactorAction).
+var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeJobs).
 	SetChild(common.ErrWrapperDatabase)
 var ErrWrapperInvalidData = common.NewErrorWrapper(
-	ErrTypeInvalidData, common.ErrTypeTwoFactorAction,
+	ErrTypeInvalidData, common.ErrTypeJobs,
 )
 
 type CommonError = common.Error

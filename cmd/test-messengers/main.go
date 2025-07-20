@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
+	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/messengers"
 	"github.com/hedgehog125/project-reboot/messengers/messengerscommon"
 	"github.com/hedgehog125/project-reboot/services"
@@ -21,10 +24,19 @@ func main() {
 
 	env := services.LoadEnvironmentVariables()
 	databaseService := services.NewDatabase(env)
+	databaseService.Start()
 	defer databaseService.Shutdown()
 
 	discord := messengers.NewDiscord(env)
-	userInfo, err := messengerscommon.ReadMessageUserInfo(*username, databaseService.Client())
+	var userInfo *common.UserContacts
+	err := dbcommon.WithTx(
+		context.Background(), databaseService,
+		func(tx *ent.Tx) error {
+			var err error
+			userInfo, err = messengerscommon.ReadUserContacts(*username, ent.NewTxContext(context.Background(), tx))
+			return err
+		},
+	)
 	if err != nil {
 		panic(fmt.Sprintf("couldn't read user. error:\n%v", err.Error()))
 	}

@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
-func WithTx(ctx context.Context, client *ent.Client, fn func(tx *ent.Tx) error) error {
-	tx, stdErr := client.Tx(ctx)
+func WithTx(ctx context.Context, db common.DatabaseService, fn func(tx *ent.Tx) error) error {
+	tx, stdErr := db.Tx(ctx)
 	if stdErr != nil {
 		return ErrWrapperStartTx.Wrap(stdErr).AddCategory(ErrTypeWithTx)
 	}

@@ -59,6 +59,8 @@ var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
 	return wrappedErr.AddCategories(ErrTypeOther, ErrTypeDatabase)
 })
 
+var ErrNoTxInContext = NewErrorWithCategories("no transaction found in context")
+
 func HasErrors(errs []error) bool {
 	for _, err := range errs {
 		if err != nil {

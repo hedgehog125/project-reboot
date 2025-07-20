@@ -63,46 +63,56 @@ func (engine *Engine) Listen() {
 	}
 	runJobs := func() bool {
 		for {
-			dbcommon.WithTx()
-			// TODO: transaction
-			tx, stdErr := engine.App.Database.Tx(context.TODO())
-			if stdErr != nil {
-				// TODO: retry up to 3 times, logging error each time, then just crash
-				fmt.Printf("failed to start transaction: %v\n", stdErr.Error())
-				return true
-			}
-			currentJob, stdErr := dbClient.Job.Query().
-				Where(job.StatusEQ("pending"), job.DueLTE(time.Now())).
-				Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
-				First(context.TODO())
-			if stdErr != nil {
-				if ent.IsNotFound(stdErr) {
-					return false
-				}
-				// TODO: retry up to 3 times, logging error each time, then just crash
-				fmt.Printf("failed to query next job: %v\n", stdErr.Error())
-				return true
-			}
+			isDone := false
+			shutdownSignalReceived := false
+			stdErr := dbcommon.WithTx(
+				context.TODO(), engine.App.Database,
+				func(tx *ent.Tx) error {
+					currentJob, stdErr := tx.Job.Query().
+						Where(job.StatusEQ("pending"), job.DueLTE(time.Now())).
+						Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
+						First(context.TODO())
+					if stdErr != nil {
+						if ent.IsNotFound(stdErr) {
+							isDone = true
+							return nil
+						}
+						return ErrWrapperDatabase.Wrap(stdErr).AddCategory("query next job")
+					}
 
-			maxTotalWeightToStart := engine.App.Env.MAX_TOTAL_JOB_WEIGHT - currentWeight
-			for currentWeight > maxTotalWeightToStart && currentWeight > 0 {
-				select {
-				case completedJob := <-completedJobChan:
-					handleCompletedJob(completedJob)
-				case <-engine.requestShutdownChan:
-					return true
-				}
-			}
-			stdErr = dbClient.Job.UpdateOneID(currentJob.ID).
-				SetStatus("running").SetStarted(time.Now()).
-				Exec(context.TODO())
+					maxTotalWeightToStart := engine.App.Env.MAX_TOTAL_JOB_WEIGHT - currentWeight
+					for currentWeight > maxTotalWeightToStart && currentWeight > 0 {
+						select {
+						case completedJob := <-completedJobChan:
+							handleCompletedJob(completedJob)
+						case <-engine.requestShutdownChan:
+							shutdownSignalReceived = true
+							return nil
+						}
+					}
+					stdErr = tx.Job.UpdateOneID(currentJob.ID).
+						SetStatus("running").SetStarted(time.Now()).
+						Exec(context.TODO())
+					if stdErr != nil {
+						return ErrWrapperDatabase.Wrap(stdErr).AddCategory("update job")
+					}
+					currentWeight += currentJob.Weight
+					go engine.runJob(currentJob, completedJobChan)
+					return nil
+				},
+			)
 			if stdErr != nil {
 				// TODO: retry up to 3 times, logging error each time, then just crash
-				fmt.Printf("failed to update job: %v\n", stdErr.Error())
+				fmt.Println(stdErr.Error())
+				return true // Shutdown
+			}
+			if isDone {
+				return false
+			}
+			if shutdownSignalReceived {
 				return true
 			}
-			currentWeight += currentJob.Weight
-			go engine.runJob(currentJob, completedJobChan)
+			// Otherwise continue processing jobs
 		}
 	}
 
@@ -177,6 +187,7 @@ func (engine *Engine) Shutdown() {
 func (engine *Engine) Enqueue(
 	versionedType string,
 	data any,
+	ctx context.Context,
 ) (uuid.UUID, *common.Error) {
 	jobDefinition, ok := engine.Registry.jobs[versionedType]
 	if !ok {
@@ -195,14 +206,17 @@ func (engine *Engine) Enqueue(
 		return uuid.UUID{}, commErr.AddCategory(ErrTypeEnqueue)
 	}
 
-	dbClient := engine.App.Database.Client()
-	action, stdErr := dbClient.Job.Create().
+	tx := ent.TxFromContext(ctx)
+	if tx == nil {
+		return uuid.UUID{}, ErrNoTxInContext.AddCategory(ErrTypeEnqueue)
+	}
+	action, stdErr := tx.Job.Create().
 		SetType(jobType).
 		SetVersion(version).
 		SetPriority(jobDefinition.Priority).
 		SetWeight(jobDefinition.Weight).
 		SetData(encoded).
-		Save(context.Background())
+		Save(ctx)
 	if stdErr != nil {
 		return uuid.UUID{}, ErrWrapperDatabase.Wrap(stdErr).AddCategory(ErrTypeEnqueue)
 	}

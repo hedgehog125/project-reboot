@@ -64,7 +64,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			Type: common.MessageLogin,
 			User: (
 			//exhaustruct:enforce
-			&common.MessageUserInfo{
+			&common.UserContacts{
 				Username:       body.Username,
 				AlertDiscordId: userRow.AlertDiscordId,
 				AlertEmail:     userRow.AlertEmail,

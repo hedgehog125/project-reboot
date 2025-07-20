@@ -40,6 +40,7 @@ func (service *databaseService) Start() {
 		log.Fatalf("couldn't start database. Error:\n%v", err)
 	}
 
+	// TODO: does not cancelling this cause a memory leak?
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	err = client.Schema.Create(ctx)
 	if err != nil {

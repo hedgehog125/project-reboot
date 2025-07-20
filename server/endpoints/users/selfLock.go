@@ -87,7 +87,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			Code: code,
 			User: (
 			//exhaustruct:enforce
-			&common.MessageUserInfo{
+			&common.UserContacts{
 				Username:       body.Username,
 				AlertDiscordId: userRow.AlertDiscordId,
 				AlertEmail:     userRow.AlertEmail,

@@ -22,3 +22,8 @@ func NewJob(app *common.App) common.JobService {
 func (service *jobService) Start() {
 	go service.Engine.Listen()
 }
+
+// TODO: is this the best approach?
+func (service *jobService) Encode(versionedType string, data any) (string, *common.Error) {
+	return service.Engine.Registry.Encode(versionedType, data)
+}

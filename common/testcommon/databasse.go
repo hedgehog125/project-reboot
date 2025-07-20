@@ -3,7 +3,6 @@ package testcommon
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/hedgehog125/project-reboot/ent"
 )
@@ -31,12 +30,18 @@ func CreateDB() *TestDatabase {
 		client: client,
 	}
 }
+func (db *TestDatabase) Start() {
+	// TODO: move initialisation logic into here like the real DB service?
+}
 func (db *TestDatabase) Client() *ent.Client {
 	return db.client
 }
-func (db *TestDatabase) TwoFactorActionMutex() *sync.Mutex { // TODO: remove
-	panic("not implemented")
+func (db *TestDatabase) Tx(ctx context.Context) (*ent.Tx, error) {
+	return db.client.Tx(ctx)
 }
 func (db *TestDatabase) Shutdown() {
-	db.client.Close()
+	err := db.client.Close()
+	if err != nil {
+		fmt.Printf("warning: an error occurred while shutting down the database:\n%v\n", err.Error())
+	}
 }
