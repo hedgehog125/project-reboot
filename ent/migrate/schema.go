@@ -34,6 +34,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{JobsColumns[9], JobsColumns[6], JobsColumns[2]},
 			},
+			{
+				Name:    "job_due",
+				Unique:  false,
+				Columns: []*schema.Column{JobsColumns[2]},
+			},
 		},
 	}
 	// SessionsColumns holds the columns for the "sessions" table.
