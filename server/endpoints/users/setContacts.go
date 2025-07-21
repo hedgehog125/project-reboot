@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/messengers/messengerscommon"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
@@ -16,57 +17,40 @@ type SetContactsPayload struct {
 	Email         string `binding:"max=256"                                  json:"email"`
 }
 type SetContactsResponse struct {
-	Errors       []servercommon.ErrorDetail `binding:"required" json:"errors"`
-	MessagesSent []string                   `json:"messagesSent"`
+	Errors []servercommon.ErrorDetail `binding:"required" json:"errors"`
 }
 
 func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.Database.Client()
-	messenger := app.Messenger
-
-	return func(ctx *gin.Context) {
+	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
 		body := SetContactsPayload{}
 		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
-			ctx.Error(ctxErr)
-			return
+			return ctxErr
 		}
 
-		_, stdErr := dbClient.User.Update().
+		_, stdErr := tx.User.Update().
 			Where(user.Username(body.Username)).
-			SetAlertDiscordId(body.DiscordUserId).SetAlertEmail(body.Email).Save(ctx.Request.Context())
+			SetAlertDiscordId(body.DiscordUserId).SetAlertEmail(body.Email).Save(ctx)
 		if stdErr != nil {
-			ctx.Error(servercommon.Send404IfNotFound(stdErr))
-			return
+			return servercommon.Send404IfNotFound(stdErr)
 		}
 
-		userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, dbClient)
+		userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, ctx)
 		if commErr != nil {
-			ctx.Error(commErr)
-			return
+			return commErr
 		}
-		errs := messenger.SendUsingAll(common.Message{
+		commErr = app.Messengers.SendUsingAll(common.Message{
 			Type: common.MessageTest,
 			User: userInfo,
 		})
-		messengerIds := messenger.IDs()
-		if len(errs) == len(messengerIds) {
-			ctx.JSON(http.StatusInternalServerError, SetContactsResponse{ // We aren't sure if this error is the client or server's fault
-				Errors: []servercommon.ErrorDetail{
-					{
-						Message: "all messages failed",
-						Code:    "ALL_MESSAGES_FAILED",
-					},
-				},
-				MessagesSent: []string{},
-			})
-			return
+		if commErr != nil {
+			return commErr
 		}
 
 		// TODO: log these errors
 
 		ctx.JSON(http.StatusOK, SetContactsResponse{
-			Errors:       []servercommon.ErrorDetail{},
-			MessagesSent: common.GetSuccessfulActionIDs(messengerIds, errs),
+			Errors: []servercommon.ErrorDetail{},
 		})
-	}
+		return nil
+	})
 }

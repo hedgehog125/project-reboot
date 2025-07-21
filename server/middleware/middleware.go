@@ -46,9 +46,11 @@ func NewErrorMiddleware() gin.HandlerFunc {
 			if statusCode == -1 {
 				statusCode = http.StatusInternalServerError
 			}
-			ctx.JSON(statusCode, gin.H{
-				"errors": mergedDetails,
-			})
+			if !ctx.Writer.Written() {
+				ctx.JSON(statusCode, gin.H{
+					"errors": mergedDetails,
+				})
+			}
 		}
 	}
 }

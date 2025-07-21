@@ -40,7 +40,7 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 				return commErr
 			}
 
-			errs := app.Messenger.SendUsingAll(common.Message{
+			errs := app.Messengers.SendUsingAll(common.Message{
 				Type:  common.MessageSelfLock,
 				User:  userInfo,
 				Until: body.Until.Time,

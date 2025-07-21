@@ -1,14 +1,13 @@
 package users
 
 import (
-	"context"
-	"encoding/base64"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
+	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
@@ -30,36 +29,24 @@ type DownloadResponse struct {
 }
 
 func Download(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.Database.Client()
 	clock := app.Clock
 
-	return func(ctx *gin.Context) {
+	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
 		body := DownloadPayload{}
 		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
-			ctx.Error(ctxErr)
-			return
+			return ctxErr
+		}
+		givenAuthCodeBytes, ctxErr := servercommon.DecodeBase64(body.AuthorizationCode)
+		if ctxErr != nil {
+			return ctxErr
 		}
 
-		givenAuthCodeBytes, stdErr := base64.StdEncoding.DecodeString(body.AuthorizationCode)
-		if stdErr != nil {
-			ctx.JSON(http.StatusBadRequest, DownloadResponse{
-				Errors: []servercommon.ErrorDetail{
-					{
-						Message: "auth code is not valid base64",
-						Code:    "MALFORMED_AUTH_CODE",
-					},
-				},
-			})
-			return
-		}
-
-		sessionRow, stdErr := dbClient.Session.Query().
+		sessionRow, stdErr := tx.Session.Query().
 			Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
 			Select(session.FieldCode, session.FieldCodeValidFrom).
-			First(context.Background())
+			First(ctx)
 		if stdErr != nil {
-			ctx.Error(servercommon.SendUnauthorizedIfNotFound(stdErr))
-			return
+			return servercommon.SendUnauthorizedIfNotFound(stdErr)
 		}
 
 		if clock.Now().Before(sessionRow.CodeValidFrom) {
@@ -72,10 +59,10 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				},
 				AuthorizationCodeValidAt: &sessionRow.CodeValidFrom,
 			})
-			return
+			return servercommon.NewRollbackError()
 		}
 
-		userRow, stdErr := dbClient.User.Query().
+		userRow, stdErr := tx.User.Query().
 			Where(user.Username(body.Username)).
 			Select(
 				user.FieldUsername,
@@ -90,10 +77,9 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				user.FieldHashMemory,
 				user.FieldHashThreads,
 			).
-			Only(context.Background())
+			Only(ctx)
 		if stdErr != nil {
-			ctx.Error(stdErr)
-			return
+			return stdErr
 		}
 
 		encryptionKey := core.HashPassword(
@@ -107,11 +93,10 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 		)
 		decrypted, commErr := core.Decrypt(encryptionKey, userRow.Content, userRow.Nonce)
 		if commErr != nil {
-			ctx.Error(servercommon.ExpectError(
+			return servercommon.ExpectError(
 				commErr, core.ErrIncorrectPassword,
 				http.StatusUnauthorized, nil,
-			))
-			return
+			)
 		}
 
 		ctx.JSON(http.StatusOK, DownloadResponse{
@@ -121,9 +106,10 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			Filename:                 userRow.FileName,
 			Mime:                     userRow.Mime,
 		})
+		return nil
 
 		// TODO: log this event to database
 		// TODO: reduce session expiry to 1 hour
 		// TODO: notify user in the background
-	}
+	})
 }

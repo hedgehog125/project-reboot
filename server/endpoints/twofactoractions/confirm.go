@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 	"github.com/hedgehog125/project-reboot/twofactoractions"
 )
@@ -18,29 +18,19 @@ type ConfirmResponse struct {
 }
 
 func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
 		body := ConfirmPayload{}
 		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
-			ctx.Error(ctxErr)
-			return
+			return ctxErr
+		}
+		parsedID, ctxErr := servercommon.ParseUUID(ctx.Param("id"))
+		if ctxErr != nil {
+			return ctxErr
 		}
 
-		parsedId, stdErr := uuid.Parse(ctx.Param("id"))
-		if stdErr != nil {
-			ctx.JSON(http.StatusBadRequest, ConfirmResponse{
-				Errors: []servercommon.ErrorDetail{
-					{
-						Message: "ID is not a valid UUID",
-						Code:    "ID_NOT_VALID_UUID",
-					},
-				},
-			})
-			return
-		}
-
-		commErr := app.TwoFactorAction.Confirm(parsedId, body.Code)
+		_, commErr := app.TwoFactorActions.Confirm(parsedID, body.Code, ctx)
 		if commErr != nil {
-			ctx.Error(servercommon.ExpectAnyOfErrors(
+			return servercommon.ExpectAnyOfErrors(
 				commErr,
 				[]error{
 					twofactoractions.ErrNotFound,
@@ -48,12 +38,12 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 					twofactoractions.ErrWrongCode,
 				},
 				http.StatusUnauthorized, nil,
-			))
-			return
+			)
 		}
 
 		ctx.JSON(http.StatusOK, ConfirmResponse{
 			Errors: []servercommon.ErrorDetail{},
 		})
-	}
+		return nil
+	})
 }

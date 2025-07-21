@@ -1,13 +1,12 @@
 package users
 
 import (
-	"context"
-	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
+	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/messengers/messengerscommon"
@@ -26,38 +25,26 @@ type RegisterOrUpdateResponse struct {
 }
 
 func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.Database.Client()
+	hashSettings := app.Env.PASSWORD_HASH_SETTINGS
 
-	return func(ctx *gin.Context) {
+	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
 		body := RegisterPayload{}
 		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
-			ctx.Error(ctxErr)
-			return
+			return ctxErr
+		}
+		contentBytes, ctxErr := servercommon.DecodeBase64(body.Content)
+		if ctxErr != nil {
+			return ctxErr
 		}
 
-		contentBytes, stdErr := base64.StdEncoding.DecodeString(body.Content)
-		if stdErr != nil {
-			ctx.JSON(http.StatusBadRequest, RegisterOrUpdateResponse{
-				Errors: []servercommon.ErrorDetail{
-					{
-						Message: "content is not valid base64",
-						Code:    "MALFORMED_CONTENT",
-					},
-				},
-			})
-			return
-		}
-
-		hashSettings := app.Env.PASSWORD_HASH_SETTINGS
 		salt := core.GenerateSalt()
 		encryptionKey := core.HashPassword(body.Password, salt, hashSettings)
 		encrypted, nonce, commErr := core.Encrypt(contentBytes, encryptionKey)
 		if commErr != nil {
-			ctx.Error(commErr)
-			return
+			return commErr
 		}
 
-		stdErr = dbClient.User.Create().
+		stdErr := tx.User.Create().
 			SetUsername(body.Username).
 			SetContent(encrypted).
 			SetFileName(body.Filename).
@@ -68,31 +55,33 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			SetHashMemory(hashSettings.Memory).
 			SetHashThreads(hashSettings.Threads).
 			OnConflict().UpdateNewValues().
-			Exec(context.Background())
+			Exec(ctx)
 		if stdErr != nil {
-			ctx.Error(stdErr)
-			return
+			return stdErr
 		}
 
-		userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, dbClient)
-		if commErr == nil {
-			// TODO: if this fails, let the user know using other methods
-			_ = app.Messenger.SendUsingAll(common.Message{
-				Type: common.MessageReset,
-				User: userInfo,
-			})
+		userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, ctx)
+		if commErr != nil {
+			return commErr
+		}
+		commErr = app.Messengers.SendUsingAll(common.Message{
+			Type: common.MessageReset,
+			User: userInfo,
+		})
+		if commErr != nil {
+			return commErr
 		}
 
-		_, stdErr = dbClient.Session.Delete().Where(
+		_, stdErr = tx.Session.Delete().Where(
 			session.HasUserWith(user.Username(body.Username)),
-		).Exec(context.Background())
+		).Exec(ctx)
 		if stdErr != nil {
-			ctx.Error(stdErr)
-			return
+			return stdErr
 		}
 
 		ctx.JSON(http.StatusCreated, RegisterOrUpdateResponse{
 			Errors: []servercommon.ErrorDetail{},
 		})
-	}
+		return nil
+	})
 }

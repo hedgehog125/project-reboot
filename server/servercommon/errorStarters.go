@@ -1,6 +1,14 @@
 // Boilerplate to shorten the start of a servercommon.Error chain
 package servercommon
 
+import (
+	"errors"
+)
+
+func NewRollbackError() *Error {
+	return NewError(errors.New("rollback")).DisableLogging()
+}
+
 func Send404IfNotFound(err error) *Error {
 	return NewError(err).Send404IfNotFound()
 }

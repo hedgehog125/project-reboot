@@ -7,10 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
+	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
+	userjobs "github.com/hedgehog125/project-reboot/jobs/definitions/users"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 	"github.com/hedgehog125/project-reboot/twofactoractions"
-	useractions "github.com/hedgehog125/project-reboot/twofactoractions/actions/users"
 )
 
 const MAX_SELF_LOCK_DURATION = 14 * (24 * time.Hour)
@@ -26,15 +27,12 @@ type SelfLockResponse struct {
 }
 
 func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.Database.Client()
 	clock := app.Clock
-	messenger := app.Messenger
 
-	return func(ctx *gin.Context) {
+	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
 		body := SelfLockPayload{}
 		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
-			ctx.Error(ctxErr)
-			return
+			return ctxErr
 		}
 		until := clock.Now().Add(
 			min(
@@ -43,12 +41,11 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			),
 		)
 
-		userRow, stdErr := dbClient.User.Query().
+		userRow, stdErr := tx.User.Query().
 			Where(user.Username(body.Username)).
 			Only(ctx)
 		if stdErr != nil {
-			ctx.Error(servercommon.SendUnauthorizedIfNotFound(stdErr))
-			return
+			return servercommon.SendUnauthorizedIfNotFound(stdErr)
 		}
 		// TODO: check the user isn't locked
 
@@ -63,26 +60,25 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		)
 		_, commErr := core.Decrypt(userRow.Content, encryptionKey, userRow.Nonce)
 		if commErr != nil {
-			ctx.Error(servercommon.NewUnauthorizedError())
-			return
+			return servercommon.NewUnauthorizedError()
 		}
 
-		actionID, code, commErr := app.TwoFactorAction.Create(
-			"users/TEMP_SELF_LOCK", 1,
+		actionID, code, commErr := app.TwoFactorActions.Create(
+			"users/TEMP_SELF_LOCK_1",
 			clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
 			//exhaustruct:enforce
-			&useractions.TempSelfLock1Body{
+			&userjobs.TempSelfLock1Body{
 				// TODO: can this be accessed through the registry instead?
 				Username: body.Username,
 				Until:    common.ISOTimeString{Time: until},
 			},
+			ctx,
 		)
 		if commErr != nil {
-			ctx.Error(commErr)
-			return
+			return commErr
 		}
 
-		errs := messenger.SendUsingAll(common.Message{
+		commErr = app.Messengers.SendUsingAll(common.Message{
 			Type: common.Message2FA,
 			Code: code,
 			User: (
@@ -93,18 +89,8 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 				AlertEmail:     userRow.AlertEmail,
 			}),
 		})
-		if len(errs) == len(messenger.IDs()) {
-			// We aren't sure if this error is the client or server's fault
-			ctx.JSON(http.StatusBadRequest, SetContactsResponse{
-				Errors: []servercommon.ErrorDetail{
-					{
-						Message: "all messages failed",
-						Code:    "ALL_MESSAGES_FAILED",
-					},
-				},
-				MessagesSent: []string{},
-			})
-			return
+		if commErr != nil {
+			return commErr
 		}
 
 		// TODO: log these errors
@@ -113,5 +99,6 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			Errors:            []servercommon.ErrorDetail{},
 			TwoFactorActionID: actionID.String(),
 		})
-	}
+		return nil
+	})
 }

@@ -42,7 +42,7 @@ type App struct {
 	Clock            clockwork.Clock
 	State            *State
 	TwoFactorActions TwoFactorActionService
-	Messenger        MessengerService // TODO: does this still need to be a service?
+	Messengers       MessengerService // TODO: does this still need to be a service?
 	Database         DatabaseService
 	Server           ServerService
 	Jobs             JobService

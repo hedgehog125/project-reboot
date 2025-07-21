@@ -35,7 +35,7 @@ func TestEngine_runsJob(t *testing.T) {
 	engine := NewEngine(registry)
 	go engine.Listen()
 	defer engine.Shutdown()
-	_, commErr := engine.Enqueue("test_job_1", &body{})
+	_, commErr := engine.Enqueue("test_job_1", &body{}, t.Context()) // TODO: add transaction to context
 	require.NoError(t, commErr.StandardError())
 	select {
 	case <-completeJobChan:

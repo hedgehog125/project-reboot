@@ -1,7 +1,6 @@
 package users
 
 import (
-	"context"
 	"encoding/base64"
 	"net/http"
 	"time"
@@ -9,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
+	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
@@ -20,29 +20,24 @@ type GetAuthorizationCodePayload struct {
 
 type GetAuthorizationCodeResponse struct {
 	Errors                   []servercommon.ErrorDetail `binding:"required" json:"errors"`
-	MessagesSent             []string                   `json:"messagesSent"`
 	AuthorizationCode        string                     `json:"authorizationCode"`
 	AuthorizationCodeValidAt time.Time                  `json:"authorizationCodeValidAt"`
 }
 
 func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
-	dbClient := app.Database.Client()
-	messenger := app.Messenger
 	clock := app.Clock
 
-	return func(ctx *gin.Context) {
+	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
 		body := GetAuthorizationCodePayload{}
 		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
-			ctx.Error(ctxErr)
-			return
+			return ctxErr
 		}
 
-		userRow, stdErr := dbClient.User.Query().
+		userRow, stdErr := tx.User.Query().
 			Where(user.Username(body.Username)).
-			Only(context.Background())
+			Only(ctx)
 		if stdErr != nil {
-			ctx.Error(servercommon.SendUnauthorizedIfNotFound(stdErr))
-			return
+			return servercommon.SendUnauthorizedIfNotFound(stdErr)
 		}
 
 		encryptionKey := core.HashPassword(
@@ -56,11 +51,10 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		)
 		_, commErr := core.Decrypt(encryptionKey, userRow.Content, userRow.Nonce)
 		if commErr != nil {
-			ctx.Error(servercommon.NewUnauthorizedError())
-			return
+			return servercommon.NewUnauthorizedError()
 		}
 
-		errs := messenger.SendUsingAll(common.Message{
+		commErr = app.Messengers.SendUsingAll(common.Message{
 			Type: common.MessageLogin,
 			User: (
 			//exhaustruct:enforce
@@ -70,43 +64,29 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				AlertEmail:     userRow.AlertEmail,
 			}),
 		})
-		messengerIDs := messenger.IDs()
-		if len(errs) == len(messengerIDs) {
-			// We aren't sure if this error is the client or server's fault
-			ctx.JSON(http.StatusBadRequest, SetContactsResponse{
-				Errors: []servercommon.ErrorDetail{
-					{
-						Message: "all messages failed",
-						Code:    "ALL_MESSAGES_FAILED",
-					},
-				},
-				MessagesSent: []string{},
-			})
-			return
+		if commErr != nil {
+			return commErr
 		}
-
-		// TODO: log these errors
 
 		authCode := core.RandomAuthCode()
 		validAt := clock.Now().Add(app.Env.UNLOCK_TIME)
 
-		_, stdErr = dbClient.Session.Create().
+		_, stdErr = tx.Session.Create().
 			SetUser(userRow).
 			SetCode(authCode).
 			SetCodeValidFrom(validAt).
 			SetUserAgent(ctx.Request.UserAgent()).
 			SetIP(ctx.ClientIP()).
-			Save(context.Background())
+			Save(ctx)
 		if stdErr != nil {
-			ctx.Error(stdErr)
-			return
+			return stdErr
 		}
 
 		ctx.JSON(http.StatusOK, GetAuthorizationCodeResponse{
 			Errors:                   []servercommon.ErrorDetail{},
-			MessagesSent:             common.GetSuccessfulActionIDs(messengerIDs, errs),
 			AuthorizationCode:        base64.StdEncoding.EncodeToString(authCode),
 			AuthorizationCodeValidAt: validAt,
 		})
-	}
+		return nil
+	})
 }

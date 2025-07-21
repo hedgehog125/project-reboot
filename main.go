@@ -15,7 +15,7 @@ func main() {
 	app.State = services.InitState()
 	app.Database = services.NewDatabase(app.Env)
 	app.Database.Start()
-	app.Messenger = services.NewMessenger(app.Env)
+	app.Messengers = services.NewMessenger(app.Env)
 	app.Scheduler = services.NewScheduler(&app)
 	app.Jobs = services.NewJob(&app)
 	app.Server = services.NewServer(&app)
