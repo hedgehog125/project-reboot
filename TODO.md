@@ -4,6 +4,7 @@
 -   -   Rework 2FA actions so there aren't definitions, they're just a full job type ID, body and a username
 -   -   Add MostlyDatabase option, only one runs simultaneously
 -   -   Continue looking through the job list for lower weight jobs if at max? Maybe only within the priority level?
+-   -   Should send a signal to shut down the server instead of shutting itself down. Avoids issues with the shutdown channels
 -   Check errors are crossing package boundaries correctly. You can't just do commErr.AddCategory(<func name>), you have to add the package too
 -   -   Maybe always use an error wrapper to add the function's category?
 -   Only load env files in development

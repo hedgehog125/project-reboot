@@ -35,8 +35,7 @@ func NewEngine(registry *Registry) *Engine {
 }
 
 type completedJob struct {
-	ID     uuid.UUID
-	Weight int
+	Object *ent.Job
 	Err    *Error
 }
 
@@ -48,26 +47,52 @@ func (engine *Engine) Listen() {
 	}
 	engine.Running = true
 	engine.mu.Unlock()
+	fmt.Println("job engine running")
 
 	dbClient := engine.App.Database.Client()
 	completedJobChan := make(chan completedJob, min(engine.App.Env.MAX_TOTAL_JOB_WEIGHT, 100))
 	currentWeight := 0
 
 	handleCompletedJob := func(completedJob completedJob) {
-		currentWeight -= completedJob.Weight
-		stdErr := dbClient.Job.DeleteOneID(completedJob.ID).Exec(context.TODO())
-		if stdErr != nil {
-			// TODO: log error
-			panic(fmt.Sprintf("failed to delete job: %v\n", stdErr.Error()))
+		currentWeight -= completedJob.Object.Weight
+		if completedJob.Err == nil {
+			stdErr := dbClient.Job.DeleteOneID(completedJob.Object.ID).Exec(context.TODO())
+			if stdErr != nil {
+				// TODO: log error
+				panic(fmt.Sprintf("failed to delete job: %v\n", stdErr.Error()))
+			}
+		} else {
+			completedErr := NewError(completedJob.Err)
+			if completedJob.Object.Retries < len(completedErr.RetryBackoffs) {
+				backoff := completedErr.RetryBackoffs[completedJob.Object.Retries]
+				stdErr := dbClient.Job.UpdateOneID(completedJob.Object.ID).
+					SetStatus("pending").
+					SetDue(engine.App.Clock.Now().Add(backoff)).
+					AddRetries(1).
+					SetLoggedStallWarning(false).
+					Exec(context.TODO())
+				if stdErr != nil {
+					// TODO: log error
+					panic(fmt.Sprintf("failed to queue job retry: %v\n", stdErr.Error()))
+				}
+			} else {
+				stdErr := dbClient.Job.UpdateOneID(completedJob.Object.ID).
+					SetStatus("failed").
+					Exec(context.TODO())
+				if stdErr != nil {
+					// TODO: log error
+					panic(fmt.Sprintf("failed to mark job as failed: %v\n", stdErr.Error()))
+				}
+			}
 		}
 	}
 	runJobs := func() bool {
 		for {
 			isDone := false
 			shutdownSignalReceived := false
-			stdErr := dbcommon.WithTx(
+			stdErr := dbcommon.WithWriteTx(
 				context.TODO(), engine.App.Database,
-				func(tx *ent.Tx) error {
+				func(tx *ent.Tx, ctx context.Context) error {
 					currentJob, stdErr := tx.Job.Query().
 						Where(job.StatusEQ("pending"), job.DueLTE(time.Now())).
 						Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
@@ -103,7 +128,7 @@ func (engine *Engine) Listen() {
 			)
 			if stdErr != nil {
 				// TODO: retry up to 3 times, logging error each time, then just crash
-				fmt.Println(stdErr.Error())
+				fmt.Printf("job loop transaction error: %v\n", stdErr.Error())
 				return true // Shutdown
 			}
 			if isDone {
@@ -119,6 +144,7 @@ func (engine *Engine) Listen() {
 	// TODO: handle panics
 listenLoop:
 	for {
+		fmt.Println("run job loop")
 		if runJobs() { // Shutdown
 			break listenLoop
 		}
@@ -152,14 +178,14 @@ listenLoop:
 		completedJob := <-completedJobChan
 		handleCompletedJob(completedJob)
 	}
+	close(engine.requestShutdownChan)
 	close(engine.shutdownFinishedChan)
 }
 func (engine *Engine) runJob(job *ent.Job, completedJobChan chan completedJob) {
 	jobDefinition, ok := engine.Registry.jobs[jobscommon.GetVersionedType(job.Type, job.Version)]
 	if !ok { // Note: this shouldn't happen
 		completedJobChan <- completedJob{
-			ID:     job.ID,
-			Weight: job.Weight,
+			Object: job,
 			Err:    NewError(ErrUnknownJobType.AddCategory(ErrTypeRunJob)),
 		}
 		return
@@ -171,8 +197,7 @@ func (engine *Engine) runJob(job *ent.Job, completedJobChan chan completedJob) {
 		Body:       []byte(job.Data),
 	})
 	completedJobChan <- completedJob{
-		ID:     job.ID,
-		Weight: job.Weight,
+		Object: job,
 		Err:    NewError(stdErr).AddCategory(ErrTypeRunJob), // TODO: are these categories correct?
 	}
 }
@@ -180,8 +205,12 @@ func (engine *Engine) runJob(job *ent.Job, completedJobChan chan completedJob) {
 func (engine *Engine) Shutdown() {
 	// TODO: timeout?
 	// TODO: what if it's not running?
+	fmt.Println("job engine shutting down")
+	// TODO: this panics if the engine has to shut itself down due to an error
 	engine.requestShutdownChan <- struct{}{}
+	fmt.Println("job engine finishing jobs")
 	<-engine.shutdownFinishedChan
+	fmt.Println("job engine stopped")
 }
 
 func (engine *Engine) Enqueue(
@@ -210,7 +239,7 @@ func (engine *Engine) Enqueue(
 	if tx == nil {
 		return uuid.UUID{}, ErrNoTxInContext.AddCategory(ErrTypeEnqueue)
 	}
-	action, stdErr := tx.Job.Create().
+	job, stdErr := tx.Job.Create().
 		SetType(jobType).
 		SetVersion(version).
 		SetPriority(jobDefinition.Priority).
@@ -226,5 +255,5 @@ func (engine *Engine) Enqueue(
 	default:
 	}
 
-	return action.ID, nil
+	return job.ID, nil
 }

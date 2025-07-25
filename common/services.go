@@ -84,7 +84,8 @@ type DatabaseService interface {
 	Start()    // Should fatalf rather than returning an error
 	Shutdown() // Should log warning rather than return an error
 	Client() *ent.Client
-	Tx(ctx context.Context) (*ent.Tx, error)
+	ReadTx(ctx context.Context) (*ent.Tx, error)
+	WriteTx(ctx context.Context) (*ent.Tx, error)
 }
 
 type ServerService interface {

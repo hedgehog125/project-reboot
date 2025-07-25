@@ -2,12 +2,14 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
 
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 
@@ -35,10 +37,16 @@ func (service *databaseService) Start() {
 		log.Fatalf("couldn't create storage directory. Error:\n%v", err)
 	}
 
-	client, err := ent.Open("sqlite3", fmt.Sprintf("%v?&_fk=1", filepath.Join(service.env.MOUNT_PATH, "database.sqlite3")))
+	db, err := sql.Open("sqlite3", fmt.Sprintf("%v?_fk=1&_busy_timeout=10000", filepath.Join(service.env.MOUNT_PATH, "database.sqlite3")))
 	if err != nil {
 		log.Fatalf("couldn't start database. Error:\n%v", err)
 	}
+
+	db.SetMaxIdleConns(5)
+	db.SetMaxOpenConns(100)
+	db.SetConnMaxLifetime(time.Hour)
+	driver := ent.Driver(entsql.OpenDB("sqlite3", db))
+	client := ent.NewClient(driver)
 
 	// TODO: does not cancelling this cause a memory leak?
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)

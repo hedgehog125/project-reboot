@@ -2,8 +2,12 @@ package testcommon
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"sync/atomic"
+	"time"
 
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
@@ -11,15 +15,23 @@ type TestDatabase struct {
 	client *ent.Client
 }
 
+var dbCounter atomic.Int64
+
 func CreateDB() *TestDatabase {
 	// TODO: review options
-	client, stdErr := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	// TODO: what does shared cache do any why is it sometimes necessary in order to stop the database being deleted mid test?
+	// ^ this seems to enable WAL mode? Which isn't what I want
+	db, stdErr := sql.Open("sqlite3", fmt.Sprintf("file:temp%v?mode=memory&cache=shared&_fk=1&_busy_timeout=10000&_txlock=immediate", dbCounter.Add(1)))
 	if stdErr != nil {
 		panic(fmt.Sprintf("failed to open test database. error: %v", stdErr.Error()))
 	}
 
-	// Run the auto migration tool.
-	// This will create the necessary tables based on your Ent schemas.
+	db.SetMaxIdleConns(5)
+	db.SetMaxOpenConns(100)
+	db.SetConnMaxLifetime(time.Hour)
+	driver := ent.Driver(entsql.OpenDB("sqlite3", db))
+	client := ent.NewClient(driver)
+
 	stdErr = client.Schema.Create(context.Background())
 	if stdErr != nil {
 		client.Close()
@@ -36,7 +48,12 @@ func (db *TestDatabase) Start() {
 func (db *TestDatabase) Client() *ent.Client {
 	return db.client
 }
-func (db *TestDatabase) Tx(ctx context.Context) (*ent.Tx, error) {
+func (db *TestDatabase) ReadTx(ctx context.Context) (*ent.Tx, error) {
+	return db.client.BeginTx(ctx, &sql.TxOptions{
+		ReadOnly: true,
+	})
+}
+func (db *TestDatabase) WriteTx(ctx context.Context) (*ent.Tx, error) {
 	return db.client.Tx(ctx)
 }
 func (db *TestDatabase) Shutdown() {

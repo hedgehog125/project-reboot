@@ -8,8 +8,19 @@ import (
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
-func WithTx(ctx context.Context, db common.DatabaseService, fn func(tx *ent.Tx) error) error {
-	tx, stdErr := db.Tx(ctx)
+func WithReadTx(ctx context.Context, db common.DatabaseService, fn func(tx *ent.Tx, ctx context.Context) error) error {
+	return withTx(ctx, db.ReadTx, fn)
+}
+func WithWriteTx(ctx context.Context, db common.DatabaseService, fn func(tx *ent.Tx, ctx context.Context) error) error {
+	return withTx(ctx, db.WriteTx, fn)
+}
+
+func withTx(
+	ctx context.Context,
+	txCallback func(ctx context.Context) (*ent.Tx, error),
+	fn func(tx *ent.Tx, ctx context.Context) error,
+) error {
+	tx, stdErr := txCallback(ctx)
 	if stdErr != nil {
 		return ErrWrapperStartTx.Wrap(stdErr).AddCategory(ErrTypeWithTx)
 	}
@@ -24,7 +35,7 @@ func WithTx(ctx context.Context, db common.DatabaseService, fn func(tx *ent.Tx) 
 			panic(pErr)
 		}
 	}()
-	stdErr = fn(tx)
+	stdErr = fn(tx, ent.NewTxContext(ctx, tx))
 	shouldRecover = false
 	if stdErr != nil {
 		rollbackErr := tx.Rollback()

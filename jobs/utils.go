@@ -1,6 +1,8 @@
 package jobs
 
 import (
+	"context"
+
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
@@ -8,16 +10,17 @@ import (
 
 // Utils for job definitions to use
 
-func TxHandler(
+func ReadTxHandler(
 	db common.DatabaseService,
 	handler func(ctx *Context, tx *ent.Tx) error,
 ) HandlerFunc {
-	return func(ctx *Context) error {
-		return dbcommon.WithTx(
-			ctx.Context,
+	return func(jobCtx *Context) error {
+		return dbcommon.WithReadTx(
+			jobCtx.Context,
 			db,
-			func(tx *ent.Tx) error {
-				return handler(ctx, tx)
+			func(tx *ent.Tx, ctx context.Context) error {
+				jobCtx.Context = ctx // TODO: is this right?
+				return handler(jobCtx, tx)
 			},
 		)
 	}

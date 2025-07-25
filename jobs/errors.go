@@ -69,6 +69,11 @@ func (err *Error) Clone() *Error {
 	}
 	return copiedErr
 }
+func (err *Error) SetRetries(backoffs []time.Duration) *Error {
+	copiedErr := err.Clone()
+	copiedErr.RetryBackoffs = backoffs
+	return copiedErr
+}
 
 func (err *Error) AddCategory(category string) *Error {
 	copiedErr := err.Clone()
