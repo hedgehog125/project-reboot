@@ -3,18 +3,28 @@ package dbcommon
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
 func WithReadTx(ctx context.Context, db common.DatabaseService, fn func(tx *ent.Tx, ctx context.Context) error) error {
-	return withTx(ctx, db.ReadTx, fn)
+	return withRetryingTx(ctx, db.ReadTx, fn)
 }
 func WithWriteTx(ctx context.Context, db common.DatabaseService, fn func(tx *ent.Tx, ctx context.Context) error) error {
-	return withTx(ctx, db.WriteTx, fn)
+	return withRetryingTx(ctx, db.WriteTx, fn)
 }
 
+func withRetryingTx(
+	ctx context.Context,
+	txCallback func(ctx context.Context) (*ent.Tx, error),
+	fn func(tx *ent.Tx, ctx context.Context) error,
+) error {
+	return common.WithRetries(ctx, func() error {
+		return withTx(ctx, txCallback, fn)
+	})
+}
 func withTx(
 	ctx context.Context,
 	txCallback func(ctx context.Context) (*ent.Tx, error),
@@ -22,7 +32,9 @@ func withTx(
 ) error {
 	tx, stdErr := txCallback(ctx)
 	if stdErr != nil {
-		return ErrWrapperStartTx.Wrap(stdErr).AddCategory(ErrTypeWithTx)
+		return ErrWrapperStartTx.Wrap(stdErr).
+			AddCategory(ErrTypeWithTx).
+			ConfigureRetries(-1, 50*time.Millisecond, 2)
 	}
 	shouldRecover := true
 	defer func() {
@@ -47,7 +59,10 @@ func withTx(
 	}
 	stdErr = tx.Commit()
 	if stdErr != nil {
-		return ErrWrapperCommitTx.Wrap(stdErr).AddCategory(ErrTypeWithTx)
+		return ErrWrapperCommitTx.Wrap(stdErr).
+			AddCategory(ErrTypeWithTx).
+			ConfigureRetries(-1, 50*time.Millisecond, 2)
+
 	}
 	return nil
 }

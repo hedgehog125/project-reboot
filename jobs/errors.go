@@ -36,7 +36,7 @@ var ErrWrapperInvalidData = common.NewErrorWrapper(
 type CommonError = common.Error
 type Error struct {
 	CommonError
-	RetryBackoffs []time.Duration
+	JobRetryBackoffs []time.Duration
 }
 type ErrorDetail struct {
 	Code    string `json:"code"`
@@ -54,8 +54,8 @@ func NewError(err error) *Error {
 		commErr = common.AutoWrapError(err)
 	}
 	return &Error{
-		CommonError:   *commErr,
-		RetryBackoffs: []time.Duration{},
+		CommonError:      *commErr,
+		JobRetryBackoffs: []time.Duration{},
 	}
 }
 
@@ -64,14 +64,14 @@ func (err *Error) Unwrap() error {
 }
 func (err *Error) Clone() *Error {
 	copiedErr := &Error{
-		CommonError:   *err.CommonError.Clone(),
-		RetryBackoffs: slices.Clone(err.RetryBackoffs),
+		CommonError:      *err.CommonError.Clone(),
+		JobRetryBackoffs: slices.Clone(err.JobRetryBackoffs),
 	}
 	return copiedErr
 }
 func (err *Error) SetRetries(backoffs []time.Duration) *Error {
 	copiedErr := err.Clone()
-	copiedErr.RetryBackoffs = backoffs
+	copiedErr.JobRetryBackoffs = backoffs
 	return copiedErr
 }
 

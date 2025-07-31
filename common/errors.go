@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/hedgehog125/project-reboot/ent" // Note: will have to reorganise if I end up needing to use the common module in schemas
 	"github.com/mattn/go-sqlite3"
@@ -25,6 +26,7 @@ const (
 	ErrTypeOther = "other" // Used to maintain the hierarchy, but doesn't have a [general] tag because the lower level error is more useful
 
 	// Package categories
+	ErrTypeCommon          = "common [package]"
 	ErrTypeCore            = "core [package]"
 	ErrTypeJobs            = "jobs [package]"
 	ErrTypeTwoFactorAction = "two factor action [package]"
@@ -49,10 +51,14 @@ var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
 			sqlite3.ErrCantOpen,
 			sqlite3.ErrIoErr,
 			sqlite3.ErrLocked,
+			sqlite3.ErrNomem,
 		}, sqliteErr.Code) != -1 {
-			return wrappedErr.AddCategories(ErrTypeDisk, ErrTypeDatabase)
-		} else if sqliteErr.Code == sqlite3.ErrNomem {
-			return wrappedErr.AddCategories(ErrTypeMemory, ErrTypeDatabase)
+			wrappedErr = wrappedErr.ConfigureRetries(10, 50*time.Millisecond, 2)
+			if sqliteErr.Code == sqlite3.ErrNomem {
+				return wrappedErr.AddCategories(ErrTypeMemory, ErrTypeDatabase)
+			} else {
+				return wrappedErr.AddCategories(ErrTypeDisk, ErrTypeDatabase)
+			}
 		}
 	}
 
@@ -60,6 +66,8 @@ var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
 })
 
 var ErrNoTxInContext = NewErrorWithCategories("no db transaction found in context")
+
+// Note: this constant error will be wrapped in a common.Error with more details
 
 func HasErrors(errs []error) bool {
 	for _, err := range errs {
@@ -87,6 +95,19 @@ type Error struct {
 	Err                   error
 	Categories            []string
 	ErrDuplicatesCategory bool
+	// Note: this number might not be reached if there are other errors with less or no retries in the WithRetries call. And the context
+	// could always time out before this number is reached.
+	//
+	// -1 means no limit
+	MaxRetries             int
+	RetryBackoffBase       time.Duration
+	RetryBackoffMultiplier float64
+	DebugValues            []DebugValue
+}
+type DebugValue struct {
+	Name    string
+	Message string
+	Value   any
 }
 
 func (err *Error) Error() string {
@@ -183,9 +204,43 @@ func (err *Error) RemoveLowestCategory() *Error {
 	return copiedErr
 }
 
+func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) *Error {
+	copiedErr := err.Clone()
+	copiedErr.MaxRetries = maxRetries
+	copiedErr.RetryBackoffBase = baseBackoff
+	copiedErr.RetryBackoffMultiplier = backoffMultiplier
+
+	return copiedErr
+}
+func (err *Error) SetMaxRetries(value int) *Error {
+	copiedErr := err.Clone()
+	copiedErr.MaxRetries = value
+
+	return copiedErr
+}
+func (err *Error) SetRetryBackoffBase(value time.Duration) *Error {
+	copiedErr := err.Clone()
+	copiedErr.RetryBackoffBase = value
+
+	return copiedErr
+}
+func (err *Error) SetRetryBackoffMultiplier(value float64) *Error {
+	copiedErr := err.Clone()
+	copiedErr.RetryBackoffMultiplier = value
+
+	return copiedErr
+}
+
+func (err *Error) AddDebugValue(value DebugValue) *Error {
+	copiedErr := err.Clone()
+	copiedErr.DebugValues = append(copiedErr.DebugValues, value)
+
+	return copiedErr
+}
 func (err Error) Clone() *Error {
 	copiedErr := err
 	copiedErr.Categories = slices.Clone(err.Categories)
+	copiedErr.DebugValues = slices.Clone(copiedErr.DebugValues)
 
 	return &copiedErr
 }

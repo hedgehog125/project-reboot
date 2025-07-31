@@ -63,8 +63,8 @@ func (engine *Engine) Listen() {
 			}
 		} else {
 			completedErr := NewError(completedJob.Err)
-			if completedJob.Object.Retries < len(completedErr.RetryBackoffs) {
-				backoff := completedErr.RetryBackoffs[completedJob.Object.Retries]
+			if completedJob.Object.Retries < len(completedErr.JobRetryBackoffs) {
+				backoff := completedErr.JobRetryBackoffs[completedJob.Object.Retries]
 				stdErr := dbClient.Job.UpdateOneID(completedJob.Object.ID).
 					SetStatus("pending").
 					SetDue(engine.App.Clock.Now().Add(backoff)).

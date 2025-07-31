@@ -16,10 +16,10 @@ func TestWithReadTx_allowsConcurrentReads(t *testing.T) {
 func TestWithWriteTx_nestedTransactions_returnsError(t *testing.T) {
 	// TODO
 }
-func TestWithWriteTx_supports25ConcurrentWrites(t *testing.T) {
+func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 	// SQLite isn't suitable if the program has many more concurrent writes than this
 	t.Parallel()
-	JOB_COUNT := 25
+	JOB_COUNT := 50
 	db := testcommon.CreateDB()
 	defer db.Shutdown()
 
