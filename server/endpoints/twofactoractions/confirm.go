@@ -1,9 +1,11 @@
 package twofactoractions
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 	"github.com/hedgehog125/project-reboot/twofactoractions"
@@ -18,32 +20,33 @@ type ConfirmResponse struct {
 }
 
 func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
-	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
+	return servercommon.NewHandler(func(ginCtx *gin.Context) error {
 		body := ConfirmPayload{}
-		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
-		parsedID, ctxErr := servercommon.ParseUUID(ctx.Param("id"))
+		parsedID, ctxErr := servercommon.ParseUUID(ginCtx.Param("id"))
 		if ctxErr != nil {
 			return ctxErr
 		}
 
-		_, commErr := app.TwoFactorActions.Confirm(parsedID, body.Code, ctx)
-		if commErr != nil {
-			return servercommon.ExpectAnyOfErrors(
-				commErr,
-				[]error{
-					twofactoractions.ErrNotFound,
-					twofactoractions.ErrExpired,
-					twofactoractions.ErrWrongCode,
-				},
-				http.StatusUnauthorized, nil,
-			)
-		}
-
-		ctx.JSON(http.StatusOK, ConfirmResponse{
-			Errors: []servercommon.ErrorDetail{},
+		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
+			_, commErr := app.TwoFactorActions.Confirm(parsedID, body.Code, ctx)
+			if commErr != nil {
+				return servercommon.ExpectAnyOfErrors(
+					commErr,
+					[]error{
+						twofactoractions.ErrNotFound,
+						twofactoractions.ErrExpired,
+						twofactoractions.ErrWrongCode,
+					},
+					http.StatusUnauthorized, nil,
+				)
+			}
+			ginCtx.JSON(http.StatusOK, ConfirmResponse{
+				Errors: []servercommon.ErrorDetail{},
+			})
+			return nil
 		})
-		return nil
 	})
 }

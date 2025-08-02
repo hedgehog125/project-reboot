@@ -17,10 +17,10 @@ func AdminLock(app *servercommon.ServerApp) gin.HandlerFunc {
 	// dbClient := app.Database.Client()
 	// messenger := app.Messenger
 
-	return func(ctx *gin.Context) {
+	return func(ginCtx *gin.Context) {
 		body := AdminLockPayload{}
-		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
-			ctx.Error(ctxErr)
+		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
+			ginCtx.Error(ctxErr)
 			return
 		}
 

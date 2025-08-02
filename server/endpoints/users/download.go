@@ -1,11 +1,13 @@
 package users
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/session"
@@ -31,9 +33,9 @@ type DownloadResponse struct {
 func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 	clock := app.Clock
 
-	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
+	return servercommon.NewHandler(func(ginCtx *gin.Context) error {
 		body := DownloadPayload{}
-		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
 		givenAuthCodeBytes, ctxErr := servercommon.DecodeBase64(body.AuthorizationCode)
@@ -41,43 +43,53 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		sessionRow, stdErr := tx.Session.Query().
-			Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
-			Select(session.FieldCode, session.FieldCodeValidFrom).
-			First(ctx)
-		if stdErr != nil {
-			return servercommon.SendUnauthorizedIfNotFound(stdErr)
-		}
+		var userRow *ent.User
+		stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
+			sessionRow, stdErr := tx.Session.Query().
+				Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
+				Select(session.FieldCode, session.FieldCodeValidFrom).
+				First(ctx)
+			if stdErr != nil {
+				return servercommon.SendUnauthorizedIfNotFound(
+					common.ErrWrapperDatabase.Wrap(stdErr), // TODO: make app.Database do the wrapping?
+				)
+			}
 
-		if clock.Now().Before(sessionRow.CodeValidFrom) {
-			ctx.JSON(http.StatusConflict, DownloadResponse{
-				Errors: []servercommon.ErrorDetail{
-					{
-						Message: "authorization code is not valid yet",
-						Code:    "CODE_NOT_VALID_YET",
+			if clock.Now().Before(sessionRow.CodeValidFrom) {
+				ginCtx.JSON(http.StatusConflict, DownloadResponse{
+					Errors: []servercommon.ErrorDetail{
+						{
+							Message: "authorization code is not valid yet",
+							Code:    "CODE_NOT_VALID_YET",
+						},
 					},
-				},
-				AuthorizationCodeValidAt: &sessionRow.CodeValidFrom,
-			})
-			return servercommon.NewRollbackError()
-		}
+					AuthorizationCodeValidAt: &sessionRow.CodeValidFrom,
+				})
+				return nil
+			}
 
-		userRow, stdErr := tx.User.Query().
-			Where(user.Username(body.Username)).
-			Select(
-				user.FieldUsername,
-				// Contacts aren't needed
+			row, stdErr := tx.User.Query().
+				Where(user.Username(body.Username)).
+				Select(
+					user.FieldUsername,
+					// Contacts aren't needed
 
-				user.FieldContent,
-				user.FieldFileName,
-				user.FieldMime,
-				user.FieldNonce,
-				user.FieldKeySalt,
-				user.FieldHashTime,
-				user.FieldHashMemory,
-				user.FieldHashThreads,
-			).
-			Only(ctx)
+					user.FieldContent,
+					user.FieldFileName,
+					user.FieldMime,
+					user.FieldNonce,
+					user.FieldKeySalt,
+					user.FieldHashTime,
+					user.FieldHashMemory,
+					user.FieldHashThreads,
+				).
+				Only(ctx)
+			if stdErr != nil {
+				return common.ErrWrapperDatabase.Wrap(stdErr)
+			}
+			userRow = row
+			return nil
+		})
 		if stdErr != nil {
 			return stdErr
 		}
@@ -99,7 +111,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			)
 		}
 
-		ctx.JSON(http.StatusOK, DownloadResponse{
+		ginCtx.JSON(http.StatusOK, DownloadResponse{
 			Errors:                   []servercommon.ErrorDetail{},
 			AuthorizationCodeValidAt: nil,
 			Content:                  decrypted,

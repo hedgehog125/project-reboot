@@ -8,8 +8,8 @@ import (
 )
 
 func RootRedirect() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		ctx.File("./public/index.html")
+	return func(ginCtx *gin.Context) {
+		ginCtx.File("./public/index.html")
 	}
 }
 

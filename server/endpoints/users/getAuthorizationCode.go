@@ -1,12 +1,14 @@
 package users
 
 import (
+	"context"
 	"encoding/base64"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
@@ -27,17 +29,27 @@ type GetAuthorizationCodeResponse struct {
 func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 	clock := app.Clock
 
-	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
+	return servercommon.NewHandler(func(ginCtx *gin.Context) error {
 		body := GetAuthorizationCodePayload{}
-		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
 
-		userRow, stdErr := tx.User.Query().
-			Where(user.Username(body.Username)).
-			Only(ctx)
+		var userRow *ent.User
+		stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
+			row, stdErr := tx.User.Query().
+				Where(user.Username(body.Username)).
+				Only(ctx)
+			if stdErr != nil {
+				return servercommon.SendUnauthorizedIfNotFound(
+					common.ErrWrapperDatabase.Wrap(stdErr),
+				)
+			}
+			userRow = row
+			return nil
+		})
 		if stdErr != nil {
-			return servercommon.SendUnauthorizedIfNotFound(stdErr)
+			return stdErr
 		}
 
 		encryptionKey := core.HashPassword(
@@ -54,39 +66,44 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			return servercommon.NewUnauthorizedError()
 		}
 
-		commErr = app.Messengers.SendUsingAll(common.Message{
-			Type: common.MessageLogin,
-			User: (
-			//exhaustruct:enforce
-			&common.UserContacts{
-				Username:       body.Username,
-				AlertDiscordId: userRow.AlertDiscordId,
-				AlertEmail:     userRow.AlertEmail,
-			}),
+		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
+			commErr = app.Messengers.SendUsingAll(
+				common.Message{
+					Type: common.MessageLogin,
+					User: (
+					//exhaustruct:enforce
+					&common.UserContacts{
+						Username:       body.Username,
+						AlertDiscordId: userRow.AlertDiscordId,
+						AlertEmail:     userRow.AlertEmail,
+					}),
+				},
+				ctx,
+			)
+			if commErr != nil {
+				return commErr
+			}
+
+			authCode := core.RandomAuthCode()
+			validAt := clock.Now().Add(app.Env.UNLOCK_TIME)
+
+			_, stdErr = tx.Session.Create().
+				SetUser(userRow).
+				SetCode(authCode).
+				SetCodeValidFrom(validAt).
+				SetUserAgent(ginCtx.Request.UserAgent()).
+				SetIP(ginCtx.ClientIP()).
+				Save(ctx)
+			if stdErr != nil {
+				return common.ErrWrapperDatabase.Wrap(stdErr)
+			}
+
+			ginCtx.JSON(http.StatusOK, GetAuthorizationCodeResponse{
+				Errors:                   []servercommon.ErrorDetail{},
+				AuthorizationCode:        base64.StdEncoding.EncodeToString(authCode),
+				AuthorizationCodeValidAt: validAt,
+			})
+			return nil
 		})
-		if commErr != nil {
-			return commErr
-		}
-
-		authCode := core.RandomAuthCode()
-		validAt := clock.Now().Add(app.Env.UNLOCK_TIME)
-
-		_, stdErr = tx.Session.Create().
-			SetUser(userRow).
-			SetCode(authCode).
-			SetCodeValidFrom(validAt).
-			SetUserAgent(ctx.Request.UserAgent()).
-			SetIP(ctx.ClientIP()).
-			Save(ctx)
-		if stdErr != nil {
-			return stdErr
-		}
-
-		ctx.JSON(http.StatusOK, GetAuthorizationCodeResponse{
-			Errors:                   []servercommon.ErrorDetail{},
-			AuthorizationCode:        base64.StdEncoding.EncodeToString(authCode),
-			AuthorizationCodeValidAt: validAt,
-		})
-		return nil
 	})
 }

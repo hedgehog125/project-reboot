@@ -1,10 +1,12 @@
 package users
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/session"
@@ -27,9 +29,9 @@ type RegisterOrUpdateResponse struct {
 func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 	hashSettings := app.Env.PASSWORD_HASH_SETTINGS
 
-	return servercommon.WithTx(app, func(ctx *gin.Context, tx *ent.Tx) error {
+	return servercommon.NewHandler(func(ginCtx *gin.Context) error {
 		body := RegisterPayload{}
-		if ctxErr := servercommon.ParseBody(&body, ctx); ctxErr != nil {
+		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
 		contentBytes, ctxErr := servercommon.DecodeBase64(body.Content)
@@ -44,44 +46,49 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			return commErr
 		}
 
-		stdErr := tx.User.Create().
-			SetUsername(body.Username).
-			SetContent(encrypted).
-			SetFileName(body.Filename).
-			SetMime(body.Mime).
-			SetNonce(nonce).
-			SetKeySalt(salt).
-			SetHashTime(hashSettings.Time).
-			SetHashMemory(hashSettings.Memory).
-			SetHashThreads(hashSettings.Threads).
-			OnConflict().UpdateNewValues().
-			Exec(ctx)
-		if stdErr != nil {
-			return stdErr
-		}
+		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
+			stdErr := tx.User.Create().
+				SetUsername(body.Username).
+				SetContent(encrypted).
+				SetFileName(body.Filename).
+				SetMime(body.Mime).
+				SetNonce(nonce).
+				SetKeySalt(salt).
+				SetHashTime(hashSettings.Time).
+				SetHashMemory(hashSettings.Memory).
+				SetHashThreads(hashSettings.Threads).
+				OnConflict().UpdateNewValues().
+				Exec(ctx)
+			if stdErr != nil {
+				return common.ErrWrapperDatabase.Wrap(stdErr)
+			}
 
-		userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, ctx)
-		if commErr != nil {
-			return commErr
-		}
-		commErr = app.Messengers.SendUsingAll(common.Message{
-			Type: common.MessageReset,
-			User: userInfo,
+			userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, ctx)
+			if commErr != nil {
+				return commErr
+			}
+			commErr = app.Messengers.SendUsingAll(
+				common.Message{
+					Type: common.MessageReset,
+					User: userInfo,
+				},
+				ctx,
+			)
+			if commErr != nil {
+				return commErr
+			}
+
+			_, stdErr = tx.Session.Delete().Where(
+				session.HasUserWith(user.Username(body.Username)),
+			).Exec(ctx)
+			if stdErr != nil {
+				return common.ErrWrapperDatabase.Wrap(stdErr)
+			}
+
+			ginCtx.JSON(http.StatusCreated, RegisterOrUpdateResponse{
+				Errors: []servercommon.ErrorDetail{},
+			})
+			return nil
 		})
-		if commErr != nil {
-			return commErr
-		}
-
-		_, stdErr = tx.Session.Delete().Where(
-			session.HasUserWith(user.Username(body.Username)),
-		).Exec(ctx)
-		if stdErr != nil {
-			return stdErr
-		}
-
-		ctx.JSON(http.StatusCreated, RegisterOrUpdateResponse{
-			Errors: []servercommon.ErrorDetail{},
-		})
-		return nil
 	})
 }

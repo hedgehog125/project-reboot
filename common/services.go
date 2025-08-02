@@ -52,7 +52,7 @@ type App struct {
 type MessengerService interface {
 	IDs() []string
 	// Note: this should be atomic and call the messengers in the background (usually via jobs)
-	SendUsingAll(message Message) *Error
+	SendUsingAll(message Message, ctx context.Context) *Error
 }
 type MessageType string
 
