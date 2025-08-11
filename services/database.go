@@ -47,6 +47,7 @@ func (service *Database) Start() {
 	db.SetConnMaxLifetime(time.Hour)
 	driver := ent.Driver(entsql.OpenDB("sqlite3", db))
 	client := ent.NewClient(driver)
+	service.client = client
 
 	// TODO: does not cancelling this cause a memory leak?
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)

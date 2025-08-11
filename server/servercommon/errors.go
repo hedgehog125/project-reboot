@@ -3,14 +3,18 @@ package servercommon
 import (
 	"errors"
 	"slices"
+	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
 const (
 	ErrTypeParseBodyJson = "parse body json"
 )
+
+var ErrCancelTransaction = NewError(dbcommon.ErrCancelTransaction).DisableLogging()
 
 var ErrWrapperParseBodyJson = common.NewErrorWrapper(
 	common.ErrTypeServerCommon,
@@ -56,6 +60,7 @@ func (err *Error) StandardError() error {
 func (err *Error) Unwrap() error {
 	return &err.CommonError
 }
+
 func (err *Error) Clone() *Error {
 	copiedErr := &Error{
 		CommonError: *err.CommonError.Clone(),
@@ -65,6 +70,14 @@ func (err *Error) Clone() *Error {
 	}
 	return copiedErr
 }
+func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) *Error {
+	copiedErr := err.Clone()
+	copiedErr.Err = err.CommonError.ConfigureRetries(
+		maxRetries, baseBackoff, backoffMultiplier,
+	)
+	return copiedErr
+}
+
 func (err *Error) AddDetails(details ...ErrorDetail) *Error {
 	copiedErr := err.Clone()
 	copiedErr.Details = append(copiedErr.Details, details...)
@@ -128,6 +141,7 @@ func (err *Error) sendStatusAndDetailIfCondition(
 ) *Error {
 	copiedErr := err.Clone()
 	if condition {
+		copiedErr = copiedErr.ConfigureRetries(0, 0, 0)
 		if statusCode != -1 {
 			copiedErr.Status = statusCode
 		}

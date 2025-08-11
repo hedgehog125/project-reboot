@@ -35,18 +35,16 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		var userRow *ent.User
-		stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			row, stdErr := tx.User.Query().
+		userRow, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
+			userRow, stdErr := tx.User.Query().
 				Where(user.Username(body.Username)).
 				Only(ctx)
 			if stdErr != nil {
-				return servercommon.SendUnauthorizedIfNotFound(
+				return nil, servercommon.SendUnauthorizedIfNotFound(
 					common.ErrWrapperDatabase.Wrap(stdErr),
 				)
 			}
-			userRow = row
-			return nil
+			return userRow, nil
 		})
 		if stdErr != nil {
 			return stdErr
@@ -68,15 +66,9 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
 			commErr = app.Messengers.SendUsingAll(
-				common.Message{
+				&common.Message{
 					Type: common.MessageLogin,
-					User: (
-					//exhaustruct:enforce
-					&common.UserContacts{
-						Username:       body.Username,
-						AlertDiscordId: userRow.AlertDiscordId,
-						AlertEmail:     userRow.AlertEmail,
-					}),
+					User: userRow,
 				},
 				ctx,
 			)

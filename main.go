@@ -17,7 +17,7 @@ func main() {
 	app.Database.Start()
 	app.Scheduler = services.NewScheduler(app)
 	{
-		messengerService := services.NewMessenger(app)
+		messengerService := services.NewMessengers(app)
 		app.Messengers = messengerService
 		app.Jobs = services.NewJobs(app, messengerService.RegisterJobs)
 	}

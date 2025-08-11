@@ -1,7 +1,6 @@
 # TODO
 
--   Update all errors to use the new category system of providing the package before the specific categories <====
--   Continue refactoring AddCategory calls that add the function's category to use error wrappers instead, to avoid issues forgetting to add the package name when wrapping an error from another package
+-   Rename userRow etc to userOb (or dbUser?)
 -   Write some tests to demo how [package] error categories get shifted about
 -   Job system
 -   -   Rework 2FA actions so there aren't definitions, they're just a full job type ID, body and a username

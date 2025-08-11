@@ -18,6 +18,7 @@ type Engine struct {
 	Registry             *Registry
 	Running              bool
 	newJobChan           chan struct{}
+	waitingForJobsChan   chan struct{}
 	requestShutdownChan  chan struct{}
 	shutdownFinishedChan chan struct{}
 	mu                   sync.Mutex
@@ -28,6 +29,7 @@ func NewEngine(registry *Registry) *Engine {
 		App:                  registry.App,
 		Registry:             registry,
 		newJobChan:           make(chan struct{}, 1),
+		waitingForJobsChan:   make(chan struct{}),
 		requestShutdownChan:  make(chan struct{}),
 		shutdownFinishedChan: make(chan struct{}),
 	}
@@ -39,6 +41,7 @@ type completedJob struct {
 }
 
 func (engine *Engine) Listen() {
+	// TODO: use proper transactions
 	engine.mu.Lock()
 	if engine.Running {
 		engine.mu.Unlock()
@@ -121,7 +124,19 @@ func (engine *Engine) Listen() {
 						return ErrWrapperDatabase.Wrap(stdErr).AddCategory("update job")
 					}
 					currentWeight += currentJob.Weight
-					go engine.runJob(currentJob, completedJobChan)
+					jobDefinition, ok := engine.Registry.jobs[common.GetVersionedType(currentJob.Type, currentJob.Version)]
+					if ok {
+						if jobDefinition.NoParallelize {
+							engine.runJob(jobDefinition, currentJob, completedJobChan)
+						} else {
+							go engine.runJob(jobDefinition, currentJob, completedJobChan)
+						}
+					} else { // Note: this shouldn't happen
+						completedJobChan <- completedJob{
+							Object: currentJob,
+							Err:    NewError(ErrUnknownJobType.AddCategory(ErrTypeRunJob)),
+						}
+					}
 					return nil
 				},
 			)
@@ -166,6 +181,11 @@ listenLoop:
 			break listenLoop
 		}
 
+		close(engine.waitingForJobsChan)
+		engine.mu.Lock()
+		engine.waitingForJobsChan = make(chan struct{})
+		engine.mu.Unlock()
+
 		select {
 		case <-time.After(maxWaitTime):
 		case <-engine.newJobChan:
@@ -180,16 +200,10 @@ listenLoop:
 	close(engine.requestShutdownChan)
 	close(engine.shutdownFinishedChan)
 }
-func (engine *Engine) runJob(job *ent.Job, completedJobChan chan completedJob) {
-	jobDefinition, ok := engine.Registry.jobs[common.GetVersionedType(job.Type, job.Version)]
-	if !ok { // Note: this shouldn't happen
-		completedJobChan <- completedJob{
-			Object: job,
-			Err:    NewError(ErrUnknownJobType.AddCategory(ErrTypeRunJob)),
-		}
-		return
-	}
-
+func (engine *Engine) runJob(
+	jobDefinition *Definition, job *ent.Job,
+	completedJobChan chan completedJob,
+) {
 	stdErr := jobDefinition.Handler(&Context{
 		Definition: jobDefinition,
 		Context:    context.TODO(),
@@ -199,6 +213,10 @@ func (engine *Engine) runJob(job *ent.Job, completedJobChan chan completedJob) {
 		Object: job,
 		Err:    NewError(stdErr).AddCategory(ErrTypeRunJob), // TODO: are these categories correct?
 	}
+}
+
+func (engine *Engine) WaitForJobs() {
+	<-engine.waitingForJobsChan
 }
 
 func (engine *Engine) Shutdown() {

@@ -30,6 +30,8 @@ type Definition struct {
 	BodyType          any
 	reflectedBodyType reflect.Type
 	Weight            int
+	// Use for jobs that almost exclusively write to the database and thus can't be parallelised
+	NoParallelize bool
 	// 0 is DefaultPriority.
 	Priority int8
 }
@@ -68,9 +70,6 @@ func prepareJobDefinition(definition *Definition) {
 	fullID := common.GetVersionedType(definition.ID, definition.Version)
 	if definition.BodyType != nil {
 		definition.reflectedBodyType = reflect.TypeOf(definition.BodyType)
-		if definition.reflectedBodyType.Kind() != reflect.Ptr {
-			log.Fatalf("job definition %s body type must be a pointer", fullID)
-		}
 	}
 	if definition.Weight < 1 {
 		log.Fatalf("job definition %s weight must be 1 or higher", fullID)

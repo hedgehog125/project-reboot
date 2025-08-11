@@ -43,19 +43,17 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			),
 		)
 
-		var userRow *ent.User
-		stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			row, stdErr := tx.User.Query().
+		userRow, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
+			userRow, stdErr := tx.User.Query().
 				Where(user.Username(body.Username)).
 				Only(ctx)
 			if stdErr != nil {
-				return servercommon.SendUnauthorizedIfNotFound(
+				return nil, servercommon.SendUnauthorizedIfNotFound(
 					common.ErrWrapperDatabase.Wrap(stdErr),
 				)
 			}
 
-			userRow = row
-			return nil
+			return userRow, nil
 		})
 		if stdErr != nil {
 			return stdErr
@@ -93,16 +91,10 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			}
 
 			commErr = app.Messengers.SendUsingAll(
-				common.Message{
+				&common.Message{
 					Type: common.Message2FA,
+					User: userRow,
 					Code: code,
-					User: (
-					//exhaustruct:enforce
-					&common.UserContacts{
-						Username:       body.Username,
-						AlertDiscordId: userRow.AlertDiscordId,
-						AlertEmail:     userRow.AlertEmail,
-					}),
 				},
 				ctx,
 			)

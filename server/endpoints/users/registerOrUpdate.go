@@ -11,7 +11,6 @@ import (
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/messengers/messengerscommon"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
@@ -63,14 +62,16 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 				return common.ErrWrapperDatabase.Wrap(stdErr)
 			}
 
-			userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, ctx)
-			if commErr != nil {
-				return commErr
+			userOb, stdErr := tx.User.Query().
+				Where(user.Username(body.Username)).
+				Only(ctx)
+			if stdErr != nil {
+				return common.ErrWrapperDatabase.Wrap(stdErr)
 			}
-			commErr = app.Messengers.SendUsingAll(
-				common.Message{
+			commErr := app.Messengers.SendUsingAll(
+				&common.Message{
 					Type: common.MessageReset,
-					User: userInfo,
+					User: userOb,
 				},
 				ctx,
 			)

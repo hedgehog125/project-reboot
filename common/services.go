@@ -56,9 +56,8 @@ type App struct {
 }
 
 type MessengerService interface {
-	IDs() []string
 	// Note: this atomically queues jobs to send the messages
-	SendUsingAll(message Message, ctx context.Context) *Error
+	SendUsingAll(message *Message, ctx context.Context) *Error
 }
 type MessageType string
 
@@ -73,10 +72,10 @@ const (
 )
 
 type Message struct {
-	Type     MessageType
-	Username string
-	Code     string
-	Until    time.Time
+	Type  MessageType
+	User  *ent.User
+	Code  string
+	Until time.Time
 }
 
 type DatabaseService interface {
@@ -100,6 +99,7 @@ type JobService interface {
 		data any,
 		ctx context.Context,
 	) (uuid.UUID, *Error)
+	WaitForJobs()
 	Encode(versionedType string, data any) (string, *Error)
 }
 type TwoFactorActionService interface {

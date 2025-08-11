@@ -43,15 +43,14 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		var userRow *ent.User
-		stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
+		userRow, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
 			sessionRow, stdErr := tx.Session.Query().
 				Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
 				Select(session.FieldCode, session.FieldCodeValidFrom).
 				First(ctx)
 			if stdErr != nil {
-				return servercommon.SendUnauthorizedIfNotFound(
-					common.ErrWrapperDatabase.Wrap(stdErr), // TODO: make app.Database do the wrapping?
+				return nil, servercommon.SendUnauthorizedIfNotFound(
+					common.ErrWrapperDatabase.Wrap(stdErr),
 				)
 			}
 
@@ -65,10 +64,10 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 					},
 					AuthorizationCodeValidAt: &sessionRow.CodeValidFrom,
 				})
-				return nil
+				return nil, servercommon.ErrCancelTransaction.Clone()
 			}
 
-			row, stdErr := tx.User.Query().
+			userRow, stdErr := tx.User.Query().
 				Where(user.Username(body.Username)).
 				Select(
 					user.FieldUsername,
@@ -85,10 +84,9 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				).
 				Only(ctx)
 			if stdErr != nil {
-				return common.ErrWrapperDatabase.Wrap(stdErr)
+				return nil, common.ErrWrapperDatabase.Wrap(stdErr)
 			}
-			userRow = row
-			return nil
+			return userRow, nil
 		})
 		if stdErr != nil {
 			return stdErr

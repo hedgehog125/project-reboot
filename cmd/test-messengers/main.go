@@ -10,8 +10,7 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/messengers"
-	"github.com/hedgehog125/project-reboot/messengers/messengerscommon"
+	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/services"
 )
 
@@ -22,30 +21,39 @@ func main() {
 		log.Fatalf("missing required argument \"username\"")
 	}
 
-	env := services.LoadEnvironmentVariables()
-	databaseService := services.NewDatabase(env)
-	databaseService.Start()
-	defer databaseService.Shutdown()
+	app := &common.App{
+		Env: services.LoadEnvironmentVariables(),
+	}
+	app.Database = services.NewDatabase(app.Env)
+	app.Database.Start()
+	defer app.Database.Shutdown()
 
-	discord := messengers.NewDiscord(env)
-	var userInfo *common.UserContacts
-	err := dbcommon.WithTx(
-		context.Background(), databaseService,
-		func(tx *ent.Tx) error {
-			var err error
-			userInfo, err = messengerscommon.ReadUserContacts(*username, ent.NewTxContext(context.Background(), tx))
-			return err
+	{
+		messengerService := services.NewMessengers(app)
+		app.Messengers = messengerService
+		app.Jobs = services.NewJobs(app, messengerService.RegisterJobs)
+		defer app.Jobs.Shutdown()
+	}
+
+	userOb, stdErr := dbcommon.WithReadTx(
+		context.Background(), app.Database,
+		func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
+			userOb, stdErr := tx.User.Query().
+				Where(user.Username(*username)).
+				Only(ctx)
+			return userOb, stdErr
 		},
 	)
-	if err != nil {
-		panic(fmt.Sprintf("couldn't read user. error:\n%v", err.Error()))
+	if stdErr != nil {
+		panic(fmt.Sprintf("couldn't read user. error:\n%v", stdErr.Error()))
 	}
-	err = discord.Send(common.Message{
+	commErr := app.Messengers.SendUsingAll(&common.Message{
 		Type: common.MessageTest,
-		User: userInfo,
-	})
-	if err != nil {
-		panic(fmt.Sprintf("couldn't send Discord message. error:\n%v", err.Error()))
+		User: userOb,
+	}, context.Background())
+	if commErr != nil {
+		panic(fmt.Sprintf("couldn't send queue message. error:\n%v", commErr.Error()))
 	}
-	fmt.Fprintln(os.Stdout, "sent Discord message")
+	fmt.Fprintln(os.Stdout, "waiting for message jobs to run...")
+	app.Jobs.WaitForJobs()
 }

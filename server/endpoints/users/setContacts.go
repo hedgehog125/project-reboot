@@ -9,7 +9,6 @@ import (
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/messengers/messengerscommon"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
@@ -30,31 +29,34 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			_, stdErr := tx.User.Update().
+			userRow, stdErr := tx.User.Query().
 				Where(user.Username(body.Username)).
-				SetAlertDiscordId(body.DiscordUserId).SetAlertEmail(body.Email).Save(ctx)
+				Only(ctx)
+			if stdErr != nil {
+				return servercommon.Send404IfNotFound(
+					common.ErrWrapperDatabase.Wrap(stdErr),
+				)
+			}
+			userRow, stdErr = userRow.Update().
+				SetAlertDiscordId(body.DiscordUserId).
+				SetAlertEmail(body.Email).
+				Save(ctx)
 			if stdErr != nil {
 				return servercommon.Send404IfNotFound(
 					common.ErrWrapperDatabase.Wrap(stdErr),
 				)
 			}
 
-			userInfo, commErr := messengerscommon.ReadUserContacts(body.Username, ctx)
-			if commErr != nil {
-				return commErr
-			}
-			commErr = app.Messengers.SendUsingAll(
-				common.Message{
+			commErr := app.Messengers.SendUsingAll(
+				&common.Message{
 					Type: common.MessageTest,
-					User: userInfo,
+					User: userRow,
 				},
 				ctx,
 			)
 			if commErr != nil {
 				return commErr
 			}
-
-			// TODO: log these errors
 
 			ginCtx.JSON(http.StatusOK, SetContactsResponse{
 				Errors: []servercommon.ErrorDetail{},

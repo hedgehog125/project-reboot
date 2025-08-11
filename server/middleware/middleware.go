@@ -58,9 +58,9 @@ func NewErrorMiddleware() gin.HandlerFunc {
 func NewTimeoutMiddleware() gin.HandlerFunc {
 	return timeout.New(
 		timeout.WithTimeout(30*time.Second),
-		timeout.WithHandler(func(ginCtx *gin.Context) {
-			ginCtx.Next()
-		}),
+		// timeout.WithHandler(func(ginCtx *gin.Context) {
+		// ginCtx.Next()
+		// }),
 		timeout.WithResponse(func(ginCtx *gin.Context) {
 			if ginCtx.Writer.Written() {
 				conn, _, err := ginCtx.Writer.Hijack()

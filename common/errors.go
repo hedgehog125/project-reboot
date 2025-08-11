@@ -64,6 +64,7 @@ var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
 
 	return wrappedErr.AddCategories(ErrTypeOther, ErrTypeDatabase)
 })
+var ErrWrapperAPI = NewErrorWrapper(ErrTypeAPI) // TODO: add retrying
 
 var ErrNoTxInContext = NewErrorWithCategories("no db transaction found in context")
 

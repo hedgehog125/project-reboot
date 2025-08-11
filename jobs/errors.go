@@ -37,7 +37,7 @@ var ErrWrapperInvalidData = common.NewErrorWrapper(
 )
 
 type CommonError = common.Error
-type Error struct {
+type Error struct { // TODO: could the common error just be used instead?
 	CommonError      // TODO: use pointer?
 	JobRetryBackoffs []time.Duration
 }

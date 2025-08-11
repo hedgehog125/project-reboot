@@ -10,6 +10,9 @@ const (
 	ErrTypeCallback = "callback"
 )
 
+// Not used by this package. Return this error when you need to cancel the transaction and don't have an error
+var ErrCancelTransaction = common.NewErrorWithCategories("cancel transaction")
+
 var ErrWrapperStartTx = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeStartTx)
 var ErrWrapperCommitTx = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeCommitTx)
 var ErrWrapperCallback = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeCallback)

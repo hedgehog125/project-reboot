@@ -31,11 +31,9 @@ form.addEventListener("submit", async (e) => {
 		return;
 	}
 
-	const json = await resp.json();
+	await resp.json();
 	displayMessage(
-		`Success. A test message was sent using these messengers: ${json.messagesSent.join(
-			", "
-		)}`
+		`Success. This user should receive test messages for the configured messengers.`
 	);
 });
 
