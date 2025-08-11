@@ -1,5 +1,7 @@
 # TODO
 
+-   Fix issues around failed jobs. Jobs aren't being marked as completed? Job deadlock
+-   Jobs aren't being marked as complete? Maybe just 2FA actions?
 -   Rename userRow etc to userOb (or dbUser?)
 -   Write some tests to demo how [package] error categories get shifted about
 -   Job system

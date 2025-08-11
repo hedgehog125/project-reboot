@@ -137,7 +137,7 @@ func workerLoop(
 		select {
 		case password := <-nextPasswordChan:
 			encryptionKey := core.HashPassword(password, salt, passwordHashSettings)
-			decrypted, err := core.Decrypt(encryptionKey, encrypted, nonce)
+			decrypted, err := core.Decrypt(encrypted, encryptionKey, nonce)
 			if err == nil {
 				guessChan <- (
 				//exhaustruct:enforce

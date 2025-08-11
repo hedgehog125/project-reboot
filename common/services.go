@@ -99,6 +99,11 @@ type JobService interface {
 		data any,
 		ctx context.Context,
 	) (uuid.UUID, *Error)
+	EnqueueEncoded(
+		versionedType string,
+		encodedData string,
+		ctx context.Context,
+	) (uuid.UUID, *Error)
 	WaitForJobs()
 	Encode(versionedType string, data any) (string, *Error)
 }

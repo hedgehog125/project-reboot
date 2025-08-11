@@ -59,7 +59,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				Threads: userRow.HashThreads,
 			},
 		)
-		_, commErr := core.Decrypt(encryptionKey, userRow.Content, userRow.Nonce)
+		_, commErr := core.Decrypt(userRow.Content, encryptionKey, userRow.Nonce)
 		if commErr != nil {
 			return servercommon.NewUnauthorizedError()
 		}

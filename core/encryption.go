@@ -23,7 +23,7 @@ func Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, *common.Error) 
 	return encrypted, nonce, nil
 }
 
-func Decrypt(encryptionKey []byte, encrypted []byte, nonce []byte) ([]byte, *common.Error) {
+func Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, *common.Error) {
 	passwordCipher, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return nil, ErrWrapperDecrypt.Wrap(err)

@@ -101,7 +101,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				Threads: userRow.HashThreads,
 			},
 		)
-		decrypted, commErr := core.Decrypt(encryptionKey, userRow.Content, userRow.Nonce)
+		decrypted, commErr := core.Decrypt(userRow.Content, encryptionKey, userRow.Nonce)
 		if commErr != nil {
 			return servercommon.ExpectError(
 				commErr, core.ErrIncorrectPassword,

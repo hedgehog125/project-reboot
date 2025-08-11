@@ -15,7 +15,7 @@ type TwoFactorActions struct {
 	app *common.App
 }
 
-func NewTwoFactorAction(app *common.App) *TwoFactorActions {
+func NewTwoFactorActions(app *common.App) *TwoFactorActions {
 	return &TwoFactorActions{
 		app: app,
 	}
@@ -95,7 +95,7 @@ func (service *TwoFactorActions) Confirm(
 		)
 	}
 
-	jobID, commErr := service.app.Jobs.Enqueue(
+	jobID, commErr := service.app.Jobs.EnqueueEncoded(
 		common.GetVersionedType(action.Type, action.Version),
 		action.Data,
 		ctx,

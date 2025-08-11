@@ -102,8 +102,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 				return commErr
 			}
 
-			// TODO: log these errors
-
+			// TODO: wait for job to run and return error if it fails?
 			ginCtx.JSON(http.StatusCreated, SelfLockResponse{
 				Errors:            []servercommon.ErrorDetail{},
 				TwoFactorActionID: actionID.String(),

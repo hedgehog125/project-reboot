@@ -16,6 +16,7 @@ func main() {
 	app.Database = services.NewDatabase(app.Env)
 	app.Database.Start()
 	app.Scheduler = services.NewScheduler(app)
+	app.TwoFactorActions = services.NewTwoFactorActions(app)
 	{
 		messengerService := services.NewMessengers(app)
 		app.Messengers = messengerService

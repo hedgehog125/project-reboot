@@ -92,9 +92,9 @@ func (engine *Engine) Listen() {
 		for {
 			isDone := false
 			shutdownSignalReceived := false
-			stdErr := dbcommon.WithWriteTx(
+			currentJob, stdErr := dbcommon.WithReadWriteTx(
 				context.TODO(), engine.App.Database,
-				func(tx *ent.Tx, ctx context.Context) error {
+				func(tx *ent.Tx, ctx context.Context) (*ent.Job, error) {
 					currentJob, stdErr := tx.Job.Query().
 						Where(job.StatusEQ("pending"), job.DueLTE(time.Now())).
 						Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
@@ -102,9 +102,9 @@ func (engine *Engine) Listen() {
 					if stdErr != nil {
 						if ent.IsNotFound(stdErr) {
 							isDone = true
-							return nil
+							return nil, nil
 						}
-						return ErrWrapperDatabase.Wrap(stdErr).AddCategory("query next job")
+						return nil, ErrWrapperDatabase.Wrap(stdErr).AddCategory("query next job")
 					}
 
 					maxTotalWeightToStart := engine.App.Env.MAX_TOTAL_JOB_WEIGHT - currentWeight
@@ -114,30 +114,16 @@ func (engine *Engine) Listen() {
 							handleCompletedJob(completedJob)
 						case <-engine.requestShutdownChan:
 							shutdownSignalReceived = true
-							return nil
+							return nil, nil
 						}
 					}
 					stdErr = tx.Job.UpdateOneID(currentJob.ID).
 						SetStatus("running").SetStarted(time.Now()).
 						Exec(context.TODO())
 					if stdErr != nil {
-						return ErrWrapperDatabase.Wrap(stdErr).AddCategory("update job")
+						return nil, ErrWrapperDatabase.Wrap(stdErr).AddCategory("update job")
 					}
-					currentWeight += currentJob.Weight
-					jobDefinition, ok := engine.Registry.jobs[common.GetVersionedType(currentJob.Type, currentJob.Version)]
-					if ok {
-						if jobDefinition.NoParallelize {
-							engine.runJob(jobDefinition, currentJob, completedJobChan)
-						} else {
-							go engine.runJob(jobDefinition, currentJob, completedJobChan)
-						}
-					} else { // Note: this shouldn't happen
-						completedJobChan <- completedJob{
-							Object: currentJob,
-							Err:    NewError(ErrUnknownJobType.AddCategory(ErrTypeRunJob)),
-						}
-					}
-					return nil
+					return currentJob, nil
 				},
 			)
 			if stdErr != nil {
@@ -150,6 +136,21 @@ func (engine *Engine) Listen() {
 			}
 			if shutdownSignalReceived {
 				return true
+			}
+			currentWeight += currentJob.Weight
+			jobDefinition, ok := engine.Registry.jobs[common.GetVersionedType(currentJob.Type, currentJob.Version)]
+			if ok {
+				if jobDefinition.NoParallelize {
+					// TODO: this doesn't work because the engine's transaction doesn't commit until this has finished
+					engine.runJob(jobDefinition, currentJob, completedJobChan)
+				} else {
+					go engine.runJob(jobDefinition, currentJob, completedJobChan)
+				}
+			} else { // Note: this shouldn't happen
+				completedJobChan <- completedJob{
+					Object: currentJob,
+					Err:    NewError(ErrUnknownJobType.AddCategory(ErrTypeRunJob)),
+				}
 			}
 			// Otherwise continue processing jobs
 		}
@@ -238,7 +239,7 @@ func (engine *Engine) Enqueue(
 	data any,
 	ctx context.Context,
 ) (uuid.UUID, *common.Error) {
-	jobDefinition, ok := engine.Registry.jobs[versionedType]
+	_, ok := engine.Registry.jobs[versionedType]
 	if !ok {
 		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrUnknownJobType)
 	}
@@ -248,6 +249,19 @@ func (engine *Engine) Enqueue(
 	)
 	if commErr != nil {
 		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(commErr)
+	}
+
+	return engine.EnqueueEncoded(versionedType, encoded, ctx)
+}
+
+func (engine *Engine) EnqueueEncoded(
+	versionedType string,
+	encodedData string,
+	ctx context.Context,
+) (uuid.UUID, *common.Error) {
+	jobDefinition, ok := engine.Registry.jobs[versionedType]
+	if !ok {
+		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrUnknownJobType)
 	}
 
 	jobType, version, commErr := common.ParseVersionedType(versionedType)
@@ -264,7 +278,7 @@ func (engine *Engine) Enqueue(
 		SetVersion(version).
 		SetPriority(jobDefinition.Priority).
 		SetWeight(jobDefinition.Weight).
-		SetData(encoded).
+		SetData(encodedData).
 		Save(ctx)
 	if stdErr != nil {
 		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrWrapperDatabase.Wrap(stdErr))

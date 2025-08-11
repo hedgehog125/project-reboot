@@ -10,6 +10,7 @@ import (
 
 const BackoffJitter = float64(0.05)
 
+// TODO: enforce a timeout or log a warning if it's exceeded? Some contexts don't have a deadline but instead can just be cancelled after a while
 func WithRetries(
 	ctx context.Context, fn func() error,
 ) error {
