@@ -7,7 +7,6 @@ import (
 	"reflect"
 
 	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/jobs/jobscommon"
 )
 
 type Registry struct {
@@ -58,7 +57,7 @@ func NewRegistry(app *common.App) *Registry {
 }
 
 func (registry *Registry) Register(definition *Definition) {
-	fullID := jobscommon.GetVersionedType(definition.ID, definition.Version)
+	fullID := common.GetVersionedType(definition.ID, definition.Version)
 	if _, exists := registry.jobs[fullID]; exists {
 		log.Fatalf("job definition with ID \"%s\" already exists", fullID)
 	}
@@ -66,7 +65,7 @@ func (registry *Registry) Register(definition *Definition) {
 	registry.jobs[fullID] = definition
 }
 func prepareJobDefinition(definition *Definition) {
-	fullID := jobscommon.GetVersionedType(definition.ID, definition.Version)
+	fullID := common.GetVersionedType(definition.ID, definition.Version)
 	if definition.BodyType != nil {
 		definition.reflectedBodyType = reflect.TypeOf(definition.BodyType)
 		if definition.reflectedBodyType.Kind() != reflect.Ptr {

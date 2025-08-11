@@ -9,21 +9,42 @@ import (
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
-func WithReadTx(ctx context.Context, db common.DatabaseService, fn func(tx *ent.Tx, ctx context.Context) error) error {
+func WithReadTx[T any](
+	ctx context.Context, db common.DatabaseService,
+	fn func(tx *ent.Tx, ctx context.Context) (T, error),
+) (T, error) {
 	return withRetryingTx(ctx, db.ReadTx, fn)
 }
-func WithWriteTx(ctx context.Context, db common.DatabaseService, fn func(tx *ent.Tx, ctx context.Context) error) error {
+func WithWriteTx(
+	ctx context.Context, db common.DatabaseService,
+	fn func(tx *ent.Tx, ctx context.Context) error,
+) error {
+	_, stdErr := withRetryingTx(ctx, db.WriteTx, func(tx *ent.Tx, ctx context.Context) (struct{}, error) {
+		return struct{}{}, fn(tx, ctx)
+	})
+	return stdErr
+}
+func WithReadWriteTx[T any](
+	ctx context.Context, db common.DatabaseService,
+	fn func(tx *ent.Tx, ctx context.Context) (T, error),
+) (T, error) {
 	return withRetryingTx(ctx, db.WriteTx, fn)
 }
 
-func withRetryingTx(
+func withRetryingTx[T any](
 	ctx context.Context,
 	txCallback func(ctx context.Context) (*ent.Tx, error),
-	fn func(tx *ent.Tx, ctx context.Context) error,
-) error {
-	return common.WithRetries(ctx, func() error {
-		return withTx(ctx, txCallback, fn)
+	fn func(tx *ent.Tx, ctx context.Context) (T, error),
+) (T, error) {
+	var returnValue T
+	stdErr := common.WithRetries(ctx, func() error {
+		return withTx(ctx, txCallback, func(tx *ent.Tx, ctx context.Context) error {
+			var stdErr error
+			returnValue, stdErr = fn(tx, ctx)
+			return stdErr
+		})
 	})
+	return returnValue, stdErr
 }
 func withTx(
 	ctx context.Context,

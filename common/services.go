@@ -73,17 +73,10 @@ const (
 )
 
 type Message struct {
-	Type  MessageType
-	User  *UserContacts
-	Code  string
-	Until time.Time
-}
-
-// The info about the user provided to a Messenger
-type UserContacts struct {
-	Username       string
-	AlertDiscordId string
-	AlertEmail     string
+	Type     MessageType
+	Username string
+	Code     string
+	Until    time.Time
 }
 
 type DatabaseService interface {

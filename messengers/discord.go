@@ -44,6 +44,7 @@ func (discord *discord) Id() string {
 	return "discord"
 }
 
+// TODO: don't add a send category
 func (discord *discord) Send(message common.Message) *common.Error {
 	// TODO: only sending the message once we know we have a format for it prevents the warning, but why does it happen in the first place?
 	formattedMessage, commErr := formatDefaultMessage(message)

@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/jobs/jobscommon"
 	"github.com/hedgehog125/project-reboot/twofactoractions"
 )
 
@@ -42,7 +41,9 @@ func (service *TwoFactorActions) Create(
 
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
-		return uuid.UUID{}, "", twofactoractions.ErrNoTxInContext.AddCategory(twofactoractions.ErrTypeCreate)
+		return uuid.UUID{}, "", twofactoractions.ErrWrapperCreate.Wrap(
+			twofactoractions.ErrNoTxInContext,
+		)
 	}
 	code := common.CryptoRandomAlphaNum(twofactoractions.CODE_LENGTH)
 	action, err := tx.TwoFactorAction.Create().
@@ -52,7 +53,9 @@ func (service *TwoFactorActions) Create(
 		SetExpiresAt(expiresAt).
 		SetCode(code).Save(ctx)
 	if err != nil {
-		return uuid.UUID{}, code, twofactoractions.ErrWrapperDatabase.Wrap(err).AddCategory(twofactoractions.ErrTypeCreate)
+		return uuid.UUID{}, code, twofactoractions.ErrWrapperCreate.Wrap(
+			twofactoractions.ErrWrapperDatabase.Wrap(err),
+		)
 	}
 
 	return action.ID, code, nil
@@ -63,27 +66,37 @@ func (service *TwoFactorActions) Confirm(
 ) (uuid.UUID, *common.Error) {
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
-		return uuid.UUID{}, twofactoractions.ErrNoTxInContext.AddCategory(twofactoractions.ErrTypeConfirm)
+		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+			twofactoractions.ErrNoTxInContext,
+		)
 	}
 	action, stdErr := tx.TwoFactorAction.Get(ctx, actionID)
 	if stdErr != nil {
-		return uuid.UUID{}, twofactoractions.ErrNotFound.AddCategory(twofactoractions.ErrTypeConfirm)
+		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+			twofactoractions.ErrNotFound,
+		)
 	}
 	if subtle.ConstantTimeCompare([]byte(code), []byte(action.Code)) == 0 {
-		return uuid.UUID{}, twofactoractions.ErrWrongCode.AddCategory(twofactoractions.ErrTypeConfirm)
+		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+			twofactoractions.ErrWrongCode,
+		)
 	}
 
 	stdErr = tx.TwoFactorAction.DeleteOne(action).Exec(ctx)
 	if stdErr != nil {
-		return uuid.UUID{}, twofactoractions.ErrWrapperDatabase.Wrap(stdErr).AddCategory(twofactoractions.ErrTypeConfirm)
+		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+			twofactoractions.ErrWrapperDatabase.Wrap(stdErr),
+		)
 	}
 
 	if action.ExpiresAt.Before(service.app.Clock.Now()) {
-		return uuid.UUID{}, twofactoractions.ErrExpired.AddCategory(twofactoractions.ErrTypeConfirm)
+		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+			twofactoractions.ErrExpired,
+		)
 	}
 
 	jobID, commErr := service.app.Jobs.Enqueue(
-		jobscommon.GetVersionedType(action.Type, action.Version),
+		common.GetVersionedType(action.Type, action.Version),
 		action.Data,
 		ctx,
 	)

@@ -20,6 +20,7 @@ func (develop *develop) Id() string {
 	return "develop"
 }
 
+// TODO: don't add a send category
 func (develop *develop) Send(message common.Message) *common.Error {
 	formattedMessage, err := formatDefaultMessage(message)
 	if err != nil {
