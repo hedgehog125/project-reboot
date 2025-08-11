@@ -1,5 +1,11 @@
 package common
 
+/*
+The core principal is to abstract just enough that:
+* The service can be mocked to some extent (although I don't think this is really necessary for the database)
+* The service can be used in simplified ways for testing. e.g a test can use a different job registry with a real implementation
+*/
+
 import (
 	"context"
 	"time"
@@ -51,7 +57,7 @@ type App struct {
 
 type MessengerService interface {
 	IDs() []string
-	// Note: this should be atomic and call the messengers in the background (usually via jobs)
+	// Note: this atomically queues jobs to send the messages
 	SendUsingAll(message Message, ctx context.Context) *Error
 }
 type MessageType string

@@ -12,18 +12,17 @@ import (
 	"github.com/hedgehog125/project-reboot/twofactoractions"
 )
 
-func NewTwoFactorAction(app *common.App) common.TwoFactorActionService {
-	return &twoFactorActionService{
+type TwoFactorActions struct {
+	app *common.App
+}
+
+func NewTwoFactorAction(app *common.App) *TwoFactorActions {
+	return &TwoFactorActions{
 		app: app,
 	}
 }
 
-type twoFactorActionService struct {
-	app *common.App
-}
-
-// TODO: define these errors and constants in twofactoractions package
-func (service *twoFactorActionService) Create(
+func (service *TwoFactorActions) Create(
 	versionedType string,
 	expiresAt time.Time,
 	data any,
@@ -36,7 +35,7 @@ func (service *twoFactorActionService) Create(
 	if commErr != nil {
 		return uuid.UUID{}, "", twofactoractions.ErrWrapperCreate.Wrap(commErr)
 	}
-	jobType, version, commErr := jobscommon.ParseVersionedType(versionedType)
+	jobType, version, commErr := common.ParseVersionedType(versionedType)
 	if commErr != nil { // This shouldn't happen because of the Encode call but just in case
 		return uuid.UUID{}, "", twofactoractions.ErrWrapperCreate.Wrap(commErr)
 	}
@@ -58,7 +57,7 @@ func (service *twoFactorActionService) Create(
 
 	return action.ID, code, nil
 }
-func (service *twoFactorActionService) Confirm(
+func (service *TwoFactorActions) Confirm(
 	actionID uuid.UUID, code string,
 	ctx context.Context,
 ) (uuid.UUID, *common.Error) {

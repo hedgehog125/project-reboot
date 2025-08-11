@@ -8,5 +8,5 @@ const (
 	ErrTypeFormatMessage = "format message"
 )
 
-var ErrWrapperFormat = common.NewErrorWrapper(ErrTypeFormatMessage, common.ErrTypeMessengers)
-var ErrWrapperAPI = common.NewErrorWrapper(common.ErrTypeAPI, common.ErrTypeMessengers)
+var ErrWrapperFormat = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeFormatMessage)
+var ErrWrapperAPI = common.NewErrorWrapper(common.ErrTypeMessengers, common.ErrTypeAPI)

@@ -16,20 +16,20 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func NewDatabase(env *common.Env) common.DatabaseService {
-	return &databaseService{
+func NewDatabase(env *common.Env) *Database {
+	return &Database{
 		env:       env,
 		readyChan: make(chan struct{}),
 	}
 }
 
-type databaseService struct {
+type Database struct {
 	env       *common.Env
 	client    *ent.Client
 	readyChan chan struct{}
 }
 
-func (service *databaseService) Start() {
+func (service *Database) Start() {
 	defer close(service.readyChan)
 
 	err := os.MkdirAll(service.env.MOUNT_PATH, 0700)
@@ -57,16 +57,22 @@ func (service *databaseService) Start() {
 	}
 }
 
-func (service *databaseService) Client() *ent.Client {
+func (service *Database) Client() *ent.Client {
 	<-service.readyChan
 	return service.client
 }
-func (service *databaseService) Tx(ctx context.Context) (*ent.Tx, error) {
+func (service *Database) ReadTx(ctx context.Context) (*ent.Tx, error) {
+	<-service.readyChan
+	return service.client.BeginTx(ctx, &sql.TxOptions{
+		ReadOnly: true,
+	})
+}
+func (service *Database) WriteTx(ctx context.Context) (*ent.Tx, error) {
 	<-service.readyChan
 	return service.client.Tx(ctx)
 }
 
-func (service *databaseService) Shutdown() {
+func (service *Database) Shutdown() {
 	<-service.readyChan
 	err := service.client.Close()
 	if err != nil {

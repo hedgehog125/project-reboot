@@ -6,24 +6,27 @@ import (
 	"github.com/hedgehog125/project-reboot/jobs/definitions"
 )
 
-type jobService struct {
+type Jobs struct {
 	*jobs.Engine
 }
 
-func NewJob(app *common.App) common.JobService {
+func NewJobs(app *common.App, registerFuncs ...func(group *jobs.RegistryGroup)) *Jobs {
 	registry := jobs.NewRegistry(app)
 	definitions.Register(registry.Group(""))
+	for _, registerFunc := range registerFuncs {
+		registerFunc(registry.Group(""))
+	}
 
-	return &jobService{
+	return &Jobs{
 		Engine: jobs.NewEngine(registry),
 	}
 }
 
-func (service *jobService) Start() {
+func (service *Jobs) Start() {
 	go service.Engine.Listen()
 }
 
 // TODO: is this the best approach?
-func (service *jobService) Encode(versionedType string, data any) (string, *common.Error) {
+func (service *Jobs) Encode(versionedType string, data any) (string, *common.Error) {
 	return service.Engine.Registry.Encode(versionedType, data)
 }

@@ -13,16 +13,16 @@ const (
 )
 
 var ErrWrapperParseBodyJson = common.NewErrorWrapper(
-	ErrTypeParseBodyJson, common.ErrTypeClient,
 	common.ErrTypeServerCommon,
+	ErrTypeParseBodyJson, common.ErrTypeClient,
 )
 
 type CommonError = common.Error
 type Error struct {
-	CommonError
-	Status    int // Set to -1 to keep the current code
-	Details   []ErrorDetail
-	ShouldLog bool
+	CommonError     // TODO: use pointer?
+	Status      int // Set to -1 to keep the current code
+	Details     []ErrorDetail
+	ShouldLog   bool
 }
 type ErrorDetail struct {
 	Code    string `json:"code"`
@@ -47,8 +47,14 @@ func NewError(err error) *Error {
 	}
 }
 
+func (err *Error) StandardError() error {
+	if err == nil {
+		return nil
+	}
+	return err
+}
 func (err *Error) Unwrap() error {
-	return err.StandardError()
+	return &err.CommonError
 }
 func (err *Error) Clone() *Error {
 	copiedErr := &Error{

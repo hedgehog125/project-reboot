@@ -242,6 +242,78 @@ func TestErrorWrapper(t *testing.T) {
 	)
 }
 
+func TestErrorWrapper_removesDuplicatePackages(t *testing.T) {
+	t.Parallel()
+	errWrapperDbPackageA := NewErrorWrapper(
+		"package A [package]", ErrTypeDatabase,
+	)
+	errWrapperCreateUserPackageA := NewErrorWrapper(
+		"package A [package]", "create user",
+	)
+	errWrapperCreateUserPackageB := NewErrorWrapper(
+		"package B [package]", "create team",
+	)
+	errWrapperSomethingPackageA := NewErrorWrapper(
+		"package A [package]", "some category that is back in package A again",
+	)
+
+	rootError := errors.New("duplicate key error. details: ...")
+	require.Equal(
+		t,
+		WrapErrorWithCategories(rootError, "package A [package]", ErrTypeDatabase),
+		errWrapperDbPackageA.Wrap(rootError),
+	)
+	require.Equal(
+		t,
+		// The package should only appear once
+		WrapErrorWithCategories(rootError, "package A [package]", ErrTypeDatabase, "create user"),
+		errWrapperCreateUserPackageA.Wrap(errWrapperDbPackageA.Wrap(rootError)),
+	)
+	require.Equal(
+		t,
+		WrapErrorWithCategories(
+			rootError, "package A [package]", ErrTypeDatabase, "create user",
+			"package B [package]", "create team",
+		),
+		errWrapperCreateUserPackageB.Wrap(
+			errWrapperCreateUserPackageA.Wrap(errWrapperDbPackageA.Wrap(rootError)),
+		),
+	)
+	require.Equal(
+		t,
+		WrapErrorWithCategories(
+			rootError, "package A [package]", ErrTypeDatabase, "create user",
+			"package B [package]", "create team",
+			"package A [package]", "some category that is back in package A again",
+		),
+		errWrapperSomethingPackageA.Wrap(
+			errWrapperCreateUserPackageB.Wrap(
+				errWrapperCreateUserPackageA.Wrap(errWrapperDbPackageA.Wrap(rootError)),
+			),
+		),
+	)
+}
+
+func TestErrorWrapper_canAddPackageToPackagelessError(t *testing.T) {
+	t.Parallel()
+	commonErrWrapper := NewErrorWrapper(
+		ErrTypeDatabase,
+	)
+
+	rootError := errors.New("duplicate key error. details: ...")
+	wrappedError := commonErrWrapper.Wrap(rootError).AddCategory("users [package]")
+	require.Equal(
+		t,
+		[]string{ErrTypeDatabase, "users [package]"},
+		wrappedError.Categories,
+	)
+	require.Equal(
+		t,
+		WrapErrorWithCategories(rootError, "users [package]", ErrTypeDatabase),
+		wrappedError,
+	)
+}
+
 func TestErrorWrapper_HasWrapped(t *testing.T) {
 	t.Parallel()
 	databaseErrWrapper := NewErrorWrapper(

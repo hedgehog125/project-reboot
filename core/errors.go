@@ -9,11 +9,11 @@ const (
 	ErrTypeInvalidData = "invalid data"
 )
 
-var ErrWrapperInvalidData = common.NewErrorWrapper(ErrTypeInvalidData, common.ErrTypeCore)
-var ErrWrapperCreateCipher = common.NewErrorWrapper(ErrTypeInvalidData, common.ErrTypeCore)
+var ErrWrapperInvalidData = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeInvalidData)
+var ErrWrapperCreateCipher = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeInvalidData)
 
 var ErrIncorrectPassword = common.NewErrorWithCategories("incorrect password")
 
 // These functions don't categorize their errors
-var ErrWrapperEncrypt = common.NewErrorWrapper(ErrTypeEncrypt, common.ErrTypeCore)
-var ErrWrapperDecrypt = common.NewErrorWrapper(ErrTypeDecrypt, common.ErrTypeCore)
+var ErrWrapperEncrypt = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeEncrypt)
+var ErrWrapperDecrypt = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeDecrypt)

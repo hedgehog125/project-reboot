@@ -10,6 +10,7 @@ const (
 	ErrTypeCallback = "callback"
 )
 
-var ErrWrapperStartTx = common.NewErrorWrapper(ErrTypeStartTx, common.ErrTypeDbCommon)
-var ErrWrapperCommitTx = common.NewErrorWrapper(ErrTypeCommitTx, common.ErrTypeDbCommon)
-var ErrWrapperCallback = common.NewErrorWrapper(ErrTypeCallback, common.ErrTypeDbCommon)
+var ErrWrapperStartTx = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeStartTx)
+var ErrWrapperCommitTx = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeCommitTx)
+var ErrWrapperCallback = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeCallback)
+var ErrWrapperWithTx = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeWithTx)

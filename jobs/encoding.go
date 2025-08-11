@@ -11,20 +11,20 @@ import (
 func (registry *Registry) Encode(versionedType string, data any) (string, *common.Error) {
 	actionDef, ok := registry.jobs[versionedType]
 	if !ok {
-		return "", ErrUnknownJobType.AddCategory(ErrTypeEncode)
+		return "", ErrWrapperEncode.Wrap(ErrUnknownJobType)
 	}
 
 	dataType := reflect.TypeOf(data)
 	if dataType != actionDef.reflectedBodyType {
-		return "", ErrWrapperInvalidData.Wrap(
+		return "", ErrWrapperEncode.Wrap(ErrWrapperInvalidData.Wrap(
 			fmt.Errorf("data type %s isn't the expected type %s",
 				dataType, actionDef.reflectedBodyType),
-		).AddCategory(ErrTypeEncode)
+		))
 	}
 
 	encoded, stdErr := json.Marshal(data)
 	if stdErr != nil {
-		return "", ErrWrapperInvalidData.Wrap(stdErr).AddCategory(ErrTypeEncode)
+		return "", ErrWrapperEncode.Wrap(ErrWrapperInvalidData.Wrap(stdErr))
 	}
 
 	return string(encoded), nil

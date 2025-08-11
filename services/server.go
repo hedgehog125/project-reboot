@@ -14,7 +14,13 @@ import (
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
-func NewServer(app *common.App) common.ServerService {
+type Server struct {
+	env    *common.Env
+	Router *gin.Engine
+	Server *http.Server
+}
+
+func NewServer(app *common.App) *Server {
 	router := gin.New()
 	// router.SetTrustedProxies(nil)
 	router.TrustedPlatform = app.Env.PROXY_ORIGINAL_IP_HEADER_NAME
@@ -31,22 +37,16 @@ func NewServer(app *common.App) common.ServerService {
 	}
 	endpoints.ConfigureEndpoints(router.Group(""), &serverApp)
 
-	return &serverService{
+	return &Server{
 		env:    app.Env,
-		router: router,
+		Router: router,
 	}
 }
 
-type serverService struct {
-	env    *common.Env
-	router *gin.Engine
-	server *http.Server
-}
-
-func (service *serverService) Start() {
+func (service *Server) Start() {
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%v", service.env.PORT),
-		Handler: service.router.Handler(),
+		Handler: service.Router.Handler(),
 	}
 
 	go func() {
@@ -56,13 +56,13 @@ func (service *serverService) Start() {
 		}
 	}()
 
-	service.server = server
+	service.Server = server
 }
-func (service *serverService) Shutdown() {
+func (service *Server) Shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err := service.server.Shutdown(ctx)
+	err := service.Server.Shutdown(ctx)
 	if err != nil {
 		fmt.Printf("warning: an error occurred while shutting down the HTTP server:\n%v\n", err.Error())
 	}

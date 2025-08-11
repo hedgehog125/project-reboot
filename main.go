@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	app := common.App{
+	app := &common.App{
 		Env:   services.LoadEnvironmentVariables(),
 		Clock: clockwork.NewRealClock(),
 	}
@@ -15,10 +15,13 @@ func main() {
 	app.State = services.InitState()
 	app.Database = services.NewDatabase(app.Env)
 	app.Database.Start()
-	app.Messengers = services.NewMessenger(app.Env)
-	app.Scheduler = services.NewScheduler(&app)
-	app.Jobs = services.NewJob(&app)
-	app.Server = services.NewServer(&app)
+	app.Scheduler = services.NewScheduler(app)
+	{
+		messengerService := services.NewMessenger(app)
+		app.Messengers = messengerService
+		app.Jobs = services.NewJobs(app, messengerService.RegisterJobs)
+	}
+	app.Server = services.NewServer(app)
 
 	// TODO: add panic handling
 	app.Scheduler.Start()

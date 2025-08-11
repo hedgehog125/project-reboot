@@ -32,9 +32,9 @@ func withTx(
 ) error {
 	tx, stdErr := txCallback(ctx)
 	if stdErr != nil {
-		return ErrWrapperStartTx.Wrap(stdErr).
-			AddCategory(ErrTypeWithTx).
-			ConfigureRetries(-1, 50*time.Millisecond, 2)
+		return ErrWrapperWithTx.Wrap(
+			ErrWrapperStartTx.Wrap(stdErr),
+		).ConfigureRetries(-1, 50*time.Millisecond, 2)
 	}
 	shouldRecover := true
 	defer func() {
@@ -55,14 +55,13 @@ func withTx(
 			// TODO: log instead
 			panic(fmt.Sprintf("error while rolling back transaction:\n%v\nerror that caused rollback:\n%v", stdErr, rollbackErr))
 		}
-		return ErrWrapperCallback.Wrap(stdErr).AddCategory(ErrTypeWithTx)
+		return ErrWrapperWithTx.Wrap(ErrWrapperCallback.Wrap(stdErr))
 	}
 	stdErr = tx.Commit()
 	if stdErr != nil {
-		return ErrWrapperCommitTx.Wrap(stdErr).
-			AddCategory(ErrTypeWithTx).
-			ConfigureRetries(-1, 50*time.Millisecond, 2)
-
+		return ErrWrapperWithTx.Wrap(
+			ErrWrapperCommitTx.Wrap(stdErr),
+		).ConfigureRetries(-1, 50*time.Millisecond, 2)
 	}
 	return nil
 }

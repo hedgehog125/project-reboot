@@ -11,7 +11,6 @@ import (
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/job"
-	"github.com/hedgehog125/project-reboot/jobs/jobscommon"
 )
 
 type Engine struct {
@@ -182,7 +181,7 @@ listenLoop:
 	close(engine.shutdownFinishedChan)
 }
 func (engine *Engine) runJob(job *ent.Job, completedJobChan chan completedJob) {
-	jobDefinition, ok := engine.Registry.jobs[jobscommon.GetVersionedType(job.Type, job.Version)]
+	jobDefinition, ok := engine.Registry.jobs[common.GetVersionedType(job.Type, job.Version)]
 	if !ok { // Note: this shouldn't happen
 		completedJobChan <- completedJob{
 			Object: job,
@@ -213,6 +212,8 @@ func (engine *Engine) Shutdown() {
 	fmt.Println("job engine stopped")
 }
 
+var ErrWrapperEnqueue = common.NewErrorWrapper(common.ErrTypeJobs, ErrTypeEnqueue)
+
 func (engine *Engine) Enqueue(
 	versionedType string,
 	data any,
@@ -220,24 +221,24 @@ func (engine *Engine) Enqueue(
 ) (uuid.UUID, *common.Error) {
 	jobDefinition, ok := engine.Registry.jobs[versionedType]
 	if !ok {
-		return uuid.UUID{}, ErrUnknownJobType.AddCategory(ErrTypeEnqueue)
+		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrUnknownJobType)
 	}
 	encoded, commErr := engine.Registry.Encode(
 		versionedType,
 		data,
 	)
 	if commErr != nil {
-		return uuid.UUID{}, commErr.AddCategory(ErrTypeEnqueue)
+		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(commErr)
 	}
 
-	jobType, version, commErr := jobscommon.ParseVersionedType(versionedType)
+	jobType, version, commErr := common.ParseVersionedType(versionedType)
 	if commErr != nil { // This shouldn't happen because of the Encode call but just in case
-		return uuid.UUID{}, commErr.AddCategory(ErrTypeEnqueue)
+		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(commErr)
 	}
 
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
-		return uuid.UUID{}, ErrNoTxInContext.AddCategory(ErrTypeEnqueue)
+		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrNoTxInContext)
 	}
 	job, stdErr := tx.Job.Create().
 		SetType(jobType).
@@ -247,7 +248,7 @@ func (engine *Engine) Enqueue(
 		SetData(encoded).
 		Save(ctx)
 	if stdErr != nil {
-		return uuid.UUID{}, ErrWrapperDatabase.Wrap(stdErr).AddCategory(ErrTypeEnqueue)
+		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrWrapperDatabase.Wrap(stdErr))
 	}
 
 	select {

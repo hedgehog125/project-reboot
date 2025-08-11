@@ -171,13 +171,17 @@ func (err *Error) AddCategories(categories ...string) *Error {
 		hasCategoryTag := slices.Contains(ParseCategoryTags(category), CategoryTagPackage)
 		insertIndex := -1
 		if !hasCategoryTag {
-			_, insertIndex = GetLastCategoryWithTag(err.Categories, CategoryTagPackage)
+			_, insertIndex = GetLastCategoryWithTag(copiedErr.Categories, CategoryTagPackage)
 		}
 
-		if insertIndex == -1 {
-			copiedErr.Categories = append(copiedErr.Categories, category)
+		if insertIndex < 0 {
+			if len(copiedErr.Categories) == 0 || copiedErr.Categories[len(copiedErr.Categories)-1] != category {
+				copiedErr.Categories = append(copiedErr.Categories, category)
+			}
 		} else {
-			copiedErr.Categories = slices.Insert(copiedErr.Categories, insertIndex, category)
+			if copiedErr.Categories[insertIndex] != category {
+				copiedErr.Categories = slices.Insert(copiedErr.Categories, insertIndex, category)
+			}
 		}
 	}
 	return copiedErr
@@ -254,17 +258,17 @@ func NewErrorWithCategories(message string, categories ...string) *Error {
 	}
 }
 
-// categories is lowest to highest level, e.g. "constraint", common.ErrTypeDatabase, "create profile", "create user", "auth [package]"
+// categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
 func WrapErrorWithCategories(err error, categories ...string) *Error {
 	commErr, ok := err.(*Error)
-	if ok {
-		return commErr.AddCategories(categories...)
+	if !ok {
+		commErr = &Error{
+			Err:        err,
+			Categories: []string{},
+		}
 	}
 
-	return &Error{
-		Err:        err,
-		Categories: categories,
-	}
+	return commErr.AddCategories(categories...)
 }
 
 const (

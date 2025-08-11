@@ -18,24 +18,27 @@ const (
 )
 
 var ErrUnknownJobType = common.NewErrorWithCategories(
-	"unknown job type", common.ErrTypeJobs,
+	common.ErrTypeJobs, "unknown job type",
 )
 var ErrNoTxInContext = common.ErrNoTxInContext.AddCategory(common.ErrTypeJobs)
 
+var ErrWrapperEncode = common.NewErrorWrapper(
+	common.ErrTypeJobs, ErrTypeEncode,
+)
 var ErrWrapperDecode = common.NewErrorWrapper(
-	ErrTypeDecode, common.ErrTypeJobs,
+	common.ErrTypeJobs, ErrTypeDecode,
 )
 
 // TODO: test this
 var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeJobs).
 	SetChild(common.ErrWrapperDatabase)
 var ErrWrapperInvalidData = common.NewErrorWrapper(
-	ErrTypeInvalidData, common.ErrTypeJobs,
+	common.ErrTypeJobs, ErrTypeInvalidData,
 )
 
 type CommonError = common.Error
 type Error struct {
-	CommonError
+	CommonError      // TODO: use pointer?
 	JobRetryBackoffs []time.Duration
 }
 type ErrorDetail struct {
@@ -59,8 +62,14 @@ func NewError(err error) *Error {
 	}
 }
 
+func (err *Error) StandardError() error {
+	if err == nil {
+		return nil
+	}
+	return err
+}
 func (err *Error) Unwrap() error {
-	return err.StandardError()
+	return &err.CommonError
 }
 func (err *Error) Clone() *Error {
 	copiedErr := &Error{

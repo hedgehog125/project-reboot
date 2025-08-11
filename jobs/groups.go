@@ -1,38 +1,26 @@
 package jobs
 
-import (
-	"fmt"
-)
+import "github.com/hedgehog125/project-reboot/jobs/jobscommon"
 
 type RegistryGroup struct {
 	Registry *Registry
-	path     string
+	Path     string
 }
 
 func (registry *Registry) Group(relativePath string) *RegistryGroup {
 	return &RegistryGroup{
-		path:     relativePath,
+		Path:     relativePath,
 		Registry: registry,
 	}
 }
 func (group *RegistryGroup) Group(relativePath string) *RegistryGroup {
 	return &RegistryGroup{
-		path:     joinPaths(group.path, relativePath),
+		Path:     jobscommon.JoinPaths(group.Path, relativePath),
 		Registry: group.Registry,
 	}
 }
 
 func (group *RegistryGroup) Register(action *Definition) {
-	action.ID = joinPaths(group.path, action.ID)
+	action.ID = jobscommon.JoinPaths(group.Path, action.ID)
 	group.Registry.Register(action)
-}
-
-func joinPaths(path1 string, path2 string) string {
-	if path1 == "" {
-		return path2
-	}
-	if path2 == "" {
-		return path1
-	}
-	return fmt.Sprintf("%s/%s", path1, path2)
 }

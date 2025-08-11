@@ -10,6 +10,8 @@ import (
 	"github.com/hedgehog125/project-reboot/core"
 )
 
+// TODO: replace with job scheduler. Maybe the state struct should be removed and the admin token rotation becomes a simple loop?
+
 func NewScheduler(app *common.App) common.SchedulerService {
 	scheduler, err := gocron.NewScheduler(
 		gocron.WithClock(app.Clock),

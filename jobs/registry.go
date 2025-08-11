@@ -20,6 +20,7 @@ const (
 	DefaultPriority  = 0
 	HighPriority     = 1
 	CriticalPriority = 2
+	// TODO: implement
 	RealtimePriority = 3 // No limit on number of RealtimePriority jobs that can run concurrently
 )
 
@@ -33,7 +34,7 @@ type Definition struct {
 	// 0 is DefaultPriority.
 	Priority int8
 }
-type HandlerFunc func(ctx *Context) error
+type HandlerFunc func(jobCtx *Context) error
 
 type Context struct {
 	Definition *Definition
