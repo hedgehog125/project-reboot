@@ -186,6 +186,7 @@ listenLoop:
 		engine.waitingForJobsChan = make(chan struct{})
 		engine.mu.Unlock()
 
+		fmt.Println("waiting for new jobs")
 		select {
 		case <-time.After(maxWaitTime):
 		case <-engine.newJobChan:
@@ -269,10 +270,25 @@ func (engine *Engine) Enqueue(
 		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrWrapperDatabase.Wrap(stdErr))
 	}
 
-	select {
-	case engine.newJobChan <- struct{}{}:
-	default:
-	}
+	// Otherwise the engine will look for the job before it's committed
+	tx.OnCommit(func(next ent.Committer) ent.Committer {
+		return ent.CommitFunc(
+			func(ctx context.Context, tx *ent.Tx) error {
+				stdErr := next.Commit(ctx, tx)
+				if stdErr != nil {
+					return stdErr
+				}
+
+				fmt.Println("sending new job signal")
+				select {
+				case engine.newJobChan <- struct{}{}:
+				default:
+					fmt.Println("new job signal already sent")
+				}
+				return nil
+			},
+		)
+	})
 
 	return job.ID, nil
 }
