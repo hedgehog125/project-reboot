@@ -12,7 +12,7 @@ const (
 var ErrWrapperInvalidData = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeInvalidData)
 var ErrWrapperCreateCipher = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeInvalidData)
 
-var ErrIncorrectPassword = common.NewErrorWithCategories("incorrect password")
+var ErrIncorrectPassword = common.NewErrorWithCategories("incorrect password", common.ErrTypeCore)
 
 // These functions don't categorize their errors
 var ErrWrapperEncrypt = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeEncrypt)

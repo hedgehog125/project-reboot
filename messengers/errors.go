@@ -1,6 +1,8 @@
 package messengers
 
-import "github.com/hedgehog125/project-reboot/common"
+import (
+	"github.com/hedgehog125/project-reboot/common"
+)
 
 const (
 	ErrTypeSend = "send"
@@ -11,12 +13,12 @@ const (
 )
 
 var ErrUnknownMessengerType = common.NewErrorWithCategories(
-	common.ErrTypeMessengers, "unknown messenger type",
+	"unknown messenger type", common.ErrTypeMessengers,
 )
 
 // Note: this is returned by messengers individually, some may have the contacts for the user
 var ErrNoContactForUser = common.NewErrorWithCategories(
-	common.ErrTypeMessengers, "messenger type disabled for user",
+	"messenger type disabled for user", common.ErrTypeMessengers,
 )
 
 var ErrWrapperPrepare = common.NewErrorWrapper(

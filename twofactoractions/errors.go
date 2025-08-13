@@ -10,13 +10,13 @@ const (
 
 var ErrNoTxInContext = common.ErrNoTxInContext.AddCategory(common.ErrTypeTwoFactorAction)
 var ErrNotFound = common.NewErrorWithCategories(
-	common.ErrTypeTwoFactorAction, "no action with given ID",
+	"no action with given ID", common.ErrTypeTwoFactorAction,
 )
 var ErrWrongCode = common.NewErrorWithCategories(
-	common.ErrTypeTwoFactorAction, "wrong 2FA code",
+	"wrong 2FA code", common.ErrTypeTwoFactorAction,
 )
 var ErrExpired = common.NewErrorWithCategories(
-	common.ErrTypeTwoFactorAction, "action has expired",
+	"action has expired", common.ErrTypeTwoFactorAction,
 )
 
 var ErrWrapperCreate = common.NewErrorWrapper(common.ErrTypeTwoFactorAction, ErrTypeCreate)

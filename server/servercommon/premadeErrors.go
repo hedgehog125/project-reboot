@@ -13,12 +13,13 @@ const (
 )
 
 var ErrUnauthorized = NewError(common.NewErrorWithCategories(
-	"unauthorized", common.ErrTypeClient, common.ErrTypeServerCommon,
+	"unauthorized", common.ErrTypeServerCommon, common.ErrTypeClient,
 )).SetStatus(http.StatusUnauthorized)
 var ErrNotFound = NewError(common.NewErrorWithCategories(
-	"not found", common.ErrTypeClient, common.ErrTypeServerCommon,
+	"not found", common.ErrTypeServerCommon, common.ErrTypeClient,
 )).SetStatus(http.StatusNotFound).DisableLogging()
-var ErrWrapperBadRequest = common.NewErrorWrapper(ErrTypeBadRequest, common.ErrTypeClient, common.ErrTypeServerCommon)
+
+var ErrWrapperBadRequest = common.NewErrorWrapper(common.ErrTypeServerCommon, ErrTypeBadRequest, common.ErrTypeClient)
 
 func NewUnauthorizedError() *Error {
 	return ErrUnauthorized.Clone()

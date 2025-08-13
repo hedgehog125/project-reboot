@@ -18,7 +18,7 @@ const (
 )
 
 var ErrUnknownJobType = common.NewErrorWithCategories(
-	common.ErrTypeJobs, "unknown job type",
+	"unknown job type", common.ErrTypeJobs,
 )
 var ErrNoTxInContext = common.ErrNoTxInContext.AddCategory(common.ErrTypeJobs)
 
