@@ -317,6 +317,7 @@ func TestErrorWrapper_canAddPackageToPackagelessError(t *testing.T) {
 func TestErrorWrapper_HasWrapped(t *testing.T) {
 	t.Parallel()
 	// TODO: wrap by passing the error through each wrapper
+	// TODO: check this checks the packages properly
 	commonDatabaseErrWrapper := NewErrorWrapper(
 		ErrTypeDatabase,
 	)

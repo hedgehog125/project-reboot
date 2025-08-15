@@ -169,9 +169,9 @@ func (err *Error) LowestCategory() string {
 func (err *Error) AddCategories(categories ...string) *Error {
 	copiedErr := err.Clone()
 	for _, category := range categories {
-		hasCategoryTag := slices.Contains(ParseCategoryTags(category), CategoryTagPackage)
+		hasPackageTag := slices.Contains(ParseCategoryTags(category), CategoryTagPackage)
 		insertIndex := -1
-		if !hasCategoryTag {
+		if !hasPackageTag {
 			_, insertIndex = GetLastCategoryWithTag(copiedErr.Categories, CategoryTagPackage)
 		}
 
@@ -250,7 +250,7 @@ func (err Error) Clone() *Error {
 	return &copiedErr
 }
 
-// categories is lowest to highest level, e.g. "constraint", common.ErrTypeDatabase, "create profile", "create user", "auth [package]"
+// categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
 func NewErrorWithCategories(message string, categories ...string) *Error {
 	return &Error{
 		Err:                   errors.New(message),
@@ -359,15 +359,32 @@ func (errWrapper *ConstantErrorWrapper) Wrap(err error) *Error {
 	}
 }
 func (errWrapper *ConstantErrorWrapper) HasWrapped(err error) bool {
-	// TODO: if this has a category, only check the category parts that are from the package
+	if len(errWrapper.Categories) == 0 {
+		return false
+	}
+
 	var commErr *Error
 	if !errors.As(err, &commErr) {
 		return false
 	}
 
 	// Ensure the [package] categories are in the right order
-	wrapperCategories := errWrapper.Wrap(nil).Categories // TODO: cache this?
-	return CheckPathPattern(commErr.Categories, slices.Concat([]string{"***"}, wrapperCategories, []string{"***"}))
+	requiredCategories := errWrapper.Wrap(nil).Categories // TODO: cache this?
+	requiredIndex := 0
+	for _, category := range commErr.Categories {
+		requiredCategory := requiredCategories[requiredIndex]
+		requiredCategoryHasPackageTag := slices.Contains(ParseCategoryTags(requiredCategory), CategoryTagPackage)
+		if category == requiredCategory ||
+			(requiredCategoryHasPackageTag && !slices.Contains(ParseCategoryTags(category), CategoryTagPackage)) {
+			requiredIndex++
+			if requiredIndex >= len(requiredCategories) {
+				return true
+			}
+		} else {
+			requiredIndex = 0
+		}
+	}
+	return false
 }
 
 func (errWrapper *ConstantErrorWrapper) SetChild(child ErrorWrapper) *ConstantErrorWrapper {
