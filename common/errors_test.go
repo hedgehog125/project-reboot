@@ -316,18 +316,23 @@ func TestErrorWrapper_canAddPackageToPackagelessError(t *testing.T) {
 
 func TestErrorWrapper_HasWrapped(t *testing.T) {
 	t.Parallel()
-	databaseErrWrapper := NewErrorWrapper(
+	// TODO: wrap by passing the error through each wrapper
+	commonDatabaseErrWrapper := NewErrorWrapper(
+		ErrTypeDatabase,
+	)
+	authDatabaseErrWrapper := NewErrorWrapper(
+		"auth [package]",
 		ErrTypeDatabase,
 	)
 	createUserErrWrapper := NewErrorWrapper(
 		ErrTypeDatabase,
-		"create user",
 		"auth [package]",
+		"create user",
 	)
 	createUserAbstractionErrWrapper := NewErrorWrapper(
 		ErrTypeDatabase,
-		"create user",
 		"auth [package]",
+		"create user",
 		"auth abstraction [package]",
 		"abstraction function",
 	)
@@ -336,14 +341,20 @@ func TestErrorWrapper_HasWrapped(t *testing.T) {
 	)
 
 	rootError := errors.New("duplicate key error. details: ...")
-	wrappedDatabaseErr := databaseErrWrapper.Wrap(rootError)
+	wrappedCommonDatabaseErr := commonDatabaseErrWrapper.Wrap(rootError)
+	wrappedAuthDatabaseErr := authDatabaseErrWrapper.Wrap(rootError)
 	wrappedCreateUserErr := createUserErrWrapper.Wrap(rootError)
 	wrappedCreateUserAbstractionErr := createUserAbstractionErrWrapper.Wrap(rootError)
 
 	require.False(t, createUserErrWrapper.HasWrapped(errors.New("generic error")))
-	require.True(t, databaseErrWrapper.HasWrapped(wrappedDatabaseErr))
-	require.False(t, createUserErrWrapper.HasWrapped(wrappedDatabaseErr))
-	require.True(t, databaseErrWrapper.HasWrapped(wrappedCreateUserErr)) // It compares the categories by value rather than tracking which wrappers were used
+	require.True(t, commonDatabaseErrWrapper.HasWrapped(wrappedCommonDatabaseErr))
+	require.True(t, commonDatabaseErrWrapper.HasWrapped(wrappedAuthDatabaseErr)) // It compares the categories by value rather than tracking which wrappers were used
+	require.True(t, authDatabaseErrWrapper.HasWrapped(wrappedAuthDatabaseErr))
+	require.False(t, authDatabaseErrWrapper.HasWrapped(wrappedCommonDatabaseErr))
+	require.False(t, createUserErrWrapper.HasWrapped(wrappedCommonDatabaseErr))
+	require.False(t, createUserErrWrapper.HasWrapped(wrappedAuthDatabaseErr))
+	require.True(t, commonDatabaseErrWrapper.HasWrapped(wrappedCreateUserErr))
+	require.True(t, authDatabaseErrWrapper.HasWrapped(wrappedCreateUserErr))
 
 	require.True(t, createUserErrWrapper.HasWrapped(wrappedCreateUserErr))
 	require.False(t, createUserAbstractionErrWrapper.HasWrapped(wrappedCreateUserErr))

@@ -359,12 +359,15 @@ func (errWrapper *ConstantErrorWrapper) Wrap(err error) *Error {
 	}
 }
 func (errWrapper *ConstantErrorWrapper) HasWrapped(err error) bool {
+	// TODO: if this has a category, only check the category parts that are from the package
 	var commErr *Error
 	if !errors.As(err, &commErr) {
 		return false
 	}
 
-	return CheckPathPattern(commErr.Categories, slices.Concat([]string{"***"}, errWrapper.Categories, []string{"***"}))
+	// Ensure the [package] categories are in the right order
+	wrapperCategories := errWrapper.Wrap(nil).Categories // TODO: cache this?
+	return CheckPathPattern(commErr.Categories, slices.Concat([]string{"***"}, wrapperCategories, []string{"***"}))
 }
 
 func (errWrapper *ConstantErrorWrapper) SetChild(child ErrorWrapper) *ConstantErrorWrapper {

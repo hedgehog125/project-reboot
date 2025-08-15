@@ -47,7 +47,7 @@ func main() {
 	if stdErr != nil {
 		panic(fmt.Sprintf("couldn't read user. error:\n%v", stdErr.Error()))
 	}
-	commErr := app.Messengers.SendUsingAll(&common.Message{
+	_, commErr := app.Messengers.SendUsingAll(&common.Message{
 		Type: common.MessageTest,
 		User: userOb,
 	}, context.Background())

@@ -48,7 +48,7 @@ type App struct {
 	Clock            clockwork.Clock
 	State            *State
 	TwoFactorActions TwoFactorActionService
-	Messengers       MessengerService // TODO: does this still need to be a service?
+	Messengers       MessengerService
 	Database         DatabaseService
 	Server           ServerService
 	Jobs             JobService
@@ -56,8 +56,10 @@ type App struct {
 }
 
 type MessengerService interface {
-	// Note: this atomically queues jobs to send the messages
-	SendUsingAll(message *Message, ctx context.Context) *Error
+	// The error map is more like warnings about why specific messengers failed to prepare, they are logged already so you might just want to ignore them
+	//
+	// But check the second *Error value first because you should fail the transaction if it's not nil
+	SendUsingAll(message *Message, ctx context.Context) (map[string]*Error, *Error)
 }
 type MessageType string
 

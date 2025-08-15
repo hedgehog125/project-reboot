@@ -51,41 +51,47 @@ func (engine *Engine) Listen() {
 	engine.mu.Unlock()
 	fmt.Println("job engine running")
 
-	dbClient := engine.App.Database.Client()
 	completedJobChan := make(chan completedJob, min(engine.App.Env.MAX_TOTAL_JOB_WEIGHT, 100))
 	currentWeight := 0
 
 	handleCompletedJob := func(completedJob completedJob) {
 		currentWeight -= completedJob.Object.Weight
 		if completedJob.Err == nil {
-			stdErr := dbClient.Job.DeleteOneID(completedJob.Object.ID).Exec(context.TODO())
+			stdErr := dbcommon.WithWriteTx(context.TODO(), engine.App.Database,
+				func(tx *ent.Tx, ctx context.Context) error {
+					return tx.Job.UpdateOneID(completedJob.Object.ID).Exec(ctx)
+				},
+			)
 			if stdErr != nil {
+				// A restart is unlikely to help, so we'll just have to log the error
 				// TODO: log error
 				panic(fmt.Sprintf("failed to delete job: %v\n", stdErr.Error()))
 			}
 		} else {
 			completedErr := NewError(completedJob.Err)
-			if completedJob.Object.Retries < len(completedErr.JobRetryBackoffs) {
-				backoff := completedErr.JobRetryBackoffs[completedJob.Object.Retries]
-				stdErr := dbClient.Job.UpdateOneID(completedJob.Object.ID).
-					SetStatus("pending").
-					SetDue(engine.App.Clock.Now().Add(backoff)).
-					AddRetries(1).
-					SetLoggedStallWarning(false).
-					Exec(context.TODO())
-				if stdErr != nil {
-					// TODO: log error
-					panic(fmt.Sprintf("failed to queue job retry: %v\n", stdErr.Error()))
-				}
-			} else {
-				stdErr := dbClient.Job.UpdateOneID(completedJob.Object.ID).
-					SetStatus("failed").
-					Exec(context.TODO())
-				if stdErr != nil {
-					// TODO: log error
-					panic(fmt.Sprintf("failed to mark job as failed: %v\n", stdErr.Error()))
-				}
+			stdErr := dbcommon.WithWriteTx(context.TODO(), engine.App.Database,
+				func(tx *ent.Tx, ctx context.Context) error {
+					if completedJob.Object.Retries < len(completedErr.JobRetryBackoffs) {
+						backoff := completedErr.JobRetryBackoffs[completedJob.Object.Retries]
+						return tx.Job.UpdateOneID(completedJob.Object.ID).
+							SetStatus("pending").
+							SetDue(engine.App.Clock.Now().Add(backoff)).
+							AddRetries(1).
+							SetLoggedStallWarning(false).
+							Exec(ctx)
+					} else {
+						return tx.Job.UpdateOneID(completedJob.Object.ID).
+							SetStatus("failed").
+							Exec(ctx)
+					}
+				},
+			)
+			if stdErr != nil {
+				// A restart is unlikely to help, so we'll just have to log the error
+				// TODO: log error
+				fmt.Printf("failed to mark job as failed / reset to pending: %v\n", stdErr.Error())
 			}
+
 		}
 	}
 	runJobs := func() bool {
@@ -127,7 +133,7 @@ func (engine *Engine) Listen() {
 				},
 			)
 			if stdErr != nil {
-				// TODO: retry up to 3 times, logging error each time, then just crash
+				// This is worse than failing to update specific jobs, the program can't really continue without a job system
 				fmt.Printf("job loop transaction error: %v\n", stdErr.Error())
 				return true // Shutdown
 			}
@@ -156,7 +162,6 @@ func (engine *Engine) Listen() {
 		}
 	}
 
-	// TODO: handle panics
 listenLoop:
 	for {
 		fmt.Println("run job loop")
@@ -164,20 +169,22 @@ listenLoop:
 			break listenLoop
 		}
 		// TODO: check for stalled jobs, do a similar thing to scheduled jobs. Wait until they should have finished
-		// Maybe schedule a job to check for stalled jobs every 5 minutes or so
+		// Maybe schedule a job to check for stalled jobs every 5 minutes or so, because checking after all the jobs have finished running might be too late if there are a lot
 
 		maxWaitTime := engine.App.Env.JOB_POLL_INTERVAL
-		nextJob, stdErr := dbClient.Job.Query().
-			Where(job.StatusEQ("pending")).
-			Order(ent.Asc(job.FieldDue)).
-			First(context.TODO())
+		nextJob, stdErr := dbcommon.WithReadTx(context.TODO(), engine.App.Database,
+			func(tx *ent.Tx, ctx context.Context) (*ent.Job, error) {
+				return tx.Job.Query().
+					Where(job.StatusEQ("pending")).
+					Order(ent.Asc(job.FieldDue)).
+					First(ctx)
+			})
 		if stdErr == nil {
 			timeUntil := time.Until(nextJob.Due)
 			if timeUntil < maxWaitTime {
 				maxWaitTime = timeUntil
 			}
 		} else if !ent.IsNotFound(stdErr) {
-			// TODO: retry up to 3 times, logging error each time, then just crash
 			fmt.Printf("failed to query next due job: %v\n", stdErr.Error())
 			break listenLoop
 		}

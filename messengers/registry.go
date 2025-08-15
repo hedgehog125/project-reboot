@@ -2,6 +2,8 @@ package messengers
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -89,12 +91,21 @@ func (registry *Registry) Send(
 }
 func (registry *Registry) SendUsingAll(
 	message *common.Message, ctx context.Context,
-) *common.Error {
+) (map[string]*common.Error, *common.Error) {
+	errs := make(map[string]*common.Error)
 	for versionedType := range registry.messengers {
 		commErr := registry.Send(versionedType, message, ctx)
 		if commErr != nil {
-			return commErr
+			errs[versionedType] = commErr
+			// TODO: this method doesn't work <======
+			if !ErrWrapperPrepare.HasWrapped(commErr) {
+				return errs, commErr
+			}
+			if !errors.Is(commErr, ErrNoContactForUser) {
+				// Just log an error and let the admin deal with this, there's not much the user can do
+				fmt.Printf("failed to prepare message for %s: %v", versionedType, commErr)
+			}
 		}
 	}
-	return nil
+	return errs, nil
 }

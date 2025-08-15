@@ -68,7 +68,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			if stdErr != nil {
 				return common.ErrWrapperDatabase.Wrap(stdErr)
 			}
-			commErr := app.Messengers.SendUsingAll(
+			_, commErr := app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.MessageReset,
 					User: userOb,
