@@ -97,9 +97,7 @@ func (engine *Engine) Listen() {
 	}
 	runJobs := func() bool {
 		for {
-			isDone := false
-			shutdownSignalReceived := false
-			currentJob, stdErr := dbcommon.WithReadWriteTx(
+			currentJob, stdErr := dbcommon.WithReadTx(
 				context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) (*ent.Job, error) {
 					currentJob, stdErr := tx.Job.Query().
@@ -107,43 +105,48 @@ func (engine *Engine) Listen() {
 						Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
 						First(context.TODO())
 					if stdErr != nil {
-						if ent.IsNotFound(stdErr) {
-							isDone = true
-							return nil, nil
-						}
 						return nil, ErrWrapperListen.Wrap(ErrWrapperDatabase.Wrap(stdErr)).AddCategory("query next job")
-					}
-
-					maxTotalWeightToStart := engine.App.Env.MAX_TOTAL_JOB_WEIGHT - currentWeight
-					for currentWeight > maxTotalWeightToStart && currentWeight > 0 {
-						select {
-						case completedJob := <-completedJobChan:
-							handleCompletedJob(completedJob)
-						case <-engine.requestShutdownChan:
-							shutdownSignalReceived = true
-							return nil, nil
-						}
-					}
-					stdErr = tx.Job.UpdateOneID(currentJob.ID).
-						SetStatus("running").SetStarted(time.Now()).
-						Exec(context.TODO())
-					if stdErr != nil {
-						return nil, ErrWrapperListen.Wrap(ErrWrapperDatabase.Wrap(stdErr)).AddCategory("update job")
 					}
 					return currentJob, nil
 				},
 			)
 			if stdErr != nil {
-				// This is worse than failing to update specific jobs, the program can't really continue without a job system
-				fmt.Printf("job loop transaction error: %v\n", stdErr.Error())
-				return true // Shutdown
+				if ent.IsNotFound(stdErr) {
+					return false
+				} else {
+					// This is worse than failing to update specific jobs, the program can't really continue without a job system
+					fmt.Printf("get current job error: %v\n", stdErr.Error())
+					return true // Shutdown
+				}
 			}
-			if isDone {
-				return false
+
+			maxTotalWeightToStart := engine.App.Env.MAX_TOTAL_JOB_WEIGHT - currentWeight
+			for currentWeight > maxTotalWeightToStart && currentWeight > 0 {
+				select {
+				case completedJob := <-completedJobChan:
+					handleCompletedJob(completedJob)
+				case <-engine.requestShutdownChan:
+					return true
+				}
 			}
-			if shutdownSignalReceived {
-				return true
+			stdErr = dbcommon.WithWriteTx(
+				context.TODO(), engine.App.Database,
+				func(tx *ent.Tx, ctx context.Context) error {
+					stdErr = tx.Job.UpdateOneID(currentJob.ID).
+						SetStatus("running").SetStarted(time.Now()).
+						Exec(context.TODO())
+					if stdErr != nil {
+						return ErrWrapperListen.Wrap(ErrWrapperDatabase.Wrap(stdErr)).AddCategory("update job")
+					}
+					return nil
+				},
+			)
+			if stdErr != nil {
+				fmt.Printf("failed to update job %s to running. error:\n%v\n", currentJob.ID, stdErr.Error())
+				time.Sleep(500 * time.Millisecond)
+				continue
 			}
+
 			currentWeight += currentJob.Weight
 			jobDefinition, ok := engine.Registry.jobs[common.GetVersionedType(currentJob.Type, currentJob.Version)]
 			if ok {
