@@ -41,7 +41,6 @@ type completedJob struct {
 }
 
 func (engine *Engine) Listen() {
-	// TODO: use proper transactions
 	engine.mu.Lock()
 	if engine.Running {
 		engine.mu.Unlock()
@@ -59,20 +58,21 @@ func (engine *Engine) Listen() {
 		if completedJob.Err == nil {
 			stdErr := dbcommon.WithWriteTx(context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) error {
-					return tx.Job.UpdateOneID(completedJob.Object.ID).Exec(ctx)
+					return tx.Job.DeleteOneID(completedJob.Object.ID).Exec(ctx)
 				},
 			)
 			if stdErr != nil {
 				// A restart is unlikely to help, so we'll just have to log the error
 				// TODO: log error
-				panic(fmt.Sprintf("failed to delete job: %v\n", stdErr.Error()))
+				fmt.Printf("failed to delete job: %v\n", stdErr.Error())
 			}
+			fmt.Printf("job %s completed after %d retries\n", completedJob.Object.ID, completedJob.Object.Retries)
 		} else {
-			completedErr := NewError(completedJob.Err)
+			jobErr := NewError(completedJob.Err)
 			stdErr := dbcommon.WithWriteTx(context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) error {
-					if completedJob.Object.Retries < len(completedErr.JobRetryBackoffs) {
-						backoff := completedErr.JobRetryBackoffs[completedJob.Object.Retries]
+					if completedJob.Object.Retries < len(jobErr.JobRetryBackoffs) {
+						backoff := jobErr.JobRetryBackoffs[completedJob.Object.Retries]
 						return tx.Job.UpdateOneID(completedJob.Object.ID).
 							SetStatus("pending").
 							SetDue(engine.App.Clock.Now().Add(backoff)).
@@ -80,6 +80,7 @@ func (engine *Engine) Listen() {
 							SetLoggedStallWarning(false).
 							Exec(ctx)
 					} else {
+						fmt.Printf("job %s failed after %d retries. error:\n%v\n", completedJob.Object.ID, completedJob.Object.Retries, jobErr.Error())
 						return tx.Job.UpdateOneID(completedJob.Object.ID).
 							SetStatus("failed").
 							Exec(ctx)
@@ -110,7 +111,7 @@ func (engine *Engine) Listen() {
 							isDone = true
 							return nil, nil
 						}
-						return nil, ErrWrapperDatabase.Wrap(stdErr).AddCategory("query next job")
+						return nil, ErrWrapperListen.Wrap(ErrWrapperDatabase.Wrap(stdErr)).AddCategory("query next job")
 					}
 
 					maxTotalWeightToStart := engine.App.Env.MAX_TOTAL_JOB_WEIGHT - currentWeight
@@ -127,7 +128,7 @@ func (engine *Engine) Listen() {
 						SetStatus("running").SetStarted(time.Now()).
 						Exec(context.TODO())
 					if stdErr != nil {
-						return nil, ErrWrapperDatabase.Wrap(stdErr).AddCategory("update job")
+						return nil, ErrWrapperListen.Wrap(ErrWrapperDatabase.Wrap(stdErr)).AddCategory("update job")
 					}
 					return currentJob, nil
 				},
@@ -155,7 +156,7 @@ func (engine *Engine) Listen() {
 			} else { // Note: this shouldn't happen
 				completedJobChan <- completedJob{
 					Object: currentJob,
-					Err:    NewError(ErrUnknownJobType.AddCategory(ErrTypeRunJob)),
+					Err:    NewError(ErrWrapperRunJob.Wrap(ErrUnknownJobType)),
 				}
 			}
 			// Otherwise continue processing jobs
@@ -189,6 +190,15 @@ listenLoop:
 			break listenLoop
 		}
 
+		for currentWeight > 0 {
+			select {
+			case completedJob := <-completedJobChan:
+				handleCompletedJob(completedJob)
+			case <-engine.requestShutdownChan:
+				break listenLoop
+			}
+		}
+
 		close(engine.waitingForJobsChan)
 		engine.mu.Lock()
 		engine.waitingForJobsChan = make(chan struct{})
@@ -220,7 +230,7 @@ func (engine *Engine) runJob(
 	})
 	completedJobChan <- completedJob{
 		Object: job,
-		Err:    NewError(stdErr).AddCategory(ErrTypeRunJob), // TODO: are these categories correct?
+		Err:    NewError(ErrWrapperRunJob.Wrap(stdErr)),
 	}
 }
 
@@ -238,8 +248,6 @@ func (engine *Engine) Shutdown() {
 	<-engine.shutdownFinishedChan
 	fmt.Println("job engine stopped")
 }
-
-var ErrWrapperEnqueue = common.NewErrorWrapper(common.ErrTypeJobs, ErrTypeEnqueue)
 
 func (engine *Engine) Enqueue(
 	versionedType string,

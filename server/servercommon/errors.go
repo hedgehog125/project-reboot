@@ -23,10 +23,10 @@ var ErrWrapperParseBodyJson = common.NewErrorWrapper(
 
 type CommonError = common.Error
 type Error struct {
-	CommonError     // TODO: use pointer?
-	Status      int // Set to -1 to keep the current code
-	Details     []ErrorDetail
-	ShouldLog   bool
+	*CommonError
+	Status    int // Set to -1 to keep the current code
+	Details   []ErrorDetail
+	ShouldLog bool
 }
 type ErrorDetail struct {
 	Code    string `json:"code"`
@@ -34,17 +34,20 @@ type ErrorDetail struct {
 }
 
 func NewError(err error) *Error {
+	if err == nil {
+		return nil
+	}
 	serverErr := &Error{}
 	if errors.As(err, &serverErr) {
 		return serverErr.Clone()
 	}
 
-	commErr := &common.Error{}
-	if !errors.As(err, &commErr) {
-		commErr = common.AutoWrapError(err)
+	commErr := common.AutoWrapError(err)
+	if commErr == nil {
+		return nil
 	}
 	return &Error{
-		CommonError: *commErr,
+		CommonError: commErr,
 		Status:      -1,
 		Details:     []ErrorDetail{},
 		ShouldLog:   true,
@@ -58,17 +61,19 @@ func (err *Error) StandardError() error {
 	return err
 }
 func (err *Error) Unwrap() error {
-	return &err.CommonError
+	return err.CommonError
 }
 
 func (err *Error) Clone() *Error {
-	copiedErr := &Error{
-		CommonError: *err.CommonError.Clone(),
+	if err == nil {
+		return nil
+	}
+	return &Error{
+		CommonError: err.CommonError.Clone(),
 		Status:      err.Status,
 		Details:     slices.Clone(err.Details),
 		ShouldLog:   err.ShouldLog,
 	}
-	return copiedErr
 }
 func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) *Error {
 	copiedErr := err.Clone()

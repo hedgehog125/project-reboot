@@ -13,6 +13,7 @@ const (
 	ErrTypeDecode  = "decode" // From Job.Decode() method
 	ErrTypeEnqueue = "enqueue"
 	ErrTypeRunJob  = "run job"
+	ErrTypeListen  = "listen"
 	// Lower level
 	ErrTypeInvalidData = "invalid data"
 )
@@ -27,6 +28,13 @@ var ErrWrapperEncode = common.NewErrorWrapper(
 )
 var ErrWrapperDecode = common.NewErrorWrapper(
 	common.ErrTypeJobs, ErrTypeDecode,
+)
+var ErrWrapperEnqueue = common.NewErrorWrapper(common.ErrTypeJobs, ErrTypeEnqueue)
+var ErrWrapperRunJob = common.NewErrorWrapper(
+	common.ErrTypeJobs, ErrTypeRunJob,
+)
+var ErrWrapperListen = common.NewErrorWrapper(
+	common.ErrTypeJobs, ErrTypeListen,
 )
 
 // TODO: test this
@@ -47,14 +55,17 @@ type ErrorDetail struct {
 }
 
 func NewError(err error) *Error {
+	if err == nil {
+		return nil
+	}
 	jobErr := &Error{}
 	if errors.As(err, &jobErr) {
 		return jobErr.Clone()
 	}
 
-	commErr := &common.Error{}
-	if !errors.As(err, &commErr) {
-		commErr = common.AutoWrapError(err)
+	commErr := common.AutoWrapError(err)
+	if commErr == nil {
+		return nil
 	}
 	return &Error{
 		CommonError:      *commErr,

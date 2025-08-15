@@ -1,14 +1,9 @@
 # TODO
 
 -   Fix issues around failed jobs. Jobs aren't being marked as completed? Job deadlock
--   Jobs aren't being marked as complete? Maybe just 2FA actions?
 -   Rename userRow etc to userOb (or dbUser?)
--   Write some tests to demo how [package] error categories get shifted about
 -   Job system
--   -   Rework 2FA actions so there aren't definitions, they're just a full job type ID, body and a username
--   -   Add MostlyDatabase option, only one runs simultaneously
--   -   Continue looking through the job list for lower weight jobs if at max? Maybe only within the priority level?
--   -   Should send a signal to shut down the server instead of shutting itself down. Avoids issues with the shutdown channels
+-   -   Don't start new jobs when shutdown signal received
 -   Only load env files in development
 -   Bump priority of jobs as they get older
 -   Replace cron system with a simple custom job scheduler

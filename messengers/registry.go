@@ -17,6 +17,8 @@ const JobNamePrefix = "messengers"
 type Registry struct {
 	App        *common.App
 	messengers map[string]*Definition
+	// RegisterJobs can be called with a prefix, so this is JobNamePrefix + that
+	jobNamePrefix string
 }
 
 type Definition struct {
@@ -55,6 +57,7 @@ func (registry *Registry) Register(definition *Definition) {
 	registry.messengers[fullID] = definition
 }
 func (registry *Registry) RegisterJobs(group *jobs.RegistryGroup) {
+	registry.jobNamePrefix = jobscommon.JoinPaths(group.Path, JobNamePrefix)
 	prefixedGroup := group.Group(JobNamePrefix)
 	for _, messenger := range registry.messengers {
 		prefixedGroup.Register(messenger.jobDefinition)
@@ -79,7 +82,7 @@ func (registry *Registry) Send(
 	}
 
 	_, commErr := registry.App.Jobs.Enqueue(
-		jobscommon.JoinPaths(JobNamePrefix, versionedType),
+		jobscommon.JoinPaths(registry.jobNamePrefix, versionedType),
 		preparedData,
 		ctx,
 	)

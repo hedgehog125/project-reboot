@@ -133,6 +133,9 @@ func (err *Error) StandardError() error {
 	return err
 }
 func (err *Error) Unwrap() error {
+	if err == nil {
+		return nil
+	}
 	return err.Err
 }
 func (err *Error) Is(target error) bool {
@@ -242,8 +245,11 @@ func (err *Error) AddDebugValue(value DebugValue) *Error {
 
 	return copiedErr
 }
-func (err Error) Clone() *Error {
-	copiedErr := err
+func (err *Error) Clone() *Error {
+	if err == nil {
+		return nil
+	}
+	copiedErr := *err
 	copiedErr.Categories = slices.Clone(err.Categories)
 	copiedErr.DebugValues = slices.Clone(copiedErr.DebugValues)
 
@@ -261,6 +267,9 @@ func NewErrorWithCategories(message string, categories ...string) *Error {
 
 // categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
 func WrapErrorWithCategories(err error, categories ...string) *Error {
+	if err == nil {
+		return nil
+	}
 	commErr, ok := err.(*Error)
 	if !ok {
 		commErr = &Error{
@@ -318,7 +327,7 @@ func GetLastCategoryWithTag(categories []string, requiredTag string) (string, in
 func AutoWrapError(err error) *Error {
 	var commErr *Error
 	if errors.As(err, &commErr) {
-		return commErr
+		return commErr.Clone()
 	}
 
 	commErr = WrapErrorWithCategories(err, "auto wrapped")
