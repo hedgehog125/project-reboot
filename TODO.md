@@ -2,8 +2,6 @@
 
 -   Fix issues around failed jobs. Jobs aren't being marked as completed? Job deadlock
 -   Rename userRow etc to userOb (or dbUser?)
--   Job system
--   -   Don't start new jobs when shutdown signal received
 -   Only load env files in development
 -   Bump priority of jobs as they get older
 -   Replace cron system with a simple custom job scheduler

@@ -129,6 +129,12 @@ func (engine *Engine) Listen() {
 					return true
 				}
 			}
+			select {
+			case <-engine.requestShutdownChan:
+				return true
+			default:
+			}
+
 			stdErr = dbcommon.WithWriteTx(
 				context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) error {
