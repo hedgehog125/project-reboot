@@ -79,7 +79,7 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Session fields.
-func (s *Session) assignValues(columns []string, values []any) error {
+func (_m *Session) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -90,46 +90,46 @@ func (s *Session) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			s.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case session.FieldTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field time", values[i])
 			} else if value.Valid {
-				s.Time = value.Time
+				_m.Time = value.Time
 			}
 		case session.FieldCode:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value != nil {
-				s.Code = *value
+				_m.Code = *value
 			}
 		case session.FieldCodeValidFrom:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field codeValidFrom", values[i])
 			} else if value.Valid {
-				s.CodeValidFrom = value.Time
+				_m.CodeValidFrom = value.Time
 			}
 		case session.FieldUserAgent:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field userAgent", values[i])
 			} else if value.Valid {
-				s.UserAgent = value.String
+				_m.UserAgent = value.String
 			}
 		case session.FieldIP:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field ip", values[i])
 			} else if value.Valid {
-				s.IP = value.String
+				_m.IP = value.String
 			}
 		case session.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_sessions", value)
 			} else if value.Valid {
-				s.user_sessions = new(int)
-				*s.user_sessions = int(value.Int64)
+				_m.user_sessions = new(int)
+				*_m.user_sessions = int(value.Int64)
 			}
 		default:
-			s.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -137,52 +137,52 @@ func (s *Session) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Session.
 // This includes values selected through modifiers, order, etc.
-func (s *Session) Value(name string) (ent.Value, error) {
-	return s.selectValues.Get(name)
+func (_m *Session) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QueryUser queries the "user" edge of the Session entity.
-func (s *Session) QueryUser() *UserQuery {
-	return NewSessionClient(s.config).QueryUser(s)
+func (_m *Session) QueryUser() *UserQuery {
+	return NewSessionClient(_m.config).QueryUser(_m)
 }
 
 // Update returns a builder for updating this Session.
 // Note that you need to call Session.Unwrap() before calling this method if this Session
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (s *Session) Update() *SessionUpdateOne {
-	return NewSessionClient(s.config).UpdateOne(s)
+func (_m *Session) Update() *SessionUpdateOne {
+	return NewSessionClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Session entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (s *Session) Unwrap() *Session {
-	_tx, ok := s.config.driver.(*txDriver)
+func (_m *Session) Unwrap() *Session {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Session is not a transactional entity")
 	}
-	s.config.driver = _tx.drv
-	return s
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (s *Session) String() string {
+func (_m *Session) String() string {
 	var builder strings.Builder
 	builder.WriteString("Session(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("time=")
-	builder.WriteString(s.Time.Format(time.ANSIC))
+	builder.WriteString(_m.Time.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("code=")
-	builder.WriteString(fmt.Sprintf("%v", s.Code))
+	builder.WriteString(fmt.Sprintf("%v", _m.Code))
 	builder.WriteString(", ")
 	builder.WriteString("codeValidFrom=")
-	builder.WriteString(s.CodeValidFrom.Format(time.ANSIC))
+	builder.WriteString(_m.CodeValidFrom.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("userAgent=")
-	builder.WriteString(s.UserAgent)
+	builder.WriteString(_m.UserAgent)
 	builder.WriteString(", ")
 	builder.WriteString("ip=")
-	builder.WriteString(s.IP)
+	builder.WriteString(_m.IP)
 	builder.WriteByte(')')
 	return builder.String()
 }

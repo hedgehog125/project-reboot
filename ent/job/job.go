@@ -35,6 +35,8 @@ const (
 	FieldStatus = "status"
 	// FieldRetries holds the string denoting the retries field in the database.
 	FieldRetries = "retries"
+	// FieldRetriedFraction holds the string denoting the retriedfraction field in the database.
+	FieldRetriedFraction = "retried_fraction"
 	// FieldLoggedStallWarning holds the string denoting the loggedstallwarning field in the database.
 	FieldLoggedStallWarning = "logged_stall_warning"
 	// Table holds the table name of the job in the database.
@@ -54,6 +56,7 @@ var Columns = []string{
 	FieldData,
 	FieldStatus,
 	FieldRetries,
+	FieldRetriedFraction,
 	FieldLoggedStallWarning,
 }
 
@@ -76,6 +79,8 @@ var (
 	TypeValidator func(string) error
 	// DefaultRetries holds the default value on creation for the "retries" field.
 	DefaultRetries int
+	// DefaultRetriedFraction holds the default value on creation for the "retriedFraction" field.
+	DefaultRetriedFraction float64
 	// DefaultLoggedStallWarning holds the default value on creation for the "loggedStallWarning" field.
 	DefaultLoggedStallWarning bool
 	// DefaultID holds the default value on creation for the "id" field.
@@ -160,6 +165,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByRetries orders the results by the retries field.
 func ByRetries(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRetries, opts...).ToFunc()
+}
+
+// ByRetriedFraction orders the results by the retriedFraction field.
+func ByRetriedFraction(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRetriedFraction, opts...).ToFunc()
 }
 
 // ByLoggedStallWarning orders the results by the loggedStallWarning field.

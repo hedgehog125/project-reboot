@@ -28,6 +28,7 @@ func (Job) Fields() []ent.Field {
 		field.JSON("data", ""),
 		field.Enum("status").Values("pending", "running", "failed").Default("pending"), // Completed jobs are deleted
 		field.Int("retries").Default(0),
+		field.Float("retriedFraction").Default(0),
 		field.Bool("loggedStallWarning").Default(false),
 	}
 }

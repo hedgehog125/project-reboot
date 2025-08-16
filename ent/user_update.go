@@ -24,245 +24,245 @@ type UserUpdate struct {
 }
 
 // Where appends a list predicates to the UserUpdate builder.
-func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
-	uu.mutation.Where(ps...)
-	return uu
+func (_u *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetUsername sets the "username" field.
-func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
-	uu.mutation.SetUsername(s)
-	return uu
+func (_u *UserUpdate) SetUsername(v string) *UserUpdate {
+	_u.mutation.SetUsername(v)
+	return _u
 }
 
 // SetNillableUsername sets the "username" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableUsername(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetUsername(*s)
+func (_u *UserUpdate) SetNillableUsername(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetUsername(*v)
 	}
-	return uu
+	return _u
 }
 
 // SetAlertDiscordId sets the "alertDiscordId" field.
-func (uu *UserUpdate) SetAlertDiscordId(s string) *UserUpdate {
-	uu.mutation.SetAlertDiscordId(s)
-	return uu
+func (_u *UserUpdate) SetAlertDiscordId(v string) *UserUpdate {
+	_u.mutation.SetAlertDiscordId(v)
+	return _u
 }
 
 // SetNillableAlertDiscordId sets the "alertDiscordId" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableAlertDiscordId(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetAlertDiscordId(*s)
+func (_u *UserUpdate) SetNillableAlertDiscordId(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetAlertDiscordId(*v)
 	}
-	return uu
+	return _u
 }
 
 // SetAlertEmail sets the "alertEmail" field.
-func (uu *UserUpdate) SetAlertEmail(s string) *UserUpdate {
-	uu.mutation.SetAlertEmail(s)
-	return uu
+func (_u *UserUpdate) SetAlertEmail(v string) *UserUpdate {
+	_u.mutation.SetAlertEmail(v)
+	return _u
 }
 
 // SetNillableAlertEmail sets the "alertEmail" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableAlertEmail(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetAlertEmail(*s)
+func (_u *UserUpdate) SetNillableAlertEmail(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetAlertEmail(*v)
 	}
-	return uu
+	return _u
 }
 
 // SetLocked sets the "locked" field.
-func (uu *UserUpdate) SetLocked(b bool) *UserUpdate {
-	uu.mutation.SetLocked(b)
-	return uu
+func (_u *UserUpdate) SetLocked(v bool) *UserUpdate {
+	_u.mutation.SetLocked(v)
+	return _u
 }
 
 // SetNillableLocked sets the "locked" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableLocked(b *bool) *UserUpdate {
-	if b != nil {
-		uu.SetLocked(*b)
+func (_u *UserUpdate) SetNillableLocked(v *bool) *UserUpdate {
+	if v != nil {
+		_u.SetLocked(*v)
 	}
-	return uu
+	return _u
 }
 
 // SetLockedUntil sets the "lockedUntil" field.
-func (uu *UserUpdate) SetLockedUntil(t time.Time) *UserUpdate {
-	uu.mutation.SetLockedUntil(t)
-	return uu
+func (_u *UserUpdate) SetLockedUntil(v time.Time) *UserUpdate {
+	_u.mutation.SetLockedUntil(v)
+	return _u
 }
 
 // SetNillableLockedUntil sets the "lockedUntil" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableLockedUntil(t *time.Time) *UserUpdate {
-	if t != nil {
-		uu.SetLockedUntil(*t)
+func (_u *UserUpdate) SetNillableLockedUntil(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetLockedUntil(*v)
 	}
-	return uu
+	return _u
 }
 
 // ClearLockedUntil clears the value of the "lockedUntil" field.
-func (uu *UserUpdate) ClearLockedUntil() *UserUpdate {
-	uu.mutation.ClearLockedUntil()
-	return uu
+func (_u *UserUpdate) ClearLockedUntil() *UserUpdate {
+	_u.mutation.ClearLockedUntil()
+	return _u
 }
 
 // SetContent sets the "content" field.
-func (uu *UserUpdate) SetContent(b []byte) *UserUpdate {
-	uu.mutation.SetContent(b)
-	return uu
+func (_u *UserUpdate) SetContent(v []byte) *UserUpdate {
+	_u.mutation.SetContent(v)
+	return _u
 }
 
 // SetFileName sets the "fileName" field.
-func (uu *UserUpdate) SetFileName(s string) *UserUpdate {
-	uu.mutation.SetFileName(s)
-	return uu
+func (_u *UserUpdate) SetFileName(v string) *UserUpdate {
+	_u.mutation.SetFileName(v)
+	return _u
 }
 
 // SetNillableFileName sets the "fileName" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableFileName(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetFileName(*s)
+func (_u *UserUpdate) SetNillableFileName(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetFileName(*v)
 	}
-	return uu
+	return _u
 }
 
 // SetMime sets the "mime" field.
-func (uu *UserUpdate) SetMime(s string) *UserUpdate {
-	uu.mutation.SetMime(s)
-	return uu
+func (_u *UserUpdate) SetMime(v string) *UserUpdate {
+	_u.mutation.SetMime(v)
+	return _u
 }
 
 // SetNillableMime sets the "mime" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableMime(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetMime(*s)
+func (_u *UserUpdate) SetNillableMime(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetMime(*v)
 	}
-	return uu
+	return _u
 }
 
 // SetNonce sets the "nonce" field.
-func (uu *UserUpdate) SetNonce(b []byte) *UserUpdate {
-	uu.mutation.SetNonce(b)
-	return uu
+func (_u *UserUpdate) SetNonce(v []byte) *UserUpdate {
+	_u.mutation.SetNonce(v)
+	return _u
 }
 
 // SetKeySalt sets the "keySalt" field.
-func (uu *UserUpdate) SetKeySalt(b []byte) *UserUpdate {
-	uu.mutation.SetKeySalt(b)
-	return uu
+func (_u *UserUpdate) SetKeySalt(v []byte) *UserUpdate {
+	_u.mutation.SetKeySalt(v)
+	return _u
 }
 
 // SetHashTime sets the "hashTime" field.
-func (uu *UserUpdate) SetHashTime(u uint32) *UserUpdate {
-	uu.mutation.ResetHashTime()
-	uu.mutation.SetHashTime(u)
-	return uu
+func (_u *UserUpdate) SetHashTime(v uint32) *UserUpdate {
+	_u.mutation.ResetHashTime()
+	_u.mutation.SetHashTime(v)
+	return _u
 }
 
 // SetNillableHashTime sets the "hashTime" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableHashTime(u *uint32) *UserUpdate {
-	if u != nil {
-		uu.SetHashTime(*u)
+func (_u *UserUpdate) SetNillableHashTime(v *uint32) *UserUpdate {
+	if v != nil {
+		_u.SetHashTime(*v)
 	}
-	return uu
+	return _u
 }
 
-// AddHashTime adds u to the "hashTime" field.
-func (uu *UserUpdate) AddHashTime(u int32) *UserUpdate {
-	uu.mutation.AddHashTime(u)
-	return uu
+// AddHashTime adds value to the "hashTime" field.
+func (_u *UserUpdate) AddHashTime(v int32) *UserUpdate {
+	_u.mutation.AddHashTime(v)
+	return _u
 }
 
 // SetHashMemory sets the "hashMemory" field.
-func (uu *UserUpdate) SetHashMemory(u uint32) *UserUpdate {
-	uu.mutation.ResetHashMemory()
-	uu.mutation.SetHashMemory(u)
-	return uu
+func (_u *UserUpdate) SetHashMemory(v uint32) *UserUpdate {
+	_u.mutation.ResetHashMemory()
+	_u.mutation.SetHashMemory(v)
+	return _u
 }
 
 // SetNillableHashMemory sets the "hashMemory" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableHashMemory(u *uint32) *UserUpdate {
-	if u != nil {
-		uu.SetHashMemory(*u)
+func (_u *UserUpdate) SetNillableHashMemory(v *uint32) *UserUpdate {
+	if v != nil {
+		_u.SetHashMemory(*v)
 	}
-	return uu
+	return _u
 }
 
-// AddHashMemory adds u to the "hashMemory" field.
-func (uu *UserUpdate) AddHashMemory(u int32) *UserUpdate {
-	uu.mutation.AddHashMemory(u)
-	return uu
+// AddHashMemory adds value to the "hashMemory" field.
+func (_u *UserUpdate) AddHashMemory(v int32) *UserUpdate {
+	_u.mutation.AddHashMemory(v)
+	return _u
 }
 
 // SetHashThreads sets the "hashThreads" field.
-func (uu *UserUpdate) SetHashThreads(u uint8) *UserUpdate {
-	uu.mutation.ResetHashThreads()
-	uu.mutation.SetHashThreads(u)
-	return uu
+func (_u *UserUpdate) SetHashThreads(v uint8) *UserUpdate {
+	_u.mutation.ResetHashThreads()
+	_u.mutation.SetHashThreads(v)
+	return _u
 }
 
 // SetNillableHashThreads sets the "hashThreads" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableHashThreads(u *uint8) *UserUpdate {
-	if u != nil {
-		uu.SetHashThreads(*u)
+func (_u *UserUpdate) SetNillableHashThreads(v *uint8) *UserUpdate {
+	if v != nil {
+		_u.SetHashThreads(*v)
 	}
-	return uu
+	return _u
 }
 
-// AddHashThreads adds u to the "hashThreads" field.
-func (uu *UserUpdate) AddHashThreads(u int8) *UserUpdate {
-	uu.mutation.AddHashThreads(u)
-	return uu
+// AddHashThreads adds value to the "hashThreads" field.
+func (_u *UserUpdate) AddHashThreads(v int8) *UserUpdate {
+	_u.mutation.AddHashThreads(v)
+	return _u
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
-func (uu *UserUpdate) AddSessionIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddSessionIDs(ids...)
-	return uu
+func (_u *UserUpdate) AddSessionIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddSessionIDs(ids...)
+	return _u
 }
 
 // AddSessions adds the "sessions" edges to the Session entity.
-func (uu *UserUpdate) AddSessions(s ...*Session) *UserUpdate {
-	ids := make([]int, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+func (_u *UserUpdate) AddSessions(v ...*Session) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uu.AddSessionIDs(ids...)
+	return _u.AddSessionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
-func (uu *UserUpdate) Mutation() *UserMutation {
-	return uu.mutation
+func (_u *UserUpdate) Mutation() *UserMutation {
+	return _u.mutation
 }
 
 // ClearSessions clears all "sessions" edges to the Session entity.
-func (uu *UserUpdate) ClearSessions() *UserUpdate {
-	uu.mutation.ClearSessions()
-	return uu
+func (_u *UserUpdate) ClearSessions() *UserUpdate {
+	_u.mutation.ClearSessions()
+	return _u
 }
 
 // RemoveSessionIDs removes the "sessions" edge to Session entities by IDs.
-func (uu *UserUpdate) RemoveSessionIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveSessionIDs(ids...)
-	return uu
+func (_u *UserUpdate) RemoveSessionIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveSessionIDs(ids...)
+	return _u
 }
 
 // RemoveSessions removes "sessions" edges to Session entities.
-func (uu *UserUpdate) RemoveSessions(s ...*Session) *UserUpdate {
-	ids := make([]int, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+func (_u *UserUpdate) RemoveSessions(v ...*Session) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uu.RemoveSessionIDs(ids...)
+	return _u.RemoveSessionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, uu.sqlSave, uu.mutation, uu.hooks)
+func (_u *UserUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (uu *UserUpdate) SaveX(ctx context.Context) int {
-	affected, err := uu.Save(ctx)
+func (_u *UserUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -270,46 +270,46 @@ func (uu *UserUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (uu *UserUpdate) Exec(ctx context.Context) error {
-	_, err := uu.Save(ctx)
+func (_u *UserUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (uu *UserUpdate) ExecX(ctx context.Context) {
-	if err := uu.Exec(ctx); err != nil {
+func (_u *UserUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (uu *UserUpdate) check() error {
-	if v, ok := uu.mutation.Username(); ok {
+func (_u *UserUpdate) check() error {
+	if v, ok := _u.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.Content(); ok {
+	if v, ok := _u.mutation.Content(); ok {
 		if err := user.ContentValidator(v); err != nil {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "User.content": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.FileName(); ok {
+	if v, ok := _u.mutation.FileName(); ok {
 		if err := user.FileNameValidator(v); err != nil {
 			return &ValidationError{Name: "fileName", err: fmt.Errorf(`ent: validator failed for field "User.fileName": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.Mime(); ok {
+	if v, ok := _u.mutation.Mime(); ok {
 		if err := user.MimeValidator(v); err != nil {
 			return &ValidationError{Name: "mime", err: fmt.Errorf(`ent: validator failed for field "User.mime": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.Nonce(); ok {
+	if v, ok := _u.mutation.Nonce(); ok {
 		if err := user.NonceValidator(v); err != nil {
 			return &ValidationError{Name: "nonce", err: fmt.Errorf(`ent: validator failed for field "User.nonce": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.KeySalt(); ok {
+	if v, ok := _u.mutation.KeySalt(); ok {
 		if err := user.KeySaltValidator(v); err != nil {
 			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
 		}
@@ -317,70 +317,70 @@ func (uu *UserUpdate) check() error {
 	return nil
 }
 
-func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := uu.check(); err != nil {
-		return n, err
+func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
-	if ps := uu.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := uu.mutation.Username(); ok {
+	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.AlertDiscordId(); ok {
+	if value, ok := _u.mutation.AlertDiscordId(); ok {
 		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.AlertEmail(); ok {
+	if value, ok := _u.mutation.AlertEmail(); ok {
 		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.Locked(); ok {
+	if value, ok := _u.mutation.Locked(); ok {
 		_spec.SetField(user.FieldLocked, field.TypeBool, value)
 	}
-	if value, ok := uu.mutation.LockedUntil(); ok {
+	if value, ok := _u.mutation.LockedUntil(); ok {
 		_spec.SetField(user.FieldLockedUntil, field.TypeTime, value)
 	}
-	if uu.mutation.LockedUntilCleared() {
+	if _u.mutation.LockedUntilCleared() {
 		_spec.ClearField(user.FieldLockedUntil, field.TypeTime)
 	}
-	if value, ok := uu.mutation.Content(); ok {
+	if value, ok := _u.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 	}
-	if value, ok := uu.mutation.FileName(); ok {
+	if value, ok := _u.mutation.FileName(); ok {
 		_spec.SetField(user.FieldFileName, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.Mime(); ok {
+	if value, ok := _u.mutation.Mime(); ok {
 		_spec.SetField(user.FieldMime, field.TypeString, value)
 	}
-	if value, ok := uu.mutation.Nonce(); ok {
+	if value, ok := _u.mutation.Nonce(); ok {
 		_spec.SetField(user.FieldNonce, field.TypeBytes, value)
 	}
-	if value, ok := uu.mutation.KeySalt(); ok {
+	if value, ok := _u.mutation.KeySalt(); ok {
 		_spec.SetField(user.FieldKeySalt, field.TypeBytes, value)
 	}
-	if value, ok := uu.mutation.HashTime(); ok {
+	if value, ok := _u.mutation.HashTime(); ok {
 		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
 	}
-	if value, ok := uu.mutation.AddedHashTime(); ok {
+	if value, ok := _u.mutation.AddedHashTime(); ok {
 		_spec.AddField(user.FieldHashTime, field.TypeUint32, value)
 	}
-	if value, ok := uu.mutation.HashMemory(); ok {
+	if value, ok := _u.mutation.HashMemory(); ok {
 		_spec.SetField(user.FieldHashMemory, field.TypeUint32, value)
 	}
-	if value, ok := uu.mutation.AddedHashMemory(); ok {
+	if value, ok := _u.mutation.AddedHashMemory(); ok {
 		_spec.AddField(user.FieldHashMemory, field.TypeUint32, value)
 	}
-	if value, ok := uu.mutation.HashThreads(); ok {
+	if value, ok := _u.mutation.HashThreads(); ok {
 		_spec.SetField(user.FieldHashThreads, field.TypeUint8, value)
 	}
-	if value, ok := uu.mutation.AddedHashThreads(); ok {
+	if value, ok := _u.mutation.AddedHashThreads(); ok {
 		_spec.AddField(user.FieldHashThreads, field.TypeUint8, value)
 	}
-	if uu.mutation.SessionsCleared() {
+	if _u.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -393,7 +393,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedSessionsIDs(); len(nodes) > 0 && !uu.mutation.SessionsCleared() {
+	if nodes := _u.mutation.RemovedSessionsIDs(); len(nodes) > 0 && !_u.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -409,7 +409,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.SessionsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SessionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -425,7 +425,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -433,8 +433,8 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	uu.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // UserUpdateOne is the builder for updating a single User entity.
@@ -446,252 +446,252 @@ type UserUpdateOne struct {
 }
 
 // SetUsername sets the "username" field.
-func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
-	uuo.mutation.SetUsername(s)
-	return uuo
+func (_u *UserUpdateOne) SetUsername(v string) *UserUpdateOne {
+	_u.mutation.SetUsername(v)
+	return _u
 }
 
 // SetNillableUsername sets the "username" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableUsername(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetUsername(*s)
+func (_u *UserUpdateOne) SetNillableUsername(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetUsername(*v)
 	}
-	return uuo
+	return _u
 }
 
 // SetAlertDiscordId sets the "alertDiscordId" field.
-func (uuo *UserUpdateOne) SetAlertDiscordId(s string) *UserUpdateOne {
-	uuo.mutation.SetAlertDiscordId(s)
-	return uuo
+func (_u *UserUpdateOne) SetAlertDiscordId(v string) *UserUpdateOne {
+	_u.mutation.SetAlertDiscordId(v)
+	return _u
 }
 
 // SetNillableAlertDiscordId sets the "alertDiscordId" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableAlertDiscordId(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetAlertDiscordId(*s)
+func (_u *UserUpdateOne) SetNillableAlertDiscordId(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetAlertDiscordId(*v)
 	}
-	return uuo
+	return _u
 }
 
 // SetAlertEmail sets the "alertEmail" field.
-func (uuo *UserUpdateOne) SetAlertEmail(s string) *UserUpdateOne {
-	uuo.mutation.SetAlertEmail(s)
-	return uuo
+func (_u *UserUpdateOne) SetAlertEmail(v string) *UserUpdateOne {
+	_u.mutation.SetAlertEmail(v)
+	return _u
 }
 
 // SetNillableAlertEmail sets the "alertEmail" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableAlertEmail(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetAlertEmail(*s)
+func (_u *UserUpdateOne) SetNillableAlertEmail(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetAlertEmail(*v)
 	}
-	return uuo
+	return _u
 }
 
 // SetLocked sets the "locked" field.
-func (uuo *UserUpdateOne) SetLocked(b bool) *UserUpdateOne {
-	uuo.mutation.SetLocked(b)
-	return uuo
+func (_u *UserUpdateOne) SetLocked(v bool) *UserUpdateOne {
+	_u.mutation.SetLocked(v)
+	return _u
 }
 
 // SetNillableLocked sets the "locked" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableLocked(b *bool) *UserUpdateOne {
-	if b != nil {
-		uuo.SetLocked(*b)
+func (_u *UserUpdateOne) SetNillableLocked(v *bool) *UserUpdateOne {
+	if v != nil {
+		_u.SetLocked(*v)
 	}
-	return uuo
+	return _u
 }
 
 // SetLockedUntil sets the "lockedUntil" field.
-func (uuo *UserUpdateOne) SetLockedUntil(t time.Time) *UserUpdateOne {
-	uuo.mutation.SetLockedUntil(t)
-	return uuo
+func (_u *UserUpdateOne) SetLockedUntil(v time.Time) *UserUpdateOne {
+	_u.mutation.SetLockedUntil(v)
+	return _u
 }
 
 // SetNillableLockedUntil sets the "lockedUntil" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableLockedUntil(t *time.Time) *UserUpdateOne {
-	if t != nil {
-		uuo.SetLockedUntil(*t)
+func (_u *UserUpdateOne) SetNillableLockedUntil(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetLockedUntil(*v)
 	}
-	return uuo
+	return _u
 }
 
 // ClearLockedUntil clears the value of the "lockedUntil" field.
-func (uuo *UserUpdateOne) ClearLockedUntil() *UserUpdateOne {
-	uuo.mutation.ClearLockedUntil()
-	return uuo
+func (_u *UserUpdateOne) ClearLockedUntil() *UserUpdateOne {
+	_u.mutation.ClearLockedUntil()
+	return _u
 }
 
 // SetContent sets the "content" field.
-func (uuo *UserUpdateOne) SetContent(b []byte) *UserUpdateOne {
-	uuo.mutation.SetContent(b)
-	return uuo
+func (_u *UserUpdateOne) SetContent(v []byte) *UserUpdateOne {
+	_u.mutation.SetContent(v)
+	return _u
 }
 
 // SetFileName sets the "fileName" field.
-func (uuo *UserUpdateOne) SetFileName(s string) *UserUpdateOne {
-	uuo.mutation.SetFileName(s)
-	return uuo
+func (_u *UserUpdateOne) SetFileName(v string) *UserUpdateOne {
+	_u.mutation.SetFileName(v)
+	return _u
 }
 
 // SetNillableFileName sets the "fileName" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableFileName(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetFileName(*s)
+func (_u *UserUpdateOne) SetNillableFileName(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetFileName(*v)
 	}
-	return uuo
+	return _u
 }
 
 // SetMime sets the "mime" field.
-func (uuo *UserUpdateOne) SetMime(s string) *UserUpdateOne {
-	uuo.mutation.SetMime(s)
-	return uuo
+func (_u *UserUpdateOne) SetMime(v string) *UserUpdateOne {
+	_u.mutation.SetMime(v)
+	return _u
 }
 
 // SetNillableMime sets the "mime" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableMime(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetMime(*s)
+func (_u *UserUpdateOne) SetNillableMime(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetMime(*v)
 	}
-	return uuo
+	return _u
 }
 
 // SetNonce sets the "nonce" field.
-func (uuo *UserUpdateOne) SetNonce(b []byte) *UserUpdateOne {
-	uuo.mutation.SetNonce(b)
-	return uuo
+func (_u *UserUpdateOne) SetNonce(v []byte) *UserUpdateOne {
+	_u.mutation.SetNonce(v)
+	return _u
 }
 
 // SetKeySalt sets the "keySalt" field.
-func (uuo *UserUpdateOne) SetKeySalt(b []byte) *UserUpdateOne {
-	uuo.mutation.SetKeySalt(b)
-	return uuo
+func (_u *UserUpdateOne) SetKeySalt(v []byte) *UserUpdateOne {
+	_u.mutation.SetKeySalt(v)
+	return _u
 }
 
 // SetHashTime sets the "hashTime" field.
-func (uuo *UserUpdateOne) SetHashTime(u uint32) *UserUpdateOne {
-	uuo.mutation.ResetHashTime()
-	uuo.mutation.SetHashTime(u)
-	return uuo
+func (_u *UserUpdateOne) SetHashTime(v uint32) *UserUpdateOne {
+	_u.mutation.ResetHashTime()
+	_u.mutation.SetHashTime(v)
+	return _u
 }
 
 // SetNillableHashTime sets the "hashTime" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableHashTime(u *uint32) *UserUpdateOne {
-	if u != nil {
-		uuo.SetHashTime(*u)
+func (_u *UserUpdateOne) SetNillableHashTime(v *uint32) *UserUpdateOne {
+	if v != nil {
+		_u.SetHashTime(*v)
 	}
-	return uuo
+	return _u
 }
 
-// AddHashTime adds u to the "hashTime" field.
-func (uuo *UserUpdateOne) AddHashTime(u int32) *UserUpdateOne {
-	uuo.mutation.AddHashTime(u)
-	return uuo
+// AddHashTime adds value to the "hashTime" field.
+func (_u *UserUpdateOne) AddHashTime(v int32) *UserUpdateOne {
+	_u.mutation.AddHashTime(v)
+	return _u
 }
 
 // SetHashMemory sets the "hashMemory" field.
-func (uuo *UserUpdateOne) SetHashMemory(u uint32) *UserUpdateOne {
-	uuo.mutation.ResetHashMemory()
-	uuo.mutation.SetHashMemory(u)
-	return uuo
+func (_u *UserUpdateOne) SetHashMemory(v uint32) *UserUpdateOne {
+	_u.mutation.ResetHashMemory()
+	_u.mutation.SetHashMemory(v)
+	return _u
 }
 
 // SetNillableHashMemory sets the "hashMemory" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableHashMemory(u *uint32) *UserUpdateOne {
-	if u != nil {
-		uuo.SetHashMemory(*u)
+func (_u *UserUpdateOne) SetNillableHashMemory(v *uint32) *UserUpdateOne {
+	if v != nil {
+		_u.SetHashMemory(*v)
 	}
-	return uuo
+	return _u
 }
 
-// AddHashMemory adds u to the "hashMemory" field.
-func (uuo *UserUpdateOne) AddHashMemory(u int32) *UserUpdateOne {
-	uuo.mutation.AddHashMemory(u)
-	return uuo
+// AddHashMemory adds value to the "hashMemory" field.
+func (_u *UserUpdateOne) AddHashMemory(v int32) *UserUpdateOne {
+	_u.mutation.AddHashMemory(v)
+	return _u
 }
 
 // SetHashThreads sets the "hashThreads" field.
-func (uuo *UserUpdateOne) SetHashThreads(u uint8) *UserUpdateOne {
-	uuo.mutation.ResetHashThreads()
-	uuo.mutation.SetHashThreads(u)
-	return uuo
+func (_u *UserUpdateOne) SetHashThreads(v uint8) *UserUpdateOne {
+	_u.mutation.ResetHashThreads()
+	_u.mutation.SetHashThreads(v)
+	return _u
 }
 
 // SetNillableHashThreads sets the "hashThreads" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableHashThreads(u *uint8) *UserUpdateOne {
-	if u != nil {
-		uuo.SetHashThreads(*u)
+func (_u *UserUpdateOne) SetNillableHashThreads(v *uint8) *UserUpdateOne {
+	if v != nil {
+		_u.SetHashThreads(*v)
 	}
-	return uuo
+	return _u
 }
 
-// AddHashThreads adds u to the "hashThreads" field.
-func (uuo *UserUpdateOne) AddHashThreads(u int8) *UserUpdateOne {
-	uuo.mutation.AddHashThreads(u)
-	return uuo
+// AddHashThreads adds value to the "hashThreads" field.
+func (_u *UserUpdateOne) AddHashThreads(v int8) *UserUpdateOne {
+	_u.mutation.AddHashThreads(v)
+	return _u
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
-func (uuo *UserUpdateOne) AddSessionIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddSessionIDs(ids...)
-	return uuo
+func (_u *UserUpdateOne) AddSessionIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddSessionIDs(ids...)
+	return _u
 }
 
 // AddSessions adds the "sessions" edges to the Session entity.
-func (uuo *UserUpdateOne) AddSessions(s ...*Session) *UserUpdateOne {
-	ids := make([]int, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+func (_u *UserUpdateOne) AddSessions(v ...*Session) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uuo.AddSessionIDs(ids...)
+	return _u.AddSessionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
-func (uuo *UserUpdateOne) Mutation() *UserMutation {
-	return uuo.mutation
+func (_u *UserUpdateOne) Mutation() *UserMutation {
+	return _u.mutation
 }
 
 // ClearSessions clears all "sessions" edges to the Session entity.
-func (uuo *UserUpdateOne) ClearSessions() *UserUpdateOne {
-	uuo.mutation.ClearSessions()
-	return uuo
+func (_u *UserUpdateOne) ClearSessions() *UserUpdateOne {
+	_u.mutation.ClearSessions()
+	return _u
 }
 
 // RemoveSessionIDs removes the "sessions" edge to Session entities by IDs.
-func (uuo *UserUpdateOne) RemoveSessionIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveSessionIDs(ids...)
-	return uuo
+func (_u *UserUpdateOne) RemoveSessionIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveSessionIDs(ids...)
+	return _u
 }
 
 // RemoveSessions removes "sessions" edges to Session entities.
-func (uuo *UserUpdateOne) RemoveSessions(s ...*Session) *UserUpdateOne {
-	ids := make([]int, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+func (_u *UserUpdateOne) RemoveSessions(v ...*Session) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uuo.RemoveSessionIDs(ids...)
+	return _u.RemoveSessionIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
-func (uuo *UserUpdateOne) Where(ps ...predicate.User) *UserUpdateOne {
-	uuo.mutation.Where(ps...)
-	return uuo
+func (_u *UserUpdateOne) Where(ps ...predicate.User) *UserUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (uuo *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne {
-	uuo.fields = append([]string{field}, fields...)
-	return uuo
+func (_u *UserUpdateOne) Select(field string, fields ...string) *UserUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated User entity.
-func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	return withHooks(ctx, uuo.sqlSave, uuo.mutation, uuo.hooks)
+func (_u *UserUpdateOne) Save(ctx context.Context) (*User, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (uuo *UserUpdateOne) SaveX(ctx context.Context) *User {
-	node, err := uuo.Save(ctx)
+func (_u *UserUpdateOne) SaveX(ctx context.Context) *User {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -699,46 +699,46 @@ func (uuo *UserUpdateOne) SaveX(ctx context.Context) *User {
 }
 
 // Exec executes the query on the entity.
-func (uuo *UserUpdateOne) Exec(ctx context.Context) error {
-	_, err := uuo.Save(ctx)
+func (_u *UserUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
-	if err := uuo.Exec(ctx); err != nil {
+func (_u *UserUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (uuo *UserUpdateOne) check() error {
-	if v, ok := uuo.mutation.Username(); ok {
+func (_u *UserUpdateOne) check() error {
+	if v, ok := _u.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.Content(); ok {
+	if v, ok := _u.mutation.Content(); ok {
 		if err := user.ContentValidator(v); err != nil {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "User.content": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.FileName(); ok {
+	if v, ok := _u.mutation.FileName(); ok {
 		if err := user.FileNameValidator(v); err != nil {
 			return &ValidationError{Name: "fileName", err: fmt.Errorf(`ent: validator failed for field "User.fileName": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.Mime(); ok {
+	if v, ok := _u.mutation.Mime(); ok {
 		if err := user.MimeValidator(v); err != nil {
 			return &ValidationError{Name: "mime", err: fmt.Errorf(`ent: validator failed for field "User.mime": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.Nonce(); ok {
+	if v, ok := _u.mutation.Nonce(); ok {
 		if err := user.NonceValidator(v); err != nil {
 			return &ValidationError{Name: "nonce", err: fmt.Errorf(`ent: validator failed for field "User.nonce": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.KeySalt(); ok {
+	if v, ok := _u.mutation.KeySalt(); ok {
 		if err := user.KeySaltValidator(v); err != nil {
 			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
 		}
@@ -746,17 +746,17 @@ func (uuo *UserUpdateOne) check() error {
 	return nil
 }
 
-func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
-	if err := uuo.check(); err != nil {
+func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
-	id, ok := uuo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := uuo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, user.FieldID)
 		for _, f := range fields {
@@ -768,65 +768,65 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			}
 		}
 	}
-	if ps := uuo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := uuo.mutation.Username(); ok {
+	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.AlertDiscordId(); ok {
+	if value, ok := _u.mutation.AlertDiscordId(); ok {
 		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.AlertEmail(); ok {
+	if value, ok := _u.mutation.AlertEmail(); ok {
 		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.Locked(); ok {
+	if value, ok := _u.mutation.Locked(); ok {
 		_spec.SetField(user.FieldLocked, field.TypeBool, value)
 	}
-	if value, ok := uuo.mutation.LockedUntil(); ok {
+	if value, ok := _u.mutation.LockedUntil(); ok {
 		_spec.SetField(user.FieldLockedUntil, field.TypeTime, value)
 	}
-	if uuo.mutation.LockedUntilCleared() {
+	if _u.mutation.LockedUntilCleared() {
 		_spec.ClearField(user.FieldLockedUntil, field.TypeTime)
 	}
-	if value, ok := uuo.mutation.Content(); ok {
+	if value, ok := _u.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 	}
-	if value, ok := uuo.mutation.FileName(); ok {
+	if value, ok := _u.mutation.FileName(); ok {
 		_spec.SetField(user.FieldFileName, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.Mime(); ok {
+	if value, ok := _u.mutation.Mime(); ok {
 		_spec.SetField(user.FieldMime, field.TypeString, value)
 	}
-	if value, ok := uuo.mutation.Nonce(); ok {
+	if value, ok := _u.mutation.Nonce(); ok {
 		_spec.SetField(user.FieldNonce, field.TypeBytes, value)
 	}
-	if value, ok := uuo.mutation.KeySalt(); ok {
+	if value, ok := _u.mutation.KeySalt(); ok {
 		_spec.SetField(user.FieldKeySalt, field.TypeBytes, value)
 	}
-	if value, ok := uuo.mutation.HashTime(); ok {
+	if value, ok := _u.mutation.HashTime(); ok {
 		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
 	}
-	if value, ok := uuo.mutation.AddedHashTime(); ok {
+	if value, ok := _u.mutation.AddedHashTime(); ok {
 		_spec.AddField(user.FieldHashTime, field.TypeUint32, value)
 	}
-	if value, ok := uuo.mutation.HashMemory(); ok {
+	if value, ok := _u.mutation.HashMemory(); ok {
 		_spec.SetField(user.FieldHashMemory, field.TypeUint32, value)
 	}
-	if value, ok := uuo.mutation.AddedHashMemory(); ok {
+	if value, ok := _u.mutation.AddedHashMemory(); ok {
 		_spec.AddField(user.FieldHashMemory, field.TypeUint32, value)
 	}
-	if value, ok := uuo.mutation.HashThreads(); ok {
+	if value, ok := _u.mutation.HashThreads(); ok {
 		_spec.SetField(user.FieldHashThreads, field.TypeUint8, value)
 	}
-	if value, ok := uuo.mutation.AddedHashThreads(); ok {
+	if value, ok := _u.mutation.AddedHashThreads(); ok {
 		_spec.AddField(user.FieldHashThreads, field.TypeUint8, value)
 	}
-	if uuo.mutation.SessionsCleared() {
+	if _u.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -839,7 +839,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedSessionsIDs(); len(nodes) > 0 && !uuo.mutation.SessionsCleared() {
+	if nodes := _u.mutation.RemovedSessionsIDs(); len(nodes) > 0 && !_u.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -855,7 +855,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.SessionsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.SessionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -871,10 +871,10 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &User{config: uuo.config}
+	_node = &User{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, uuo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -882,6 +882,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		return nil, err
 	}
-	uuo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

@@ -49,8 +49,12 @@ func init() {
 	jobDescRetries := jobFields[10].Descriptor()
 	// job.DefaultRetries holds the default value on creation for the retries field.
 	job.DefaultRetries = jobDescRetries.Default.(int)
+	// jobDescRetriedFraction is the schema descriptor for retriedFraction field.
+	jobDescRetriedFraction := jobFields[11].Descriptor()
+	// job.DefaultRetriedFraction holds the default value on creation for the retriedFraction field.
+	job.DefaultRetriedFraction = jobDescRetriedFraction.Default.(float64)
 	// jobDescLoggedStallWarning is the schema descriptor for loggedStallWarning field.
-	jobDescLoggedStallWarning := jobFields[11].Descriptor()
+	jobDescLoggedStallWarning := jobFields[12].Descriptor()
 	// job.DefaultLoggedStallWarning holds the default value on creation for the loggedStallWarning field.
 	job.DefaultLoggedStallWarning = jobDescLoggedStallWarning.Default.(bool)
 	// jobDescID is the schema descriptor for id field.

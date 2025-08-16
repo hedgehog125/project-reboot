@@ -54,6 +54,8 @@ type JobMutation struct {
 	status             *job.Status
 	retries            *int
 	addretries         *int
+	retriedFraction    *float64
+	addretriedFraction *float64
 	loggedStallWarning *bool
 	clearedFields      map[string]struct{}
 	done               bool
@@ -618,6 +620,62 @@ func (m *JobMutation) ResetRetries() {
 	m.addretries = nil
 }
 
+// SetRetriedFraction sets the "retriedFraction" field.
+func (m *JobMutation) SetRetriedFraction(f float64) {
+	m.retriedFraction = &f
+	m.addretriedFraction = nil
+}
+
+// RetriedFraction returns the value of the "retriedFraction" field in the mutation.
+func (m *JobMutation) RetriedFraction() (r float64, exists bool) {
+	v := m.retriedFraction
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRetriedFraction returns the old "retriedFraction" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldRetriedFraction(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRetriedFraction is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRetriedFraction requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRetriedFraction: %w", err)
+	}
+	return oldValue.RetriedFraction, nil
+}
+
+// AddRetriedFraction adds f to the "retriedFraction" field.
+func (m *JobMutation) AddRetriedFraction(f float64) {
+	if m.addretriedFraction != nil {
+		*m.addretriedFraction += f
+	} else {
+		m.addretriedFraction = &f
+	}
+}
+
+// AddedRetriedFraction returns the value that was added to the "retriedFraction" field in this mutation.
+func (m *JobMutation) AddedRetriedFraction() (r float64, exists bool) {
+	v := m.addretriedFraction
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRetriedFraction resets all changes to the "retriedFraction" field.
+func (m *JobMutation) ResetRetriedFraction() {
+	m.retriedFraction = nil
+	m.addretriedFraction = nil
+}
+
 // SetLoggedStallWarning sets the "loggedStallWarning" field.
 func (m *JobMutation) SetLoggedStallWarning(b bool) {
 	m.loggedStallWarning = &b
@@ -688,7 +746,7 @@ func (m *JobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *JobMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created != nil {
 		fields = append(fields, job.FieldCreated)
 	}
@@ -718,6 +776,9 @@ func (m *JobMutation) Fields() []string {
 	}
 	if m.retries != nil {
 		fields = append(fields, job.FieldRetries)
+	}
+	if m.retriedFraction != nil {
+		fields = append(fields, job.FieldRetriedFraction)
 	}
 	if m.loggedStallWarning != nil {
 		fields = append(fields, job.FieldLoggedStallWarning)
@@ -750,6 +811,8 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case job.FieldRetries:
 		return m.Retries()
+	case job.FieldRetriedFraction:
+		return m.RetriedFraction()
 	case job.FieldLoggedStallWarning:
 		return m.LoggedStallWarning()
 	}
@@ -781,6 +844,8 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldStatus(ctx)
 	case job.FieldRetries:
 		return m.OldRetries(ctx)
+	case job.FieldRetriedFraction:
+		return m.OldRetriedFraction(ctx)
 	case job.FieldLoggedStallWarning:
 		return m.OldLoggedStallWarning(ctx)
 	}
@@ -862,6 +927,13 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRetries(v)
 		return nil
+	case job.FieldRetriedFraction:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRetriedFraction(v)
+		return nil
 	case job.FieldLoggedStallWarning:
 		v, ok := value.(bool)
 		if !ok {
@@ -889,6 +961,9 @@ func (m *JobMutation) AddedFields() []string {
 	if m.addretries != nil {
 		fields = append(fields, job.FieldRetries)
 	}
+	if m.addretriedFraction != nil {
+		fields = append(fields, job.FieldRetriedFraction)
+	}
 	return fields
 }
 
@@ -905,6 +980,8 @@ func (m *JobMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedWeight()
 	case job.FieldRetries:
 		return m.AddedRetries()
+	case job.FieldRetriedFraction:
+		return m.AddedRetriedFraction()
 	}
 	return nil, false
 }
@@ -941,6 +1018,13 @@ func (m *JobMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRetries(v)
+		return nil
+	case job.FieldRetriedFraction:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRetriedFraction(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Job numeric field %s", name)
@@ -1007,6 +1091,9 @@ func (m *JobMutation) ResetField(name string) error {
 		return nil
 	case job.FieldRetries:
 		m.ResetRetries()
+		return nil
+	case job.FieldRetriedFraction:
+		m.ResetRetriedFraction()
 		return nil
 	case job.FieldLoggedStallWarning:
 		m.ResetLoggedStallWarning()

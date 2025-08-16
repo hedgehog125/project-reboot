@@ -29,40 +29,40 @@ type TwoFactorActionQuery struct {
 }
 
 // Where adds a new predicate for the TwoFactorActionQuery builder.
-func (tfaq *TwoFactorActionQuery) Where(ps ...predicate.TwoFactorAction) *TwoFactorActionQuery {
-	tfaq.predicates = append(tfaq.predicates, ps...)
-	return tfaq
+func (_q *TwoFactorActionQuery) Where(ps ...predicate.TwoFactorAction) *TwoFactorActionQuery {
+	_q.predicates = append(_q.predicates, ps...)
+	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (tfaq *TwoFactorActionQuery) Limit(limit int) *TwoFactorActionQuery {
-	tfaq.ctx.Limit = &limit
-	return tfaq
+func (_q *TwoFactorActionQuery) Limit(limit int) *TwoFactorActionQuery {
+	_q.ctx.Limit = &limit
+	return _q
 }
 
 // Offset to start from.
-func (tfaq *TwoFactorActionQuery) Offset(offset int) *TwoFactorActionQuery {
-	tfaq.ctx.Offset = &offset
-	return tfaq
+func (_q *TwoFactorActionQuery) Offset(offset int) *TwoFactorActionQuery {
+	_q.ctx.Offset = &offset
+	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (tfaq *TwoFactorActionQuery) Unique(unique bool) *TwoFactorActionQuery {
-	tfaq.ctx.Unique = &unique
-	return tfaq
+func (_q *TwoFactorActionQuery) Unique(unique bool) *TwoFactorActionQuery {
+	_q.ctx.Unique = &unique
+	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (tfaq *TwoFactorActionQuery) Order(o ...twofactoraction.OrderOption) *TwoFactorActionQuery {
-	tfaq.order = append(tfaq.order, o...)
-	return tfaq
+func (_q *TwoFactorActionQuery) Order(o ...twofactoraction.OrderOption) *TwoFactorActionQuery {
+	_q.order = append(_q.order, o...)
+	return _q
 }
 
 // First returns the first TwoFactorAction entity from the query.
 // Returns a *NotFoundError when no TwoFactorAction was found.
-func (tfaq *TwoFactorActionQuery) First(ctx context.Context) (*TwoFactorAction, error) {
-	nodes, err := tfaq.Limit(1).All(setContextOp(ctx, tfaq.ctx, ent.OpQueryFirst))
+func (_q *TwoFactorActionQuery) First(ctx context.Context) (*TwoFactorAction, error) {
+	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,8 @@ func (tfaq *TwoFactorActionQuery) First(ctx context.Context) (*TwoFactorAction, 
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) FirstX(ctx context.Context) *TwoFactorAction {
-	node, err := tfaq.First(ctx)
+func (_q *TwoFactorActionQuery) FirstX(ctx context.Context) *TwoFactorAction {
+	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -83,9 +83,9 @@ func (tfaq *TwoFactorActionQuery) FirstX(ctx context.Context) *TwoFactorAction {
 
 // FirstID returns the first TwoFactorAction ID from the query.
 // Returns a *NotFoundError when no TwoFactorAction ID was found.
-func (tfaq *TwoFactorActionQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+func (_q *TwoFactorActionQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = tfaq.Limit(1).IDs(setContextOp(ctx, tfaq.ctx, ent.OpQueryFirstID)); err != nil {
+	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -96,8 +96,8 @@ func (tfaq *TwoFactorActionQuery) FirstID(ctx context.Context) (id uuid.UUID, er
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) FirstIDX(ctx context.Context) uuid.UUID {
-	id, err := tfaq.FirstID(ctx)
+func (_q *TwoFactorActionQuery) FirstIDX(ctx context.Context) uuid.UUID {
+	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
@@ -107,8 +107,8 @@ func (tfaq *TwoFactorActionQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Only returns a single TwoFactorAction entity found by the query, ensuring it only returns one.
 // Returns a *NotSingularError when more than one TwoFactorAction entity is found.
 // Returns a *NotFoundError when no TwoFactorAction entities are found.
-func (tfaq *TwoFactorActionQuery) Only(ctx context.Context) (*TwoFactorAction, error) {
-	nodes, err := tfaq.Limit(2).All(setContextOp(ctx, tfaq.ctx, ent.OpQueryOnly))
+func (_q *TwoFactorActionQuery) Only(ctx context.Context) (*TwoFactorAction, error) {
+	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -123,8 +123,8 @@ func (tfaq *TwoFactorActionQuery) Only(ctx context.Context) (*TwoFactorAction, e
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) OnlyX(ctx context.Context) *TwoFactorAction {
-	node, err := tfaq.Only(ctx)
+func (_q *TwoFactorActionQuery) OnlyX(ctx context.Context) *TwoFactorAction {
+	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -134,9 +134,9 @@ func (tfaq *TwoFactorActionQuery) OnlyX(ctx context.Context) *TwoFactorAction {
 // OnlyID is like Only, but returns the only TwoFactorAction ID in the query.
 // Returns a *NotSingularError when more than one TwoFactorAction ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (tfaq *TwoFactorActionQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+func (_q *TwoFactorActionQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = tfaq.Limit(2).IDs(setContextOp(ctx, tfaq.ctx, ent.OpQueryOnlyID)); err != nil {
+	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -151,8 +151,8 @@ func (tfaq *TwoFactorActionQuery) OnlyID(ctx context.Context) (id uuid.UUID, err
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) OnlyIDX(ctx context.Context) uuid.UUID {
-	id, err := tfaq.OnlyID(ctx)
+func (_q *TwoFactorActionQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -160,18 +160,18 @@ func (tfaq *TwoFactorActionQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 }
 
 // All executes the query and returns a list of TwoFactorActions.
-func (tfaq *TwoFactorActionQuery) All(ctx context.Context) ([]*TwoFactorAction, error) {
-	ctx = setContextOp(ctx, tfaq.ctx, ent.OpQueryAll)
-	if err := tfaq.prepareQuery(ctx); err != nil {
+func (_q *TwoFactorActionQuery) All(ctx context.Context) ([]*TwoFactorAction, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
 	qr := querierAll[[]*TwoFactorAction, *TwoFactorActionQuery]()
-	return withInterceptors[[]*TwoFactorAction](ctx, tfaq, qr, tfaq.inters)
+	return withInterceptors[[]*TwoFactorAction](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) AllX(ctx context.Context) []*TwoFactorAction {
-	nodes, err := tfaq.All(ctx)
+func (_q *TwoFactorActionQuery) AllX(ctx context.Context) []*TwoFactorAction {
+	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -179,20 +179,20 @@ func (tfaq *TwoFactorActionQuery) AllX(ctx context.Context) []*TwoFactorAction {
 }
 
 // IDs executes the query and returns a list of TwoFactorAction IDs.
-func (tfaq *TwoFactorActionQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
-	if tfaq.ctx.Unique == nil && tfaq.path != nil {
-		tfaq.Unique(true)
+func (_q *TwoFactorActionQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if _q.ctx.Unique == nil && _q.path != nil {
+		_q.Unique(true)
 	}
-	ctx = setContextOp(ctx, tfaq.ctx, ent.OpQueryIDs)
-	if err = tfaq.Select(twofactoraction.FieldID).Scan(ctx, &ids); err != nil {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
+	if err = _q.Select(twofactoraction.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) IDsX(ctx context.Context) []uuid.UUID {
-	ids, err := tfaq.IDs(ctx)
+func (_q *TwoFactorActionQuery) IDsX(ctx context.Context) []uuid.UUID {
+	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -200,17 +200,17 @@ func (tfaq *TwoFactorActionQuery) IDsX(ctx context.Context) []uuid.UUID {
 }
 
 // Count returns the count of the given query.
-func (tfaq *TwoFactorActionQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, tfaq.ctx, ent.OpQueryCount)
-	if err := tfaq.prepareQuery(ctx); err != nil {
+func (_q *TwoFactorActionQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
+	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, tfaq, querierCount[*TwoFactorActionQuery](), tfaq.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*TwoFactorActionQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) CountX(ctx context.Context) int {
-	count, err := tfaq.Count(ctx)
+func (_q *TwoFactorActionQuery) CountX(ctx context.Context) int {
+	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -218,9 +218,9 @@ func (tfaq *TwoFactorActionQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (tfaq *TwoFactorActionQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, tfaq.ctx, ent.OpQueryExist)
-	switch _, err := tfaq.FirstID(ctx); {
+func (_q *TwoFactorActionQuery) Exist(ctx context.Context) (bool, error) {
+	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
+	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
 	case err != nil:
@@ -231,8 +231,8 @@ func (tfaq *TwoFactorActionQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (tfaq *TwoFactorActionQuery) ExistX(ctx context.Context) bool {
-	exist, err := tfaq.Exist(ctx)
+func (_q *TwoFactorActionQuery) ExistX(ctx context.Context) bool {
+	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -241,19 +241,19 @@ func (tfaq *TwoFactorActionQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the TwoFactorActionQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (tfaq *TwoFactorActionQuery) Clone() *TwoFactorActionQuery {
-	if tfaq == nil {
+func (_q *TwoFactorActionQuery) Clone() *TwoFactorActionQuery {
+	if _q == nil {
 		return nil
 	}
 	return &TwoFactorActionQuery{
-		config:     tfaq.config,
-		ctx:        tfaq.ctx.Clone(),
-		order:      append([]twofactoraction.OrderOption{}, tfaq.order...),
-		inters:     append([]Interceptor{}, tfaq.inters...),
-		predicates: append([]predicate.TwoFactorAction{}, tfaq.predicates...),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]twofactoraction.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.TwoFactorAction{}, _q.predicates...),
 		// clone intermediate query.
-		sql:  tfaq.sql.Clone(),
-		path: tfaq.path,
+		sql:  _q.sql.Clone(),
+		path: _q.path,
 	}
 }
 
@@ -271,10 +271,10 @@ func (tfaq *TwoFactorActionQuery) Clone() *TwoFactorActionQuery {
 //		GroupBy(twofactoraction.FieldType).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (tfaq *TwoFactorActionQuery) GroupBy(field string, fields ...string) *TwoFactorActionGroupBy {
-	tfaq.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &TwoFactorActionGroupBy{build: tfaq}
-	grbuild.flds = &tfaq.ctx.Fields
+func (_q *TwoFactorActionQuery) GroupBy(field string, fields ...string) *TwoFactorActionGroupBy {
+	_q.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &TwoFactorActionGroupBy{build: _q}
+	grbuild.flds = &_q.ctx.Fields
 	grbuild.label = twofactoraction.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
@@ -292,62 +292,62 @@ func (tfaq *TwoFactorActionQuery) GroupBy(field string, fields ...string) *TwoFa
 //	client.TwoFactorAction.Query().
 //		Select(twofactoraction.FieldType).
 //		Scan(ctx, &v)
-func (tfaq *TwoFactorActionQuery) Select(fields ...string) *TwoFactorActionSelect {
-	tfaq.ctx.Fields = append(tfaq.ctx.Fields, fields...)
-	sbuild := &TwoFactorActionSelect{TwoFactorActionQuery: tfaq}
+func (_q *TwoFactorActionQuery) Select(fields ...string) *TwoFactorActionSelect {
+	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
+	sbuild := &TwoFactorActionSelect{TwoFactorActionQuery: _q}
 	sbuild.label = twofactoraction.Label
-	sbuild.flds, sbuild.scan = &tfaq.ctx.Fields, sbuild.Scan
+	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
 // Aggregate returns a TwoFactorActionSelect configured with the given aggregations.
-func (tfaq *TwoFactorActionQuery) Aggregate(fns ...AggregateFunc) *TwoFactorActionSelect {
-	return tfaq.Select().Aggregate(fns...)
+func (_q *TwoFactorActionQuery) Aggregate(fns ...AggregateFunc) *TwoFactorActionSelect {
+	return _q.Select().Aggregate(fns...)
 }
 
-func (tfaq *TwoFactorActionQuery) prepareQuery(ctx context.Context) error {
-	for _, inter := range tfaq.inters {
+func (_q *TwoFactorActionQuery) prepareQuery(ctx context.Context) error {
+	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
 		}
 		if trv, ok := inter.(Traverser); ok {
-			if err := trv.Traverse(ctx, tfaq); err != nil {
+			if err := trv.Traverse(ctx, _q); err != nil {
 				return err
 			}
 		}
 	}
-	for _, f := range tfaq.ctx.Fields {
+	for _, f := range _q.ctx.Fields {
 		if !twofactoraction.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
-	if tfaq.path != nil {
-		prev, err := tfaq.path(ctx)
+	if _q.path != nil {
+		prev, err := _q.path(ctx)
 		if err != nil {
 			return err
 		}
-		tfaq.sql = prev
+		_q.sql = prev
 	}
 	return nil
 }
 
-func (tfaq *TwoFactorActionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*TwoFactorAction, error) {
+func (_q *TwoFactorActionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*TwoFactorAction, error) {
 	var (
 		nodes = []*TwoFactorAction{}
-		_spec = tfaq.querySpec()
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*TwoFactorAction).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &TwoFactorAction{config: tfaq.config}
+		node := &TwoFactorAction{config: _q.config}
 		nodes = append(nodes, node)
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
-	if err := sqlgraph.QueryNodes(ctx, tfaq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, _q.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
@@ -356,24 +356,24 @@ func (tfaq *TwoFactorActionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	return nodes, nil
 }
 
-func (tfaq *TwoFactorActionQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := tfaq.querySpec()
-	_spec.Node.Columns = tfaq.ctx.Fields
-	if len(tfaq.ctx.Fields) > 0 {
-		_spec.Unique = tfaq.ctx.Unique != nil && *tfaq.ctx.Unique
+func (_q *TwoFactorActionQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := _q.querySpec()
+	_spec.Node.Columns = _q.ctx.Fields
+	if len(_q.ctx.Fields) > 0 {
+		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
 	}
-	return sqlgraph.CountNodes(ctx, tfaq.driver, _spec)
+	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (tfaq *TwoFactorActionQuery) querySpec() *sqlgraph.QuerySpec {
+func (_q *TwoFactorActionQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := sqlgraph.NewQuerySpec(twofactoraction.Table, twofactoraction.Columns, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeUUID))
-	_spec.From = tfaq.sql
-	if unique := tfaq.ctx.Unique; unique != nil {
+	_spec.From = _q.sql
+	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
-	} else if tfaq.path != nil {
+	} else if _q.path != nil {
 		_spec.Unique = true
 	}
-	if fields := tfaq.ctx.Fields; len(fields) > 0 {
+	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, twofactoraction.FieldID)
 		for i := range fields {
@@ -382,20 +382,20 @@ func (tfaq *TwoFactorActionQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if ps := tfaq.predicates; len(ps) > 0 {
+	if ps := _q.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := tfaq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := tfaq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := tfaq.order; len(ps) > 0 {
+	if ps := _q.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -405,33 +405,33 @@ func (tfaq *TwoFactorActionQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (tfaq *TwoFactorActionQuery) sqlQuery(ctx context.Context) *sql.Selector {
-	builder := sql.Dialect(tfaq.driver.Dialect())
+func (_q *TwoFactorActionQuery) sqlQuery(ctx context.Context) *sql.Selector {
+	builder := sql.Dialect(_q.driver.Dialect())
 	t1 := builder.Table(twofactoraction.Table)
-	columns := tfaq.ctx.Fields
+	columns := _q.ctx.Fields
 	if len(columns) == 0 {
 		columns = twofactoraction.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
-	if tfaq.sql != nil {
-		selector = tfaq.sql
+	if _q.sql != nil {
+		selector = _q.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if tfaq.ctx.Unique != nil && *tfaq.ctx.Unique {
+	if _q.ctx.Unique != nil && *_q.ctx.Unique {
 		selector.Distinct()
 	}
-	for _, p := range tfaq.predicates {
+	for _, p := range _q.predicates {
 		p(selector)
 	}
-	for _, p := range tfaq.order {
+	for _, p := range _q.order {
 		p(selector)
 	}
-	if offset := tfaq.ctx.Offset; offset != nil {
+	if offset := _q.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := tfaq.ctx.Limit; limit != nil {
+	if limit := _q.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -444,41 +444,41 @@ type TwoFactorActionGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (tfagb *TwoFactorActionGroupBy) Aggregate(fns ...AggregateFunc) *TwoFactorActionGroupBy {
-	tfagb.fns = append(tfagb.fns, fns...)
-	return tfagb
+func (_g *TwoFactorActionGroupBy) Aggregate(fns ...AggregateFunc) *TwoFactorActionGroupBy {
+	_g.fns = append(_g.fns, fns...)
+	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (tfagb *TwoFactorActionGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, tfagb.build.ctx, ent.OpQueryGroupBy)
-	if err := tfagb.build.prepareQuery(ctx); err != nil {
+func (_g *TwoFactorActionGroupBy) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
+	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*TwoFactorActionQuery, *TwoFactorActionGroupBy](ctx, tfagb.build, tfagb, tfagb.build.inters, v)
+	return scanWithInterceptors[*TwoFactorActionQuery, *TwoFactorActionGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (tfagb *TwoFactorActionGroupBy) sqlScan(ctx context.Context, root *TwoFactorActionQuery, v any) error {
+func (_g *TwoFactorActionGroupBy) sqlScan(ctx context.Context, root *TwoFactorActionQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
-	aggregation := make([]string, 0, len(tfagb.fns))
-	for _, fn := range tfagb.fns {
+	aggregation := make([]string, 0, len(_g.fns))
+	for _, fn := range _g.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
 	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(*tfagb.flds)+len(tfagb.fns))
-		for _, f := range *tfagb.flds {
+		columns := make([]string, 0, len(*_g.flds)+len(_g.fns))
+		for _, f := range *_g.flds {
 			columns = append(columns, selector.C(f))
 		}
 		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
-	selector.GroupBy(selector.Columns(*tfagb.flds...)...)
+	selector.GroupBy(selector.Columns(*_g.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := tfagb.build.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _g.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
@@ -492,27 +492,27 @@ type TwoFactorActionSelect struct {
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (tfas *TwoFactorActionSelect) Aggregate(fns ...AggregateFunc) *TwoFactorActionSelect {
-	tfas.fns = append(tfas.fns, fns...)
-	return tfas
+func (_s *TwoFactorActionSelect) Aggregate(fns ...AggregateFunc) *TwoFactorActionSelect {
+	_s.fns = append(_s.fns, fns...)
+	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (tfas *TwoFactorActionSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, tfas.ctx, ent.OpQuerySelect)
-	if err := tfas.prepareQuery(ctx); err != nil {
+func (_s *TwoFactorActionSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
+	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*TwoFactorActionQuery, *TwoFactorActionSelect](ctx, tfas.TwoFactorActionQuery, tfas, tfas.inters, v)
+	return scanWithInterceptors[*TwoFactorActionQuery, *TwoFactorActionSelect](ctx, _s.TwoFactorActionQuery, _s, _s.inters, v)
 }
 
-func (tfas *TwoFactorActionSelect) sqlScan(ctx context.Context, root *TwoFactorActionQuery, v any) error {
+func (_s *TwoFactorActionSelect) sqlScan(ctx context.Context, root *TwoFactorActionQuery, v any) error {
 	selector := root.sqlQuery(ctx)
-	aggregation := make([]string, 0, len(tfas.fns))
-	for _, fn := range tfas.fns {
+	aggregation := make([]string, 0, len(_s.fns))
+	for _, fn := range _s.fns {
 		aggregation = append(aggregation, fn(selector))
 	}
-	switch n := len(*tfas.selector.flds); {
+	switch n := len(*_s.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
 		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
@@ -520,7 +520,7 @@ func (tfas *TwoFactorActionSelect) sqlScan(ctx context.Context, root *TwoFactorA
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := tfas.driver.Query(ctx, query, args, rows); err != nil {
+	if err := _s.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()

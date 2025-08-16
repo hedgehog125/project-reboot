@@ -25,63 +25,63 @@ type TwoFactorActionCreate struct {
 }
 
 // SetType sets the "type" field.
-func (tfac *TwoFactorActionCreate) SetType(s string) *TwoFactorActionCreate {
-	tfac.mutation.SetType(s)
-	return tfac
+func (_c *TwoFactorActionCreate) SetType(v string) *TwoFactorActionCreate {
+	_c.mutation.SetType(v)
+	return _c
 }
 
 // SetVersion sets the "version" field.
-func (tfac *TwoFactorActionCreate) SetVersion(i int) *TwoFactorActionCreate {
-	tfac.mutation.SetVersion(i)
-	return tfac
+func (_c *TwoFactorActionCreate) SetVersion(v int) *TwoFactorActionCreate {
+	_c.mutation.SetVersion(v)
+	return _c
 }
 
 // SetData sets the "data" field.
-func (tfac *TwoFactorActionCreate) SetData(s string) *TwoFactorActionCreate {
-	tfac.mutation.SetData(s)
-	return tfac
+func (_c *TwoFactorActionCreate) SetData(v string) *TwoFactorActionCreate {
+	_c.mutation.SetData(v)
+	return _c
 }
 
 // SetExpiresAt sets the "expiresAt" field.
-func (tfac *TwoFactorActionCreate) SetExpiresAt(t time.Time) *TwoFactorActionCreate {
-	tfac.mutation.SetExpiresAt(t)
-	return tfac
+func (_c *TwoFactorActionCreate) SetExpiresAt(v time.Time) *TwoFactorActionCreate {
+	_c.mutation.SetExpiresAt(v)
+	return _c
 }
 
 // SetCode sets the "code" field.
-func (tfac *TwoFactorActionCreate) SetCode(s string) *TwoFactorActionCreate {
-	tfac.mutation.SetCode(s)
-	return tfac
+func (_c *TwoFactorActionCreate) SetCode(v string) *TwoFactorActionCreate {
+	_c.mutation.SetCode(v)
+	return _c
 }
 
 // SetID sets the "id" field.
-func (tfac *TwoFactorActionCreate) SetID(u uuid.UUID) *TwoFactorActionCreate {
-	tfac.mutation.SetID(u)
-	return tfac
+func (_c *TwoFactorActionCreate) SetID(v uuid.UUID) *TwoFactorActionCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // SetNillableID sets the "id" field if the given value is not nil.
-func (tfac *TwoFactorActionCreate) SetNillableID(u *uuid.UUID) *TwoFactorActionCreate {
-	if u != nil {
-		tfac.SetID(*u)
+func (_c *TwoFactorActionCreate) SetNillableID(v *uuid.UUID) *TwoFactorActionCreate {
+	if v != nil {
+		_c.SetID(*v)
 	}
-	return tfac
+	return _c
 }
 
 // Mutation returns the TwoFactorActionMutation object of the builder.
-func (tfac *TwoFactorActionCreate) Mutation() *TwoFactorActionMutation {
-	return tfac.mutation
+func (_c *TwoFactorActionCreate) Mutation() *TwoFactorActionMutation {
+	return _c.mutation
 }
 
 // Save creates the TwoFactorAction in the database.
-func (tfac *TwoFactorActionCreate) Save(ctx context.Context) (*TwoFactorAction, error) {
-	tfac.defaults()
-	return withHooks(ctx, tfac.sqlSave, tfac.mutation, tfac.hooks)
+func (_c *TwoFactorActionCreate) Save(ctx context.Context) (*TwoFactorAction, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (tfac *TwoFactorActionCreate) SaveX(ctx context.Context) *TwoFactorAction {
-	v, err := tfac.Save(ctx)
+func (_c *TwoFactorActionCreate) SaveX(ctx context.Context) *TwoFactorAction {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -89,49 +89,49 @@ func (tfac *TwoFactorActionCreate) SaveX(ctx context.Context) *TwoFactorAction {
 }
 
 // Exec executes the query.
-func (tfac *TwoFactorActionCreate) Exec(ctx context.Context) error {
-	_, err := tfac.Save(ctx)
+func (_c *TwoFactorActionCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (tfac *TwoFactorActionCreate) ExecX(ctx context.Context) {
-	if err := tfac.Exec(ctx); err != nil {
+func (_c *TwoFactorActionCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (tfac *TwoFactorActionCreate) defaults() {
-	if _, ok := tfac.mutation.ID(); !ok {
+func (_c *TwoFactorActionCreate) defaults() {
+	if _, ok := _c.mutation.ID(); !ok {
 		v := twofactoraction.DefaultID()
-		tfac.mutation.SetID(v)
+		_c.mutation.SetID(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (tfac *TwoFactorActionCreate) check() error {
-	if _, ok := tfac.mutation.GetType(); !ok {
+func (_c *TwoFactorActionCreate) check() error {
+	if _, ok := _c.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "TwoFactorAction.type"`)}
 	}
-	if v, ok := tfac.mutation.GetType(); ok {
+	if v, ok := _c.mutation.GetType(); ok {
 		if err := twofactoraction.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "TwoFactorAction.type": %w`, err)}
 		}
 	}
-	if _, ok := tfac.mutation.Version(); !ok {
+	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "TwoFactorAction.version"`)}
 	}
-	if _, ok := tfac.mutation.Data(); !ok {
+	if _, ok := _c.mutation.Data(); !ok {
 		return &ValidationError{Name: "data", err: errors.New(`ent: missing required field "TwoFactorAction.data"`)}
 	}
-	if _, ok := tfac.mutation.ExpiresAt(); !ok {
+	if _, ok := _c.mutation.ExpiresAt(); !ok {
 		return &ValidationError{Name: "expiresAt", err: errors.New(`ent: missing required field "TwoFactorAction.expiresAt"`)}
 	}
-	if _, ok := tfac.mutation.Code(); !ok {
+	if _, ok := _c.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "TwoFactorAction.code"`)}
 	}
-	if v, ok := tfac.mutation.Code(); ok {
+	if v, ok := _c.mutation.Code(); ok {
 		if err := twofactoraction.CodeValidator(v); err != nil {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "TwoFactorAction.code": %w`, err)}
 		}
@@ -139,12 +139,12 @@ func (tfac *TwoFactorActionCreate) check() error {
 	return nil
 }
 
-func (tfac *TwoFactorActionCreate) sqlSave(ctx context.Context) (*TwoFactorAction, error) {
-	if err := tfac.check(); err != nil {
+func (_c *TwoFactorActionCreate) sqlSave(ctx context.Context) (*TwoFactorAction, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := tfac.createSpec()
-	if err := sqlgraph.CreateNode(ctx, tfac.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -157,38 +157,38 @@ func (tfac *TwoFactorActionCreate) sqlSave(ctx context.Context) (*TwoFactorActio
 			return nil, err
 		}
 	}
-	tfac.mutation.id = &_node.ID
-	tfac.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (tfac *TwoFactorActionCreate) createSpec() (*TwoFactorAction, *sqlgraph.CreateSpec) {
+func (_c *TwoFactorActionCreate) createSpec() (*TwoFactorAction, *sqlgraph.CreateSpec) {
 	var (
-		_node = &TwoFactorAction{config: tfac.config}
+		_node = &TwoFactorAction{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(twofactoraction.Table, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeUUID))
 	)
-	_spec.OnConflict = tfac.conflict
-	if id, ok := tfac.mutation.ID(); ok {
+	_spec.OnConflict = _c.conflict
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := tfac.mutation.GetType(); ok {
+	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(twofactoraction.FieldType, field.TypeString, value)
 		_node.Type = value
 	}
-	if value, ok := tfac.mutation.Version(); ok {
+	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(twofactoraction.FieldVersion, field.TypeInt, value)
 		_node.Version = value
 	}
-	if value, ok := tfac.mutation.Data(); ok {
+	if value, ok := _c.mutation.Data(); ok {
 		_spec.SetField(twofactoraction.FieldData, field.TypeJSON, value)
 		_node.Data = value
 	}
-	if value, ok := tfac.mutation.ExpiresAt(); ok {
+	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(twofactoraction.FieldExpiresAt, field.TypeTime, value)
 		_node.ExpiresAt = value
 	}
-	if value, ok := tfac.mutation.Code(); ok {
+	if value, ok := _c.mutation.Code(); ok {
 		_spec.SetField(twofactoraction.FieldCode, field.TypeString, value)
 		_node.Code = value
 	}
@@ -211,10 +211,10 @@ func (tfac *TwoFactorActionCreate) createSpec() (*TwoFactorAction, *sqlgraph.Cre
 //			SetType(v+v).
 //		}).
 //		Exec(ctx)
-func (tfac *TwoFactorActionCreate) OnConflict(opts ...sql.ConflictOption) *TwoFactorActionUpsertOne {
-	tfac.conflict = opts
+func (_c *TwoFactorActionCreate) OnConflict(opts ...sql.ConflictOption) *TwoFactorActionUpsertOne {
+	_c.conflict = opts
 	return &TwoFactorActionUpsertOne{
-		create: tfac,
+		create: _c,
 	}
 }
 
@@ -224,10 +224,10 @@ func (tfac *TwoFactorActionCreate) OnConflict(opts ...sql.ConflictOption) *TwoFa
 //	client.TwoFactorAction.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (tfac *TwoFactorActionCreate) OnConflictColumns(columns ...string) *TwoFactorActionUpsertOne {
-	tfac.conflict = append(tfac.conflict, sql.ConflictColumns(columns...))
+func (_c *TwoFactorActionCreate) OnConflictColumns(columns ...string) *TwoFactorActionUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
 	return &TwoFactorActionUpsertOne{
-		create: tfac,
+		create: _c,
 	}
 }
 
@@ -482,16 +482,16 @@ type TwoFactorActionCreateBulk struct {
 }
 
 // Save creates the TwoFactorAction entities in the database.
-func (tfacb *TwoFactorActionCreateBulk) Save(ctx context.Context) ([]*TwoFactorAction, error) {
-	if tfacb.err != nil {
-		return nil, tfacb.err
+func (_c *TwoFactorActionCreateBulk) Save(ctx context.Context) ([]*TwoFactorAction, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(tfacb.builders))
-	nodes := make([]*TwoFactorAction, len(tfacb.builders))
-	mutators := make([]Mutator, len(tfacb.builders))
-	for i := range tfacb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*TwoFactorAction, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := tfacb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TwoFactorActionMutation)
@@ -505,12 +505,12 @@ func (tfacb *TwoFactorActionCreateBulk) Save(ctx context.Context) ([]*TwoFactorA
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, tfacb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
-					spec.OnConflict = tfacb.conflict
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, tfacb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -530,7 +530,7 @@ func (tfacb *TwoFactorActionCreateBulk) Save(ctx context.Context) ([]*TwoFactorA
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, tfacb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -538,8 +538,8 @@ func (tfacb *TwoFactorActionCreateBulk) Save(ctx context.Context) ([]*TwoFactorA
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (tfacb *TwoFactorActionCreateBulk) SaveX(ctx context.Context) []*TwoFactorAction {
-	v, err := tfacb.Save(ctx)
+func (_c *TwoFactorActionCreateBulk) SaveX(ctx context.Context) []*TwoFactorAction {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -547,14 +547,14 @@ func (tfacb *TwoFactorActionCreateBulk) SaveX(ctx context.Context) []*TwoFactorA
 }
 
 // Exec executes the query.
-func (tfacb *TwoFactorActionCreateBulk) Exec(ctx context.Context) error {
-	_, err := tfacb.Save(ctx)
+func (_c *TwoFactorActionCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (tfacb *TwoFactorActionCreateBulk) ExecX(ctx context.Context) {
-	if err := tfacb.Exec(ctx); err != nil {
+func (_c *TwoFactorActionCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
@@ -574,10 +574,10 @@ func (tfacb *TwoFactorActionCreateBulk) ExecX(ctx context.Context) {
 //			SetType(v+v).
 //		}).
 //		Exec(ctx)
-func (tfacb *TwoFactorActionCreateBulk) OnConflict(opts ...sql.ConflictOption) *TwoFactorActionUpsertBulk {
-	tfacb.conflict = opts
+func (_c *TwoFactorActionCreateBulk) OnConflict(opts ...sql.ConflictOption) *TwoFactorActionUpsertBulk {
+	_c.conflict = opts
 	return &TwoFactorActionUpsertBulk{
-		create: tfacb,
+		create: _c,
 	}
 }
 
@@ -587,10 +587,10 @@ func (tfacb *TwoFactorActionCreateBulk) OnConflict(opts ...sql.ConflictOption) *
 //	client.TwoFactorAction.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (tfacb *TwoFactorActionCreateBulk) OnConflictColumns(columns ...string) *TwoFactorActionUpsertBulk {
-	tfacb.conflict = append(tfacb.conflict, sql.ConflictColumns(columns...))
+func (_c *TwoFactorActionCreateBulk) OnConflictColumns(columns ...string) *TwoFactorActionUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
 	return &TwoFactorActionUpsertBulk{
-		create: tfacb,
+		create: _c,
 	}
 }
 

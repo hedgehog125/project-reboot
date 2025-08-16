@@ -23,101 +23,101 @@ type TwoFactorActionUpdate struct {
 }
 
 // Where appends a list predicates to the TwoFactorActionUpdate builder.
-func (tfau *TwoFactorActionUpdate) Where(ps ...predicate.TwoFactorAction) *TwoFactorActionUpdate {
-	tfau.mutation.Where(ps...)
-	return tfau
+func (_u *TwoFactorActionUpdate) Where(ps ...predicate.TwoFactorAction) *TwoFactorActionUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetType sets the "type" field.
-func (tfau *TwoFactorActionUpdate) SetType(s string) *TwoFactorActionUpdate {
-	tfau.mutation.SetType(s)
-	return tfau
+func (_u *TwoFactorActionUpdate) SetType(v string) *TwoFactorActionUpdate {
+	_u.mutation.SetType(v)
+	return _u
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (tfau *TwoFactorActionUpdate) SetNillableType(s *string) *TwoFactorActionUpdate {
-	if s != nil {
-		tfau.SetType(*s)
+func (_u *TwoFactorActionUpdate) SetNillableType(v *string) *TwoFactorActionUpdate {
+	if v != nil {
+		_u.SetType(*v)
 	}
-	return tfau
+	return _u
 }
 
 // SetVersion sets the "version" field.
-func (tfau *TwoFactorActionUpdate) SetVersion(i int) *TwoFactorActionUpdate {
-	tfau.mutation.ResetVersion()
-	tfau.mutation.SetVersion(i)
-	return tfau
+func (_u *TwoFactorActionUpdate) SetVersion(v int) *TwoFactorActionUpdate {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
 }
 
 // SetNillableVersion sets the "version" field if the given value is not nil.
-func (tfau *TwoFactorActionUpdate) SetNillableVersion(i *int) *TwoFactorActionUpdate {
-	if i != nil {
-		tfau.SetVersion(*i)
+func (_u *TwoFactorActionUpdate) SetNillableVersion(v *int) *TwoFactorActionUpdate {
+	if v != nil {
+		_u.SetVersion(*v)
 	}
-	return tfau
+	return _u
 }
 
-// AddVersion adds i to the "version" field.
-func (tfau *TwoFactorActionUpdate) AddVersion(i int) *TwoFactorActionUpdate {
-	tfau.mutation.AddVersion(i)
-	return tfau
+// AddVersion adds value to the "version" field.
+func (_u *TwoFactorActionUpdate) AddVersion(v int) *TwoFactorActionUpdate {
+	_u.mutation.AddVersion(v)
+	return _u
 }
 
 // SetData sets the "data" field.
-func (tfau *TwoFactorActionUpdate) SetData(s string) *TwoFactorActionUpdate {
-	tfau.mutation.SetData(s)
-	return tfau
+func (_u *TwoFactorActionUpdate) SetData(v string) *TwoFactorActionUpdate {
+	_u.mutation.SetData(v)
+	return _u
 }
 
 // SetNillableData sets the "data" field if the given value is not nil.
-func (tfau *TwoFactorActionUpdate) SetNillableData(s *string) *TwoFactorActionUpdate {
-	if s != nil {
-		tfau.SetData(*s)
+func (_u *TwoFactorActionUpdate) SetNillableData(v *string) *TwoFactorActionUpdate {
+	if v != nil {
+		_u.SetData(*v)
 	}
-	return tfau
+	return _u
 }
 
 // SetExpiresAt sets the "expiresAt" field.
-func (tfau *TwoFactorActionUpdate) SetExpiresAt(t time.Time) *TwoFactorActionUpdate {
-	tfau.mutation.SetExpiresAt(t)
-	return tfau
+func (_u *TwoFactorActionUpdate) SetExpiresAt(v time.Time) *TwoFactorActionUpdate {
+	_u.mutation.SetExpiresAt(v)
+	return _u
 }
 
 // SetNillableExpiresAt sets the "expiresAt" field if the given value is not nil.
-func (tfau *TwoFactorActionUpdate) SetNillableExpiresAt(t *time.Time) *TwoFactorActionUpdate {
-	if t != nil {
-		tfau.SetExpiresAt(*t)
+func (_u *TwoFactorActionUpdate) SetNillableExpiresAt(v *time.Time) *TwoFactorActionUpdate {
+	if v != nil {
+		_u.SetExpiresAt(*v)
 	}
-	return tfau
+	return _u
 }
 
 // SetCode sets the "code" field.
-func (tfau *TwoFactorActionUpdate) SetCode(s string) *TwoFactorActionUpdate {
-	tfau.mutation.SetCode(s)
-	return tfau
+func (_u *TwoFactorActionUpdate) SetCode(v string) *TwoFactorActionUpdate {
+	_u.mutation.SetCode(v)
+	return _u
 }
 
 // SetNillableCode sets the "code" field if the given value is not nil.
-func (tfau *TwoFactorActionUpdate) SetNillableCode(s *string) *TwoFactorActionUpdate {
-	if s != nil {
-		tfau.SetCode(*s)
+func (_u *TwoFactorActionUpdate) SetNillableCode(v *string) *TwoFactorActionUpdate {
+	if v != nil {
+		_u.SetCode(*v)
 	}
-	return tfau
+	return _u
 }
 
 // Mutation returns the TwoFactorActionMutation object of the builder.
-func (tfau *TwoFactorActionUpdate) Mutation() *TwoFactorActionMutation {
-	return tfau.mutation
+func (_u *TwoFactorActionUpdate) Mutation() *TwoFactorActionMutation {
+	return _u.mutation
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (tfau *TwoFactorActionUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, tfau.sqlSave, tfau.mutation, tfau.hooks)
+func (_u *TwoFactorActionUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (tfau *TwoFactorActionUpdate) SaveX(ctx context.Context) int {
-	affected, err := tfau.Save(ctx)
+func (_u *TwoFactorActionUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -125,26 +125,26 @@ func (tfau *TwoFactorActionUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (tfau *TwoFactorActionUpdate) Exec(ctx context.Context) error {
-	_, err := tfau.Save(ctx)
+func (_u *TwoFactorActionUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (tfau *TwoFactorActionUpdate) ExecX(ctx context.Context) {
-	if err := tfau.Exec(ctx); err != nil {
+func (_u *TwoFactorActionUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (tfau *TwoFactorActionUpdate) check() error {
-	if v, ok := tfau.mutation.GetType(); ok {
+func (_u *TwoFactorActionUpdate) check() error {
+	if v, ok := _u.mutation.GetType(); ok {
 		if err := twofactoraction.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "TwoFactorAction.type": %w`, err)}
 		}
 	}
-	if v, ok := tfau.mutation.Code(); ok {
+	if v, ok := _u.mutation.Code(); ok {
 		if err := twofactoraction.CodeValidator(v); err != nil {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "TwoFactorAction.code": %w`, err)}
 		}
@@ -152,37 +152,37 @@ func (tfau *TwoFactorActionUpdate) check() error {
 	return nil
 }
 
-func (tfau *TwoFactorActionUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := tfau.check(); err != nil {
-		return n, err
+func (_u *TwoFactorActionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(twofactoraction.Table, twofactoraction.Columns, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeUUID))
-	if ps := tfau.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := tfau.mutation.GetType(); ok {
+	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(twofactoraction.FieldType, field.TypeString, value)
 	}
-	if value, ok := tfau.mutation.Version(); ok {
+	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(twofactoraction.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := tfau.mutation.AddedVersion(); ok {
+	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(twofactoraction.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := tfau.mutation.Data(); ok {
+	if value, ok := _u.mutation.Data(); ok {
 		_spec.SetField(twofactoraction.FieldData, field.TypeJSON, value)
 	}
-	if value, ok := tfau.mutation.ExpiresAt(); ok {
+	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(twofactoraction.FieldExpiresAt, field.TypeTime, value)
 	}
-	if value, ok := tfau.mutation.Code(); ok {
+	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(twofactoraction.FieldCode, field.TypeString, value)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, tfau.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{twofactoraction.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -190,8 +190,8 @@ func (tfau *TwoFactorActionUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		return 0, err
 	}
-	tfau.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // TwoFactorActionUpdateOne is the builder for updating a single TwoFactorAction entity.
@@ -203,108 +203,108 @@ type TwoFactorActionUpdateOne struct {
 }
 
 // SetType sets the "type" field.
-func (tfauo *TwoFactorActionUpdateOne) SetType(s string) *TwoFactorActionUpdateOne {
-	tfauo.mutation.SetType(s)
-	return tfauo
+func (_u *TwoFactorActionUpdateOne) SetType(v string) *TwoFactorActionUpdateOne {
+	_u.mutation.SetType(v)
+	return _u
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (tfauo *TwoFactorActionUpdateOne) SetNillableType(s *string) *TwoFactorActionUpdateOne {
-	if s != nil {
-		tfauo.SetType(*s)
+func (_u *TwoFactorActionUpdateOne) SetNillableType(v *string) *TwoFactorActionUpdateOne {
+	if v != nil {
+		_u.SetType(*v)
 	}
-	return tfauo
+	return _u
 }
 
 // SetVersion sets the "version" field.
-func (tfauo *TwoFactorActionUpdateOne) SetVersion(i int) *TwoFactorActionUpdateOne {
-	tfauo.mutation.ResetVersion()
-	tfauo.mutation.SetVersion(i)
-	return tfauo
+func (_u *TwoFactorActionUpdateOne) SetVersion(v int) *TwoFactorActionUpdateOne {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
 }
 
 // SetNillableVersion sets the "version" field if the given value is not nil.
-func (tfauo *TwoFactorActionUpdateOne) SetNillableVersion(i *int) *TwoFactorActionUpdateOne {
-	if i != nil {
-		tfauo.SetVersion(*i)
+func (_u *TwoFactorActionUpdateOne) SetNillableVersion(v *int) *TwoFactorActionUpdateOne {
+	if v != nil {
+		_u.SetVersion(*v)
 	}
-	return tfauo
+	return _u
 }
 
-// AddVersion adds i to the "version" field.
-func (tfauo *TwoFactorActionUpdateOne) AddVersion(i int) *TwoFactorActionUpdateOne {
-	tfauo.mutation.AddVersion(i)
-	return tfauo
+// AddVersion adds value to the "version" field.
+func (_u *TwoFactorActionUpdateOne) AddVersion(v int) *TwoFactorActionUpdateOne {
+	_u.mutation.AddVersion(v)
+	return _u
 }
 
 // SetData sets the "data" field.
-func (tfauo *TwoFactorActionUpdateOne) SetData(s string) *TwoFactorActionUpdateOne {
-	tfauo.mutation.SetData(s)
-	return tfauo
+func (_u *TwoFactorActionUpdateOne) SetData(v string) *TwoFactorActionUpdateOne {
+	_u.mutation.SetData(v)
+	return _u
 }
 
 // SetNillableData sets the "data" field if the given value is not nil.
-func (tfauo *TwoFactorActionUpdateOne) SetNillableData(s *string) *TwoFactorActionUpdateOne {
-	if s != nil {
-		tfauo.SetData(*s)
+func (_u *TwoFactorActionUpdateOne) SetNillableData(v *string) *TwoFactorActionUpdateOne {
+	if v != nil {
+		_u.SetData(*v)
 	}
-	return tfauo
+	return _u
 }
 
 // SetExpiresAt sets the "expiresAt" field.
-func (tfauo *TwoFactorActionUpdateOne) SetExpiresAt(t time.Time) *TwoFactorActionUpdateOne {
-	tfauo.mutation.SetExpiresAt(t)
-	return tfauo
+func (_u *TwoFactorActionUpdateOne) SetExpiresAt(v time.Time) *TwoFactorActionUpdateOne {
+	_u.mutation.SetExpiresAt(v)
+	return _u
 }
 
 // SetNillableExpiresAt sets the "expiresAt" field if the given value is not nil.
-func (tfauo *TwoFactorActionUpdateOne) SetNillableExpiresAt(t *time.Time) *TwoFactorActionUpdateOne {
-	if t != nil {
-		tfauo.SetExpiresAt(*t)
+func (_u *TwoFactorActionUpdateOne) SetNillableExpiresAt(v *time.Time) *TwoFactorActionUpdateOne {
+	if v != nil {
+		_u.SetExpiresAt(*v)
 	}
-	return tfauo
+	return _u
 }
 
 // SetCode sets the "code" field.
-func (tfauo *TwoFactorActionUpdateOne) SetCode(s string) *TwoFactorActionUpdateOne {
-	tfauo.mutation.SetCode(s)
-	return tfauo
+func (_u *TwoFactorActionUpdateOne) SetCode(v string) *TwoFactorActionUpdateOne {
+	_u.mutation.SetCode(v)
+	return _u
 }
 
 // SetNillableCode sets the "code" field if the given value is not nil.
-func (tfauo *TwoFactorActionUpdateOne) SetNillableCode(s *string) *TwoFactorActionUpdateOne {
-	if s != nil {
-		tfauo.SetCode(*s)
+func (_u *TwoFactorActionUpdateOne) SetNillableCode(v *string) *TwoFactorActionUpdateOne {
+	if v != nil {
+		_u.SetCode(*v)
 	}
-	return tfauo
+	return _u
 }
 
 // Mutation returns the TwoFactorActionMutation object of the builder.
-func (tfauo *TwoFactorActionUpdateOne) Mutation() *TwoFactorActionMutation {
-	return tfauo.mutation
+func (_u *TwoFactorActionUpdateOne) Mutation() *TwoFactorActionMutation {
+	return _u.mutation
 }
 
 // Where appends a list predicates to the TwoFactorActionUpdate builder.
-func (tfauo *TwoFactorActionUpdateOne) Where(ps ...predicate.TwoFactorAction) *TwoFactorActionUpdateOne {
-	tfauo.mutation.Where(ps...)
-	return tfauo
+func (_u *TwoFactorActionUpdateOne) Where(ps ...predicate.TwoFactorAction) *TwoFactorActionUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (tfauo *TwoFactorActionUpdateOne) Select(field string, fields ...string) *TwoFactorActionUpdateOne {
-	tfauo.fields = append([]string{field}, fields...)
-	return tfauo
+func (_u *TwoFactorActionUpdateOne) Select(field string, fields ...string) *TwoFactorActionUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated TwoFactorAction entity.
-func (tfauo *TwoFactorActionUpdateOne) Save(ctx context.Context) (*TwoFactorAction, error) {
-	return withHooks(ctx, tfauo.sqlSave, tfauo.mutation, tfauo.hooks)
+func (_u *TwoFactorActionUpdateOne) Save(ctx context.Context) (*TwoFactorAction, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (tfauo *TwoFactorActionUpdateOne) SaveX(ctx context.Context) *TwoFactorAction {
-	node, err := tfauo.Save(ctx)
+func (_u *TwoFactorActionUpdateOne) SaveX(ctx context.Context) *TwoFactorAction {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -312,26 +312,26 @@ func (tfauo *TwoFactorActionUpdateOne) SaveX(ctx context.Context) *TwoFactorActi
 }
 
 // Exec executes the query on the entity.
-func (tfauo *TwoFactorActionUpdateOne) Exec(ctx context.Context) error {
-	_, err := tfauo.Save(ctx)
+func (_u *TwoFactorActionUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (tfauo *TwoFactorActionUpdateOne) ExecX(ctx context.Context) {
-	if err := tfauo.Exec(ctx); err != nil {
+func (_u *TwoFactorActionUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (tfauo *TwoFactorActionUpdateOne) check() error {
-	if v, ok := tfauo.mutation.GetType(); ok {
+func (_u *TwoFactorActionUpdateOne) check() error {
+	if v, ok := _u.mutation.GetType(); ok {
 		if err := twofactoraction.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "TwoFactorAction.type": %w`, err)}
 		}
 	}
-	if v, ok := tfauo.mutation.Code(); ok {
+	if v, ok := _u.mutation.Code(); ok {
 		if err := twofactoraction.CodeValidator(v); err != nil {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "TwoFactorAction.code": %w`, err)}
 		}
@@ -339,17 +339,17 @@ func (tfauo *TwoFactorActionUpdateOne) check() error {
 	return nil
 }
 
-func (tfauo *TwoFactorActionUpdateOne) sqlSave(ctx context.Context) (_node *TwoFactorAction, err error) {
-	if err := tfauo.check(); err != nil {
+func (_u *TwoFactorActionUpdateOne) sqlSave(ctx context.Context) (_node *TwoFactorAction, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(twofactoraction.Table, twofactoraction.Columns, sqlgraph.NewFieldSpec(twofactoraction.FieldID, field.TypeUUID))
-	id, ok := tfauo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "TwoFactorAction.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := tfauo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, twofactoraction.FieldID)
 		for _, f := range fields {
@@ -361,35 +361,35 @@ func (tfauo *TwoFactorActionUpdateOne) sqlSave(ctx context.Context) (_node *TwoF
 			}
 		}
 	}
-	if ps := tfauo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := tfauo.mutation.GetType(); ok {
+	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(twofactoraction.FieldType, field.TypeString, value)
 	}
-	if value, ok := tfauo.mutation.Version(); ok {
+	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(twofactoraction.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := tfauo.mutation.AddedVersion(); ok {
+	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(twofactoraction.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := tfauo.mutation.Data(); ok {
+	if value, ok := _u.mutation.Data(); ok {
 		_spec.SetField(twofactoraction.FieldData, field.TypeJSON, value)
 	}
-	if value, ok := tfauo.mutation.ExpiresAt(); ok {
+	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(twofactoraction.FieldExpiresAt, field.TypeTime, value)
 	}
-	if value, ok := tfauo.mutation.Code(); ok {
+	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(twofactoraction.FieldCode, field.TypeString, value)
 	}
-	_node = &TwoFactorAction{config: tfauo.config}
+	_node = &TwoFactorAction{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, tfauo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{twofactoraction.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -397,6 +397,6 @@ func (tfauo *TwoFactorActionUpdateOne) sqlSave(ctx context.Context) (_node *TwoF
 		}
 		return nil, err
 	}
-	tfauo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

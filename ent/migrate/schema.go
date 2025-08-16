@@ -21,6 +21,7 @@ var (
 		{Name: "data", Type: field.TypeJSON},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "running", "failed"}, Default: "pending"},
 		{Name: "retries", Type: field.TypeInt, Default: 0},
+		{Name: "retried_fraction", Type: field.TypeFloat64, Default: 0},
 		{Name: "logged_stall_warning", Type: field.TypeBool, Default: false},
 	}
 	// JobsTable holds the schema information for the "jobs" table.

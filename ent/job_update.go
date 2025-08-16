@@ -23,212 +23,233 @@ type JobUpdate struct {
 }
 
 // Where appends a list predicates to the JobUpdate builder.
-func (ju *JobUpdate) Where(ps ...predicate.Job) *JobUpdate {
-	ju.mutation.Where(ps...)
-	return ju
+func (_u *JobUpdate) Where(ps ...predicate.Job) *JobUpdate {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // SetCreated sets the "created" field.
-func (ju *JobUpdate) SetCreated(t time.Time) *JobUpdate {
-	ju.mutation.SetCreated(t)
-	return ju
+func (_u *JobUpdate) SetCreated(v time.Time) *JobUpdate {
+	_u.mutation.SetCreated(v)
+	return _u
 }
 
 // SetNillableCreated sets the "created" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableCreated(t *time.Time) *JobUpdate {
-	if t != nil {
-		ju.SetCreated(*t)
+func (_u *JobUpdate) SetNillableCreated(v *time.Time) *JobUpdate {
+	if v != nil {
+		_u.SetCreated(*v)
 	}
-	return ju
+	return _u
 }
 
 // SetDue sets the "due" field.
-func (ju *JobUpdate) SetDue(t time.Time) *JobUpdate {
-	ju.mutation.SetDue(t)
-	return ju
+func (_u *JobUpdate) SetDue(v time.Time) *JobUpdate {
+	_u.mutation.SetDue(v)
+	return _u
 }
 
 // SetNillableDue sets the "due" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableDue(t *time.Time) *JobUpdate {
-	if t != nil {
-		ju.SetDue(*t)
+func (_u *JobUpdate) SetNillableDue(v *time.Time) *JobUpdate {
+	if v != nil {
+		_u.SetDue(*v)
 	}
-	return ju
+	return _u
 }
 
 // SetStarted sets the "started" field.
-func (ju *JobUpdate) SetStarted(t time.Time) *JobUpdate {
-	ju.mutation.SetStarted(t)
-	return ju
+func (_u *JobUpdate) SetStarted(v time.Time) *JobUpdate {
+	_u.mutation.SetStarted(v)
+	return _u
 }
 
 // SetNillableStarted sets the "started" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableStarted(t *time.Time) *JobUpdate {
-	if t != nil {
-		ju.SetStarted(*t)
+func (_u *JobUpdate) SetNillableStarted(v *time.Time) *JobUpdate {
+	if v != nil {
+		_u.SetStarted(*v)
 	}
-	return ju
+	return _u
 }
 
 // ClearStarted clears the value of the "started" field.
-func (ju *JobUpdate) ClearStarted() *JobUpdate {
-	ju.mutation.ClearStarted()
-	return ju
+func (_u *JobUpdate) ClearStarted() *JobUpdate {
+	_u.mutation.ClearStarted()
+	return _u
 }
 
 // SetType sets the "type" field.
-func (ju *JobUpdate) SetType(s string) *JobUpdate {
-	ju.mutation.SetType(s)
-	return ju
+func (_u *JobUpdate) SetType(v string) *JobUpdate {
+	_u.mutation.SetType(v)
+	return _u
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableType(s *string) *JobUpdate {
-	if s != nil {
-		ju.SetType(*s)
+func (_u *JobUpdate) SetNillableType(v *string) *JobUpdate {
+	if v != nil {
+		_u.SetType(*v)
 	}
-	return ju
+	return _u
 }
 
 // SetVersion sets the "version" field.
-func (ju *JobUpdate) SetVersion(i int) *JobUpdate {
-	ju.mutation.ResetVersion()
-	ju.mutation.SetVersion(i)
-	return ju
+func (_u *JobUpdate) SetVersion(v int) *JobUpdate {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
 }
 
 // SetNillableVersion sets the "version" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableVersion(i *int) *JobUpdate {
-	if i != nil {
-		ju.SetVersion(*i)
+func (_u *JobUpdate) SetNillableVersion(v *int) *JobUpdate {
+	if v != nil {
+		_u.SetVersion(*v)
 	}
-	return ju
+	return _u
 }
 
-// AddVersion adds i to the "version" field.
-func (ju *JobUpdate) AddVersion(i int) *JobUpdate {
-	ju.mutation.AddVersion(i)
-	return ju
+// AddVersion adds value to the "version" field.
+func (_u *JobUpdate) AddVersion(v int) *JobUpdate {
+	_u.mutation.AddVersion(v)
+	return _u
 }
 
 // SetPriority sets the "priority" field.
-func (ju *JobUpdate) SetPriority(i int8) *JobUpdate {
-	ju.mutation.ResetPriority()
-	ju.mutation.SetPriority(i)
-	return ju
+func (_u *JobUpdate) SetPriority(v int8) *JobUpdate {
+	_u.mutation.ResetPriority()
+	_u.mutation.SetPriority(v)
+	return _u
 }
 
 // SetNillablePriority sets the "priority" field if the given value is not nil.
-func (ju *JobUpdate) SetNillablePriority(i *int8) *JobUpdate {
-	if i != nil {
-		ju.SetPriority(*i)
+func (_u *JobUpdate) SetNillablePriority(v *int8) *JobUpdate {
+	if v != nil {
+		_u.SetPriority(*v)
 	}
-	return ju
+	return _u
 }
 
-// AddPriority adds i to the "priority" field.
-func (ju *JobUpdate) AddPriority(i int8) *JobUpdate {
-	ju.mutation.AddPriority(i)
-	return ju
+// AddPriority adds value to the "priority" field.
+func (_u *JobUpdate) AddPriority(v int8) *JobUpdate {
+	_u.mutation.AddPriority(v)
+	return _u
 }
 
 // SetWeight sets the "weight" field.
-func (ju *JobUpdate) SetWeight(i int) *JobUpdate {
-	ju.mutation.ResetWeight()
-	ju.mutation.SetWeight(i)
-	return ju
+func (_u *JobUpdate) SetWeight(v int) *JobUpdate {
+	_u.mutation.ResetWeight()
+	_u.mutation.SetWeight(v)
+	return _u
 }
 
 // SetNillableWeight sets the "weight" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableWeight(i *int) *JobUpdate {
-	if i != nil {
-		ju.SetWeight(*i)
+func (_u *JobUpdate) SetNillableWeight(v *int) *JobUpdate {
+	if v != nil {
+		_u.SetWeight(*v)
 	}
-	return ju
+	return _u
 }
 
-// AddWeight adds i to the "weight" field.
-func (ju *JobUpdate) AddWeight(i int) *JobUpdate {
-	ju.mutation.AddWeight(i)
-	return ju
+// AddWeight adds value to the "weight" field.
+func (_u *JobUpdate) AddWeight(v int) *JobUpdate {
+	_u.mutation.AddWeight(v)
+	return _u
 }
 
 // SetData sets the "data" field.
-func (ju *JobUpdate) SetData(s string) *JobUpdate {
-	ju.mutation.SetData(s)
-	return ju
+func (_u *JobUpdate) SetData(v string) *JobUpdate {
+	_u.mutation.SetData(v)
+	return _u
 }
 
 // SetNillableData sets the "data" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableData(s *string) *JobUpdate {
-	if s != nil {
-		ju.SetData(*s)
+func (_u *JobUpdate) SetNillableData(v *string) *JobUpdate {
+	if v != nil {
+		_u.SetData(*v)
 	}
-	return ju
+	return _u
 }
 
 // SetStatus sets the "status" field.
-func (ju *JobUpdate) SetStatus(j job.Status) *JobUpdate {
-	ju.mutation.SetStatus(j)
-	return ju
+func (_u *JobUpdate) SetStatus(v job.Status) *JobUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableStatus(j *job.Status) *JobUpdate {
-	if j != nil {
-		ju.SetStatus(*j)
+func (_u *JobUpdate) SetNillableStatus(v *job.Status) *JobUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
 	}
-	return ju
+	return _u
 }
 
 // SetRetries sets the "retries" field.
-func (ju *JobUpdate) SetRetries(i int) *JobUpdate {
-	ju.mutation.ResetRetries()
-	ju.mutation.SetRetries(i)
-	return ju
+func (_u *JobUpdate) SetRetries(v int) *JobUpdate {
+	_u.mutation.ResetRetries()
+	_u.mutation.SetRetries(v)
+	return _u
 }
 
 // SetNillableRetries sets the "retries" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableRetries(i *int) *JobUpdate {
-	if i != nil {
-		ju.SetRetries(*i)
+func (_u *JobUpdate) SetNillableRetries(v *int) *JobUpdate {
+	if v != nil {
+		_u.SetRetries(*v)
 	}
-	return ju
+	return _u
 }
 
-// AddRetries adds i to the "retries" field.
-func (ju *JobUpdate) AddRetries(i int) *JobUpdate {
-	ju.mutation.AddRetries(i)
-	return ju
+// AddRetries adds value to the "retries" field.
+func (_u *JobUpdate) AddRetries(v int) *JobUpdate {
+	_u.mutation.AddRetries(v)
+	return _u
+}
+
+// SetRetriedFraction sets the "retriedFraction" field.
+func (_u *JobUpdate) SetRetriedFraction(v float64) *JobUpdate {
+	_u.mutation.ResetRetriedFraction()
+	_u.mutation.SetRetriedFraction(v)
+	return _u
+}
+
+// SetNillableRetriedFraction sets the "retriedFraction" field if the given value is not nil.
+func (_u *JobUpdate) SetNillableRetriedFraction(v *float64) *JobUpdate {
+	if v != nil {
+		_u.SetRetriedFraction(*v)
+	}
+	return _u
+}
+
+// AddRetriedFraction adds value to the "retriedFraction" field.
+func (_u *JobUpdate) AddRetriedFraction(v float64) *JobUpdate {
+	_u.mutation.AddRetriedFraction(v)
+	return _u
 }
 
 // SetLoggedStallWarning sets the "loggedStallWarning" field.
-func (ju *JobUpdate) SetLoggedStallWarning(b bool) *JobUpdate {
-	ju.mutation.SetLoggedStallWarning(b)
-	return ju
+func (_u *JobUpdate) SetLoggedStallWarning(v bool) *JobUpdate {
+	_u.mutation.SetLoggedStallWarning(v)
+	return _u
 }
 
 // SetNillableLoggedStallWarning sets the "loggedStallWarning" field if the given value is not nil.
-func (ju *JobUpdate) SetNillableLoggedStallWarning(b *bool) *JobUpdate {
-	if b != nil {
-		ju.SetLoggedStallWarning(*b)
+func (_u *JobUpdate) SetNillableLoggedStallWarning(v *bool) *JobUpdate {
+	if v != nil {
+		_u.SetLoggedStallWarning(*v)
 	}
-	return ju
+	return _u
 }
 
 // Mutation returns the JobMutation object of the builder.
-func (ju *JobUpdate) Mutation() *JobMutation {
-	return ju.mutation
+func (_u *JobUpdate) Mutation() *JobMutation {
+	return _u.mutation
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (ju *JobUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks(ctx, ju.sqlSave, ju.mutation, ju.hooks)
+func (_u *JobUpdate) Save(ctx context.Context) (int, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (ju *JobUpdate) SaveX(ctx context.Context) int {
-	affected, err := ju.Save(ctx)
+func (_u *JobUpdate) SaveX(ctx context.Context) int {
+	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -236,26 +257,26 @@ func (ju *JobUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (ju *JobUpdate) Exec(ctx context.Context) error {
-	_, err := ju.Save(ctx)
+func (_u *JobUpdate) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (ju *JobUpdate) ExecX(ctx context.Context) {
-	if err := ju.Exec(ctx); err != nil {
+func (_u *JobUpdate) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (ju *JobUpdate) check() error {
-	if v, ok := ju.mutation.GetType(); ok {
+func (_u *JobUpdate) check() error {
+	if v, ok := _u.mutation.GetType(); ok {
 		if err := job.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Job.type": %w`, err)}
 		}
 	}
-	if v, ok := ju.mutation.Status(); ok {
+	if v, ok := _u.mutation.Status(); ok {
 		if err := job.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Job.status": %w`, err)}
 		}
@@ -263,67 +284,73 @@ func (ju *JobUpdate) check() error {
 	return nil
 }
 
-func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := ju.check(); err != nil {
-		return n, err
+func (_u *JobUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(job.Table, job.Columns, sqlgraph.NewFieldSpec(job.FieldID, field.TypeUUID))
-	if ps := ju.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := ju.mutation.Created(); ok {
+	if value, ok := _u.mutation.Created(); ok {
 		_spec.SetField(job.FieldCreated, field.TypeTime, value)
 	}
-	if value, ok := ju.mutation.Due(); ok {
+	if value, ok := _u.mutation.Due(); ok {
 		_spec.SetField(job.FieldDue, field.TypeTime, value)
 	}
-	if value, ok := ju.mutation.Started(); ok {
+	if value, ok := _u.mutation.Started(); ok {
 		_spec.SetField(job.FieldStarted, field.TypeTime, value)
 	}
-	if ju.mutation.StartedCleared() {
+	if _u.mutation.StartedCleared() {
 		_spec.ClearField(job.FieldStarted, field.TypeTime)
 	}
-	if value, ok := ju.mutation.GetType(); ok {
+	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)
 	}
-	if value, ok := ju.mutation.Version(); ok {
+	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(job.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := ju.mutation.AddedVersion(); ok {
+	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(job.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := ju.mutation.Priority(); ok {
+	if value, ok := _u.mutation.Priority(); ok {
 		_spec.SetField(job.FieldPriority, field.TypeInt8, value)
 	}
-	if value, ok := ju.mutation.AddedPriority(); ok {
+	if value, ok := _u.mutation.AddedPriority(); ok {
 		_spec.AddField(job.FieldPriority, field.TypeInt8, value)
 	}
-	if value, ok := ju.mutation.Weight(); ok {
+	if value, ok := _u.mutation.Weight(); ok {
 		_spec.SetField(job.FieldWeight, field.TypeInt, value)
 	}
-	if value, ok := ju.mutation.AddedWeight(); ok {
+	if value, ok := _u.mutation.AddedWeight(); ok {
 		_spec.AddField(job.FieldWeight, field.TypeInt, value)
 	}
-	if value, ok := ju.mutation.Data(); ok {
+	if value, ok := _u.mutation.Data(); ok {
 		_spec.SetField(job.FieldData, field.TypeJSON, value)
 	}
-	if value, ok := ju.mutation.Status(); ok {
+	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(job.FieldStatus, field.TypeEnum, value)
 	}
-	if value, ok := ju.mutation.Retries(); ok {
+	if value, ok := _u.mutation.Retries(); ok {
 		_spec.SetField(job.FieldRetries, field.TypeInt, value)
 	}
-	if value, ok := ju.mutation.AddedRetries(); ok {
+	if value, ok := _u.mutation.AddedRetries(); ok {
 		_spec.AddField(job.FieldRetries, field.TypeInt, value)
 	}
-	if value, ok := ju.mutation.LoggedStallWarning(); ok {
+	if value, ok := _u.mutation.RetriedFraction(); ok {
+		_spec.SetField(job.FieldRetriedFraction, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedRetriedFraction(); ok {
+		_spec.AddField(job.FieldRetriedFraction, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.LoggedStallWarning(); ok {
 		_spec.SetField(job.FieldLoggedStallWarning, field.TypeBool, value)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, ju.driver, _spec); err != nil {
+	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{job.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -331,8 +358,8 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
-	ju.mutation.done = true
-	return n, nil
+	_u.mutation.done = true
+	return _node, nil
 }
 
 // JobUpdateOne is the builder for updating a single Job entity.
@@ -344,219 +371,240 @@ type JobUpdateOne struct {
 }
 
 // SetCreated sets the "created" field.
-func (juo *JobUpdateOne) SetCreated(t time.Time) *JobUpdateOne {
-	juo.mutation.SetCreated(t)
-	return juo
+func (_u *JobUpdateOne) SetCreated(v time.Time) *JobUpdateOne {
+	_u.mutation.SetCreated(v)
+	return _u
 }
 
 // SetNillableCreated sets the "created" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableCreated(t *time.Time) *JobUpdateOne {
-	if t != nil {
-		juo.SetCreated(*t)
+func (_u *JobUpdateOne) SetNillableCreated(v *time.Time) *JobUpdateOne {
+	if v != nil {
+		_u.SetCreated(*v)
 	}
-	return juo
+	return _u
 }
 
 // SetDue sets the "due" field.
-func (juo *JobUpdateOne) SetDue(t time.Time) *JobUpdateOne {
-	juo.mutation.SetDue(t)
-	return juo
+func (_u *JobUpdateOne) SetDue(v time.Time) *JobUpdateOne {
+	_u.mutation.SetDue(v)
+	return _u
 }
 
 // SetNillableDue sets the "due" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableDue(t *time.Time) *JobUpdateOne {
-	if t != nil {
-		juo.SetDue(*t)
+func (_u *JobUpdateOne) SetNillableDue(v *time.Time) *JobUpdateOne {
+	if v != nil {
+		_u.SetDue(*v)
 	}
-	return juo
+	return _u
 }
 
 // SetStarted sets the "started" field.
-func (juo *JobUpdateOne) SetStarted(t time.Time) *JobUpdateOne {
-	juo.mutation.SetStarted(t)
-	return juo
+func (_u *JobUpdateOne) SetStarted(v time.Time) *JobUpdateOne {
+	_u.mutation.SetStarted(v)
+	return _u
 }
 
 // SetNillableStarted sets the "started" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableStarted(t *time.Time) *JobUpdateOne {
-	if t != nil {
-		juo.SetStarted(*t)
+func (_u *JobUpdateOne) SetNillableStarted(v *time.Time) *JobUpdateOne {
+	if v != nil {
+		_u.SetStarted(*v)
 	}
-	return juo
+	return _u
 }
 
 // ClearStarted clears the value of the "started" field.
-func (juo *JobUpdateOne) ClearStarted() *JobUpdateOne {
-	juo.mutation.ClearStarted()
-	return juo
+func (_u *JobUpdateOne) ClearStarted() *JobUpdateOne {
+	_u.mutation.ClearStarted()
+	return _u
 }
 
 // SetType sets the "type" field.
-func (juo *JobUpdateOne) SetType(s string) *JobUpdateOne {
-	juo.mutation.SetType(s)
-	return juo
+func (_u *JobUpdateOne) SetType(v string) *JobUpdateOne {
+	_u.mutation.SetType(v)
+	return _u
 }
 
 // SetNillableType sets the "type" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableType(s *string) *JobUpdateOne {
-	if s != nil {
-		juo.SetType(*s)
+func (_u *JobUpdateOne) SetNillableType(v *string) *JobUpdateOne {
+	if v != nil {
+		_u.SetType(*v)
 	}
-	return juo
+	return _u
 }
 
 // SetVersion sets the "version" field.
-func (juo *JobUpdateOne) SetVersion(i int) *JobUpdateOne {
-	juo.mutation.ResetVersion()
-	juo.mutation.SetVersion(i)
-	return juo
+func (_u *JobUpdateOne) SetVersion(v int) *JobUpdateOne {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
 }
 
 // SetNillableVersion sets the "version" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableVersion(i *int) *JobUpdateOne {
-	if i != nil {
-		juo.SetVersion(*i)
+func (_u *JobUpdateOne) SetNillableVersion(v *int) *JobUpdateOne {
+	if v != nil {
+		_u.SetVersion(*v)
 	}
-	return juo
+	return _u
 }
 
-// AddVersion adds i to the "version" field.
-func (juo *JobUpdateOne) AddVersion(i int) *JobUpdateOne {
-	juo.mutation.AddVersion(i)
-	return juo
+// AddVersion adds value to the "version" field.
+func (_u *JobUpdateOne) AddVersion(v int) *JobUpdateOne {
+	_u.mutation.AddVersion(v)
+	return _u
 }
 
 // SetPriority sets the "priority" field.
-func (juo *JobUpdateOne) SetPriority(i int8) *JobUpdateOne {
-	juo.mutation.ResetPriority()
-	juo.mutation.SetPriority(i)
-	return juo
+func (_u *JobUpdateOne) SetPriority(v int8) *JobUpdateOne {
+	_u.mutation.ResetPriority()
+	_u.mutation.SetPriority(v)
+	return _u
 }
 
 // SetNillablePriority sets the "priority" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillablePriority(i *int8) *JobUpdateOne {
-	if i != nil {
-		juo.SetPriority(*i)
+func (_u *JobUpdateOne) SetNillablePriority(v *int8) *JobUpdateOne {
+	if v != nil {
+		_u.SetPriority(*v)
 	}
-	return juo
+	return _u
 }
 
-// AddPriority adds i to the "priority" field.
-func (juo *JobUpdateOne) AddPriority(i int8) *JobUpdateOne {
-	juo.mutation.AddPriority(i)
-	return juo
+// AddPriority adds value to the "priority" field.
+func (_u *JobUpdateOne) AddPriority(v int8) *JobUpdateOne {
+	_u.mutation.AddPriority(v)
+	return _u
 }
 
 // SetWeight sets the "weight" field.
-func (juo *JobUpdateOne) SetWeight(i int) *JobUpdateOne {
-	juo.mutation.ResetWeight()
-	juo.mutation.SetWeight(i)
-	return juo
+func (_u *JobUpdateOne) SetWeight(v int) *JobUpdateOne {
+	_u.mutation.ResetWeight()
+	_u.mutation.SetWeight(v)
+	return _u
 }
 
 // SetNillableWeight sets the "weight" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableWeight(i *int) *JobUpdateOne {
-	if i != nil {
-		juo.SetWeight(*i)
+func (_u *JobUpdateOne) SetNillableWeight(v *int) *JobUpdateOne {
+	if v != nil {
+		_u.SetWeight(*v)
 	}
-	return juo
+	return _u
 }
 
-// AddWeight adds i to the "weight" field.
-func (juo *JobUpdateOne) AddWeight(i int) *JobUpdateOne {
-	juo.mutation.AddWeight(i)
-	return juo
+// AddWeight adds value to the "weight" field.
+func (_u *JobUpdateOne) AddWeight(v int) *JobUpdateOne {
+	_u.mutation.AddWeight(v)
+	return _u
 }
 
 // SetData sets the "data" field.
-func (juo *JobUpdateOne) SetData(s string) *JobUpdateOne {
-	juo.mutation.SetData(s)
-	return juo
+func (_u *JobUpdateOne) SetData(v string) *JobUpdateOne {
+	_u.mutation.SetData(v)
+	return _u
 }
 
 // SetNillableData sets the "data" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableData(s *string) *JobUpdateOne {
-	if s != nil {
-		juo.SetData(*s)
+func (_u *JobUpdateOne) SetNillableData(v *string) *JobUpdateOne {
+	if v != nil {
+		_u.SetData(*v)
 	}
-	return juo
+	return _u
 }
 
 // SetStatus sets the "status" field.
-func (juo *JobUpdateOne) SetStatus(j job.Status) *JobUpdateOne {
-	juo.mutation.SetStatus(j)
-	return juo
+func (_u *JobUpdateOne) SetStatus(v job.Status) *JobUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableStatus(j *job.Status) *JobUpdateOne {
-	if j != nil {
-		juo.SetStatus(*j)
+func (_u *JobUpdateOne) SetNillableStatus(v *job.Status) *JobUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
 	}
-	return juo
+	return _u
 }
 
 // SetRetries sets the "retries" field.
-func (juo *JobUpdateOne) SetRetries(i int) *JobUpdateOne {
-	juo.mutation.ResetRetries()
-	juo.mutation.SetRetries(i)
-	return juo
+func (_u *JobUpdateOne) SetRetries(v int) *JobUpdateOne {
+	_u.mutation.ResetRetries()
+	_u.mutation.SetRetries(v)
+	return _u
 }
 
 // SetNillableRetries sets the "retries" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableRetries(i *int) *JobUpdateOne {
-	if i != nil {
-		juo.SetRetries(*i)
+func (_u *JobUpdateOne) SetNillableRetries(v *int) *JobUpdateOne {
+	if v != nil {
+		_u.SetRetries(*v)
 	}
-	return juo
+	return _u
 }
 
-// AddRetries adds i to the "retries" field.
-func (juo *JobUpdateOne) AddRetries(i int) *JobUpdateOne {
-	juo.mutation.AddRetries(i)
-	return juo
+// AddRetries adds value to the "retries" field.
+func (_u *JobUpdateOne) AddRetries(v int) *JobUpdateOne {
+	_u.mutation.AddRetries(v)
+	return _u
+}
+
+// SetRetriedFraction sets the "retriedFraction" field.
+func (_u *JobUpdateOne) SetRetriedFraction(v float64) *JobUpdateOne {
+	_u.mutation.ResetRetriedFraction()
+	_u.mutation.SetRetriedFraction(v)
+	return _u
+}
+
+// SetNillableRetriedFraction sets the "retriedFraction" field if the given value is not nil.
+func (_u *JobUpdateOne) SetNillableRetriedFraction(v *float64) *JobUpdateOne {
+	if v != nil {
+		_u.SetRetriedFraction(*v)
+	}
+	return _u
+}
+
+// AddRetriedFraction adds value to the "retriedFraction" field.
+func (_u *JobUpdateOne) AddRetriedFraction(v float64) *JobUpdateOne {
+	_u.mutation.AddRetriedFraction(v)
+	return _u
 }
 
 // SetLoggedStallWarning sets the "loggedStallWarning" field.
-func (juo *JobUpdateOne) SetLoggedStallWarning(b bool) *JobUpdateOne {
-	juo.mutation.SetLoggedStallWarning(b)
-	return juo
+func (_u *JobUpdateOne) SetLoggedStallWarning(v bool) *JobUpdateOne {
+	_u.mutation.SetLoggedStallWarning(v)
+	return _u
 }
 
 // SetNillableLoggedStallWarning sets the "loggedStallWarning" field if the given value is not nil.
-func (juo *JobUpdateOne) SetNillableLoggedStallWarning(b *bool) *JobUpdateOne {
-	if b != nil {
-		juo.SetLoggedStallWarning(*b)
+func (_u *JobUpdateOne) SetNillableLoggedStallWarning(v *bool) *JobUpdateOne {
+	if v != nil {
+		_u.SetLoggedStallWarning(*v)
 	}
-	return juo
+	return _u
 }
 
 // Mutation returns the JobMutation object of the builder.
-func (juo *JobUpdateOne) Mutation() *JobMutation {
-	return juo.mutation
+func (_u *JobUpdateOne) Mutation() *JobMutation {
+	return _u.mutation
 }
 
 // Where appends a list predicates to the JobUpdate builder.
-func (juo *JobUpdateOne) Where(ps ...predicate.Job) *JobUpdateOne {
-	juo.mutation.Where(ps...)
-	return juo
+func (_u *JobUpdateOne) Where(ps ...predicate.Job) *JobUpdateOne {
+	_u.mutation.Where(ps...)
+	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (juo *JobUpdateOne) Select(field string, fields ...string) *JobUpdateOne {
-	juo.fields = append([]string{field}, fields...)
-	return juo
+func (_u *JobUpdateOne) Select(field string, fields ...string) *JobUpdateOne {
+	_u.fields = append([]string{field}, fields...)
+	return _u
 }
 
 // Save executes the query and returns the updated Job entity.
-func (juo *JobUpdateOne) Save(ctx context.Context) (*Job, error) {
-	return withHooks(ctx, juo.sqlSave, juo.mutation, juo.hooks)
+func (_u *JobUpdateOne) Save(ctx context.Context) (*Job, error) {
+	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (juo *JobUpdateOne) SaveX(ctx context.Context) *Job {
-	node, err := juo.Save(ctx)
+func (_u *JobUpdateOne) SaveX(ctx context.Context) *Job {
+	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -564,26 +612,26 @@ func (juo *JobUpdateOne) SaveX(ctx context.Context) *Job {
 }
 
 // Exec executes the query on the entity.
-func (juo *JobUpdateOne) Exec(ctx context.Context) error {
-	_, err := juo.Save(ctx)
+func (_u *JobUpdateOne) Exec(ctx context.Context) error {
+	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (juo *JobUpdateOne) ExecX(ctx context.Context) {
-	if err := juo.Exec(ctx); err != nil {
+func (_u *JobUpdateOne) ExecX(ctx context.Context) {
+	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (juo *JobUpdateOne) check() error {
-	if v, ok := juo.mutation.GetType(); ok {
+func (_u *JobUpdateOne) check() error {
+	if v, ok := _u.mutation.GetType(); ok {
 		if err := job.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Job.type": %w`, err)}
 		}
 	}
-	if v, ok := juo.mutation.Status(); ok {
+	if v, ok := _u.mutation.Status(); ok {
 		if err := job.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Job.status": %w`, err)}
 		}
@@ -591,17 +639,17 @@ func (juo *JobUpdateOne) check() error {
 	return nil
 }
 
-func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
-	if err := juo.check(); err != nil {
+func (_u *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
+	if err := _u.check(); err != nil {
 		return _node, err
 	}
 	_spec := sqlgraph.NewUpdateSpec(job.Table, job.Columns, sqlgraph.NewFieldSpec(job.FieldID, field.TypeUUID))
-	id, ok := juo.mutation.ID()
+	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Job.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
-	if fields := juo.fields; len(fields) > 0 {
+	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, job.FieldID)
 		for _, f := range fields {
@@ -613,65 +661,71 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 			}
 		}
 	}
-	if ps := juo.mutation.predicates; len(ps) > 0 {
+	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value, ok := juo.mutation.Created(); ok {
+	if value, ok := _u.mutation.Created(); ok {
 		_spec.SetField(job.FieldCreated, field.TypeTime, value)
 	}
-	if value, ok := juo.mutation.Due(); ok {
+	if value, ok := _u.mutation.Due(); ok {
 		_spec.SetField(job.FieldDue, field.TypeTime, value)
 	}
-	if value, ok := juo.mutation.Started(); ok {
+	if value, ok := _u.mutation.Started(); ok {
 		_spec.SetField(job.FieldStarted, field.TypeTime, value)
 	}
-	if juo.mutation.StartedCleared() {
+	if _u.mutation.StartedCleared() {
 		_spec.ClearField(job.FieldStarted, field.TypeTime)
 	}
-	if value, ok := juo.mutation.GetType(); ok {
+	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)
 	}
-	if value, ok := juo.mutation.Version(); ok {
+	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(job.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := juo.mutation.AddedVersion(); ok {
+	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(job.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := juo.mutation.Priority(); ok {
+	if value, ok := _u.mutation.Priority(); ok {
 		_spec.SetField(job.FieldPriority, field.TypeInt8, value)
 	}
-	if value, ok := juo.mutation.AddedPriority(); ok {
+	if value, ok := _u.mutation.AddedPriority(); ok {
 		_spec.AddField(job.FieldPriority, field.TypeInt8, value)
 	}
-	if value, ok := juo.mutation.Weight(); ok {
+	if value, ok := _u.mutation.Weight(); ok {
 		_spec.SetField(job.FieldWeight, field.TypeInt, value)
 	}
-	if value, ok := juo.mutation.AddedWeight(); ok {
+	if value, ok := _u.mutation.AddedWeight(); ok {
 		_spec.AddField(job.FieldWeight, field.TypeInt, value)
 	}
-	if value, ok := juo.mutation.Data(); ok {
+	if value, ok := _u.mutation.Data(); ok {
 		_spec.SetField(job.FieldData, field.TypeJSON, value)
 	}
-	if value, ok := juo.mutation.Status(); ok {
+	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(job.FieldStatus, field.TypeEnum, value)
 	}
-	if value, ok := juo.mutation.Retries(); ok {
+	if value, ok := _u.mutation.Retries(); ok {
 		_spec.SetField(job.FieldRetries, field.TypeInt, value)
 	}
-	if value, ok := juo.mutation.AddedRetries(); ok {
+	if value, ok := _u.mutation.AddedRetries(); ok {
 		_spec.AddField(job.FieldRetries, field.TypeInt, value)
 	}
-	if value, ok := juo.mutation.LoggedStallWarning(); ok {
+	if value, ok := _u.mutation.RetriedFraction(); ok {
+		_spec.SetField(job.FieldRetriedFraction, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedRetriedFraction(); ok {
+		_spec.AddField(job.FieldRetriedFraction, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.LoggedStallWarning(); ok {
 		_spec.SetField(job.FieldLoggedStallWarning, field.TypeBool, value)
 	}
-	_node = &Job{config: juo.config}
+	_node = &Job{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
-	if err = sqlgraph.UpdateNode(ctx, juo.driver, _spec); err != nil {
+	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{job.Label}
 		} else if sqlgraph.IsConstraintError(err) {
@@ -679,6 +733,6 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 		}
 		return nil, err
 	}
-	juo.mutation.done = true
+	_u.mutation.done = true
 	return _node, nil
 }

@@ -95,6 +95,11 @@ func Retries(v int) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldRetries, v))
 }
 
+// RetriedFraction applies equality check predicate on the "retriedFraction" field. It's identical to RetriedFractionEQ.
+func RetriedFraction(v float64) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldRetriedFraction, v))
+}
+
 // LoggedStallWarning applies equality check predicate on the "loggedStallWarning" field. It's identical to LoggedStallWarningEQ.
 func LoggedStallWarning(v bool) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldLoggedStallWarning, v))
@@ -473,6 +478,46 @@ func RetriesLT(v int) predicate.Job {
 // RetriesLTE applies the LTE predicate on the "retries" field.
 func RetriesLTE(v int) predicate.Job {
 	return predicate.Job(sql.FieldLTE(FieldRetries, v))
+}
+
+// RetriedFractionEQ applies the EQ predicate on the "retriedFraction" field.
+func RetriedFractionEQ(v float64) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldRetriedFraction, v))
+}
+
+// RetriedFractionNEQ applies the NEQ predicate on the "retriedFraction" field.
+func RetriedFractionNEQ(v float64) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldRetriedFraction, v))
+}
+
+// RetriedFractionIn applies the In predicate on the "retriedFraction" field.
+func RetriedFractionIn(vs ...float64) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldRetriedFraction, vs...))
+}
+
+// RetriedFractionNotIn applies the NotIn predicate on the "retriedFraction" field.
+func RetriedFractionNotIn(vs ...float64) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldRetriedFraction, vs...))
+}
+
+// RetriedFractionGT applies the GT predicate on the "retriedFraction" field.
+func RetriedFractionGT(v float64) predicate.Job {
+	return predicate.Job(sql.FieldGT(FieldRetriedFraction, v))
+}
+
+// RetriedFractionGTE applies the GTE predicate on the "retriedFraction" field.
+func RetriedFractionGTE(v float64) predicate.Job {
+	return predicate.Job(sql.FieldGTE(FieldRetriedFraction, v))
+}
+
+// RetriedFractionLT applies the LT predicate on the "retriedFraction" field.
+func RetriedFractionLT(v float64) predicate.Job {
+	return predicate.Job(sql.FieldLT(FieldRetriedFraction, v))
+}
+
+// RetriedFractionLTE applies the LTE predicate on the "retriedFraction" field.
+func RetriedFractionLTE(v float64) predicate.Job {
+	return predicate.Job(sql.FieldLTE(FieldRetriedFraction, v))
 }
 
 // LoggedStallWarningEQ applies the EQ predicate on the "loggedStallWarning" field.

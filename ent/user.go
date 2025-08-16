@@ -91,7 +91,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the User fields.
-func (u *User) assignValues(columns []string, values []any) error {
+func (_m *User) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -102,88 +102,88 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			u.ID = int(value.Int64)
+			_m.ID = int(value.Int64)
 		case user.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field username", values[i])
 			} else if value.Valid {
-				u.Username = value.String
+				_m.Username = value.String
 			}
 		case user.FieldAlertDiscordId:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field alertDiscordId", values[i])
 			} else if value.Valid {
-				u.AlertDiscordId = value.String
+				_m.AlertDiscordId = value.String
 			}
 		case user.FieldAlertEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field alertEmail", values[i])
 			} else if value.Valid {
-				u.AlertEmail = value.String
+				_m.AlertEmail = value.String
 			}
 		case user.FieldLocked:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field locked", values[i])
 			} else if value.Valid {
-				u.Locked = value.Bool
+				_m.Locked = value.Bool
 			}
 		case user.FieldLockedUntil:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field lockedUntil", values[i])
 			} else if value.Valid {
-				u.LockedUntil = new(time.Time)
-				*u.LockedUntil = value.Time
+				_m.LockedUntil = new(time.Time)
+				*_m.LockedUntil = value.Time
 			}
 		case user.FieldContent:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
 			} else if value != nil {
-				u.Content = *value
+				_m.Content = *value
 			}
 		case user.FieldFileName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field fileName", values[i])
 			} else if value.Valid {
-				u.FileName = value.String
+				_m.FileName = value.String
 			}
 		case user.FieldMime:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field mime", values[i])
 			} else if value.Valid {
-				u.Mime = value.String
+				_m.Mime = value.String
 			}
 		case user.FieldNonce:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field nonce", values[i])
 			} else if value != nil {
-				u.Nonce = *value
+				_m.Nonce = *value
 			}
 		case user.FieldKeySalt:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field keySalt", values[i])
 			} else if value != nil {
-				u.KeySalt = *value
+				_m.KeySalt = *value
 			}
 		case user.FieldHashTime:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field hashTime", values[i])
 			} else if value.Valid {
-				u.HashTime = uint32(value.Int64)
+				_m.HashTime = uint32(value.Int64)
 			}
 		case user.FieldHashMemory:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field hashMemory", values[i])
 			} else if value.Valid {
-				u.HashMemory = uint32(value.Int64)
+				_m.HashMemory = uint32(value.Int64)
 			}
 		case user.FieldHashThreads:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field hashThreads", values[i])
 			} else if value.Valid {
-				u.HashThreads = uint8(value.Int64)
+				_m.HashThreads = uint8(value.Int64)
 			}
 		default:
-			u.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -191,78 +191,78 @@ func (u *User) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the User.
 // This includes values selected through modifiers, order, etc.
-func (u *User) Value(name string) (ent.Value, error) {
-	return u.selectValues.Get(name)
+func (_m *User) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // QuerySessions queries the "sessions" edge of the User entity.
-func (u *User) QuerySessions() *SessionQuery {
-	return NewUserClient(u.config).QuerySessions(u)
+func (_m *User) QuerySessions() *SessionQuery {
+	return NewUserClient(_m.config).QuerySessions(_m)
 }
 
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (u *User) Update() *UserUpdateOne {
-	return NewUserClient(u.config).UpdateOne(u)
+func (_m *User) Update() *UserUpdateOne {
+	return NewUserClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the User entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (u *User) Unwrap() *User {
-	_tx, ok := u.config.driver.(*txDriver)
+func (_m *User) Unwrap() *User {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: User is not a transactional entity")
 	}
-	u.config.driver = _tx.drv
-	return u
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (u *User) String() string {
+func (_m *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("username=")
-	builder.WriteString(u.Username)
+	builder.WriteString(_m.Username)
 	builder.WriteString(", ")
 	builder.WriteString("alertDiscordId=")
-	builder.WriteString(u.AlertDiscordId)
+	builder.WriteString(_m.AlertDiscordId)
 	builder.WriteString(", ")
 	builder.WriteString("alertEmail=")
-	builder.WriteString(u.AlertEmail)
+	builder.WriteString(_m.AlertEmail)
 	builder.WriteString(", ")
 	builder.WriteString("locked=")
-	builder.WriteString(fmt.Sprintf("%v", u.Locked))
+	builder.WriteString(fmt.Sprintf("%v", _m.Locked))
 	builder.WriteString(", ")
-	if v := u.LockedUntil; v != nil {
+	if v := _m.LockedUntil; v != nil {
 		builder.WriteString("lockedUntil=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("content=")
-	builder.WriteString(fmt.Sprintf("%v", u.Content))
+	builder.WriteString(fmt.Sprintf("%v", _m.Content))
 	builder.WriteString(", ")
 	builder.WriteString("fileName=")
-	builder.WriteString(u.FileName)
+	builder.WriteString(_m.FileName)
 	builder.WriteString(", ")
 	builder.WriteString("mime=")
-	builder.WriteString(u.Mime)
+	builder.WriteString(_m.Mime)
 	builder.WriteString(", ")
 	builder.WriteString("nonce=")
-	builder.WriteString(fmt.Sprintf("%v", u.Nonce))
+	builder.WriteString(fmt.Sprintf("%v", _m.Nonce))
 	builder.WriteString(", ")
 	builder.WriteString("keySalt=")
-	builder.WriteString(fmt.Sprintf("%v", u.KeySalt))
+	builder.WriteString(fmt.Sprintf("%v", _m.KeySalt))
 	builder.WriteString(", ")
 	builder.WriteString("hashTime=")
-	builder.WriteString(fmt.Sprintf("%v", u.HashTime))
+	builder.WriteString(fmt.Sprintf("%v", _m.HashTime))
 	builder.WriteString(", ")
 	builder.WriteString("hashMemory=")
-	builder.WriteString(fmt.Sprintf("%v", u.HashMemory))
+	builder.WriteString(fmt.Sprintf("%v", _m.HashMemory))
 	builder.WriteString(", ")
 	builder.WriteString("hashThreads=")
-	builder.WriteString(fmt.Sprintf("%v", u.HashThreads))
+	builder.WriteString(fmt.Sprintf("%v", _m.HashThreads))
 	builder.WriteByte(')')
 	return builder.String()
 }

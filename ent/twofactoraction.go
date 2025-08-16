@@ -56,7 +56,7 @@ func (*TwoFactorAction) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the TwoFactorAction fields.
-func (tfa *TwoFactorAction) assignValues(columns []string, values []any) error {
+func (_m *TwoFactorAction) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -66,25 +66,25 @@ func (tfa *TwoFactorAction) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				tfa.ID = *value
+				_m.ID = *value
 			}
 		case twofactoraction.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				tfa.Type = value.String
+				_m.Type = value.String
 			}
 		case twofactoraction.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
 			} else if value.Valid {
-				tfa.Version = int(value.Int64)
+				_m.Version = int(value.Int64)
 			}
 		case twofactoraction.FieldData:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field data", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &tfa.Data); err != nil {
+				if err := json.Unmarshal(*value, &_m.Data); err != nil {
 					return fmt.Errorf("unmarshal field data: %w", err)
 				}
 			}
@@ -92,16 +92,16 @@ func (tfa *TwoFactorAction) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field expiresAt", values[i])
 			} else if value.Valid {
-				tfa.ExpiresAt = value.Time
+				_m.ExpiresAt = value.Time
 			}
 		case twofactoraction.FieldCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
-				tfa.Code = value.String
+				_m.Code = value.String
 			}
 		default:
-			tfa.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -109,47 +109,47 @@ func (tfa *TwoFactorAction) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the TwoFactorAction.
 // This includes values selected through modifiers, order, etc.
-func (tfa *TwoFactorAction) Value(name string) (ent.Value, error) {
-	return tfa.selectValues.Get(name)
+func (_m *TwoFactorAction) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this TwoFactorAction.
 // Note that you need to call TwoFactorAction.Unwrap() before calling this method if this TwoFactorAction
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (tfa *TwoFactorAction) Update() *TwoFactorActionUpdateOne {
-	return NewTwoFactorActionClient(tfa.config).UpdateOne(tfa)
+func (_m *TwoFactorAction) Update() *TwoFactorActionUpdateOne {
+	return NewTwoFactorActionClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the TwoFactorAction entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (tfa *TwoFactorAction) Unwrap() *TwoFactorAction {
-	_tx, ok := tfa.config.driver.(*txDriver)
+func (_m *TwoFactorAction) Unwrap() *TwoFactorAction {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: TwoFactorAction is not a transactional entity")
 	}
-	tfa.config.driver = _tx.drv
-	return tfa
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (tfa *TwoFactorAction) String() string {
+func (_m *TwoFactorAction) String() string {
 	var builder strings.Builder
 	builder.WriteString("TwoFactorAction(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", tfa.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("type=")
-	builder.WriteString(tfa.Type)
+	builder.WriteString(_m.Type)
 	builder.WriteString(", ")
 	builder.WriteString("version=")
-	builder.WriteString(fmt.Sprintf("%v", tfa.Version))
+	builder.WriteString(fmt.Sprintf("%v", _m.Version))
 	builder.WriteString(", ")
 	builder.WriteString("data=")
-	builder.WriteString(fmt.Sprintf("%v", tfa.Data))
+	builder.WriteString(fmt.Sprintf("%v", _m.Data))
 	builder.WriteString(", ")
 	builder.WriteString("expiresAt=")
-	builder.WriteString(tfa.ExpiresAt.Format(time.ANSIC))
+	builder.WriteString(_m.ExpiresAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("code=")
-	builder.WriteString(tfa.Code)
+	builder.WriteString(_m.Code)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -39,6 +39,8 @@ type Job struct {
 	Status job.Status `json:"status,omitempty"`
 	// Retries holds the value of the "retries" field.
 	Retries int `json:"retries,omitempty"`
+	// RetriedFraction holds the value of the "retriedFraction" field.
+	RetriedFraction float64 `json:"retriedFraction,omitempty"`
 	// LoggedStallWarning holds the value of the "loggedStallWarning" field.
 	LoggedStallWarning bool `json:"loggedStallWarning,omitempty"`
 	selectValues       sql.SelectValues
@@ -53,6 +55,8 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case job.FieldLoggedStallWarning:
 			values[i] = new(sql.NullBool)
+		case job.FieldRetriedFraction:
+			values[i] = new(sql.NullFloat64)
 		case job.FieldVersion, job.FieldPriority, job.FieldWeight, job.FieldRetries:
 			values[i] = new(sql.NullInt64)
 		case job.FieldType, job.FieldStatus:
@@ -70,7 +74,7 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
 // to the Job fields.
-func (j *Job) assignValues(columns []string, values []any) error {
+func (_m *Job) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
@@ -80,55 +84,55 @@ func (j *Job) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
-				j.ID = *value
+				_m.ID = *value
 			}
 		case job.FieldCreated:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created", values[i])
 			} else if value.Valid {
-				j.Created = value.Time
+				_m.Created = value.Time
 			}
 		case job.FieldDue:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field due", values[i])
 			} else if value.Valid {
-				j.Due = value.Time
+				_m.Due = value.Time
 			}
 		case job.FieldStarted:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field started", values[i])
 			} else if value.Valid {
-				j.Started = value.Time
+				_m.Started = value.Time
 			}
 		case job.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
 			} else if value.Valid {
-				j.Type = value.String
+				_m.Type = value.String
 			}
 		case job.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
 			} else if value.Valid {
-				j.Version = int(value.Int64)
+				_m.Version = int(value.Int64)
 			}
 		case job.FieldPriority:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field priority", values[i])
 			} else if value.Valid {
-				j.Priority = int8(value.Int64)
+				_m.Priority = int8(value.Int64)
 			}
 		case job.FieldWeight:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field weight", values[i])
 			} else if value.Valid {
-				j.Weight = int(value.Int64)
+				_m.Weight = int(value.Int64)
 			}
 		case job.FieldData:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field data", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &j.Data); err != nil {
+				if err := json.Unmarshal(*value, &_m.Data); err != nil {
 					return fmt.Errorf("unmarshal field data: %w", err)
 				}
 			}
@@ -136,22 +140,28 @@ func (j *Job) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
-				j.Status = job.Status(value.String)
+				_m.Status = job.Status(value.String)
 			}
 		case job.FieldRetries:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field retries", values[i])
 			} else if value.Valid {
-				j.Retries = int(value.Int64)
+				_m.Retries = int(value.Int64)
+			}
+		case job.FieldRetriedFraction:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field retriedFraction", values[i])
+			} else if value.Valid {
+				_m.RetriedFraction = value.Float64
 			}
 		case job.FieldLoggedStallWarning:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field loggedStallWarning", values[i])
 			} else if value.Valid {
-				j.LoggedStallWarning = value.Bool
+				_m.LoggedStallWarning = value.Bool
 			}
 		default:
-			j.selectValues.Set(columns[i], values[i])
+			_m.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
@@ -159,65 +169,68 @@ func (j *Job) assignValues(columns []string, values []any) error {
 
 // Value returns the ent.Value that was dynamically selected and assigned to the Job.
 // This includes values selected through modifiers, order, etc.
-func (j *Job) Value(name string) (ent.Value, error) {
-	return j.selectValues.Get(name)
+func (_m *Job) Value(name string) (ent.Value, error) {
+	return _m.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Job.
 // Note that you need to call Job.Unwrap() before calling this method if this Job
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (j *Job) Update() *JobUpdateOne {
-	return NewJobClient(j.config).UpdateOne(j)
+func (_m *Job) Update() *JobUpdateOne {
+	return NewJobClient(_m.config).UpdateOne(_m)
 }
 
 // Unwrap unwraps the Job entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (j *Job) Unwrap() *Job {
-	_tx, ok := j.config.driver.(*txDriver)
+func (_m *Job) Unwrap() *Job {
+	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
 		panic("ent: Job is not a transactional entity")
 	}
-	j.config.driver = _tx.drv
-	return j
+	_m.config.driver = _tx.drv
+	return _m
 }
 
 // String implements the fmt.Stringer.
-func (j *Job) String() string {
+func (_m *Job) String() string {
 	var builder strings.Builder
 	builder.WriteString("Job(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", j.ID))
+	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("created=")
-	builder.WriteString(j.Created.Format(time.ANSIC))
+	builder.WriteString(_m.Created.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("due=")
-	builder.WriteString(j.Due.Format(time.ANSIC))
+	builder.WriteString(_m.Due.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("started=")
-	builder.WriteString(j.Started.Format(time.ANSIC))
+	builder.WriteString(_m.Started.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("type=")
-	builder.WriteString(j.Type)
+	builder.WriteString(_m.Type)
 	builder.WriteString(", ")
 	builder.WriteString("version=")
-	builder.WriteString(fmt.Sprintf("%v", j.Version))
+	builder.WriteString(fmt.Sprintf("%v", _m.Version))
 	builder.WriteString(", ")
 	builder.WriteString("priority=")
-	builder.WriteString(fmt.Sprintf("%v", j.Priority))
+	builder.WriteString(fmt.Sprintf("%v", _m.Priority))
 	builder.WriteString(", ")
 	builder.WriteString("weight=")
-	builder.WriteString(fmt.Sprintf("%v", j.Weight))
+	builder.WriteString(fmt.Sprintf("%v", _m.Weight))
 	builder.WriteString(", ")
 	builder.WriteString("data=")
-	builder.WriteString(fmt.Sprintf("%v", j.Data))
+	builder.WriteString(fmt.Sprintf("%v", _m.Data))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", j.Status))
+	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteString(", ")
 	builder.WriteString("retries=")
-	builder.WriteString(fmt.Sprintf("%v", j.Retries))
+	builder.WriteString(fmt.Sprintf("%v", _m.Retries))
+	builder.WriteString(", ")
+	builder.WriteString("retriedFraction=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RetriedFraction))
 	builder.WriteString(", ")
 	builder.WriteString("loggedStallWarning=")
-	builder.WriteString(fmt.Sprintf("%v", j.LoggedStallWarning))
+	builder.WriteString(fmt.Sprintf("%v", _m.LoggedStallWarning))
 	builder.WriteByte(')')
 	return builder.String()
 }

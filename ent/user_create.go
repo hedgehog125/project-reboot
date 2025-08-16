@@ -24,144 +24,144 @@ type UserCreate struct {
 }
 
 // SetUsername sets the "username" field.
-func (uc *UserCreate) SetUsername(s string) *UserCreate {
-	uc.mutation.SetUsername(s)
-	return uc
+func (_c *UserCreate) SetUsername(v string) *UserCreate {
+	_c.mutation.SetUsername(v)
+	return _c
 }
 
 // SetAlertDiscordId sets the "alertDiscordId" field.
-func (uc *UserCreate) SetAlertDiscordId(s string) *UserCreate {
-	uc.mutation.SetAlertDiscordId(s)
-	return uc
+func (_c *UserCreate) SetAlertDiscordId(v string) *UserCreate {
+	_c.mutation.SetAlertDiscordId(v)
+	return _c
 }
 
 // SetNillableAlertDiscordId sets the "alertDiscordId" field if the given value is not nil.
-func (uc *UserCreate) SetNillableAlertDiscordId(s *string) *UserCreate {
-	if s != nil {
-		uc.SetAlertDiscordId(*s)
+func (_c *UserCreate) SetNillableAlertDiscordId(v *string) *UserCreate {
+	if v != nil {
+		_c.SetAlertDiscordId(*v)
 	}
-	return uc
+	return _c
 }
 
 // SetAlertEmail sets the "alertEmail" field.
-func (uc *UserCreate) SetAlertEmail(s string) *UserCreate {
-	uc.mutation.SetAlertEmail(s)
-	return uc
+func (_c *UserCreate) SetAlertEmail(v string) *UserCreate {
+	_c.mutation.SetAlertEmail(v)
+	return _c
 }
 
 // SetNillableAlertEmail sets the "alertEmail" field if the given value is not nil.
-func (uc *UserCreate) SetNillableAlertEmail(s *string) *UserCreate {
-	if s != nil {
-		uc.SetAlertEmail(*s)
+func (_c *UserCreate) SetNillableAlertEmail(v *string) *UserCreate {
+	if v != nil {
+		_c.SetAlertEmail(*v)
 	}
-	return uc
+	return _c
 }
 
 // SetLocked sets the "locked" field.
-func (uc *UserCreate) SetLocked(b bool) *UserCreate {
-	uc.mutation.SetLocked(b)
-	return uc
+func (_c *UserCreate) SetLocked(v bool) *UserCreate {
+	_c.mutation.SetLocked(v)
+	return _c
 }
 
 // SetNillableLocked sets the "locked" field if the given value is not nil.
-func (uc *UserCreate) SetNillableLocked(b *bool) *UserCreate {
-	if b != nil {
-		uc.SetLocked(*b)
+func (_c *UserCreate) SetNillableLocked(v *bool) *UserCreate {
+	if v != nil {
+		_c.SetLocked(*v)
 	}
-	return uc
+	return _c
 }
 
 // SetLockedUntil sets the "lockedUntil" field.
-func (uc *UserCreate) SetLockedUntil(t time.Time) *UserCreate {
-	uc.mutation.SetLockedUntil(t)
-	return uc
+func (_c *UserCreate) SetLockedUntil(v time.Time) *UserCreate {
+	_c.mutation.SetLockedUntil(v)
+	return _c
 }
 
 // SetNillableLockedUntil sets the "lockedUntil" field if the given value is not nil.
-func (uc *UserCreate) SetNillableLockedUntil(t *time.Time) *UserCreate {
-	if t != nil {
-		uc.SetLockedUntil(*t)
+func (_c *UserCreate) SetNillableLockedUntil(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetLockedUntil(*v)
 	}
-	return uc
+	return _c
 }
 
 // SetContent sets the "content" field.
-func (uc *UserCreate) SetContent(b []byte) *UserCreate {
-	uc.mutation.SetContent(b)
-	return uc
+func (_c *UserCreate) SetContent(v []byte) *UserCreate {
+	_c.mutation.SetContent(v)
+	return _c
 }
 
 // SetFileName sets the "fileName" field.
-func (uc *UserCreate) SetFileName(s string) *UserCreate {
-	uc.mutation.SetFileName(s)
-	return uc
+func (_c *UserCreate) SetFileName(v string) *UserCreate {
+	_c.mutation.SetFileName(v)
+	return _c
 }
 
 // SetMime sets the "mime" field.
-func (uc *UserCreate) SetMime(s string) *UserCreate {
-	uc.mutation.SetMime(s)
-	return uc
+func (_c *UserCreate) SetMime(v string) *UserCreate {
+	_c.mutation.SetMime(v)
+	return _c
 }
 
 // SetNonce sets the "nonce" field.
-func (uc *UserCreate) SetNonce(b []byte) *UserCreate {
-	uc.mutation.SetNonce(b)
-	return uc
+func (_c *UserCreate) SetNonce(v []byte) *UserCreate {
+	_c.mutation.SetNonce(v)
+	return _c
 }
 
 // SetKeySalt sets the "keySalt" field.
-func (uc *UserCreate) SetKeySalt(b []byte) *UserCreate {
-	uc.mutation.SetKeySalt(b)
-	return uc
+func (_c *UserCreate) SetKeySalt(v []byte) *UserCreate {
+	_c.mutation.SetKeySalt(v)
+	return _c
 }
 
 // SetHashTime sets the "hashTime" field.
-func (uc *UserCreate) SetHashTime(u uint32) *UserCreate {
-	uc.mutation.SetHashTime(u)
-	return uc
+func (_c *UserCreate) SetHashTime(v uint32) *UserCreate {
+	_c.mutation.SetHashTime(v)
+	return _c
 }
 
 // SetHashMemory sets the "hashMemory" field.
-func (uc *UserCreate) SetHashMemory(u uint32) *UserCreate {
-	uc.mutation.SetHashMemory(u)
-	return uc
+func (_c *UserCreate) SetHashMemory(v uint32) *UserCreate {
+	_c.mutation.SetHashMemory(v)
+	return _c
 }
 
 // SetHashThreads sets the "hashThreads" field.
-func (uc *UserCreate) SetHashThreads(u uint8) *UserCreate {
-	uc.mutation.SetHashThreads(u)
-	return uc
+func (_c *UserCreate) SetHashThreads(v uint8) *UserCreate {
+	_c.mutation.SetHashThreads(v)
+	return _c
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
-func (uc *UserCreate) AddSessionIDs(ids ...int) *UserCreate {
-	uc.mutation.AddSessionIDs(ids...)
-	return uc
+func (_c *UserCreate) AddSessionIDs(ids ...int) *UserCreate {
+	_c.mutation.AddSessionIDs(ids...)
+	return _c
 }
 
 // AddSessions adds the "sessions" edges to the Session entity.
-func (uc *UserCreate) AddSessions(s ...*Session) *UserCreate {
-	ids := make([]int, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
+func (_c *UserCreate) AddSessions(v ...*Session) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return uc.AddSessionIDs(ids...)
+	return _c.AddSessionIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
-func (uc *UserCreate) Mutation() *UserMutation {
-	return uc.mutation
+func (_c *UserCreate) Mutation() *UserMutation {
+	return _c.mutation
 }
 
 // Save creates the User in the database.
-func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
-	uc.defaults()
-	return withHooks(ctx, uc.sqlSave, uc.mutation, uc.hooks)
+func (_c *UserCreate) Save(ctx context.Context) (*User, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (uc *UserCreate) SaveX(ctx context.Context) *User {
-	v, err := uc.Save(ctx)
+func (_c *UserCreate) SaveX(ctx context.Context) *User {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -169,111 +169,111 @@ func (uc *UserCreate) SaveX(ctx context.Context) *User {
 }
 
 // Exec executes the query.
-func (uc *UserCreate) Exec(ctx context.Context) error {
-	_, err := uc.Save(ctx)
+func (_c *UserCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (uc *UserCreate) ExecX(ctx context.Context) {
-	if err := uc.Exec(ctx); err != nil {
+func (_c *UserCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (uc *UserCreate) defaults() {
-	if _, ok := uc.mutation.AlertDiscordId(); !ok {
+func (_c *UserCreate) defaults() {
+	if _, ok := _c.mutation.AlertDiscordId(); !ok {
 		v := user.DefaultAlertDiscordId
-		uc.mutation.SetAlertDiscordId(v)
+		_c.mutation.SetAlertDiscordId(v)
 	}
-	if _, ok := uc.mutation.AlertEmail(); !ok {
+	if _, ok := _c.mutation.AlertEmail(); !ok {
 		v := user.DefaultAlertEmail
-		uc.mutation.SetAlertEmail(v)
+		_c.mutation.SetAlertEmail(v)
 	}
-	if _, ok := uc.mutation.Locked(); !ok {
+	if _, ok := _c.mutation.Locked(); !ok {
 		v := user.DefaultLocked
-		uc.mutation.SetLocked(v)
+		_c.mutation.SetLocked(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (uc *UserCreate) check() error {
-	if _, ok := uc.mutation.Username(); !ok {
+func (_c *UserCreate) check() error {
+	if _, ok := _c.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
 	}
-	if v, ok := uc.mutation.Username(); ok {
+	if v, ok := _c.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.AlertDiscordId(); !ok {
+	if _, ok := _c.mutation.AlertDiscordId(); !ok {
 		return &ValidationError{Name: "alertDiscordId", err: errors.New(`ent: missing required field "User.alertDiscordId"`)}
 	}
-	if _, ok := uc.mutation.AlertEmail(); !ok {
+	if _, ok := _c.mutation.AlertEmail(); !ok {
 		return &ValidationError{Name: "alertEmail", err: errors.New(`ent: missing required field "User.alertEmail"`)}
 	}
-	if _, ok := uc.mutation.Locked(); !ok {
+	if _, ok := _c.mutation.Locked(); !ok {
 		return &ValidationError{Name: "locked", err: errors.New(`ent: missing required field "User.locked"`)}
 	}
-	if _, ok := uc.mutation.Content(); !ok {
+	if _, ok := _c.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "User.content"`)}
 	}
-	if v, ok := uc.mutation.Content(); ok {
+	if v, ok := _c.mutation.Content(); ok {
 		if err := user.ContentValidator(v); err != nil {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "User.content": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.FileName(); !ok {
+	if _, ok := _c.mutation.FileName(); !ok {
 		return &ValidationError{Name: "fileName", err: errors.New(`ent: missing required field "User.fileName"`)}
 	}
-	if v, ok := uc.mutation.FileName(); ok {
+	if v, ok := _c.mutation.FileName(); ok {
 		if err := user.FileNameValidator(v); err != nil {
 			return &ValidationError{Name: "fileName", err: fmt.Errorf(`ent: validator failed for field "User.fileName": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.Mime(); !ok {
+	if _, ok := _c.mutation.Mime(); !ok {
 		return &ValidationError{Name: "mime", err: errors.New(`ent: missing required field "User.mime"`)}
 	}
-	if v, ok := uc.mutation.Mime(); ok {
+	if v, ok := _c.mutation.Mime(); ok {
 		if err := user.MimeValidator(v); err != nil {
 			return &ValidationError{Name: "mime", err: fmt.Errorf(`ent: validator failed for field "User.mime": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.Nonce(); !ok {
+	if _, ok := _c.mutation.Nonce(); !ok {
 		return &ValidationError{Name: "nonce", err: errors.New(`ent: missing required field "User.nonce"`)}
 	}
-	if v, ok := uc.mutation.Nonce(); ok {
+	if v, ok := _c.mutation.Nonce(); ok {
 		if err := user.NonceValidator(v); err != nil {
 			return &ValidationError{Name: "nonce", err: fmt.Errorf(`ent: validator failed for field "User.nonce": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.KeySalt(); !ok {
+	if _, ok := _c.mutation.KeySalt(); !ok {
 		return &ValidationError{Name: "keySalt", err: errors.New(`ent: missing required field "User.keySalt"`)}
 	}
-	if v, ok := uc.mutation.KeySalt(); ok {
+	if v, ok := _c.mutation.KeySalt(); ok {
 		if err := user.KeySaltValidator(v); err != nil {
 			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
 		}
 	}
-	if _, ok := uc.mutation.HashTime(); !ok {
+	if _, ok := _c.mutation.HashTime(); !ok {
 		return &ValidationError{Name: "hashTime", err: errors.New(`ent: missing required field "User.hashTime"`)}
 	}
-	if _, ok := uc.mutation.HashMemory(); !ok {
+	if _, ok := _c.mutation.HashMemory(); !ok {
 		return &ValidationError{Name: "hashMemory", err: errors.New(`ent: missing required field "User.hashMemory"`)}
 	}
-	if _, ok := uc.mutation.HashThreads(); !ok {
+	if _, ok := _c.mutation.HashThreads(); !ok {
 		return &ValidationError{Name: "hashThreads", err: errors.New(`ent: missing required field "User.hashThreads"`)}
 	}
 	return nil
 }
 
-func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
-	if err := uc.check(); err != nil {
+func (_c *UserCreate) sqlSave(ctx context.Context) (*User, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := uc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, uc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -281,70 +281,70 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
-	uc.mutation.id = &_node.ID
-	uc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
+func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	var (
-		_node = &User{config: uc.config}
+		_node = &User{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	)
-	_spec.OnConflict = uc.conflict
-	if value, ok := uc.mutation.Username(); ok {
+	_spec.OnConflict = _c.conflict
+	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
 	}
-	if value, ok := uc.mutation.AlertDiscordId(); ok {
+	if value, ok := _c.mutation.AlertDiscordId(); ok {
 		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
 		_node.AlertDiscordId = value
 	}
-	if value, ok := uc.mutation.AlertEmail(); ok {
+	if value, ok := _c.mutation.AlertEmail(); ok {
 		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
 		_node.AlertEmail = value
 	}
-	if value, ok := uc.mutation.Locked(); ok {
+	if value, ok := _c.mutation.Locked(); ok {
 		_spec.SetField(user.FieldLocked, field.TypeBool, value)
 		_node.Locked = value
 	}
-	if value, ok := uc.mutation.LockedUntil(); ok {
+	if value, ok := _c.mutation.LockedUntil(); ok {
 		_spec.SetField(user.FieldLockedUntil, field.TypeTime, value)
 		_node.LockedUntil = &value
 	}
-	if value, ok := uc.mutation.Content(); ok {
+	if value, ok := _c.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 		_node.Content = value
 	}
-	if value, ok := uc.mutation.FileName(); ok {
+	if value, ok := _c.mutation.FileName(); ok {
 		_spec.SetField(user.FieldFileName, field.TypeString, value)
 		_node.FileName = value
 	}
-	if value, ok := uc.mutation.Mime(); ok {
+	if value, ok := _c.mutation.Mime(); ok {
 		_spec.SetField(user.FieldMime, field.TypeString, value)
 		_node.Mime = value
 	}
-	if value, ok := uc.mutation.Nonce(); ok {
+	if value, ok := _c.mutation.Nonce(); ok {
 		_spec.SetField(user.FieldNonce, field.TypeBytes, value)
 		_node.Nonce = value
 	}
-	if value, ok := uc.mutation.KeySalt(); ok {
+	if value, ok := _c.mutation.KeySalt(); ok {
 		_spec.SetField(user.FieldKeySalt, field.TypeBytes, value)
 		_node.KeySalt = value
 	}
-	if value, ok := uc.mutation.HashTime(); ok {
+	if value, ok := _c.mutation.HashTime(); ok {
 		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
 		_node.HashTime = value
 	}
-	if value, ok := uc.mutation.HashMemory(); ok {
+	if value, ok := _c.mutation.HashMemory(); ok {
 		_spec.SetField(user.FieldHashMemory, field.TypeUint32, value)
 		_node.HashMemory = value
 	}
-	if value, ok := uc.mutation.HashThreads(); ok {
+	if value, ok := _c.mutation.HashThreads(); ok {
 		_spec.SetField(user.FieldHashThreads, field.TypeUint8, value)
 		_node.HashThreads = value
 	}
-	if nodes := uc.mutation.SessionsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.SessionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -379,10 +379,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 //			SetUsername(v+v).
 //		}).
 //		Exec(ctx)
-func (uc *UserCreate) OnConflict(opts ...sql.ConflictOption) *UserUpsertOne {
-	uc.conflict = opts
+func (_c *UserCreate) OnConflict(opts ...sql.ConflictOption) *UserUpsertOne {
+	_c.conflict = opts
 	return &UserUpsertOne{
-		create: uc,
+		create: _c,
 	}
 }
 
@@ -392,10 +392,10 @@ func (uc *UserCreate) OnConflict(opts ...sql.ConflictOption) *UserUpsertOne {
 //	client.User.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (uc *UserCreate) OnConflictColumns(columns ...string) *UserUpsertOne {
-	uc.conflict = append(uc.conflict, sql.ConflictColumns(columns...))
+func (_c *UserCreate) OnConflictColumns(columns ...string) *UserUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
 	return &UserUpsertOne{
-		create: uc,
+		create: _c,
 	}
 }
 
@@ -884,16 +884,16 @@ type UserCreateBulk struct {
 }
 
 // Save creates the User entities in the database.
-func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
-	if ucb.err != nil {
-		return nil, ucb.err
+func (_c *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(ucb.builders))
-	nodes := make([]*User, len(ucb.builders))
-	mutators := make([]Mutator, len(ucb.builders))
-	for i := range ucb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*User, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := ucb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*UserMutation)
@@ -907,12 +907,12 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, ucb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
-					spec.OnConflict = ucb.conflict
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, ucb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -936,7 +936,7 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, ucb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -944,8 +944,8 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (ucb *UserCreateBulk) SaveX(ctx context.Context) []*User {
-	v, err := ucb.Save(ctx)
+func (_c *UserCreateBulk) SaveX(ctx context.Context) []*User {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -953,14 +953,14 @@ func (ucb *UserCreateBulk) SaveX(ctx context.Context) []*User {
 }
 
 // Exec executes the query.
-func (ucb *UserCreateBulk) Exec(ctx context.Context) error {
-	_, err := ucb.Save(ctx)
+func (_c *UserCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (ucb *UserCreateBulk) ExecX(ctx context.Context) {
-	if err := ucb.Exec(ctx); err != nil {
+func (_c *UserCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
@@ -980,10 +980,10 @@ func (ucb *UserCreateBulk) ExecX(ctx context.Context) {
 //			SetUsername(v+v).
 //		}).
 //		Exec(ctx)
-func (ucb *UserCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserUpsertBulk {
-	ucb.conflict = opts
+func (_c *UserCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserUpsertBulk {
+	_c.conflict = opts
 	return &UserUpsertBulk{
-		create: ucb,
+		create: _c,
 	}
 }
 
@@ -993,10 +993,10 @@ func (ucb *UserCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserUpsertBul
 //	client.User.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (ucb *UserCreateBulk) OnConflictColumns(columns ...string) *UserUpsertBulk {
-	ucb.conflict = append(ucb.conflict, sql.ConflictColumns(columns...))
+func (_c *UserCreateBulk) OnConflictColumns(columns ...string) *UserUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
 	return &UserUpsertBulk{
-		create: ucb,
+		create: _c,
 	}
 }
 

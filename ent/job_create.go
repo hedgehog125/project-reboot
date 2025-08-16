@@ -25,147 +25,161 @@ type JobCreate struct {
 }
 
 // SetCreated sets the "created" field.
-func (jc *JobCreate) SetCreated(t time.Time) *JobCreate {
-	jc.mutation.SetCreated(t)
-	return jc
+func (_c *JobCreate) SetCreated(v time.Time) *JobCreate {
+	_c.mutation.SetCreated(v)
+	return _c
 }
 
 // SetNillableCreated sets the "created" field if the given value is not nil.
-func (jc *JobCreate) SetNillableCreated(t *time.Time) *JobCreate {
-	if t != nil {
-		jc.SetCreated(*t)
+func (_c *JobCreate) SetNillableCreated(v *time.Time) *JobCreate {
+	if v != nil {
+		_c.SetCreated(*v)
 	}
-	return jc
+	return _c
 }
 
 // SetDue sets the "due" field.
-func (jc *JobCreate) SetDue(t time.Time) *JobCreate {
-	jc.mutation.SetDue(t)
-	return jc
+func (_c *JobCreate) SetDue(v time.Time) *JobCreate {
+	_c.mutation.SetDue(v)
+	return _c
 }
 
 // SetNillableDue sets the "due" field if the given value is not nil.
-func (jc *JobCreate) SetNillableDue(t *time.Time) *JobCreate {
-	if t != nil {
-		jc.SetDue(*t)
+func (_c *JobCreate) SetNillableDue(v *time.Time) *JobCreate {
+	if v != nil {
+		_c.SetDue(*v)
 	}
-	return jc
+	return _c
 }
 
 // SetStarted sets the "started" field.
-func (jc *JobCreate) SetStarted(t time.Time) *JobCreate {
-	jc.mutation.SetStarted(t)
-	return jc
+func (_c *JobCreate) SetStarted(v time.Time) *JobCreate {
+	_c.mutation.SetStarted(v)
+	return _c
 }
 
 // SetNillableStarted sets the "started" field if the given value is not nil.
-func (jc *JobCreate) SetNillableStarted(t *time.Time) *JobCreate {
-	if t != nil {
-		jc.SetStarted(*t)
+func (_c *JobCreate) SetNillableStarted(v *time.Time) *JobCreate {
+	if v != nil {
+		_c.SetStarted(*v)
 	}
-	return jc
+	return _c
 }
 
 // SetType sets the "type" field.
-func (jc *JobCreate) SetType(s string) *JobCreate {
-	jc.mutation.SetType(s)
-	return jc
+func (_c *JobCreate) SetType(v string) *JobCreate {
+	_c.mutation.SetType(v)
+	return _c
 }
 
 // SetVersion sets the "version" field.
-func (jc *JobCreate) SetVersion(i int) *JobCreate {
-	jc.mutation.SetVersion(i)
-	return jc
+func (_c *JobCreate) SetVersion(v int) *JobCreate {
+	_c.mutation.SetVersion(v)
+	return _c
 }
 
 // SetPriority sets the "priority" field.
-func (jc *JobCreate) SetPriority(i int8) *JobCreate {
-	jc.mutation.SetPriority(i)
-	return jc
+func (_c *JobCreate) SetPriority(v int8) *JobCreate {
+	_c.mutation.SetPriority(v)
+	return _c
 }
 
 // SetWeight sets the "weight" field.
-func (jc *JobCreate) SetWeight(i int) *JobCreate {
-	jc.mutation.SetWeight(i)
-	return jc
+func (_c *JobCreate) SetWeight(v int) *JobCreate {
+	_c.mutation.SetWeight(v)
+	return _c
 }
 
 // SetData sets the "data" field.
-func (jc *JobCreate) SetData(s string) *JobCreate {
-	jc.mutation.SetData(s)
-	return jc
+func (_c *JobCreate) SetData(v string) *JobCreate {
+	_c.mutation.SetData(v)
+	return _c
 }
 
 // SetStatus sets the "status" field.
-func (jc *JobCreate) SetStatus(j job.Status) *JobCreate {
-	jc.mutation.SetStatus(j)
-	return jc
+func (_c *JobCreate) SetStatus(v job.Status) *JobCreate {
+	_c.mutation.SetStatus(v)
+	return _c
 }
 
 // SetNillableStatus sets the "status" field if the given value is not nil.
-func (jc *JobCreate) SetNillableStatus(j *job.Status) *JobCreate {
-	if j != nil {
-		jc.SetStatus(*j)
+func (_c *JobCreate) SetNillableStatus(v *job.Status) *JobCreate {
+	if v != nil {
+		_c.SetStatus(*v)
 	}
-	return jc
+	return _c
 }
 
 // SetRetries sets the "retries" field.
-func (jc *JobCreate) SetRetries(i int) *JobCreate {
-	jc.mutation.SetRetries(i)
-	return jc
+func (_c *JobCreate) SetRetries(v int) *JobCreate {
+	_c.mutation.SetRetries(v)
+	return _c
 }
 
 // SetNillableRetries sets the "retries" field if the given value is not nil.
-func (jc *JobCreate) SetNillableRetries(i *int) *JobCreate {
-	if i != nil {
-		jc.SetRetries(*i)
+func (_c *JobCreate) SetNillableRetries(v *int) *JobCreate {
+	if v != nil {
+		_c.SetRetries(*v)
 	}
-	return jc
+	return _c
+}
+
+// SetRetriedFraction sets the "retriedFraction" field.
+func (_c *JobCreate) SetRetriedFraction(v float64) *JobCreate {
+	_c.mutation.SetRetriedFraction(v)
+	return _c
+}
+
+// SetNillableRetriedFraction sets the "retriedFraction" field if the given value is not nil.
+func (_c *JobCreate) SetNillableRetriedFraction(v *float64) *JobCreate {
+	if v != nil {
+		_c.SetRetriedFraction(*v)
+	}
+	return _c
 }
 
 // SetLoggedStallWarning sets the "loggedStallWarning" field.
-func (jc *JobCreate) SetLoggedStallWarning(b bool) *JobCreate {
-	jc.mutation.SetLoggedStallWarning(b)
-	return jc
+func (_c *JobCreate) SetLoggedStallWarning(v bool) *JobCreate {
+	_c.mutation.SetLoggedStallWarning(v)
+	return _c
 }
 
 // SetNillableLoggedStallWarning sets the "loggedStallWarning" field if the given value is not nil.
-func (jc *JobCreate) SetNillableLoggedStallWarning(b *bool) *JobCreate {
-	if b != nil {
-		jc.SetLoggedStallWarning(*b)
+func (_c *JobCreate) SetNillableLoggedStallWarning(v *bool) *JobCreate {
+	if v != nil {
+		_c.SetLoggedStallWarning(*v)
 	}
-	return jc
+	return _c
 }
 
 // SetID sets the "id" field.
-func (jc *JobCreate) SetID(u uuid.UUID) *JobCreate {
-	jc.mutation.SetID(u)
-	return jc
+func (_c *JobCreate) SetID(v uuid.UUID) *JobCreate {
+	_c.mutation.SetID(v)
+	return _c
 }
 
 // SetNillableID sets the "id" field if the given value is not nil.
-func (jc *JobCreate) SetNillableID(u *uuid.UUID) *JobCreate {
-	if u != nil {
-		jc.SetID(*u)
+func (_c *JobCreate) SetNillableID(v *uuid.UUID) *JobCreate {
+	if v != nil {
+		_c.SetID(*v)
 	}
-	return jc
+	return _c
 }
 
 // Mutation returns the JobMutation object of the builder.
-func (jc *JobCreate) Mutation() *JobMutation {
-	return jc.mutation
+func (_c *JobCreate) Mutation() *JobMutation {
+	return _c.mutation
 }
 
 // Save creates the Job in the database.
-func (jc *JobCreate) Save(ctx context.Context) (*Job, error) {
-	jc.defaults()
-	return withHooks(ctx, jc.sqlSave, jc.mutation, jc.hooks)
+func (_c *JobCreate) Save(ctx context.Context) (*Job, error) {
+	_c.defaults()
+	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (jc *JobCreate) SaveX(ctx context.Context) *Job {
-	v, err := jc.Save(ctx)
+func (_c *JobCreate) SaveX(ctx context.Context) *Job {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -173,97 +187,104 @@ func (jc *JobCreate) SaveX(ctx context.Context) *Job {
 }
 
 // Exec executes the query.
-func (jc *JobCreate) Exec(ctx context.Context) error {
-	_, err := jc.Save(ctx)
+func (_c *JobCreate) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (jc *JobCreate) ExecX(ctx context.Context) {
-	if err := jc.Exec(ctx); err != nil {
+func (_c *JobCreate) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // defaults sets the default values of the builder before save.
-func (jc *JobCreate) defaults() {
-	if _, ok := jc.mutation.Created(); !ok {
+func (_c *JobCreate) defaults() {
+	if _, ok := _c.mutation.Created(); !ok {
 		v := job.DefaultCreated()
-		jc.mutation.SetCreated(v)
+		_c.mutation.SetCreated(v)
 	}
-	if _, ok := jc.mutation.Due(); !ok {
+	if _, ok := _c.mutation.Due(); !ok {
 		v := job.DefaultDue()
-		jc.mutation.SetDue(v)
+		_c.mutation.SetDue(v)
 	}
-	if _, ok := jc.mutation.Status(); !ok {
+	if _, ok := _c.mutation.Status(); !ok {
 		v := job.DefaultStatus
-		jc.mutation.SetStatus(v)
+		_c.mutation.SetStatus(v)
 	}
-	if _, ok := jc.mutation.Retries(); !ok {
+	if _, ok := _c.mutation.Retries(); !ok {
 		v := job.DefaultRetries
-		jc.mutation.SetRetries(v)
+		_c.mutation.SetRetries(v)
 	}
-	if _, ok := jc.mutation.LoggedStallWarning(); !ok {
+	if _, ok := _c.mutation.RetriedFraction(); !ok {
+		v := job.DefaultRetriedFraction
+		_c.mutation.SetRetriedFraction(v)
+	}
+	if _, ok := _c.mutation.LoggedStallWarning(); !ok {
 		v := job.DefaultLoggedStallWarning
-		jc.mutation.SetLoggedStallWarning(v)
+		_c.mutation.SetLoggedStallWarning(v)
 	}
-	if _, ok := jc.mutation.ID(); !ok {
+	if _, ok := _c.mutation.ID(); !ok {
 		v := job.DefaultID()
-		jc.mutation.SetID(v)
+		_c.mutation.SetID(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (jc *JobCreate) check() error {
-	if _, ok := jc.mutation.Created(); !ok {
+func (_c *JobCreate) check() error {
+	if _, ok := _c.mutation.Created(); !ok {
 		return &ValidationError{Name: "created", err: errors.New(`ent: missing required field "Job.created"`)}
 	}
-	if _, ok := jc.mutation.Due(); !ok {
+	if _, ok := _c.mutation.Due(); !ok {
 		return &ValidationError{Name: "due", err: errors.New(`ent: missing required field "Job.due"`)}
 	}
-	if _, ok := jc.mutation.GetType(); !ok {
+	if _, ok := _c.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Job.type"`)}
 	}
-	if v, ok := jc.mutation.GetType(); ok {
+	if v, ok := _c.mutation.GetType(); ok {
 		if err := job.TypeValidator(v); err != nil {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Job.type": %w`, err)}
 		}
 	}
-	if _, ok := jc.mutation.Version(); !ok {
+	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "Job.version"`)}
 	}
-	if _, ok := jc.mutation.Priority(); !ok {
+	if _, ok := _c.mutation.Priority(); !ok {
 		return &ValidationError{Name: "priority", err: errors.New(`ent: missing required field "Job.priority"`)}
 	}
-	if _, ok := jc.mutation.Weight(); !ok {
+	if _, ok := _c.mutation.Weight(); !ok {
 		return &ValidationError{Name: "weight", err: errors.New(`ent: missing required field "Job.weight"`)}
 	}
-	if _, ok := jc.mutation.Data(); !ok {
+	if _, ok := _c.mutation.Data(); !ok {
 		return &ValidationError{Name: "data", err: errors.New(`ent: missing required field "Job.data"`)}
 	}
-	if _, ok := jc.mutation.Status(); !ok {
+	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Job.status"`)}
 	}
-	if v, ok := jc.mutation.Status(); ok {
+	if v, ok := _c.mutation.Status(); ok {
 		if err := job.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Job.status": %w`, err)}
 		}
 	}
-	if _, ok := jc.mutation.Retries(); !ok {
+	if _, ok := _c.mutation.Retries(); !ok {
 		return &ValidationError{Name: "retries", err: errors.New(`ent: missing required field "Job.retries"`)}
 	}
-	if _, ok := jc.mutation.LoggedStallWarning(); !ok {
+	if _, ok := _c.mutation.RetriedFraction(); !ok {
+		return &ValidationError{Name: "retriedFraction", err: errors.New(`ent: missing required field "Job.retriedFraction"`)}
+	}
+	if _, ok := _c.mutation.LoggedStallWarning(); !ok {
 		return &ValidationError{Name: "loggedStallWarning", err: errors.New(`ent: missing required field "Job.loggedStallWarning"`)}
 	}
 	return nil
 }
 
-func (jc *JobCreate) sqlSave(ctx context.Context) (*Job, error) {
-	if err := jc.check(); err != nil {
+func (_c *JobCreate) sqlSave(ctx context.Context) (*Job, error) {
+	if err := _c.check(); err != nil {
 		return nil, err
 	}
-	_node, _spec := jc.createSpec()
-	if err := sqlgraph.CreateNode(ctx, jc.driver, _spec); err != nil {
+	_node, _spec := _c.createSpec()
+	if err := sqlgraph.CreateNode(ctx, _c.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -276,62 +297,66 @@ func (jc *JobCreate) sqlSave(ctx context.Context) (*Job, error) {
 			return nil, err
 		}
 	}
-	jc.mutation.id = &_node.ID
-	jc.mutation.done = true
+	_c.mutation.id = &_node.ID
+	_c.mutation.done = true
 	return _node, nil
 }
 
-func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
+func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 	var (
-		_node = &Job{config: jc.config}
+		_node = &Job{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(job.Table, sqlgraph.NewFieldSpec(job.FieldID, field.TypeUUID))
 	)
-	_spec.OnConflict = jc.conflict
-	if id, ok := jc.mutation.ID(); ok {
+	_spec.OnConflict = _c.conflict
+	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := jc.mutation.Created(); ok {
+	if value, ok := _c.mutation.Created(); ok {
 		_spec.SetField(job.FieldCreated, field.TypeTime, value)
 		_node.Created = value
 	}
-	if value, ok := jc.mutation.Due(); ok {
+	if value, ok := _c.mutation.Due(); ok {
 		_spec.SetField(job.FieldDue, field.TypeTime, value)
 		_node.Due = value
 	}
-	if value, ok := jc.mutation.Started(); ok {
+	if value, ok := _c.mutation.Started(); ok {
 		_spec.SetField(job.FieldStarted, field.TypeTime, value)
 		_node.Started = value
 	}
-	if value, ok := jc.mutation.GetType(); ok {
+	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)
 		_node.Type = value
 	}
-	if value, ok := jc.mutation.Version(); ok {
+	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(job.FieldVersion, field.TypeInt, value)
 		_node.Version = value
 	}
-	if value, ok := jc.mutation.Priority(); ok {
+	if value, ok := _c.mutation.Priority(); ok {
 		_spec.SetField(job.FieldPriority, field.TypeInt8, value)
 		_node.Priority = value
 	}
-	if value, ok := jc.mutation.Weight(); ok {
+	if value, ok := _c.mutation.Weight(); ok {
 		_spec.SetField(job.FieldWeight, field.TypeInt, value)
 		_node.Weight = value
 	}
-	if value, ok := jc.mutation.Data(); ok {
+	if value, ok := _c.mutation.Data(); ok {
 		_spec.SetField(job.FieldData, field.TypeJSON, value)
 		_node.Data = value
 	}
-	if value, ok := jc.mutation.Status(); ok {
+	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(job.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
 	}
-	if value, ok := jc.mutation.Retries(); ok {
+	if value, ok := _c.mutation.Retries(); ok {
 		_spec.SetField(job.FieldRetries, field.TypeInt, value)
 		_node.Retries = value
 	}
-	if value, ok := jc.mutation.LoggedStallWarning(); ok {
+	if value, ok := _c.mutation.RetriedFraction(); ok {
+		_spec.SetField(job.FieldRetriedFraction, field.TypeFloat64, value)
+		_node.RetriedFraction = value
+	}
+	if value, ok := _c.mutation.LoggedStallWarning(); ok {
 		_spec.SetField(job.FieldLoggedStallWarning, field.TypeBool, value)
 		_node.LoggedStallWarning = value
 	}
@@ -354,10 +379,10 @@ func (jc *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 //			SetCreated(v+v).
 //		}).
 //		Exec(ctx)
-func (jc *JobCreate) OnConflict(opts ...sql.ConflictOption) *JobUpsertOne {
-	jc.conflict = opts
+func (_c *JobCreate) OnConflict(opts ...sql.ConflictOption) *JobUpsertOne {
+	_c.conflict = opts
 	return &JobUpsertOne{
-		create: jc,
+		create: _c,
 	}
 }
 
@@ -367,10 +392,10 @@ func (jc *JobCreate) OnConflict(opts ...sql.ConflictOption) *JobUpsertOne {
 //	client.Job.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (jc *JobCreate) OnConflictColumns(columns ...string) *JobUpsertOne {
-	jc.conflict = append(jc.conflict, sql.ConflictColumns(columns...))
+func (_c *JobCreate) OnConflictColumns(columns ...string) *JobUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
 	return &JobUpsertOne{
-		create: jc,
+		create: _c,
 	}
 }
 
@@ -534,6 +559,24 @@ func (u *JobUpsert) UpdateRetries() *JobUpsert {
 // AddRetries adds v to the "retries" field.
 func (u *JobUpsert) AddRetries(v int) *JobUpsert {
 	u.Add(job.FieldRetries, v)
+	return u
+}
+
+// SetRetriedFraction sets the "retriedFraction" field.
+func (u *JobUpsert) SetRetriedFraction(v float64) *JobUpsert {
+	u.Set(job.FieldRetriedFraction, v)
+	return u
+}
+
+// UpdateRetriedFraction sets the "retriedFraction" field to the value that was provided on create.
+func (u *JobUpsert) UpdateRetriedFraction() *JobUpsert {
+	u.SetExcluded(job.FieldRetriedFraction)
+	return u
+}
+
+// AddRetriedFraction adds v to the "retriedFraction" field.
+func (u *JobUpsert) AddRetriedFraction(v float64) *JobUpsert {
+	u.Add(job.FieldRetriedFraction, v)
 	return u
 }
 
@@ -772,6 +815,27 @@ func (u *JobUpsertOne) UpdateRetries() *JobUpsertOne {
 	})
 }
 
+// SetRetriedFraction sets the "retriedFraction" field.
+func (u *JobUpsertOne) SetRetriedFraction(v float64) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetRetriedFraction(v)
+	})
+}
+
+// AddRetriedFraction adds v to the "retriedFraction" field.
+func (u *JobUpsertOne) AddRetriedFraction(v float64) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.AddRetriedFraction(v)
+	})
+}
+
+// UpdateRetriedFraction sets the "retriedFraction" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateRetriedFraction() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateRetriedFraction()
+	})
+}
+
 // SetLoggedStallWarning sets the "loggedStallWarning" field.
 func (u *JobUpsertOne) SetLoggedStallWarning(v bool) *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
@@ -833,16 +897,16 @@ type JobCreateBulk struct {
 }
 
 // Save creates the Job entities in the database.
-func (jcb *JobCreateBulk) Save(ctx context.Context) ([]*Job, error) {
-	if jcb.err != nil {
-		return nil, jcb.err
+func (_c *JobCreateBulk) Save(ctx context.Context) ([]*Job, error) {
+	if _c.err != nil {
+		return nil, _c.err
 	}
-	specs := make([]*sqlgraph.CreateSpec, len(jcb.builders))
-	nodes := make([]*Job, len(jcb.builders))
-	mutators := make([]Mutator, len(jcb.builders))
-	for i := range jcb.builders {
+	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
+	nodes := make([]*Job, len(_c.builders))
+	mutators := make([]Mutator, len(_c.builders))
+	for i := range _c.builders {
 		func(i int, root context.Context) {
-			builder := jcb.builders[i]
+			builder := _c.builders[i]
 			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*JobMutation)
@@ -856,12 +920,12 @@ func (jcb *JobCreateBulk) Save(ctx context.Context) ([]*Job, error) {
 				var err error
 				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
-					_, err = mutators[i+1].Mutate(root, jcb.builders[i+1].mutation)
+					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
-					spec.OnConflict = jcb.conflict
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
-					if err = sqlgraph.BatchCreate(ctx, jcb.driver, spec); err != nil {
+					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
 							err = &ConstraintError{msg: err.Error(), wrap: err}
 						}
@@ -881,7 +945,7 @@ func (jcb *JobCreateBulk) Save(ctx context.Context) ([]*Job, error) {
 		}(i, ctx)
 	}
 	if len(mutators) > 0 {
-		if _, err := mutators[0].Mutate(ctx, jcb.builders[0].mutation); err != nil {
+		if _, err := mutators[0].Mutate(ctx, _c.builders[0].mutation); err != nil {
 			return nil, err
 		}
 	}
@@ -889,8 +953,8 @@ func (jcb *JobCreateBulk) Save(ctx context.Context) ([]*Job, error) {
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (jcb *JobCreateBulk) SaveX(ctx context.Context) []*Job {
-	v, err := jcb.Save(ctx)
+func (_c *JobCreateBulk) SaveX(ctx context.Context) []*Job {
+	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -898,14 +962,14 @@ func (jcb *JobCreateBulk) SaveX(ctx context.Context) []*Job {
 }
 
 // Exec executes the query.
-func (jcb *JobCreateBulk) Exec(ctx context.Context) error {
-	_, err := jcb.Save(ctx)
+func (_c *JobCreateBulk) Exec(ctx context.Context) error {
+	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (jcb *JobCreateBulk) ExecX(ctx context.Context) {
-	if err := jcb.Exec(ctx); err != nil {
+func (_c *JobCreateBulk) ExecX(ctx context.Context) {
+	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
@@ -925,10 +989,10 @@ func (jcb *JobCreateBulk) ExecX(ctx context.Context) {
 //			SetCreated(v+v).
 //		}).
 //		Exec(ctx)
-func (jcb *JobCreateBulk) OnConflict(opts ...sql.ConflictOption) *JobUpsertBulk {
-	jcb.conflict = opts
+func (_c *JobCreateBulk) OnConflict(opts ...sql.ConflictOption) *JobUpsertBulk {
+	_c.conflict = opts
 	return &JobUpsertBulk{
-		create: jcb,
+		create: _c,
 	}
 }
 
@@ -938,10 +1002,10 @@ func (jcb *JobCreateBulk) OnConflict(opts ...sql.ConflictOption) *JobUpsertBulk 
 //	client.Job.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (jcb *JobCreateBulk) OnConflictColumns(columns ...string) *JobUpsertBulk {
-	jcb.conflict = append(jcb.conflict, sql.ConflictColumns(columns...))
+func (_c *JobCreateBulk) OnConflictColumns(columns ...string) *JobUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
 	return &JobUpsertBulk{
-		create: jcb,
+		create: _c,
 	}
 }
 
@@ -1173,6 +1237,27 @@ func (u *JobUpsertBulk) AddRetries(v int) *JobUpsertBulk {
 func (u *JobUpsertBulk) UpdateRetries() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateRetries()
+	})
+}
+
+// SetRetriedFraction sets the "retriedFraction" field.
+func (u *JobUpsertBulk) SetRetriedFraction(v float64) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetRetriedFraction(v)
+	})
+}
+
+// AddRetriedFraction adds v to the "retriedFraction" field.
+func (u *JobUpsertBulk) AddRetriedFraction(v float64) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.AddRetriedFraction(v)
+	})
+}
+
+// UpdateRetriedFraction sets the "retriedFraction" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateRetriedFraction() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateRetriedFraction()
 	})
 }
 
