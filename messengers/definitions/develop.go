@@ -18,7 +18,7 @@ func Develop1() *messengers.Definition {
 				return nil, commErr
 			}
 			return fmt.Sprintf(
-				"\nmessage sent to user \"%v\":\n%v\n\n",
+				"\nmessage sent to user \"%v\":\n%v\n",
 				message.User.Username, formattedMessage,
 			), nil
 		},
@@ -30,7 +30,7 @@ func Develop1() *messengers.Definition {
 				return jobErr
 			}
 
-			fmt.Printf(body)
+			fmt.Println(body)
 			return nil
 		},
 	}

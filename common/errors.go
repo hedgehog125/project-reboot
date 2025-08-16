@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -106,8 +107,8 @@ type Error struct {
 	DebugValues            []DebugValue
 }
 type DebugValue struct {
-	Name    string
-	Message string
+	Name    string `json:"name"`
+	Message string `json:"message"`
 	Value   any
 }
 
@@ -150,6 +151,28 @@ func (err *Error) Is(target error) bool {
 		return false
 	}
 	return err.Err == targetStruct.Err
+}
+func (err *Error) MarshalJSON() ([]byte, error) {
+	type jsonError struct {
+		Error                  string        `json:"error"`
+		InnerError             string        `json:"innerError"`
+		Categories             []string      `json:"categories"`
+		ErrDuplicatesCategory  bool          `json:"errDuplicatesCategory"`
+		MaxRetries             int           `json:"maxRetries"`
+		RetryBackoffBase       time.Duration `json:"retryBackoffBase"`
+		RetryBackoffMultiplier float64       `json:"retryBackoffMultiplier"`
+		DebugValues            []DebugValue  `json:"debugValues"`
+	}
+	return json.Marshal(&jsonError{
+		Error:                  err.Error(),
+		InnerError:             err.Err.Error(),
+		Categories:             err.Categories,
+		ErrDuplicatesCategory:  err.ErrDuplicatesCategory,
+		MaxRetries:             err.MaxRetries,
+		RetryBackoffBase:       err.RetryBackoffBase,
+		RetryBackoffMultiplier: err.RetryBackoffMultiplier,
+		DebugValues:            err.DebugValues,
+	})
 }
 
 func (err *Error) GeneralCategory() string {
@@ -267,6 +290,8 @@ func NewErrorWithCategories(message string, categories ...string) *Error {
 
 // categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
 func WrapErrorWithCategories(err error, categories ...string) *Error {
+	// TODO: log warning if the error had to be unwrapped? e.g servercommon.Error converted to common.Error
+	// Also use errors.As?
 	if err == nil {
 		return nil
 	}
@@ -327,6 +352,7 @@ func GetLastCategoryWithTag(categories []string, requiredTag string) (string, in
 func AutoWrapError(err error) *Error {
 	var commErr *Error
 	if errors.As(err, &commErr) {
+		// TODO: log warning if the error had to be unwrapped? e.g servercommon.Error converted to common.Error
 		return commErr.Clone()
 	}
 

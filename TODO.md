@@ -1,9 +1,12 @@
 # TODO
 
--   Fix issues around failed jobs. Jobs aren't being marked as completed? Job deadlock
+-   Remove jobs.Error, just use common.Error
+-   -   Log a warning if retry base backoff is less than a second. "did you mean to wrap this in a WithRetries?"
+-   -   Ensure WithRetries removes the retry config so it has to be added again
+-   -   Make a standard API error wrapper and use it with the Discord messenger? Although how would it tell what to retry if it's not standard HTTP errors?
+-   -   Not much of a concern for the Discord messenger, but how should non-ok status codes be handled?
 -   Rename userRow etc to userOb (or dbUser?)
 -   Only load env files in development
--   Bump priority of jobs as they get older
 -   Replace cron system with a simple custom job scheduler
 -   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
 -   Store logs to database
@@ -37,6 +40,7 @@
 -   Require both admin and users to click a link every 4 weeks (unless already locked) to confirm their contacts are working. If they don't click it, users will automatically lock and have to be unlocked by an admin. If the admin doesn't, all users will automatically lock
 
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
+-   Bump priority of jobs as they get older
 
 # To watch
 

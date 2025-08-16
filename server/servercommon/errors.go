@@ -21,12 +21,12 @@ var ErrWrapperParseBodyJson = common.NewErrorWrapper(
 	ErrTypeParseBodyJson, common.ErrTypeClient,
 )
 
-type CommonError = common.Error
 type Error struct {
-	*CommonError
-	Status    int // Set to -1 to keep the current code
-	Details   []ErrorDetail
-	ShouldLog bool
+	// Not embedded because the promoted methods unwrap to common.Error, so they need to be manually wrapped
+	CommonError *common.Error `json:"commonError"`
+	Status      int           `json:"status"` // Set to -1 to keep the current code
+	Details     []ErrorDetail `json:"details"`
+	ShouldLog   bool          `json:"shouldLog"`
 }
 type ErrorDetail struct {
 	Code    string `json:"code"`
@@ -54,6 +54,9 @@ func NewError(err error) *Error {
 	}
 }
 
+func (err *Error) Error() string {
+	return err.CommonError.Error()
+}
 func (err *Error) StandardError() error {
 	if err == nil {
 		return nil
@@ -75,12 +78,18 @@ func (err *Error) Clone() *Error {
 		ShouldLog:   err.ShouldLog,
 	}
 }
-func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) *Error {
+func (err *Error) SetCommonError(commErr *common.Error) *Error {
+	if commErr == nil {
+		return nil
+	}
 	copiedErr := err.Clone()
-	copiedErr.Err = err.CommonError.ConfigureRetries(
-		maxRetries, baseBackoff, backoffMultiplier,
-	)
+	copiedErr.CommonError = commErr
 	return copiedErr
+}
+func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) *Error {
+	return err.SetCommonError(err.CommonError.ConfigureRetries(
+		maxRetries, baseBackoff, backoffMultiplier,
+	))
 }
 
 func (err *Error) AddDetails(details ...ErrorDetail) *Error {
@@ -137,7 +146,7 @@ func (err *Error) sendStatusIfNotFound(
 	statusCode int, detail *ErrorDetail,
 	preventLog bool,
 ) *Error {
-	return err.sendStatusAndDetailIfCondition(ent.IsNotFound(err.Err), statusCode, detail, preventLog)
+	return err.sendStatusAndDetailIfCondition(ent.IsNotFound(err.CommonError.Err), statusCode, detail, preventLog)
 }
 
 func (err *Error) sendStatusAndDetailIfCondition(
