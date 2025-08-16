@@ -29,7 +29,7 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			userRow, stdErr := tx.User.Query().
+			userOb, stdErr := tx.User.Query().
 				Where(user.Username(body.Username)).
 				Only(ctx)
 			if stdErr != nil {
@@ -37,7 +37,7 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 					common.ErrWrapperDatabase.Wrap(stdErr),
 				)
 			}
-			userRow, stdErr = userRow.Update().
+			userOb, stdErr = userOb.Update().
 				SetAlertDiscordId(body.DiscordUserId).
 				SetAlertEmail(body.Email).
 				Save(ctx)
@@ -50,7 +50,7 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 			_, commErr := app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.MessageTest,
-					User: userRow,
+					User: userOb,
 				},
 				ctx,
 			)

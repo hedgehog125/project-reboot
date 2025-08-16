@@ -35,8 +35,8 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		userRow, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
-			userRow, stdErr := tx.User.Query().
+		userOb, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
+			userOb, stdErr := tx.User.Query().
 				Where(user.Username(body.Username)).
 				Only(ctx)
 			if stdErr != nil {
@@ -44,7 +44,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 					common.ErrWrapperDatabase.Wrap(stdErr),
 				)
 			}
-			return userRow, nil
+			return userOb, nil
 		})
 		if stdErr != nil {
 			return stdErr
@@ -52,14 +52,14 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		encryptionKey := core.HashPassword(
 			body.Password,
-			userRow.KeySalt,
+			userOb.KeySalt,
 			&common.PasswordHashSettings{
-				Time:    userRow.HashTime,
-				Memory:  userRow.HashMemory,
-				Threads: userRow.HashThreads,
+				Time:    userOb.HashTime,
+				Memory:  userOb.HashMemory,
+				Threads: userOb.HashThreads,
 			},
 		)
-		_, commErr := core.Decrypt(userRow.Content, encryptionKey, userRow.Nonce)
+		_, commErr := core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
 		if commErr != nil {
 			return servercommon.NewUnauthorizedError()
 		}
@@ -68,7 +68,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			_, commErr := app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.MessageLogin,
-					User: userRow,
+					User: userOb,
 				},
 				ctx,
 			)
@@ -80,7 +80,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			validAt := clock.Now().Add(app.Env.UNLOCK_TIME)
 
 			_, stdErr = tx.Session.Create().
-				SetUser(userRow).
+				SetUser(userOb).
 				SetCode(authCode).
 				SetCodeValidFrom(validAt).
 				SetUserAgent(ginCtx.Request.UserAgent()).

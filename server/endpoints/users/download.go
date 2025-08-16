@@ -43,8 +43,8 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		userRow, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
-			sessionRow, stdErr := tx.Session.Query().
+		userOb, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
+			sessionOb, stdErr := tx.Session.Query().
 				Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
 				Select(session.FieldCode, session.FieldCodeValidFrom).
 				First(ctx)
@@ -54,7 +54,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				)
 			}
 
-			if clock.Now().Before(sessionRow.CodeValidFrom) {
+			if clock.Now().Before(sessionOb.CodeValidFrom) {
 				ginCtx.JSON(http.StatusConflict, DownloadResponse{
 					Errors: []servercommon.ErrorDetail{
 						{
@@ -62,12 +62,12 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 							Code:    "CODE_NOT_VALID_YET",
 						},
 					},
-					AuthorizationCodeValidAt: &sessionRow.CodeValidFrom,
+					AuthorizationCodeValidAt: &sessionOb.CodeValidFrom,
 				})
 				return nil, servercommon.ErrCancelTransaction.Clone()
 			}
 
-			userRow, stdErr := tx.User.Query().
+			userOb, stdErr := tx.User.Query().
 				Where(user.Username(body.Username)).
 				Select(
 					user.FieldUsername,
@@ -86,7 +86,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			if stdErr != nil {
 				return nil, common.ErrWrapperDatabase.Wrap(stdErr)
 			}
-			return userRow, nil
+			return userOb, nil
 		})
 		if stdErr != nil {
 			return stdErr
@@ -94,14 +94,14 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		encryptionKey := core.HashPassword(
 			body.Password,
-			userRow.KeySalt,
+			userOb.KeySalt,
 			&common.PasswordHashSettings{
-				Time:    userRow.HashTime,
-				Memory:  userRow.HashMemory,
-				Threads: userRow.HashThreads,
+				Time:    userOb.HashTime,
+				Memory:  userOb.HashMemory,
+				Threads: userOb.HashThreads,
 			},
 		)
-		decrypted, commErr := core.Decrypt(userRow.Content, encryptionKey, userRow.Nonce)
+		decrypted, commErr := core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
 		if commErr != nil {
 			return servercommon.ExpectError(
 				commErr, core.ErrIncorrectPassword,
@@ -113,8 +113,8 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			Errors:                   []servercommon.ErrorDetail{},
 			AuthorizationCodeValidAt: nil,
 			Content:                  decrypted,
-			Filename:                 userRow.FileName,
-			Mime:                     userRow.Mime,
+			Filename:                 userOb.FileName,
+			Mime:                     userOb.Mime,
 		})
 		return nil
 
