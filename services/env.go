@@ -1,12 +1,21 @@
 package services
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/joho/godotenv"
 )
 
 func LoadEnvironmentVariables() *common.Env {
-	_ = godotenv.Load(".env") // TODO: log some errors
+	_, isDevEnvDefined := os.LookupEnv("IS_DEV")
+	if !isDevEnvDefined {
+		stdErr := godotenv.Load(".env")
+		if stdErr != nil {
+			fmt.Printf("warning: error loading .env file: %v\n", stdErr.Error())
+		}
+	}
 
 	return &common.Env{
 		IS_DEV:                        common.RequireBoolEnv("IS_DEV"),

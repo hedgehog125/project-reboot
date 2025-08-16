@@ -1,6 +1,5 @@
 # TODO
 
--   Only load env files in development
 -   Replace cron system with a simple custom job scheduler
 -   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
 -   Store logs to database
