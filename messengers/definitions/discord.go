@@ -1,8 +1,11 @@
 package definitions
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"net/url"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/hedgehog125/project-reboot/common"
@@ -15,21 +18,50 @@ type Discord1Body struct {
 	FormattedMessage string `json:"formattedMessage"`
 }
 
+var ErrWrapperDiscord = common.NewDynamicErrorWrapper(func(err error) *common.Error {
+	commErr := common.ErrWrapperAPI.Wrap(err)
+	if commErr == nil {
+		return nil
+	}
+
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) {
+		return commErr.
+			ConfigureRetries(10, time.Second*5, 1.5).
+			AddDebugValue(common.DebugValue{
+				Name: "retried url.Error",
+			})
+	}
+	var rateLimitErr *discordgo.RateLimitError
+	if errors.As(err, &rateLimitErr) {
+		return commErr.
+			ConfigureRetries(3, max(rateLimitErr.RetryAfter, 5*time.Second), 1).
+			AddDebugValue(common.DebugValue{
+				Name:    "retried discordgo.RateLimitError",
+				Message: fmt.Sprintf("RetryAfter: %v", rateLimitErr.RetryAfter),
+			})
+	}
+
+	return commErr
+})
+
 func Discord1(app *common.App) *messengers.Definition {
 	getSession := func() (*discordgo.Session, *common.Error) {
 		session, err := discordgo.New("Bot " + app.Env.DISCORD_TOKEN)
 		if err != nil {
-			return nil, common.ErrWrapperAPI.Wrap(err)
+			return nil, ErrWrapperDiscord.Wrap(err)
 		}
+
+		session.ShouldRetryOnRateLimit = false
 		return session, nil
 	}
 	session, commErr := getSession()
 	if commErr != nil {
-		log.Fatalf("error creating Discord session:\n%v", commErr)
+		log.Fatalf("error creating startup test Discord session:\n%v", commErr)
 	}
 	stdErr := session.Close()
 	if stdErr != nil {
-		log.Fatalf("error closing Discord session:\n%v", stdErr)
+		log.Fatalf("error closing startup test Discord session:\n%v", stdErr)
 	}
 
 	return &messengers.Definition{
@@ -63,7 +95,7 @@ func Discord1(app *common.App) *messengers.Definition {
 			}
 			stdErr := session.Open()
 			if stdErr != nil {
-				return common.ErrWrapperAPI.Wrap(stdErr)
+				return ErrWrapperDiscord.Wrap(stdErr)
 			}
 
 			// TODO: why does calling close and returning here cause a log?
@@ -78,11 +110,11 @@ func Discord1(app *common.App) *messengers.Definition {
 
 			channel, stdErr := session.UserChannelCreate(body.UserID)
 			if stdErr != nil {
-				return common.ErrWrapperAPI.Wrap(stdErr)
+				return ErrWrapperDiscord.Wrap(stdErr)
 			}
 			_, stdErr = session.ChannelMessageSend(channel.ID, body.FormattedMessage)
 			if stdErr != nil {
-				return common.ErrWrapperAPI.Wrap(stdErr)
+				return ErrWrapperDiscord.Wrap(stdErr)
 			}
 
 			return nil

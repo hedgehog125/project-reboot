@@ -8,6 +8,7 @@ import (
 )
 
 const BackoffJitter = float64(0.05)
+const MaxBackoffJitter = 500 * time.Millisecond
 const BackoffMaxRetriesEpsilon = 1e-9
 
 // TODO: enforce a timeout or log a warning if it's exceeded? Some contexts don't have a deadline but instead can just be cancelled after a while
@@ -87,10 +88,9 @@ func WithRetries(
 }
 
 func CalculateBackoff(retries int, base time.Duration, multiplier float64) time.Duration {
-	jitterMultiplier := RandPositiveNegativeRange(BackoffJitter) + 1
+	withoutJitter := float64(base) * math.Pow(multiplier, float64(retries))
+	jitter := RandPositiveNegativeRange(min(withoutJitter*BackoffJitter, float64(MaxBackoffJitter)))
 	return time.Duration(math.Round(
-		float64(base) *
-			math.Pow(multiplier, float64(retries+1)) *
-			jitterMultiplier,
+		withoutJitter + jitter,
 	))
 }

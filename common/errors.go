@@ -174,6 +174,13 @@ func (err *Error) MarshalJSON() ([]byte, error) {
 		DebugValues:            err.DebugValues,
 	})
 }
+func (err *Error) Dump() string {
+	message, stdErr := json.MarshalIndent(err, "", "  ")
+	if stdErr != nil {
+		return fmt.Sprintf("Error.Dump marshall error:\n%v", stdErr)
+	}
+	return fmt.Sprintf("Error.Dump successful:\n%v", string(message))
+}
 
 func (err *Error) GeneralCategory() string {
 	category, _ := GetLastCategoryWithTag(err.Categories, CategoryTagGeneral)

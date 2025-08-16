@@ -103,13 +103,18 @@ func (engine *Engine) Listen() {
 							SetStatus("failed").
 							Exec(ctx)
 					} else {
-						fmt.Printf("queueing job %v for retry in %vs\n", completedJob.Object.ID, backoff.Seconds())
+						fmt.Printf(
+							"queueing job %v for retry in %v. error:\n%v\n",
+							completedJob.Object.ID,
+							backoff,
+							completedJob.Err.Dump(),
+						)
 						sendJobSignal = true
 						return tx.Job.UpdateOneID(completedJob.Object.ID).
 							SetStatus("pending").
 							SetDue(engine.App.Clock.Now().Add(backoff)).
 							AddRetries(1).
-							AddRetriedFraction(retriedFraction).
+							SetRetriedFraction(retriedFraction).
 							SetLoggedStallWarning(false).
 							Exec(ctx)
 					}

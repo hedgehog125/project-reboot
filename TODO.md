@@ -1,10 +1,5 @@
 # TODO
 
--   Remove jobs.Error, just use common.Error
--   -   Log a warning if retry base backoff is less than a second. "did you mean to wrap this in a WithRetries?"
--   -   Ensure WithRetries removes the retry config so it has to be added again
--   -   Make a standard API error wrapper and use it with the Discord messenger? Although how would it tell what to retry if it's not standard HTTP errors?
--   -   Not much of a concern for the Discord messenger, but how should non-ok status codes be handled?
 -   Rename userRow etc to userOb (or dbUser?)
 -   Only load env files in development
 -   Replace cron system with a simple custom job scheduler
