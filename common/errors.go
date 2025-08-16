@@ -243,6 +243,9 @@ func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, ba
 
 	return copiedErr
 }
+func (err *Error) DisableRetries() *Error {
+	return err.ConfigureRetries(0, 0, 0)
+}
 func (err *Error) SetMaxRetries(value int) *Error {
 	copiedErr := err.Clone()
 	copiedErr.MaxRetries = value
@@ -263,8 +266,11 @@ func (err *Error) SetRetryBackoffMultiplier(value float64) *Error {
 }
 
 func (err *Error) AddDebugValue(value DebugValue) *Error {
+	return err.AddDebugValues(value)
+}
+func (err *Error) AddDebugValues(values ...DebugValue) *Error {
 	copiedErr := err.Clone()
-	copiedErr.DebugValues = append(copiedErr.DebugValues, value)
+	copiedErr.DebugValues = append(copiedErr.DebugValues, values...)
 
 	return copiedErr
 }

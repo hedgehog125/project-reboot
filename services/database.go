@@ -49,8 +49,8 @@ func (service *Database) Start() {
 	client := ent.NewClient(driver)
 	service.client = client
 
-	// TODO: does not cancelling this cause a memory leak?
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	err = client.Schema.Create(ctx)
 	if err != nil {
 		_ = client.Close()

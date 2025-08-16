@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/common/testcommon"
 	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,9 +20,7 @@ func TestEngine_runsJob(t *testing.T) {
 	defer db.Shutdown()
 	app := &common.App{
 		Database: db,
-		Env: &common.Env{
-			MAX_TOTAL_JOB_WEIGHT: 100,
-		},
+		Env:      testcommon.DefaultEnv(),
 	}
 	type body = struct{}
 	completeJobChan := make(chan struct{})
@@ -57,10 +55,9 @@ func TestEngine_retriesJob(t *testing.T) {
 	db := testcommon.CreateDB()
 	defer db.Shutdown()
 	app := &common.App{
+		Clock:    clockwork.NewRealClock(),
 		Database: db,
-		Env: &common.Env{
-			MAX_TOTAL_JOB_WEIGHT: 100,
-		},
+		Env:      testcommon.DefaultEnv(),
 	}
 	type body = struct{}
 	completeJobChan := make(chan struct{})
@@ -72,11 +69,8 @@ func TestEngine_retriesJob(t *testing.T) {
 		Handler: func(ctx *Context) error {
 			attempt++
 			if attempt < 3 {
-				return NewError(errors.New("temporary error")).
-					SetRetries([]time.Duration{
-						10 * time.Millisecond,
-						30 * time.Millisecond,
-					})
+				return common.NewErrorWithCategories("temporary error").
+					ConfigureRetries(2, 10*time.Millisecond, 2)
 			}
 			completeJobChan <- struct{}{}
 			return nil
@@ -91,7 +85,7 @@ func TestEngine_retriesJob(t *testing.T) {
 	// TODO: use t.Log
 	fmt.Println("queuing job...")
 	stdErr := dbcommon.WithWriteTx(t.Context(), db, func(tx *ent.Tx, ctx context.Context) error {
-		_, commErr := engine.Enqueue("test_job_1", &body{}, ctx) // TODO: make util
+		_, commErr := engine.Enqueue("test_job_1", &body{}, ctx)
 		return commErr.StandardError()
 	})
 	require.NoError(t, stdErr)

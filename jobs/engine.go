@@ -13,6 +13,10 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/job"
 )
 
+const (
+	UnlimitedRetriesLimit = 10
+)
+
 type Engine struct {
 	App                  *common.App
 	Registry             *Registry
@@ -37,7 +41,7 @@ func NewEngine(registry *Registry) *Engine {
 
 type completedJob struct {
 	Object *ent.Job
-	Err    *Error
+	Err    *common.Error
 }
 
 func (engine *Engine) Listen() {
@@ -68,21 +72,45 @@ func (engine *Engine) Listen() {
 			}
 			fmt.Printf("job %s completed after %d retries\n", completedJob.Object.ID, completedJob.Object.Retries)
 		} else {
-			jobErr := NewError(completedJob.Err)
+			if completedJob.Err.MaxRetries < 0 {
+				if completedJob.Err.MaxRetries == -1 {
+					fmt.Printf("warning job %s error has unlimited retries (-1). Setting to UnlimitedRetriesLimit\n", completedJob.Object.ID)
+					completedJob.Err.MaxRetries = UnlimitedRetriesLimit
+				}
+				completedJob.Err.MaxRetries = 0
+			}
+			if completedJob.Err.MaxRetries > 0 {
+				if completedJob.Err.RetryBackoffBase < time.Second {
+					fmt.Printf("warning job %s error has low a base retry backoff of %vms. Did you forget to wrap it in WithRetries?\n", completedJob.Object.ID, completedJob.Err.RetryBackoffBase.Milliseconds())
+				}
+			}
+			retriedFraction := completedJob.Object.RetriedFraction
+			if completedJob.Err.MaxRetries > 0 {
+				retriedFraction += 1 / float64(completedJob.Err.MaxRetries+1)
+			}
+			shouldRetry := retriedFraction >= 1-common.BackoffMaxRetriesEpsilon || completedJob.Err.MaxRetries < 1
+			backoff := common.CalculateBackoff( // TODO: is the jitter too much?
+				completedJob.Object.Retries,
+				completedJob.Err.RetryBackoffBase,
+				completedJob.Err.RetryBackoffMultiplier,
+			)
+			sendJobSignal := false
 			stdErr := dbcommon.WithWriteTx(context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) error {
-					if completedJob.Object.Retries < len(jobErr.JobRetryBackoffs) {
-						backoff := jobErr.JobRetryBackoffs[completedJob.Object.Retries]
+					if shouldRetry {
+						fmt.Printf("job %s failed after %d retries. error:\n%v\n", completedJob.Object.ID, completedJob.Object.Retries, completedJob.Err.Error())
+						return tx.Job.UpdateOneID(completedJob.Object.ID).
+							SetStatus("failed").
+							Exec(ctx)
+					} else {
+						fmt.Printf("queueing job %v for retry in %vs\n", completedJob.Object.ID, backoff.Seconds())
+						sendJobSignal = true
 						return tx.Job.UpdateOneID(completedJob.Object.ID).
 							SetStatus("pending").
 							SetDue(engine.App.Clock.Now().Add(backoff)).
 							AddRetries(1).
+							AddRetriedFraction(retriedFraction).
 							SetLoggedStallWarning(false).
-							Exec(ctx)
-					} else {
-						fmt.Printf("job %s failed after %d retries. error:\n%v\n", completedJob.Object.ID, completedJob.Object.Retries, jobErr.Error())
-						return tx.Job.UpdateOneID(completedJob.Object.ID).
-							SetStatus("failed").
 							Exec(ctx)
 					}
 				},
@@ -91,8 +119,16 @@ func (engine *Engine) Listen() {
 				// A restart is unlikely to help, so we'll just have to log the error
 				// TODO: log error
 				fmt.Printf("failed to mark job as failed / reset to pending: %v\n", stdErr.Error())
+			} else {
+				if sendJobSignal {
+					fmt.Println("sending new job signal")
+					select {
+					case engine.newJobChan <- struct{}{}:
+					default:
+						fmt.Println("new job signal already sent")
+					}
+				}
 			}
-
 		}
 	}
 	runJobs := func() bool {
@@ -157,7 +193,6 @@ func (engine *Engine) Listen() {
 			jobDefinition, ok := engine.Registry.jobs[common.GetVersionedType(currentJob.Type, currentJob.Version)]
 			if ok {
 				if jobDefinition.NoParallelize {
-					// TODO: this doesn't work because the engine's transaction doesn't commit until this has finished
 					engine.runJob(jobDefinition, currentJob, completedJobChan)
 				} else {
 					go engine.runJob(jobDefinition, currentJob, completedJobChan)
@@ -165,7 +200,7 @@ func (engine *Engine) Listen() {
 			} else { // Note: this shouldn't happen
 				completedJobChan <- completedJob{
 					Object: currentJob,
-					Err:    NewError(ErrWrapperRunJob.Wrap(ErrUnknownJobType)),
+					Err:    ErrWrapperRunJob.Wrap(ErrUnknownJobType),
 				}
 			}
 			// Otherwise continue processing jobs
@@ -232,6 +267,7 @@ func (engine *Engine) runJob(
 	jobDefinition *Definition, job *ent.Job,
 	completedJobChan chan completedJob,
 ) {
+	fmt.Printf("running job %v\n", job.ID)
 	stdErr := jobDefinition.Handler(&Context{
 		Definition: jobDefinition,
 		Context:    context.TODO(),
@@ -239,7 +275,7 @@ func (engine *Engine) runJob(
 	})
 	completedJobChan <- completedJob{
 		Object: job,
-		Err:    NewError(ErrWrapperRunJob.Wrap(stdErr)),
+		Err:    ErrWrapperRunJob.Wrap(stdErr),
 	}
 }
 

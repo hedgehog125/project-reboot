@@ -43,10 +43,10 @@ type Context struct {
 	Body       []byte
 }
 
-func (ctx *Context) Decode(pointer any) *Error {
+func (ctx *Context) Decode(pointer any) *common.Error {
 	err := json.Unmarshal(ctx.Body, pointer)
 	if err != nil {
-		return NewError(ErrWrapperDecode.Wrap(err))
+		return ErrWrapperDecode.Wrap(err)
 	}
 	return nil
 }

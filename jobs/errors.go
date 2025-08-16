@@ -1,10 +1,6 @@
 package jobs
 
 import (
-	"errors"
-	"slices"
-	"time"
-
 	"github.com/hedgehog125/project-reboot/common"
 )
 
@@ -43,60 +39,3 @@ var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeJobs).
 var ErrWrapperInvalidData = common.NewErrorWrapper(
 	common.ErrTypeJobs, ErrTypeInvalidData,
 )
-
-type CommonError = common.Error
-type Error struct { // TODO: could the common error just be used instead?
-	CommonError      // TODO: use pointer?
-	JobRetryBackoffs []time.Duration
-}
-type ErrorDetail struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-}
-
-func NewError(err error) *Error {
-	if err == nil {
-		return nil
-	}
-	jobErr := &Error{}
-	if errors.As(err, &jobErr) {
-		return jobErr.Clone()
-	}
-
-	commErr := common.AutoWrapError(err)
-	if commErr == nil {
-		return nil
-	}
-	return &Error{
-		CommonError:      *commErr,
-		JobRetryBackoffs: []time.Duration{},
-	}
-}
-
-func (err *Error) StandardError() error {
-	if err == nil {
-		return nil
-	}
-	return err
-}
-func (err *Error) Unwrap() error {
-	return &err.CommonError
-}
-func (err *Error) Clone() *Error {
-	copiedErr := &Error{
-		CommonError:      *err.CommonError.Clone(),
-		JobRetryBackoffs: slices.Clone(err.JobRetryBackoffs),
-	}
-	return copiedErr
-}
-func (err *Error) SetRetries(backoffs []time.Duration) *Error {
-	copiedErr := err.Clone()
-	copiedErr.JobRetryBackoffs = backoffs
-	return copiedErr
-}
-
-func (err *Error) AddCategory(category string) *Error {
-	copiedErr := err.Clone()
-	copiedErr.Err = err.CommonError.AddCategory(category)
-	return copiedErr
-}

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"math/rand"
 	"time"
 )
 
 const BackoffJitter = float64(0.05)
+const BackoffMaxRetriesEpsilon = 1e-9
 
 // TODO: enforce a timeout or log a warning if it's exceeded? Some contexts don't have a deadline but instead can just be cancelled after a while
 func WithRetries(
@@ -18,7 +18,7 @@ func WithRetries(
 	retriedFraction := float64(0) // When >= 1, max retries is reached
 	retriesByCategory := map[string]int{}
 	errs := []error{}
-	getDebugValue := func() DebugValue {
+	getPreviousErrorsDebugValue := func() DebugValue {
 		message := "no previous errors"
 		if len(errs) > 0 {
 			message = "from oldest to newest:"
@@ -32,6 +32,18 @@ func WithRetries(
 			Value:   errs,
 		}
 	}
+	wrapError := func(commErr *Error) *Error {
+		return commErr.AddDebugValues(
+			getPreviousErrorsDebugValue(),
+			DebugValue{
+				Name: "retries reset by WithRetries from...",
+				Message: fmt.Sprintf(
+					"max retries: %v, base backoff: %v, backoff multiplier: %v",
+					commErr.MaxRetries, commErr.RetryBackoffBase, commErr.RetryBackoffMultiplier,
+				),
+			},
+		).DisableRetries()
+	}
 
 	for {
 		startTime := time.Now()
@@ -41,20 +53,15 @@ func WithRetries(
 		}
 		commErr := AutoWrapError(stdErr)
 		if commErr.MaxRetries > 0 {
-			retriedFraction += 1 / float64(commErr.MaxRetries)
+			retriedFraction += 1 / float64(commErr.MaxRetries+1)
 		}
-		if retriedFraction >= 1 || (commErr.MaxRetries < 1 && commErr.MaxRetries != -1) {
-			return commErr.AddDebugValue(getDebugValue())
+		if retriedFraction >= 1-BackoffMaxRetriesEpsilon || (commErr.MaxRetries < 1 && commErr.MaxRetries != -1) {
+			return wrapError(commErr)
 		}
 		errs = append(errs, stdErr)
 
 		retries := retriesByCategory[commErr.GeneralCategory()]
-		jitterMultiplier := ((rand.Float64() * BackoffJitter * 2) - BackoffJitter) + 1
-		backoff := time.Duration(math.Round(
-			float64(commErr.RetryBackoffBase) *
-				math.Pow(commErr.RetryBackoffMultiplier, float64(retries+1)) *
-				jitterMultiplier,
-		))
+		backoff := CalculateBackoff(retries, commErr.RetryBackoffBase, commErr.RetryBackoffMultiplier)
 		if commErr.RetryBackoffMultiplier > 1 { // Errors with a multiplier of 1 shouldn't increase the backoff for other errors with the same category
 			retriesByCategory[commErr.GeneralCategory()] = retries + 1
 		}
@@ -63,7 +70,7 @@ func WithRetries(
 		maxObservedRunTime = max(maxObservedRunTime, runTime)
 		deadline, hasDeadline := ctx.Deadline()
 		if hasDeadline && time.Until(deadline) < maxObservedRunTime+backoff {
-			return commErr.AddDebugValue(getDebugValue())
+			return wrapError(commErr)
 		}
 
 		fmt.Printf("waiting %vms\n", backoff.Milliseconds())
@@ -74,7 +81,16 @@ func WithRetries(
 			return WrapErrorWithCategories(
 				context.Canceled,
 				ErrTypeTimeout, "with retries", ErrTypeCommon,
-			).AddDebugValue(getDebugValue())
+			).AddDebugValue(getPreviousErrorsDebugValue())
 		}
 	}
+}
+
+func CalculateBackoff(retries int, base time.Duration, multiplier float64) time.Duration {
+	jitterMultiplier := RandPositiveNegativeRange(BackoffJitter) + 1
+	return time.Duration(math.Round(
+		float64(base) *
+			math.Pow(multiplier, float64(retries+1)) *
+			jitterMultiplier,
+	))
 }
