@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
+	"github.com/hedgehog125/project-reboot/ent/logentry"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -29,6 +30,7 @@ const (
 
 	// Node types.
 	TypeJob             = "Job"
+	TypeLogEntry        = "LogEntry"
 	TypeSession         = "Session"
 	TypeTwoFactorAction = "TwoFactorAction"
 	TypeUser            = "User"
@@ -1148,6 +1150,906 @@ func (m *JobMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *JobMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Job edge %s", name)
+}
+
+// LogEntryMutation represents an operation that mutates the LogEntry nodes in the graph.
+type LogEntryMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	time           *time.Time
+	timeKnown      *bool
+	level          *int
+	addlevel       *int
+	message        *string
+	attributes     *string
+	sourceFile     *string
+	sourceFunction *string
+	sourceLine     *int
+	addsourceLine  *int
+	publicMessage  *string
+	clearedFields  map[string]struct{}
+	user           *int
+	cleareduser    bool
+	done           bool
+	oldValue       func(context.Context) (*LogEntry, error)
+	predicates     []predicate.LogEntry
+}
+
+var _ ent.Mutation = (*LogEntryMutation)(nil)
+
+// logentryOption allows management of the mutation configuration using functional options.
+type logentryOption func(*LogEntryMutation)
+
+// newLogEntryMutation creates new mutation for the LogEntry entity.
+func newLogEntryMutation(c config, op Op, opts ...logentryOption) *LogEntryMutation {
+	m := &LogEntryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLogEntry,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLogEntryID sets the ID field of the mutation.
+func withLogEntryID(id uuid.UUID) logentryOption {
+	return func(m *LogEntryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LogEntry
+		)
+		m.oldValue = func(ctx context.Context) (*LogEntry, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LogEntry.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLogEntry sets the old LogEntry of the mutation.
+func withLogEntry(node *LogEntry) logentryOption {
+	return func(m *LogEntryMutation) {
+		m.oldValue = func(context.Context) (*LogEntry, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LogEntryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LogEntryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LogEntry entities.
+func (m *LogEntryMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LogEntryMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LogEntryMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LogEntry.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTime sets the "time" field.
+func (m *LogEntryMutation) SetTime(t time.Time) {
+	m.time = &t
+}
+
+// Time returns the value of the "time" field in the mutation.
+func (m *LogEntryMutation) Time() (r time.Time, exists bool) {
+	v := m.time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTime returns the old "time" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTime: %w", err)
+	}
+	return oldValue.Time, nil
+}
+
+// ResetTime resets all changes to the "time" field.
+func (m *LogEntryMutation) ResetTime() {
+	m.time = nil
+}
+
+// SetTimeKnown sets the "timeKnown" field.
+func (m *LogEntryMutation) SetTimeKnown(b bool) {
+	m.timeKnown = &b
+}
+
+// TimeKnown returns the value of the "timeKnown" field in the mutation.
+func (m *LogEntryMutation) TimeKnown() (r bool, exists bool) {
+	v := m.timeKnown
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimeKnown returns the old "timeKnown" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldTimeKnown(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimeKnown is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimeKnown requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimeKnown: %w", err)
+	}
+	return oldValue.TimeKnown, nil
+}
+
+// ResetTimeKnown resets all changes to the "timeKnown" field.
+func (m *LogEntryMutation) ResetTimeKnown() {
+	m.timeKnown = nil
+}
+
+// SetLevel sets the "level" field.
+func (m *LogEntryMutation) SetLevel(i int) {
+	m.level = &i
+	m.addlevel = nil
+}
+
+// Level returns the value of the "level" field in the mutation.
+func (m *LogEntryMutation) Level() (r int, exists bool) {
+	v := m.level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLevel returns the old "level" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
+	}
+	return oldValue.Level, nil
+}
+
+// AddLevel adds i to the "level" field.
+func (m *LogEntryMutation) AddLevel(i int) {
+	if m.addlevel != nil {
+		*m.addlevel += i
+	} else {
+		m.addlevel = &i
+	}
+}
+
+// AddedLevel returns the value that was added to the "level" field in this mutation.
+func (m *LogEntryMutation) AddedLevel() (r int, exists bool) {
+	v := m.addlevel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLevel resets all changes to the "level" field.
+func (m *LogEntryMutation) ResetLevel() {
+	m.level = nil
+	m.addlevel = nil
+}
+
+// SetMessage sets the "message" field.
+func (m *LogEntryMutation) SetMessage(s string) {
+	m.message = &s
+}
+
+// Message returns the value of the "message" field in the mutation.
+func (m *LogEntryMutation) Message() (r string, exists bool) {
+	v := m.message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessage returns the old "message" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessage: %w", err)
+	}
+	return oldValue.Message, nil
+}
+
+// ResetMessage resets all changes to the "message" field.
+func (m *LogEntryMutation) ResetMessage() {
+	m.message = nil
+}
+
+// SetAttributes sets the "attributes" field.
+func (m *LogEntryMutation) SetAttributes(s string) {
+	m.attributes = &s
+}
+
+// Attributes returns the value of the "attributes" field in the mutation.
+func (m *LogEntryMutation) Attributes() (r string, exists bool) {
+	v := m.attributes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAttributes returns the old "attributes" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldAttributes(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAttributes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAttributes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAttributes: %w", err)
+	}
+	return oldValue.Attributes, nil
+}
+
+// ResetAttributes resets all changes to the "attributes" field.
+func (m *LogEntryMutation) ResetAttributes() {
+	m.attributes = nil
+}
+
+// SetSourceFile sets the "sourceFile" field.
+func (m *LogEntryMutation) SetSourceFile(s string) {
+	m.sourceFile = &s
+}
+
+// SourceFile returns the value of the "sourceFile" field in the mutation.
+func (m *LogEntryMutation) SourceFile() (r string, exists bool) {
+	v := m.sourceFile
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceFile returns the old "sourceFile" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldSourceFile(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceFile is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceFile requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceFile: %w", err)
+	}
+	return oldValue.SourceFile, nil
+}
+
+// ResetSourceFile resets all changes to the "sourceFile" field.
+func (m *LogEntryMutation) ResetSourceFile() {
+	m.sourceFile = nil
+}
+
+// SetSourceFunction sets the "sourceFunction" field.
+func (m *LogEntryMutation) SetSourceFunction(s string) {
+	m.sourceFunction = &s
+}
+
+// SourceFunction returns the value of the "sourceFunction" field in the mutation.
+func (m *LogEntryMutation) SourceFunction() (r string, exists bool) {
+	v := m.sourceFunction
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceFunction returns the old "sourceFunction" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldSourceFunction(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceFunction is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceFunction requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceFunction: %w", err)
+	}
+	return oldValue.SourceFunction, nil
+}
+
+// ResetSourceFunction resets all changes to the "sourceFunction" field.
+func (m *LogEntryMutation) ResetSourceFunction() {
+	m.sourceFunction = nil
+}
+
+// SetSourceLine sets the "sourceLine" field.
+func (m *LogEntryMutation) SetSourceLine(i int) {
+	m.sourceLine = &i
+	m.addsourceLine = nil
+}
+
+// SourceLine returns the value of the "sourceLine" field in the mutation.
+func (m *LogEntryMutation) SourceLine() (r int, exists bool) {
+	v := m.sourceLine
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceLine returns the old "sourceLine" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldSourceLine(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceLine is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceLine requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceLine: %w", err)
+	}
+	return oldValue.SourceLine, nil
+}
+
+// AddSourceLine adds i to the "sourceLine" field.
+func (m *LogEntryMutation) AddSourceLine(i int) {
+	if m.addsourceLine != nil {
+		*m.addsourceLine += i
+	} else {
+		m.addsourceLine = &i
+	}
+}
+
+// AddedSourceLine returns the value that was added to the "sourceLine" field in this mutation.
+func (m *LogEntryMutation) AddedSourceLine() (r int, exists bool) {
+	v := m.addsourceLine
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSourceLine resets all changes to the "sourceLine" field.
+func (m *LogEntryMutation) ResetSourceLine() {
+	m.sourceLine = nil
+	m.addsourceLine = nil
+}
+
+// SetPublicMessage sets the "publicMessage" field.
+func (m *LogEntryMutation) SetPublicMessage(s string) {
+	m.publicMessage = &s
+}
+
+// PublicMessage returns the value of the "publicMessage" field in the mutation.
+func (m *LogEntryMutation) PublicMessage() (r string, exists bool) {
+	v := m.publicMessage
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPublicMessage returns the old "publicMessage" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldPublicMessage(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPublicMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPublicMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPublicMessage: %w", err)
+	}
+	return oldValue.PublicMessage, nil
+}
+
+// ResetPublicMessage resets all changes to the "publicMessage" field.
+func (m *LogEntryMutation) ResetPublicMessage() {
+	m.publicMessage = nil
+}
+
+// SetUserID sets the "user" edge to the User entity by id.
+func (m *LogEntryMutation) SetUserID(id int) {
+	m.user = &id
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *LogEntryMutation) ClearUser() {
+	m.cleareduser = true
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *LogEntryMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserID returns the "user" edge ID in the mutation.
+func (m *LogEntryMutation) UserID() (id int, exists bool) {
+	if m.user != nil {
+		return *m.user, true
+	}
+	return
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *LogEntryMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *LogEntryMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the LogEntryMutation builder.
+func (m *LogEntryMutation) Where(ps ...predicate.LogEntry) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LogEntryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LogEntryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LogEntry, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LogEntryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LogEntryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LogEntry).
+func (m *LogEntryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LogEntryMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.time != nil {
+		fields = append(fields, logentry.FieldTime)
+	}
+	if m.timeKnown != nil {
+		fields = append(fields, logentry.FieldTimeKnown)
+	}
+	if m.level != nil {
+		fields = append(fields, logentry.FieldLevel)
+	}
+	if m.message != nil {
+		fields = append(fields, logentry.FieldMessage)
+	}
+	if m.attributes != nil {
+		fields = append(fields, logentry.FieldAttributes)
+	}
+	if m.sourceFile != nil {
+		fields = append(fields, logentry.FieldSourceFile)
+	}
+	if m.sourceFunction != nil {
+		fields = append(fields, logentry.FieldSourceFunction)
+	}
+	if m.sourceLine != nil {
+		fields = append(fields, logentry.FieldSourceLine)
+	}
+	if m.publicMessage != nil {
+		fields = append(fields, logentry.FieldPublicMessage)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LogEntryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case logentry.FieldTime:
+		return m.Time()
+	case logentry.FieldTimeKnown:
+		return m.TimeKnown()
+	case logentry.FieldLevel:
+		return m.Level()
+	case logentry.FieldMessage:
+		return m.Message()
+	case logentry.FieldAttributes:
+		return m.Attributes()
+	case logentry.FieldSourceFile:
+		return m.SourceFile()
+	case logentry.FieldSourceFunction:
+		return m.SourceFunction()
+	case logentry.FieldSourceLine:
+		return m.SourceLine()
+	case logentry.FieldPublicMessage:
+		return m.PublicMessage()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LogEntryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case logentry.FieldTime:
+		return m.OldTime(ctx)
+	case logentry.FieldTimeKnown:
+		return m.OldTimeKnown(ctx)
+	case logentry.FieldLevel:
+		return m.OldLevel(ctx)
+	case logentry.FieldMessage:
+		return m.OldMessage(ctx)
+	case logentry.FieldAttributes:
+		return m.OldAttributes(ctx)
+	case logentry.FieldSourceFile:
+		return m.OldSourceFile(ctx)
+	case logentry.FieldSourceFunction:
+		return m.OldSourceFunction(ctx)
+	case logentry.FieldSourceLine:
+		return m.OldSourceLine(ctx)
+	case logentry.FieldPublicMessage:
+		return m.OldPublicMessage(ctx)
+	}
+	return nil, fmt.Errorf("unknown LogEntry field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LogEntryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case logentry.FieldTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTime(v)
+		return nil
+	case logentry.FieldTimeKnown:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimeKnown(v)
+		return nil
+	case logentry.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevel(v)
+		return nil
+	case logentry.FieldMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessage(v)
+		return nil
+	case logentry.FieldAttributes:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAttributes(v)
+		return nil
+	case logentry.FieldSourceFile:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceFile(v)
+		return nil
+	case logentry.FieldSourceFunction:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceFunction(v)
+		return nil
+	case logentry.FieldSourceLine:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceLine(v)
+		return nil
+	case logentry.FieldPublicMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPublicMessage(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LogEntry field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LogEntryMutation) AddedFields() []string {
+	var fields []string
+	if m.addlevel != nil {
+		fields = append(fields, logentry.FieldLevel)
+	}
+	if m.addsourceLine != nil {
+		fields = append(fields, logentry.FieldSourceLine)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LogEntryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case logentry.FieldLevel:
+		return m.AddedLevel()
+	case logentry.FieldSourceLine:
+		return m.AddedSourceLine()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LogEntryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case logentry.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLevel(v)
+		return nil
+	case logentry.FieldSourceLine:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSourceLine(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LogEntry numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LogEntryMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LogEntryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LogEntryMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LogEntry nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LogEntryMutation) ResetField(name string) error {
+	switch name {
+	case logentry.FieldTime:
+		m.ResetTime()
+		return nil
+	case logentry.FieldTimeKnown:
+		m.ResetTimeKnown()
+		return nil
+	case logentry.FieldLevel:
+		m.ResetLevel()
+		return nil
+	case logentry.FieldMessage:
+		m.ResetMessage()
+		return nil
+	case logentry.FieldAttributes:
+		m.ResetAttributes()
+		return nil
+	case logentry.FieldSourceFile:
+		m.ResetSourceFile()
+		return nil
+	case logentry.FieldSourceFunction:
+		m.ResetSourceFunction()
+		return nil
+	case logentry.FieldSourceLine:
+		m.ResetSourceLine()
+		return nil
+	case logentry.FieldPublicMessage:
+		m.ResetPublicMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown LogEntry field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LogEntryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, logentry.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LogEntryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case logentry.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LogEntryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LogEntryMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LogEntryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, logentry.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LogEntryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case logentry.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LogEntryMutation) ClearEdge(name string) error {
+	switch name {
+	case logentry.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown LogEntry unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LogEntryMutation) ResetEdge(name string) error {
+	switch name {
+	case logentry.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown LogEntry edge %s", name)
 }
 
 // SessionMutation represents an operation that mutates the Session nodes in the graph.
@@ -2369,6 +3271,9 @@ type UserMutation struct {
 	sessions        map[int]struct{}
 	removedsessions map[int]struct{}
 	clearedsessions bool
+	logs            map[uuid.UUID]struct{}
+	removedlogs     map[uuid.UUID]struct{}
+	clearedlogs     bool
 	done            bool
 	oldValue        func(context.Context) (*User, error)
 	predicates      []predicate.User
@@ -3067,6 +3972,60 @@ func (m *UserMutation) ResetSessions() {
 	m.removedsessions = nil
 }
 
+// AddLogIDs adds the "logs" edge to the LogEntry entity by ids.
+func (m *UserMutation) AddLogIDs(ids ...uuid.UUID) {
+	if m.logs == nil {
+		m.logs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.logs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLogs clears the "logs" edge to the LogEntry entity.
+func (m *UserMutation) ClearLogs() {
+	m.clearedlogs = true
+}
+
+// LogsCleared reports if the "logs" edge to the LogEntry entity was cleared.
+func (m *UserMutation) LogsCleared() bool {
+	return m.clearedlogs
+}
+
+// RemoveLogIDs removes the "logs" edge to the LogEntry entity by IDs.
+func (m *UserMutation) RemoveLogIDs(ids ...uuid.UUID) {
+	if m.removedlogs == nil {
+		m.removedlogs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.logs, ids[i])
+		m.removedlogs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLogs returns the removed IDs of the "logs" edge to the LogEntry entity.
+func (m *UserMutation) RemovedLogsIDs() (ids []uuid.UUID) {
+	for id := range m.removedlogs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LogsIDs returns the "logs" edge IDs in the mutation.
+func (m *UserMutation) LogsIDs() (ids []uuid.UUID) {
+	for id := range m.logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLogs resets all changes to the "logs" edge.
+func (m *UserMutation) ResetLogs() {
+	m.logs = nil
+	m.clearedlogs = false
+	m.removedlogs = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -3452,9 +4411,12 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.sessions != nil {
 		edges = append(edges, user.EdgeSessions)
+	}
+	if m.logs != nil {
+		edges = append(edges, user.EdgeLogs)
 	}
 	return edges
 }
@@ -3469,15 +4431,24 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeLogs:
+		ids := make([]ent.Value, 0, len(m.logs))
+		for id := range m.logs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedsessions != nil {
 		edges = append(edges, user.EdgeSessions)
+	}
+	if m.removedlogs != nil {
+		edges = append(edges, user.EdgeLogs)
 	}
 	return edges
 }
@@ -3492,15 +4463,24 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeLogs:
+		ids := make([]ent.Value, 0, len(m.removedlogs))
+		for id := range m.removedlogs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedsessions {
 		edges = append(edges, user.EdgeSessions)
+	}
+	if m.clearedlogs {
+		edges = append(edges, user.EdgeLogs)
 	}
 	return edges
 }
@@ -3511,6 +4491,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeSessions:
 		return m.clearedsessions
+	case user.EdgeLogs:
+		return m.clearedlogs
 	}
 	return false
 }
@@ -3529,6 +4511,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeSessions:
 		m.ResetSessions()
+		return nil
+	case user.EdgeLogs:
+		m.ResetLogs()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

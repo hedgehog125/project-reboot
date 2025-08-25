@@ -30,9 +30,9 @@ type Session struct {
 	IP string `json:"ip,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SessionQuery when eager-loading is set.
-	Edges         SessionEdges `json:"edges"`
-	user_sessions *int
-	selectValues  sql.SelectValues
+	Edges        SessionEdges `json:"edges"`
+	session_user *int
+	selectValues sql.SelectValues
 }
 
 // SessionEdges holds the relations/edges for other nodes in the graph.
@@ -68,7 +68,7 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case session.FieldTime, session.FieldCodeValidFrom:
 			values[i] = new(sql.NullTime)
-		case session.ForeignKeys[0]: // user_sessions
+		case session.ForeignKeys[0]: // session_user
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -123,10 +123,10 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 			}
 		case session.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_sessions", value)
+				return fmt.Errorf("unexpected type %T for edge-field session_user", value)
 			} else if value.Valid {
-				_m.user_sessions = new(int)
-				*_m.user_sessions = int(value.Int64)
+				_m.session_user = new(int)
+				*_m.session_user = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])

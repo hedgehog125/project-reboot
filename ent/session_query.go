@@ -75,7 +75,7 @@ func (_q *SessionQuery) QueryUser() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(session.Table, session.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, session.UserTable, session.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, false, session.UserTable, session.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -413,10 +413,10 @@ func (_q *SessionQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Session)
 	for i := range nodes {
-		if nodes[i].user_sessions == nil {
+		if nodes[i].session_user == nil {
 			continue
 		}
-		fk := *nodes[i].user_sessions
+		fk := *nodes[i].session_user
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -433,7 +433,7 @@ func (_q *SessionQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_sessions" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "session_user" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

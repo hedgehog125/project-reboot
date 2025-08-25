@@ -40,6 +40,8 @@ const (
 	FieldHashThreads = "hash_threads"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
+	// EdgeLogs holds the string denoting the logs edge name in mutations.
+	EdgeLogs = "logs"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// SessionsTable is the table that holds the sessions relation/edge.
@@ -48,7 +50,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "session" package.
 	SessionsInverseTable = "sessions"
 	// SessionsColumn is the table column denoting the sessions relation/edge.
-	SessionsColumn = "user_sessions"
+	SessionsColumn = "session_user"
+	// LogsTable is the table that holds the logs relation/edge.
+	LogsTable = "log_entries"
+	// LogsInverseTable is the table name for the LogEntry entity.
+	// It exists in this package in order to avoid circular dependency with the "logentry" package.
+	LogsInverseTable = "log_entries"
+	// LogsColumn is the table column denoting the logs relation/edge.
+	LogsColumn = "log_entry_user"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -171,10 +180,31 @@ func BySessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByLogsCount orders the results by logs count.
+func ByLogsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLogsStep(), opts...)
+	}
+}
+
+// ByLogs orders the results by logs terms.
+func ByLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newSessionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SessionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
+		sqlgraph.Edge(sqlgraph.O2M, true, SessionsTable, SessionsColumn),
+	)
+}
+func newLogsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LogsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, LogsTable, LogsColumn),
 	)
 }

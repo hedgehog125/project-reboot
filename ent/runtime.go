@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
+	"github.com/hedgehog125/project-reboot/ent/logentry"
 	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -61,6 +62,12 @@ func init() {
 	jobDescID := jobFields[0].Descriptor()
 	// job.DefaultID holds the default value on creation for the id field.
 	job.DefaultID = jobDescID.Default.(func() uuid.UUID)
+	logentryFields := schema.LogEntry{}.Fields()
+	_ = logentryFields
+	// logentryDescID is the schema descriptor for id field.
+	logentryDescID := logentryFields[0].Descriptor()
+	// logentry.DefaultID holds the default value on creation for the id field.
+	logentry.DefaultID = logentryDescID.Default.(func() uuid.UUID)
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
 	// sessionDescTime is the schema descriptor for time field.

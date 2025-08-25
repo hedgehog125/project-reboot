@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -27,6 +28,6 @@ func (Session) Fields() []ent.Field { // TODO: auto delete once used? Or also af
 // Edges of the Session.
 func (Session) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user", User.Type).Ref("sessions").Unique(),
+		edge.To("user", User.Type).Unique().Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

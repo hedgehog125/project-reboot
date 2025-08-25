@@ -42,6 +42,34 @@ var (
 			},
 		},
 	}
+	// LogEntriesColumns holds the columns for the "log_entries" table.
+	LogEntriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "time", Type: field.TypeTime},
+		{Name: "time_known", Type: field.TypeBool},
+		{Name: "level", Type: field.TypeInt},
+		{Name: "message", Type: field.TypeString},
+		{Name: "attributes", Type: field.TypeJSON},
+		{Name: "source_file", Type: field.TypeString},
+		{Name: "source_function", Type: field.TypeString},
+		{Name: "source_line", Type: field.TypeInt},
+		{Name: "public_message", Type: field.TypeString},
+		{Name: "log_entry_user", Type: field.TypeInt, Nullable: true},
+	}
+	// LogEntriesTable holds the schema information for the "log_entries" table.
+	LogEntriesTable = &schema.Table{
+		Name:       "log_entries",
+		Columns:    LogEntriesColumns,
+		PrimaryKey: []*schema.Column{LogEntriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "log_entries_users_user",
+				Columns:    []*schema.Column{LogEntriesColumns[10]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -50,7 +78,7 @@ var (
 		{Name: "code_valid_from", Type: field.TypeTime},
 		{Name: "user_agent", Type: field.TypeString},
 		{Name: "ip", Type: field.TypeString},
-		{Name: "user_sessions", Type: field.TypeInt, Nullable: true},
+		{Name: "session_user", Type: field.TypeInt, Nullable: true},
 	}
 	// SessionsTable holds the schema information for the "sessions" table.
 	SessionsTable = &schema.Table{
@@ -59,10 +87,10 @@ var (
 		PrimaryKey: []*schema.Column{SessionsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "sessions_users_sessions",
+				Symbol:     "sessions_users_user",
 				Columns:    []*schema.Column{SessionsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -107,6 +135,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		JobsTable,
+		LogEntriesTable,
 		SessionsTable,
 		TwoFactorActionsTable,
 		UsersTable,
@@ -114,5 +143,6 @@ var (
 )
 
 func init() {
+	LogEntriesTable.ForeignKeys[0].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 }

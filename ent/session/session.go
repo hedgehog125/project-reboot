@@ -34,7 +34,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_sessions"
+	UserColumn = "session_user"
 )
 
 // Columns holds all SQL columns for session fields.
@@ -50,7 +50,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "sessions"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"user_sessions",
+	"session_user",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -113,6 +113,6 @@ func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+		sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
 	)
 }
