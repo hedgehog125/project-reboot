@@ -2,7 +2,6 @@ package loggers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -36,7 +35,7 @@ type entry struct {
 	timeKnown      bool
 	level          int
 	message        string
-	attributes     string
+	attributes     map[string]any
 	sourceFile     string
 	sourceFunction string
 	sourceLine     int
@@ -113,6 +112,9 @@ listenLoop:
 			},
 		)
 		if stdErr != nil {
+			// TODO: fall back to individual creates, some entries may be invalid
+			// TODO: log a warning if they all succeed, because otherwise doing this just reduced performance for no benefit
+
 			// TODO: can the logger call itself?
 			fmt.Printf(
 				"error: unable to store logs to database. error:\n%v",
@@ -179,19 +181,9 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 		handler.appendAttr(attr, attrs, entry)
 		return true
 	})
+	entry.attributes = attrs
 
-	encoded, stdErr := json.Marshal(attrs)
-	if stdErr == nil {
-		entry.attributes = string(encoded)
-	} else {
-		// TODO: can the logger call itself?
-		fmt.Printf(
-			"warning: unable to encode log attributes as JSON so no attributes will be stored. error:\n%v",
-			stdErr.Error(),
-		)
-	}
-
-	stdErr = handler.textHandler.Handle(ctx, record)
+	stdErr := handler.textHandler.Handle(ctx, record)
 	if stdErr != nil {
 		fmt.Printf(
 			"warning: log Handler.textHandler.Handle returned an error. error:\n%v",
@@ -238,6 +230,7 @@ func (handler Handler) appendAttr(attr slog.Attr, attrs map[string]any, entry *e
 			typeOf := reflect.TypeOf(attr.Value.Any())
 			fmt.Printf("warning: userID property in log statement was not an int so has been ignored. type: %v", typeOf) // TODO: can the logger call itself?
 		}
+		attrs[attr.Key] = attr.Value.Any() // Also store the value in the attributes so it's preserved if the user is deleted
 	} else {
 		attrs[attr.Key] = attr.Value.Any()
 	}

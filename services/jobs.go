@@ -1,6 +1,8 @@
 package services
 
 import (
+	"encoding/json"
+
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/jobs"
 	"github.com/hedgehog125/project-reboot/jobs/definitions"
@@ -27,6 +29,6 @@ func (service *Jobs) Start() {
 }
 
 // TODO: is this the best approach?
-func (service *Jobs) Encode(versionedType string, data any) (string, *common.Error) {
-	return service.Engine.Registry.Encode(versionedType, data)
+func (service *Jobs) Encode(versionedType string, body any) (json.RawMessage, *common.Error) {
+	return service.Engine.Registry.Encode(versionedType, body)
 }

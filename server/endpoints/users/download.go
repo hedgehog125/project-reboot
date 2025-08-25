@@ -55,7 +55,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			}
 
 			if clock.Now().Before(sessionOb.CodeValidFrom) {
-				ginCtx.JSON(http.StatusConflict, DownloadResponse{
+				ginCtx.JSON(http.StatusBadRequest, DownloadResponse{
 					Errors: []servercommon.ErrorDetail{
 						{
 							Message: "authorization code is not valid yet",

@@ -84,9 +84,9 @@ func Discord1(app *common.App) *messengers.Definition {
 		BodyType: &Discord1Body{},
 		Handler: func(jobCtx *jobs.Context) error {
 			body := &Discord1Body{}
-			jobErr := jobCtx.Decode(body)
-			if jobErr != nil {
-				return jobErr
+			commErr := jobCtx.Decode(body)
+			if commErr != nil {
+				return commErr
 			}
 
 			session, commErr := getSession()

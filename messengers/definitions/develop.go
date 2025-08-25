@@ -8,6 +8,10 @@ import (
 	"github.com/hedgehog125/project-reboot/messengers"
 )
 
+type Develop1Body struct {
+	FullMessage string `json:"formattedMessage"`
+}
+
 func Develop1() *messengers.Definition {
 	return &messengers.Definition{
 		ID:      "develop",
@@ -17,20 +21,22 @@ func Develop1() *messengers.Definition {
 			if commErr != nil {
 				return nil, commErr
 			}
-			return fmt.Sprintf(
-				"\nmessage sent to user \"%v\":\n%v\n",
-				message.User.Username, formattedMessage,
-			), nil
+			return &Develop1Body{
+				FullMessage: fmt.Sprintf(
+					"\nmessage sent to user \"%v\":\n%v\n",
+					message.User.Username, formattedMessage,
+				),
+			}, nil
 		},
-		BodyType: "",
+		BodyType: &Develop1Body{},
 		Handler: func(jobCtx *jobs.Context) error {
-			body := ""
-			jobErr := jobCtx.Decode(&body)
-			if jobErr != nil {
-				return jobErr
+			body := Develop1Body{}
+			commErr := jobCtx.Decode(&body)
+			if commErr != nil {
+				return commErr
 			}
 
-			fmt.Println(body)
+			fmt.Println(body.FullMessage)
 			return nil
 		},
 	}

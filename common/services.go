@@ -8,6 +8,7 @@ The core principal is to abstract just enough that:
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"time"
 
@@ -119,22 +120,22 @@ type JobService interface {
 	Shutdown() // Should log warning rather than return an error
 	Enqueue(
 		versionedType string,
-		data any,
+		body any,
 		ctx context.Context,
 	) (uuid.UUID, *Error)
 	EnqueueEncoded(
 		versionedType string,
-		encodedData string,
+		encodedBody json.RawMessage,
 		ctx context.Context,
 	) (uuid.UUID, *Error)
 	WaitForJobs()
-	Encode(versionedType string, data any) (string, *Error)
+	Encode(versionedType string, body any) (json.RawMessage, *Error)
 }
 type TwoFactorActionService interface {
 	Create(
 		versionedType string,
 		expiresAt time.Time,
-		data any,
+		body any,
 		ctx context.Context,
 	) (uuid.UUID, string, *Error)
 	Confirm(actionID uuid.UUID, code string, ctx context.Context) (uuid.UUID, *Error)

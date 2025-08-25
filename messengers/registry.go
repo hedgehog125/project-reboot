@@ -100,7 +100,6 @@ func (registry *Registry) SendUsingAll(
 		commErr := registry.Send(versionedType, message, ctx)
 		if commErr != nil {
 			errs[versionedType] = commErr
-			// TODO: this method doesn't work <======
 			if !ErrWrapperPrepare.HasWrapped(commErr) {
 				return errs, commErr
 			}

@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -276,7 +277,7 @@ func (engine *Engine) runJob(
 	stdErr := jobDefinition.Handler(&Context{
 		Definition: jobDefinition,
 		Context:    context.TODO(),
-		Body:       []byte(job.Data),
+		Body:       job.Body,
 	})
 	completedJobChan <- completedJob{
 		Object: job,
@@ -301,7 +302,7 @@ func (engine *Engine) Shutdown() {
 
 func (engine *Engine) Enqueue(
 	versionedType string,
-	data any,
+	body any,
 	ctx context.Context,
 ) (uuid.UUID, *common.Error) {
 	_, ok := engine.Registry.jobs[versionedType]
@@ -310,7 +311,7 @@ func (engine *Engine) Enqueue(
 	}
 	encoded, commErr := engine.Registry.Encode(
 		versionedType,
-		data,
+		body,
 	)
 	if commErr != nil {
 		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(commErr)
@@ -321,7 +322,7 @@ func (engine *Engine) Enqueue(
 
 func (engine *Engine) EnqueueEncoded(
 	versionedType string,
-	encodedData string,
+	encodedBody json.RawMessage,
 	ctx context.Context,
 ) (uuid.UUID, *common.Error) {
 	jobDefinition, ok := engine.Registry.jobs[versionedType]
@@ -343,7 +344,7 @@ func (engine *Engine) EnqueueEncoded(
 		SetVersion(version).
 		SetPriority(jobDefinition.Priority).
 		SetWeight(jobDefinition.Weight).
-		SetData(encodedData).
+		SetBody(encodedBody).
 		Save(ctx)
 	if stdErr != nil {
 		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrWrapperDatabase.Wrap(stdErr))

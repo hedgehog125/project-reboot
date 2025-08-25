@@ -14,7 +14,6 @@ func main() {
 
 	app.State = services.InitState()
 	app.Logger = services.NewLogger(app)
-	app.Logger.Info("starting")
 	app.Database = services.NewDatabase(app.Env)
 	app.Database.Start()
 	app.Logger.Start()

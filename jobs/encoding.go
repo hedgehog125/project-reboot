@@ -8,24 +8,24 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 )
 
-func (registry *Registry) Encode(versionedType string, data any) (string, *common.Error) {
+func (registry *Registry) Encode(versionedType string, body any) (json.RawMessage, *common.Error) {
 	actionDef, ok := registry.jobs[versionedType]
 	if !ok {
-		return "", ErrWrapperEncode.Wrap(ErrUnknownJobType)
+		return nil, ErrWrapperEncode.Wrap(ErrUnknownJobType)
 	}
 
-	dataType := reflect.TypeOf(data)
-	if dataType != actionDef.reflectedBodyType {
-		return "", ErrWrapperEncode.Wrap(ErrWrapperInvalidData.Wrap(
-			fmt.Errorf("data type %s isn't the expected type %s",
-				dataType, actionDef.reflectedBodyType),
+	bodyType := reflect.TypeOf(body)
+	if bodyType != actionDef.reflectedBodyType {
+		return nil, ErrWrapperEncode.Wrap(ErrWrapperInvalidBody.Wrap(
+			fmt.Errorf("body type %s isn't the expected type %s",
+				bodyType, actionDef.reflectedBodyType),
 		))
 	}
 
-	encoded, stdErr := json.Marshal(data)
+	encoded, stdErr := json.Marshal(body)
 	if stdErr != nil {
-		return "", ErrWrapperEncode.Wrap(ErrWrapperInvalidData.Wrap(stdErr))
+		return nil, ErrWrapperEncode.Wrap(ErrWrapperInvalidBody.Wrap(stdErr))
 	}
 
-	return string(encoded), nil
+	return encoded, nil
 }

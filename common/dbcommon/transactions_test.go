@@ -2,6 +2,7 @@ package dbcommon
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
 	"testing"
 
@@ -33,7 +34,7 @@ func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 				SetVersion(1).
 				SetPriority(1).
 				SetWeight(1).
-				SetBody(&struct{}{}).
+				SetBody(json.RawMessage{}).
 				Save(ctx)
 			return stdErr
 		})

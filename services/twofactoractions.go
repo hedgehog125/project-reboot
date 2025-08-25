@@ -24,12 +24,12 @@ func NewTwoFactorActions(app *common.App) *TwoFactorActions {
 func (service *TwoFactorActions) Create(
 	versionedType string,
 	expiresAt time.Time,
-	data any,
+	body any,
 	ctx context.Context,
 ) (uuid.UUID, string, *common.Error) {
 	encoded, commErr := service.app.Jobs.Encode(
 		versionedType,
-		data,
+		body,
 	)
 	if commErr != nil {
 		return uuid.UUID{}, "", twofactoractions.ErrWrapperCreate.Wrap(commErr)
@@ -49,7 +49,7 @@ func (service *TwoFactorActions) Create(
 	action, err := tx.TwoFactorAction.Create().
 		SetType(jobType).
 		SetVersion(version).
-		SetData(encoded).
+		SetBody(encoded).
 		SetExpiresAt(expiresAt).
 		SetCode(code).Save(ctx)
 	if err != nil {
@@ -97,7 +97,7 @@ func (service *TwoFactorActions) Confirm(
 
 	jobID, commErr := service.app.Jobs.EnqueueEncoded(
 		common.GetVersionedType(action.Type, action.Version),
-		action.Data,
+		action.Body,
 		ctx,
 	)
 	if commErr != nil {

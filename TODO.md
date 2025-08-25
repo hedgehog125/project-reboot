@@ -6,7 +6,6 @@
 -   -   Successful login attempts also directly send a message, a job then runs every day to send reminders
 -   -   Probably use slog
 -   -   Errors should send a message to the admin user with a cooldown so as not to spam. Maybe just say there's an error, please investigate?
--   Avoid marshalling JSON into/out of database, Ent should handle it. I think I'm storing everything in quotes
 -   Replace cron system with a simple custom job scheduler
 -   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download
@@ -32,6 +31,11 @@
 -   Switch to a pure Go SQLite implementation, speed will be fine considering SQLite it already has the single writer system
 -   Does log.Fatalf stop the shutdown logic running if the server crashes on startup?
 -   Require both admin and users to click a link every 4 weeks (unless already locked) to confirm their contacts are working. If they don't click it, users will automatically lock and have to be unlocked by an admin. If the admin doesn't, all users will automatically lock
+-   Admin endpoints for troubleshooting:
+-   -   Dump database as sqlite file
+-   -   Cancel failed job
+-   -   Retry failed job
+-   -   Update job body
 
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 -   Bump priority of jobs as they get older

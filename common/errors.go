@@ -417,7 +417,7 @@ func (errWrapper *ConstantErrorWrapper) HasWrapped(err error) bool {
 	}
 
 	// Ensure the [package] categories are in the right order
-	requiredCategories := errWrapper.Wrap(nil).Categories // TODO: cache this?
+	requiredCategories := errWrapper.Wrap(errors.New("")).Categories // TODO: cache this?
 	requiredIndex := 0
 	for _, category := range commErr.Categories {
 		requiredCategory := requiredCategories[requiredIndex]

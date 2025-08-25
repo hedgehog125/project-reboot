@@ -11,7 +11,7 @@ const (
 	ErrTypeRunJob  = "run job"
 	ErrTypeListen  = "listen"
 	// Lower level
-	ErrTypeInvalidData = "invalid data"
+	ErrTypeInvalidBody = "invalid data"
 )
 
 var ErrUnknownJobType = common.NewErrorWithCategories(
@@ -36,6 +36,6 @@ var ErrWrapperListen = common.NewErrorWrapper(
 // TODO: test this
 var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeJobs).
 	SetChild(common.ErrWrapperDatabase)
-var ErrWrapperInvalidData = common.NewErrorWrapper(
-	common.ErrTypeJobs, ErrTypeInvalidData,
+var ErrWrapperInvalidBody = common.NewErrorWrapper(
+	common.ErrTypeJobs, ErrTypeInvalidBody,
 )
