@@ -13,8 +13,11 @@ func main() {
 	}
 
 	app.State = services.InitState()
+	app.Logger = services.NewLogger(app)
+	app.Logger.Info("starting")
 	app.Database = services.NewDatabase(app.Env)
 	app.Database.Start()
+	app.Logger.Start()
 	app.Scheduler = services.NewScheduler(app)
 	app.TwoFactorActions = services.NewTwoFactorActions(app)
 	{
@@ -39,6 +42,9 @@ func main() {
 
 		services.NewShutdownTask(func() {
 			app.Jobs.Shutdown()
+		}, false),
+		services.NewShutdownTask(func() {
+			app.Logger.Shutdown()
 		}, false),
 		services.NewShutdownTask(func() {
 			app.Database.Shutdown()

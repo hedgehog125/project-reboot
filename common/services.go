@@ -8,6 +8,7 @@ The core principal is to abstract just enough that:
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,9 +27,10 @@ type Env struct {
 
 	UNLOCK_TIME time.Duration
 	// TODO: implement
-	AUTH_CODE_VALID_FOR time.Duration
-
+	AUTH_CODE_VALID_FOR    time.Duration
 	PASSWORD_HASH_SETTINGS *PasswordHashSettings
+
+	LOG_STORE_INTERVAL time.Duration
 
 	DISCORD_TOKEN  string
 	SENDGRID_TOKEN string // TODO: implement
@@ -46,10 +48,11 @@ type State struct {
 type App struct {
 	Env              *Env
 	Clock            clockwork.Clock
+	Logger           LoggerService
+	Database         DatabaseService
 	State            *State
 	TwoFactorActions TwoFactorActionService
 	Messengers       MessengerService
-	Database         DatabaseService
 	Server           ServerService
 	Jobs             JobService
 	Scheduler        SchedulerService
@@ -78,6 +81,24 @@ type Message struct {
 	User  *ent.User
 	Code  string
 	Until time.Time
+}
+
+type LoggerService interface {
+	Debug(msg string, args ...any)
+	DebugContext(ctx context.Context, msg string, args ...any)
+	Enabled(ctx context.Context, level slog.Level) bool
+	Error(msg string, args ...any)
+	ErrorContext(ctx context.Context, msg string, args ...any)
+	Info(msg string, args ...any)
+	InfoContext(ctx context.Context, msg string, args ...any)
+	Log(ctx context.Context, level slog.Level, msg string, args ...any)
+	LogAttrs(ctx context.Context, level slog.Level, msg string, attrs ...slog.Attr)
+	Warn(msg string, args ...any)
+	WarnContext(ctx context.Context, msg string, args ...any)
+	With(args ...any) *slog.Logger
+	WithGroup(name string) *slog.Logger
+	Start()    // Should fatalf rather than returning an error
+	Shutdown() // Should log warning rather than return an error
 }
 
 type DatabaseService interface {

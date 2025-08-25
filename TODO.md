@@ -1,13 +1,14 @@
 # TODO
 
--   Replace cron system with a simple custom job scheduler
--   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
 -   Store logs to database
 -   -   Should have categories (e.g login) and types (e.g failed login)
 -   -   Logs associated with your user that have the user facing attribute set to true are sent in the regular email
 -   -   Successful login attempts also directly send a message, a job then runs every day to send reminders
 -   -   Probably use slog
 -   -   Errors should send a message to the admin user with a cooldown so as not to spam. Maybe just say there's an error, please investigate?
+-   Avoid marshalling JSON into/out of database, Ent should handle it. I think I'm storing everything in quotes
+-   Replace cron system with a simple custom job scheduler
+-   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download
 -   -   n = max(ceil(configured_messengers / 2), 1)
 -   -   If 1 is configured, can only require one. Configuring 2 allows one to fail so it's a bit more resilient. 3 still means only 1 can fail, so you get a good balance. And then after 4, neither way is likely to be an issue

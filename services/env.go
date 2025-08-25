@@ -28,12 +28,13 @@ func LoadEnvironmentVariables() *common.Env {
 
 		UNLOCK_TIME:         common.RequireSecondsEnv("UNLOCK_TIME"),
 		AUTH_CODE_VALID_FOR: common.RequireSecondsEnv("AUTH_CODE_VALID_FOR"),
-
 		PASSWORD_HASH_SETTINGS: &common.PasswordHashSettings{
 			Time:    common.RequireUint32Env("PASSWORD_HASH_TIME"),
 			Memory:  common.RequireUint32Env("PASSWORD_HASH_MEMORY"),
 			Threads: common.RequireUint8Env("PASSWORD_HASH_THREADS"),
 		},
+
+		LOG_STORE_INTERVAL: common.RequireMillisecondsEnv("LOG_STORE_INTERVAL"),
 
 		DISCORD_TOKEN:  common.OptionalEnv("DISCORD_TOKEN", ""),
 		SENDGRID_TOKEN: common.OptionalEnv("SENDGRID_TOKEN", ""),
