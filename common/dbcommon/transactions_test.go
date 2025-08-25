@@ -20,7 +20,7 @@ func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 	// SQLite isn't suitable if the program has many more concurrent writes than this
 	t.Parallel()
 	JOB_COUNT := 50
-	db := testcommon.CreateDB()
+	db := testcommon.CreateDB() // TODO: use a disk database to more accurately measure performance
 	defer db.Shutdown()
 
 	var wg sync.WaitGroup
@@ -33,7 +33,7 @@ func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 				SetVersion(1).
 				SetPriority(1).
 				SetWeight(1).
-				SetData("").
+				SetBody(&struct{}{}).
 				Save(ctx)
 			return stdErr
 		})

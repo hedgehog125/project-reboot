@@ -55,7 +55,7 @@ func withTx(
 	if stdErr != nil {
 		return ErrWrapperWithTx.Wrap(
 			ErrWrapperStartTx.Wrap(stdErr),
-		).ConfigureRetries(-1, 50*time.Millisecond, 2)
+		).ConfigureRetries(-1, 5*time.Millisecond, 1.5)
 	}
 	shouldRecover := true
 	defer func() {
@@ -82,7 +82,7 @@ func withTx(
 	if stdErr != nil {
 		return ErrWrapperWithTx.Wrap(
 			ErrWrapperCommitTx.Wrap(stdErr),
-		).ConfigureRetries(-1, 50*time.Millisecond, 2)
+		).ConfigureRetries(-1, 5*time.Millisecond, 1.5)
 	}
 	return nil
 }
