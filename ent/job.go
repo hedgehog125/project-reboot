@@ -33,8 +33,8 @@ type Job struct {
 	Priority int8 `json:"priority,omitempty"`
 	// Weight holds the value of the "weight" field.
 	Weight int `json:"weight,omitempty"`
-	// Data holds the value of the "data" field.
-	Data string `json:"data,omitempty"`
+	// Body holds the value of the "body" field.
+	Body json.RawMessage `json:"body,omitempty"`
 	// Status holds the value of the "status" field.
 	Status job.Status `json:"status,omitempty"`
 	// Retries holds the value of the "retries" field.
@@ -51,7 +51,7 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case job.FieldData:
+		case job.FieldBody:
 			values[i] = new([]byte)
 		case job.FieldLoggedStallWarning:
 			values[i] = new(sql.NullBool)
@@ -128,12 +128,12 @@ func (_m *Job) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Weight = int(value.Int64)
 			}
-		case job.FieldData:
+		case job.FieldBody:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field data", values[i])
+				return fmt.Errorf("unexpected type %T for field body", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Data); err != nil {
-					return fmt.Errorf("unmarshal field data: %w", err)
+				if err := json.Unmarshal(*value, &_m.Body); err != nil {
+					return fmt.Errorf("unmarshal field body: %w", err)
 				}
 			}
 		case job.FieldStatus:
@@ -217,8 +217,8 @@ func (_m *Job) String() string {
 	builder.WriteString("weight=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Weight))
 	builder.WriteString(", ")
-	builder.WriteString("data=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Data))
+	builder.WriteString("body=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Body))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

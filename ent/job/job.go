@@ -29,8 +29,8 @@ const (
 	FieldPriority = "priority"
 	// FieldWeight holds the string denoting the weight field in the database.
 	FieldWeight = "weight"
-	// FieldData holds the string denoting the data field in the database.
-	FieldData = "data"
+	// FieldBody holds the string denoting the body field in the database.
+	FieldBody = "body"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldRetries holds the string denoting the retries field in the database.
@@ -53,7 +53,7 @@ var Columns = []string{
 	FieldVersion,
 	FieldPriority,
 	FieldWeight,
-	FieldData,
+	FieldBody,
 	FieldStatus,
 	FieldRetries,
 	FieldRetriedFraction,

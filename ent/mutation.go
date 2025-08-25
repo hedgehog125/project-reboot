@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -52,7 +53,8 @@ type JobMutation struct {
 	addpriority        *int8
 	weight             *int
 	addweight          *int
-	data               *string
+	body               *json.RawMessage
+	appendbody         json.RawMessage
 	status             *job.Status
 	retries            *int
 	addretries         *int
@@ -494,40 +496,55 @@ func (m *JobMutation) ResetWeight() {
 	m.addweight = nil
 }
 
-// SetData sets the "data" field.
-func (m *JobMutation) SetData(s string) {
-	m.data = &s
+// SetBody sets the "body" field.
+func (m *JobMutation) SetBody(jm json.RawMessage) {
+	m.body = &jm
+	m.appendbody = nil
 }
 
-// Data returns the value of the "data" field in the mutation.
-func (m *JobMutation) Data() (r string, exists bool) {
-	v := m.data
+// Body returns the value of the "body" field in the mutation.
+func (m *JobMutation) Body() (r json.RawMessage, exists bool) {
+	v := m.body
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldData returns the old "data" field's value of the Job entity.
+// OldBody returns the old "body" field's value of the Job entity.
 // If the Job object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *JobMutation) OldData(ctx context.Context) (v string, err error) {
+func (m *JobMutation) OldBody(ctx context.Context) (v json.RawMessage, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldData is only allowed on UpdateOne operations")
+		return v, errors.New("OldBody is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldData requires an ID field in the mutation")
+		return v, errors.New("OldBody requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldData: %w", err)
+		return v, fmt.Errorf("querying old value for OldBody: %w", err)
 	}
-	return oldValue.Data, nil
+	return oldValue.Body, nil
 }
 
-// ResetData resets all changes to the "data" field.
-func (m *JobMutation) ResetData() {
-	m.data = nil
+// AppendBody adds jm to the "body" field.
+func (m *JobMutation) AppendBody(jm json.RawMessage) {
+	m.appendbody = append(m.appendbody, jm...)
+}
+
+// AppendedBody returns the list of values that were appended to the "body" field in this mutation.
+func (m *JobMutation) AppendedBody() (json.RawMessage, bool) {
+	if len(m.appendbody) == 0 {
+		return nil, false
+	}
+	return m.appendbody, true
+}
+
+// ResetBody resets all changes to the "body" field.
+func (m *JobMutation) ResetBody() {
+	m.body = nil
+	m.appendbody = nil
 }
 
 // SetStatus sets the "status" field.
@@ -770,8 +787,8 @@ func (m *JobMutation) Fields() []string {
 	if m.weight != nil {
 		fields = append(fields, job.FieldWeight)
 	}
-	if m.data != nil {
-		fields = append(fields, job.FieldData)
+	if m.body != nil {
+		fields = append(fields, job.FieldBody)
 	}
 	if m.status != nil {
 		fields = append(fields, job.FieldStatus)
@@ -807,8 +824,8 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.Priority()
 	case job.FieldWeight:
 		return m.Weight()
-	case job.FieldData:
-		return m.Data()
+	case job.FieldBody:
+		return m.Body()
 	case job.FieldStatus:
 		return m.Status()
 	case job.FieldRetries:
@@ -840,8 +857,8 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldPriority(ctx)
 	case job.FieldWeight:
 		return m.OldWeight(ctx)
-	case job.FieldData:
-		return m.OldData(ctx)
+	case job.FieldBody:
+		return m.OldBody(ctx)
 	case job.FieldStatus:
 		return m.OldStatus(ctx)
 	case job.FieldRetries:
@@ -908,12 +925,12 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetWeight(v)
 		return nil
-	case job.FieldData:
-		v, ok := value.(string)
+	case job.FieldBody:
+		v, ok := value.(json.RawMessage)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetData(v)
+		m.SetBody(v)
 		return nil
 	case job.FieldStatus:
 		v, ok := value.(job.Status)
@@ -1085,8 +1102,8 @@ func (m *JobMutation) ResetField(name string) error {
 	case job.FieldWeight:
 		m.ResetWeight()
 		return nil
-	case job.FieldData:
-		m.ResetData()
+	case job.FieldBody:
+		m.ResetBody()
 		return nil
 	case job.FieldStatus:
 		m.ResetStatus()
@@ -1163,7 +1180,7 @@ type LogEntryMutation struct {
 	level          *int
 	addlevel       *int
 	message        *string
-	attributes     *string
+	attributes     *map[string]interface{}
 	sourceFile     *string
 	sourceFunction *string
 	sourceLine     *int
@@ -1446,12 +1463,12 @@ func (m *LogEntryMutation) ResetMessage() {
 }
 
 // SetAttributes sets the "attributes" field.
-func (m *LogEntryMutation) SetAttributes(s string) {
-	m.attributes = &s
+func (m *LogEntryMutation) SetAttributes(value map[string]interface{}) {
+	m.attributes = &value
 }
 
 // Attributes returns the value of the "attributes" field in the mutation.
-func (m *LogEntryMutation) Attributes() (r string, exists bool) {
+func (m *LogEntryMutation) Attributes() (r map[string]interface{}, exists bool) {
 	v := m.attributes
 	if v == nil {
 		return
@@ -1462,7 +1479,7 @@ func (m *LogEntryMutation) Attributes() (r string, exists bool) {
 // OldAttributes returns the old "attributes" field's value of the LogEntry entity.
 // If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LogEntryMutation) OldAttributes(ctx context.Context) (v string, err error) {
+func (m *LogEntryMutation) OldAttributes(ctx context.Context) (v map[string]interface{}, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAttributes is only allowed on UpdateOne operations")
 	}
@@ -1837,7 +1854,7 @@ func (m *LogEntryMutation) SetField(name string, value ent.Value) error {
 		m.SetMessage(v)
 		return nil
 	case logentry.FieldAttributes:
-		v, ok := value.(string)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2670,7 +2687,8 @@ type TwoFactorActionMutation struct {
 	_type         *string
 	version       *int
 	addversion    *int
-	data          *string
+	body          *json.RawMessage
+	appendbody    json.RawMessage
 	expiresAt     *time.Time
 	code          *string
 	clearedFields map[string]struct{}
@@ -2875,40 +2893,55 @@ func (m *TwoFactorActionMutation) ResetVersion() {
 	m.addversion = nil
 }
 
-// SetData sets the "data" field.
-func (m *TwoFactorActionMutation) SetData(s string) {
-	m.data = &s
+// SetBody sets the "body" field.
+func (m *TwoFactorActionMutation) SetBody(jm json.RawMessage) {
+	m.body = &jm
+	m.appendbody = nil
 }
 
-// Data returns the value of the "data" field in the mutation.
-func (m *TwoFactorActionMutation) Data() (r string, exists bool) {
-	v := m.data
+// Body returns the value of the "body" field in the mutation.
+func (m *TwoFactorActionMutation) Body() (r json.RawMessage, exists bool) {
+	v := m.body
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldData returns the old "data" field's value of the TwoFactorAction entity.
+// OldBody returns the old "body" field's value of the TwoFactorAction entity.
 // If the TwoFactorAction object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TwoFactorActionMutation) OldData(ctx context.Context) (v string, err error) {
+func (m *TwoFactorActionMutation) OldBody(ctx context.Context) (v json.RawMessage, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldData is only allowed on UpdateOne operations")
+		return v, errors.New("OldBody is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldData requires an ID field in the mutation")
+		return v, errors.New("OldBody requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldData: %w", err)
+		return v, fmt.Errorf("querying old value for OldBody: %w", err)
 	}
-	return oldValue.Data, nil
+	return oldValue.Body, nil
 }
 
-// ResetData resets all changes to the "data" field.
-func (m *TwoFactorActionMutation) ResetData() {
-	m.data = nil
+// AppendBody adds jm to the "body" field.
+func (m *TwoFactorActionMutation) AppendBody(jm json.RawMessage) {
+	m.appendbody = append(m.appendbody, jm...)
+}
+
+// AppendedBody returns the list of values that were appended to the "body" field in this mutation.
+func (m *TwoFactorActionMutation) AppendedBody() (json.RawMessage, bool) {
+	if len(m.appendbody) == 0 {
+		return nil, false
+	}
+	return m.appendbody, true
+}
+
+// ResetBody resets all changes to the "body" field.
+func (m *TwoFactorActionMutation) ResetBody() {
+	m.body = nil
+	m.appendbody = nil
 }
 
 // SetExpiresAt sets the "expiresAt" field.
@@ -3024,8 +3057,8 @@ func (m *TwoFactorActionMutation) Fields() []string {
 	if m.version != nil {
 		fields = append(fields, twofactoraction.FieldVersion)
 	}
-	if m.data != nil {
-		fields = append(fields, twofactoraction.FieldData)
+	if m.body != nil {
+		fields = append(fields, twofactoraction.FieldBody)
 	}
 	if m.expiresAt != nil {
 		fields = append(fields, twofactoraction.FieldExpiresAt)
@@ -3045,8 +3078,8 @@ func (m *TwoFactorActionMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case twofactoraction.FieldVersion:
 		return m.Version()
-	case twofactoraction.FieldData:
-		return m.Data()
+	case twofactoraction.FieldBody:
+		return m.Body()
 	case twofactoraction.FieldExpiresAt:
 		return m.ExpiresAt()
 	case twofactoraction.FieldCode:
@@ -3064,8 +3097,8 @@ func (m *TwoFactorActionMutation) OldField(ctx context.Context, name string) (en
 		return m.OldType(ctx)
 	case twofactoraction.FieldVersion:
 		return m.OldVersion(ctx)
-	case twofactoraction.FieldData:
-		return m.OldData(ctx)
+	case twofactoraction.FieldBody:
+		return m.OldBody(ctx)
 	case twofactoraction.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
 	case twofactoraction.FieldCode:
@@ -3093,12 +3126,12 @@ func (m *TwoFactorActionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVersion(v)
 		return nil
-	case twofactoraction.FieldData:
-		v, ok := value.(string)
+	case twofactoraction.FieldBody:
+		v, ok := value.(json.RawMessage)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetData(v)
+		m.SetBody(v)
 		return nil
 	case twofactoraction.FieldExpiresAt:
 		v, ok := value.(time.Time)
@@ -3184,8 +3217,8 @@ func (m *TwoFactorActionMutation) ResetField(name string) error {
 	case twofactoraction.FieldVersion:
 		m.ResetVersion()
 		return nil
-	case twofactoraction.FieldData:
-		m.ResetData()
+	case twofactoraction.FieldBody:
+		m.ResetBody()
 		return nil
 	case twofactoraction.FieldExpiresAt:
 		m.ResetExpiresAt()

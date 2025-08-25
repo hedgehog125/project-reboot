@@ -18,7 +18,7 @@ var (
 		{Name: "version", Type: field.TypeInt},
 		{Name: "priority", Type: field.TypeInt8},
 		{Name: "weight", Type: field.TypeInt},
-		{Name: "data", Type: field.TypeJSON},
+		{Name: "body", Type: field.TypeJSON},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"pending", "running", "failed"}, Default: "pending"},
 		{Name: "retries", Type: field.TypeInt, Default: 0},
 		{Name: "retried_fraction", Type: field.TypeFloat64, Default: 0},
@@ -99,7 +99,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "type", Type: field.TypeString, Size: 128},
 		{Name: "version", Type: field.TypeInt},
-		{Name: "data", Type: field.TypeJSON},
+		{Name: "body", Type: field.TypeJSON},
 		{Name: "expires_at", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeString, Size: 9},
 	}

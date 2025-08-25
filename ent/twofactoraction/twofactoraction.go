@@ -16,8 +16,8 @@ const (
 	FieldType = "type"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
-	// FieldData holds the string denoting the data field in the database.
-	FieldData = "data"
+	// FieldBody holds the string denoting the body field in the database.
+	FieldBody = "body"
 	// FieldExpiresAt holds the string denoting the expiresat field in the database.
 	FieldExpiresAt = "expires_at"
 	// FieldCode holds the string denoting the code field in the database.
@@ -31,7 +31,7 @@ var Columns = []string{
 	FieldID,
 	FieldType,
 	FieldVersion,
-	FieldData,
+	FieldBody,
 	FieldExpiresAt,
 	FieldCode,
 }

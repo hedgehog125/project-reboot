@@ -29,7 +29,7 @@ type LogEntry struct {
 	// Message holds the value of the "message" field.
 	Message string `json:"message,omitempty"`
 	// Attributes holds the value of the "attributes" field.
-	Attributes string `json:"attributes,omitempty"`
+	Attributes map[string]interface{} `json:"attributes,omitempty"`
 	// SourceFile holds the value of the "sourceFile" field.
 	SourceFile string `json:"sourceFile,omitempty"`
 	// SourceFunction holds the value of the "sourceFunction" field.

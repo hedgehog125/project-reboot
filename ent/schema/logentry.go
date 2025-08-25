@@ -20,7 +20,7 @@ func (LogEntry) Fields() []ent.Field {
 		field.Bool("timeKnown"), // Some logs don't have a time, so an inaccurate time is added during processing
 		field.Int("level"),
 		field.String("message"),
-		field.JSON("attributes", ""),
+		field.JSON("attributes", map[string]any{}),
 		field.String("sourceFile"),
 		field.String("sourceFunction"),
 		field.Int("sourceLine"),

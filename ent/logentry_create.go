@@ -50,7 +50,7 @@ func (_c *LogEntryCreate) SetMessage(v string) *LogEntryCreate {
 }
 
 // SetAttributes sets the "attributes" field.
-func (_c *LogEntryCreate) SetAttributes(v string) *LogEntryCreate {
+func (_c *LogEntryCreate) SetAttributes(v map[string]interface{}) *LogEntryCreate {
 	_c.mutation.SetAttributes(v)
 	return _c
 }
@@ -378,7 +378,7 @@ func (u *LogEntryUpsert) UpdateMessage() *LogEntryUpsert {
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *LogEntryUpsert) SetAttributes(v string) *LogEntryUpsert {
+func (u *LogEntryUpsert) SetAttributes(v map[string]interface{}) *LogEntryUpsert {
 	u.Set(logentry.FieldAttributes, v)
 	return u
 }
@@ -555,7 +555,7 @@ func (u *LogEntryUpsertOne) UpdateMessage() *LogEntryUpsertOne {
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *LogEntryUpsertOne) SetAttributes(v string) *LogEntryUpsertOne {
+func (u *LogEntryUpsertOne) SetAttributes(v map[string]interface{}) *LogEntryUpsertOne {
 	return u.Update(func(s *LogEntryUpsert) {
 		s.SetAttributes(v)
 	})
@@ -910,7 +910,7 @@ func (u *LogEntryUpsertBulk) UpdateMessage() *LogEntryUpsertBulk {
 }
 
 // SetAttributes sets the "attributes" field.
-func (u *LogEntryUpsertBulk) SetAttributes(v string) *LogEntryUpsertBulk {
+func (u *LogEntryUpsertBulk) SetAttributes(v map[string]interface{}) *LogEntryUpsertBulk {
 	return u.Update(func(s *LogEntryUpsert) {
 		s.SetAttributes(v)
 	})

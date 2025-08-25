@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -36,9 +37,9 @@ func (_c *TwoFactorActionCreate) SetVersion(v int) *TwoFactorActionCreate {
 	return _c
 }
 
-// SetData sets the "data" field.
-func (_c *TwoFactorActionCreate) SetData(v string) *TwoFactorActionCreate {
-	_c.mutation.SetData(v)
+// SetBody sets the "body" field.
+func (_c *TwoFactorActionCreate) SetBody(v json.RawMessage) *TwoFactorActionCreate {
+	_c.mutation.SetBody(v)
 	return _c
 }
 
@@ -122,8 +123,8 @@ func (_c *TwoFactorActionCreate) check() error {
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "TwoFactorAction.version"`)}
 	}
-	if _, ok := _c.mutation.Data(); !ok {
-		return &ValidationError{Name: "data", err: errors.New(`ent: missing required field "TwoFactorAction.data"`)}
+	if _, ok := _c.mutation.Body(); !ok {
+		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "TwoFactorAction.body"`)}
 	}
 	if _, ok := _c.mutation.ExpiresAt(); !ok {
 		return &ValidationError{Name: "expiresAt", err: errors.New(`ent: missing required field "TwoFactorAction.expiresAt"`)}
@@ -180,9 +181,9 @@ func (_c *TwoFactorActionCreate) createSpec() (*TwoFactorAction, *sqlgraph.Creat
 		_spec.SetField(twofactoraction.FieldVersion, field.TypeInt, value)
 		_node.Version = value
 	}
-	if value, ok := _c.mutation.Data(); ok {
-		_spec.SetField(twofactoraction.FieldData, field.TypeJSON, value)
-		_node.Data = value
+	if value, ok := _c.mutation.Body(); ok {
+		_spec.SetField(twofactoraction.FieldBody, field.TypeJSON, value)
+		_node.Body = value
 	}
 	if value, ok := _c.mutation.ExpiresAt(); ok {
 		_spec.SetField(twofactoraction.FieldExpiresAt, field.TypeTime, value)
@@ -274,15 +275,15 @@ func (u *TwoFactorActionUpsert) AddVersion(v int) *TwoFactorActionUpsert {
 	return u
 }
 
-// SetData sets the "data" field.
-func (u *TwoFactorActionUpsert) SetData(v string) *TwoFactorActionUpsert {
-	u.Set(twofactoraction.FieldData, v)
+// SetBody sets the "body" field.
+func (u *TwoFactorActionUpsert) SetBody(v json.RawMessage) *TwoFactorActionUpsert {
+	u.Set(twofactoraction.FieldBody, v)
 	return u
 }
 
-// UpdateData sets the "data" field to the value that was provided on create.
-func (u *TwoFactorActionUpsert) UpdateData() *TwoFactorActionUpsert {
-	u.SetExcluded(twofactoraction.FieldData)
+// UpdateBody sets the "body" field to the value that was provided on create.
+func (u *TwoFactorActionUpsert) UpdateBody() *TwoFactorActionUpsert {
+	u.SetExcluded(twofactoraction.FieldBody)
 	return u
 }
 
@@ -393,17 +394,17 @@ func (u *TwoFactorActionUpsertOne) UpdateVersion() *TwoFactorActionUpsertOne {
 	})
 }
 
-// SetData sets the "data" field.
-func (u *TwoFactorActionUpsertOne) SetData(v string) *TwoFactorActionUpsertOne {
+// SetBody sets the "body" field.
+func (u *TwoFactorActionUpsertOne) SetBody(v json.RawMessage) *TwoFactorActionUpsertOne {
 	return u.Update(func(s *TwoFactorActionUpsert) {
-		s.SetData(v)
+		s.SetBody(v)
 	})
 }
 
-// UpdateData sets the "data" field to the value that was provided on create.
-func (u *TwoFactorActionUpsertOne) UpdateData() *TwoFactorActionUpsertOne {
+// UpdateBody sets the "body" field to the value that was provided on create.
+func (u *TwoFactorActionUpsertOne) UpdateBody() *TwoFactorActionUpsertOne {
 	return u.Update(func(s *TwoFactorActionUpsert) {
-		s.UpdateData()
+		s.UpdateBody()
 	})
 }
 
@@ -685,17 +686,17 @@ func (u *TwoFactorActionUpsertBulk) UpdateVersion() *TwoFactorActionUpsertBulk {
 	})
 }
 
-// SetData sets the "data" field.
-func (u *TwoFactorActionUpsertBulk) SetData(v string) *TwoFactorActionUpsertBulk {
+// SetBody sets the "body" field.
+func (u *TwoFactorActionUpsertBulk) SetBody(v json.RawMessage) *TwoFactorActionUpsertBulk {
 	return u.Update(func(s *TwoFactorActionUpsert) {
-		s.SetData(v)
+		s.SetBody(v)
 	})
 }
 
-// UpdateData sets the "data" field to the value that was provided on create.
-func (u *TwoFactorActionUpsertBulk) UpdateData() *TwoFactorActionUpsertBulk {
+// UpdateBody sets the "body" field to the value that was provided on create.
+func (u *TwoFactorActionUpsertBulk) UpdateBody() *TwoFactorActionUpsertBulk {
 	return u.Update(func(s *TwoFactorActionUpsert) {
-		s.UpdateData()
+		s.UpdateBody()
 	})
 }
 

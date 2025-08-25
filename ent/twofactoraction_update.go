@@ -4,12 +4,14 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -63,17 +65,15 @@ func (_u *TwoFactorActionUpdate) AddVersion(v int) *TwoFactorActionUpdate {
 	return _u
 }
 
-// SetData sets the "data" field.
-func (_u *TwoFactorActionUpdate) SetData(v string) *TwoFactorActionUpdate {
-	_u.mutation.SetData(v)
+// SetBody sets the "body" field.
+func (_u *TwoFactorActionUpdate) SetBody(v json.RawMessage) *TwoFactorActionUpdate {
+	_u.mutation.SetBody(v)
 	return _u
 }
 
-// SetNillableData sets the "data" field if the given value is not nil.
-func (_u *TwoFactorActionUpdate) SetNillableData(v *string) *TwoFactorActionUpdate {
-	if v != nil {
-		_u.SetData(*v)
-	}
+// AppendBody appends value to the "body" field.
+func (_u *TwoFactorActionUpdate) AppendBody(v json.RawMessage) *TwoFactorActionUpdate {
+	_u.mutation.AppendBody(v)
 	return _u
 }
 
@@ -173,8 +173,13 @@ func (_u *TwoFactorActionUpdate) sqlSave(ctx context.Context) (_node int, err er
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(twofactoraction.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.Data(); ok {
-		_spec.SetField(twofactoraction.FieldData, field.TypeJSON, value)
+	if value, ok := _u.mutation.Body(); ok {
+		_spec.SetField(twofactoraction.FieldBody, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedBody(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, twofactoraction.FieldBody, value)
+		})
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(twofactoraction.FieldExpiresAt, field.TypeTime, value)
@@ -237,17 +242,15 @@ func (_u *TwoFactorActionUpdateOne) AddVersion(v int) *TwoFactorActionUpdateOne 
 	return _u
 }
 
-// SetData sets the "data" field.
-func (_u *TwoFactorActionUpdateOne) SetData(v string) *TwoFactorActionUpdateOne {
-	_u.mutation.SetData(v)
+// SetBody sets the "body" field.
+func (_u *TwoFactorActionUpdateOne) SetBody(v json.RawMessage) *TwoFactorActionUpdateOne {
+	_u.mutation.SetBody(v)
 	return _u
 }
 
-// SetNillableData sets the "data" field if the given value is not nil.
-func (_u *TwoFactorActionUpdateOne) SetNillableData(v *string) *TwoFactorActionUpdateOne {
-	if v != nil {
-		_u.SetData(*v)
-	}
+// AppendBody appends value to the "body" field.
+func (_u *TwoFactorActionUpdateOne) AppendBody(v json.RawMessage) *TwoFactorActionUpdateOne {
+	_u.mutation.AppendBody(v)
 	return _u
 }
 
@@ -377,8 +380,13 @@ func (_u *TwoFactorActionUpdateOne) sqlSave(ctx context.Context) (_node *TwoFact
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(twofactoraction.FieldVersion, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.Data(); ok {
-		_spec.SetField(twofactoraction.FieldData, field.TypeJSON, value)
+	if value, ok := _u.mutation.Body(); ok {
+		_spec.SetField(twofactoraction.FieldBody, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedBody(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, twofactoraction.FieldBody, value)
+		})
 	}
 	if value, ok := _u.mutation.ExpiresAt(); ok {
 		_spec.SetField(twofactoraction.FieldExpiresAt, field.TypeTime, value)

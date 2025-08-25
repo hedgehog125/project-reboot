@@ -4,12 +4,14 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
@@ -153,17 +155,15 @@ func (_u *JobUpdate) AddWeight(v int) *JobUpdate {
 	return _u
 }
 
-// SetData sets the "data" field.
-func (_u *JobUpdate) SetData(v string) *JobUpdate {
-	_u.mutation.SetData(v)
+// SetBody sets the "body" field.
+func (_u *JobUpdate) SetBody(v json.RawMessage) *JobUpdate {
+	_u.mutation.SetBody(v)
 	return _u
 }
 
-// SetNillableData sets the "data" field if the given value is not nil.
-func (_u *JobUpdate) SetNillableData(v *string) *JobUpdate {
-	if v != nil {
-		_u.SetData(*v)
-	}
+// AppendBody appends value to the "body" field.
+func (_u *JobUpdate) AppendBody(v json.RawMessage) *JobUpdate {
+	_u.mutation.AppendBody(v)
 	return _u
 }
 
@@ -329,8 +329,13 @@ func (_u *JobUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.AddedWeight(); ok {
 		_spec.AddField(job.FieldWeight, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.Data(); ok {
-		_spec.SetField(job.FieldData, field.TypeJSON, value)
+	if value, ok := _u.mutation.Body(); ok {
+		_spec.SetField(job.FieldBody, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedBody(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, job.FieldBody, value)
+		})
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(job.FieldStatus, field.TypeEnum, value)
@@ -495,17 +500,15 @@ func (_u *JobUpdateOne) AddWeight(v int) *JobUpdateOne {
 	return _u
 }
 
-// SetData sets the "data" field.
-func (_u *JobUpdateOne) SetData(v string) *JobUpdateOne {
-	_u.mutation.SetData(v)
+// SetBody sets the "body" field.
+func (_u *JobUpdateOne) SetBody(v json.RawMessage) *JobUpdateOne {
+	_u.mutation.SetBody(v)
 	return _u
 }
 
-// SetNillableData sets the "data" field if the given value is not nil.
-func (_u *JobUpdateOne) SetNillableData(v *string) *JobUpdateOne {
-	if v != nil {
-		_u.SetData(*v)
-	}
+// AppendBody appends value to the "body" field.
+func (_u *JobUpdateOne) AppendBody(v json.RawMessage) *JobUpdateOne {
+	_u.mutation.AppendBody(v)
 	return _u
 }
 
@@ -701,8 +704,13 @@ func (_u *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	if value, ok := _u.mutation.AddedWeight(); ok {
 		_spec.AddField(job.FieldWeight, field.TypeInt, value)
 	}
-	if value, ok := _u.mutation.Data(); ok {
-		_spec.SetField(job.FieldData, field.TypeJSON, value)
+	if value, ok := _u.mutation.Body(); ok {
+		_spec.SetField(job.FieldBody, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedBody(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, job.FieldBody, value)
+		})
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(job.FieldStatus, field.TypeEnum, value)

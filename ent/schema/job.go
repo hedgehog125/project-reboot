@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"encoding/json"
 	"time"
 
 	"entgo.io/ent"
@@ -25,7 +26,7 @@ func (Job) Fields() []ent.Field {
 		field.Int("version"),
 		field.Int8("priority"), // Currently duplicates the definition but needed for sorting and might want to make it dynamic in the future
 		field.Int("weight"),    // Currently duplicates the definition but might make it dynamic in the future
-		field.JSON("data", ""),
+		field.JSON("body", json.RawMessage{}),
 		field.Enum("status").Values("pending", "running", "failed").Default("pending"), // Completed jobs are deleted
 		field.Int("retries").Default(0),
 		field.Float("retriedFraction").Default(0),

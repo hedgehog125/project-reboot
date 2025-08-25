@@ -93,16 +93,8 @@ func (_u *LogEntryUpdate) SetNillableMessage(v *string) *LogEntryUpdate {
 }
 
 // SetAttributes sets the "attributes" field.
-func (_u *LogEntryUpdate) SetAttributes(v string) *LogEntryUpdate {
+func (_u *LogEntryUpdate) SetAttributes(v map[string]interface{}) *LogEntryUpdate {
 	_u.mutation.SetAttributes(v)
-	return _u
-}
-
-// SetNillableAttributes sets the "attributes" field if the given value is not nil.
-func (_u *LogEntryUpdate) SetNillableAttributes(v *string) *LogEntryUpdate {
-	if v != nil {
-		_u.SetAttributes(*v)
-	}
 	return _u
 }
 
@@ -381,16 +373,8 @@ func (_u *LogEntryUpdateOne) SetNillableMessage(v *string) *LogEntryUpdateOne {
 }
 
 // SetAttributes sets the "attributes" field.
-func (_u *LogEntryUpdateOne) SetAttributes(v string) *LogEntryUpdateOne {
+func (_u *LogEntryUpdateOne) SetAttributes(v map[string]interface{}) *LogEntryUpdateOne {
 	_u.mutation.SetAttributes(v)
-	return _u
-}
-
-// SetNillableAttributes sets the "attributes" field if the given value is not nil.
-func (_u *LogEntryUpdateOne) SetNillableAttributes(v *string) *LogEntryUpdateOne {
-	if v != nil {
-		_u.SetAttributes(*v)
-	}
 	return _u
 }
 

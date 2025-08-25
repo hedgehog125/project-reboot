@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -90,9 +91,9 @@ func (_c *JobCreate) SetWeight(v int) *JobCreate {
 	return _c
 }
 
-// SetData sets the "data" field.
-func (_c *JobCreate) SetData(v string) *JobCreate {
-	_c.mutation.SetData(v)
+// SetBody sets the "body" field.
+func (_c *JobCreate) SetBody(v json.RawMessage) *JobCreate {
+	_c.mutation.SetBody(v)
 	return _c
 }
 
@@ -256,8 +257,8 @@ func (_c *JobCreate) check() error {
 	if _, ok := _c.mutation.Weight(); !ok {
 		return &ValidationError{Name: "weight", err: errors.New(`ent: missing required field "Job.weight"`)}
 	}
-	if _, ok := _c.mutation.Data(); !ok {
-		return &ValidationError{Name: "data", err: errors.New(`ent: missing required field "Job.data"`)}
+	if _, ok := _c.mutation.Body(); !ok {
+		return &ValidationError{Name: "body", err: errors.New(`ent: missing required field "Job.body"`)}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Job.status"`)}
@@ -340,9 +341,9 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 		_spec.SetField(job.FieldWeight, field.TypeInt, value)
 		_node.Weight = value
 	}
-	if value, ok := _c.mutation.Data(); ok {
-		_spec.SetField(job.FieldData, field.TypeJSON, value)
-		_node.Data = value
+	if value, ok := _c.mutation.Body(); ok {
+		_spec.SetField(job.FieldBody, field.TypeJSON, value)
+		_node.Body = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(job.FieldStatus, field.TypeEnum, value)
@@ -520,15 +521,15 @@ func (u *JobUpsert) AddWeight(v int) *JobUpsert {
 	return u
 }
 
-// SetData sets the "data" field.
-func (u *JobUpsert) SetData(v string) *JobUpsert {
-	u.Set(job.FieldData, v)
+// SetBody sets the "body" field.
+func (u *JobUpsert) SetBody(v json.RawMessage) *JobUpsert {
+	u.Set(job.FieldBody, v)
 	return u
 }
 
-// UpdateData sets the "data" field to the value that was provided on create.
-func (u *JobUpsert) UpdateData() *JobUpsert {
-	u.SetExcluded(job.FieldData)
+// UpdateBody sets the "body" field to the value that was provided on create.
+func (u *JobUpsert) UpdateBody() *JobUpsert {
+	u.SetExcluded(job.FieldBody)
 	return u
 }
 
@@ -766,17 +767,17 @@ func (u *JobUpsertOne) UpdateWeight() *JobUpsertOne {
 	})
 }
 
-// SetData sets the "data" field.
-func (u *JobUpsertOne) SetData(v string) *JobUpsertOne {
+// SetBody sets the "body" field.
+func (u *JobUpsertOne) SetBody(v json.RawMessage) *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.SetData(v)
+		s.SetBody(v)
 	})
 }
 
-// UpdateData sets the "data" field to the value that was provided on create.
-func (u *JobUpsertOne) UpdateData() *JobUpsertOne {
+// UpdateBody sets the "body" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateBody() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateData()
+		s.UpdateBody()
 	})
 }
 
@@ -1191,17 +1192,17 @@ func (u *JobUpsertBulk) UpdateWeight() *JobUpsertBulk {
 	})
 }
 
-// SetData sets the "data" field.
-func (u *JobUpsertBulk) SetData(v string) *JobUpsertBulk {
+// SetBody sets the "body" field.
+func (u *JobUpsertBulk) SetBody(v json.RawMessage) *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.SetData(v)
+		s.SetBody(v)
 	})
 }
 
-// UpdateData sets the "data" field to the value that was provided on create.
-func (u *JobUpsertBulk) UpdateData() *JobUpsertBulk {
+// UpdateBody sets the "body" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateBody() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateData()
+		s.UpdateBody()
 	})
 }
 

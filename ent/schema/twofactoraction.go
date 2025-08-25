@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"encoding/json"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -17,7 +19,7 @@ func (TwoFactorAction) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.String("type").MinLen(1).MaxLen(128),
 		field.Int("version"),
-		field.JSON("data", ""),
+		field.JSON("body", json.RawMessage{}),
 		field.Time("expiresAt"),
 		field.String("code").MaxLen(9).MaxLen(9),
 	}

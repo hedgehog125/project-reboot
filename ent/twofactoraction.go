@@ -23,8 +23,8 @@ type TwoFactorAction struct {
 	Type string `json:"type,omitempty"`
 	// Version holds the value of the "version" field.
 	Version int `json:"version,omitempty"`
-	// Data holds the value of the "data" field.
-	Data string `json:"data,omitempty"`
+	// Body holds the value of the "body" field.
+	Body json.RawMessage `json:"body,omitempty"`
 	// ExpiresAt holds the value of the "expiresAt" field.
 	ExpiresAt time.Time `json:"expiresAt,omitempty"`
 	// Code holds the value of the "code" field.
@@ -37,7 +37,7 @@ func (*TwoFactorAction) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case twofactoraction.FieldData:
+		case twofactoraction.FieldBody:
 			values[i] = new([]byte)
 		case twofactoraction.FieldVersion:
 			values[i] = new(sql.NullInt64)
@@ -80,12 +80,12 @@ func (_m *TwoFactorAction) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Version = int(value.Int64)
 			}
-		case twofactoraction.FieldData:
+		case twofactoraction.FieldBody:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field data", values[i])
+				return fmt.Errorf("unexpected type %T for field body", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Data); err != nil {
-					return fmt.Errorf("unmarshal field data: %w", err)
+				if err := json.Unmarshal(*value, &_m.Body); err != nil {
+					return fmt.Errorf("unmarshal field body: %w", err)
 				}
 			}
 		case twofactoraction.FieldExpiresAt:
@@ -142,8 +142,8 @@ func (_m *TwoFactorAction) String() string {
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))
 	builder.WriteString(", ")
-	builder.WriteString("data=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Data))
+	builder.WriteString("body=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Body))
 	builder.WriteString(", ")
 	builder.WriteString("expiresAt=")
 	builder.WriteString(_m.ExpiresAt.Format(time.ANSIC))
