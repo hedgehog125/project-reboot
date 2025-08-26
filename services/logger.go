@@ -24,5 +24,5 @@ func (service *Logger) Start() {
 	go service.Handler.Listen()
 }
 func (service *Logger) Shutdown() {
-	go service.Handler.Shutdown()
+	service.Handler.Shutdown()
 }

@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
 )
 
@@ -15,7 +16,8 @@ type LogEntry struct {
 
 // Fields of the LogEntry.
 func (LogEntry) Fields() []ent.Field {
-	return []ent.Field{field.UUID("id", uuid.UUID{}).Default(uuid.New),
+	return []ent.Field{
+		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Time("time"),      // The entries should be batch created, so a default time wouldn't be accurate
 		field.Bool("timeKnown"), // Some logs don't have a time, so an inaccurate time is added during processing
 		field.Int("level"),
@@ -32,5 +34,11 @@ func (LogEntry) Fields() []ent.Field {
 func (LogEntry) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("user", User.Type).Unique().Annotations(entsql.OnDelete(entsql.Cascade)),
+	}
+}
+
+func (LogEntry) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("time"),
 	}
 }

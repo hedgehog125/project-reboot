@@ -69,6 +69,13 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "logentry_time",
+				Unique:  false,
+				Columns: []*schema.Column{LogEntriesColumns[1]},
+			},
+		},
 	}
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{

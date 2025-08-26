@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"maps"
 	"os"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -26,6 +28,9 @@ type Handler struct {
 	SaveToDatabase       bool
 	ShouldPrint          bool
 	textHandler          slog.Handler
+	baseAttrs            map[string]any
+	baseSpecialProps     specialProperties
+	baseGroups           []string
 	entryChan            chan *entry
 	requestShutdownChan  chan struct{}
 	shutdownFinishedChan chan struct{}
@@ -62,36 +67,47 @@ func NewHandler(
 }
 
 func (handler *Handler) Listen() {
+	shuttingDown := false
 listenLoop:
 	for {
 		entries := []*entry{}
+		emptyEntryChan := func() {
+			for {
+				select {
+				case entry := <-handler.entryChan:
+					entries = append(entries, entry)
+				default:
+					return
+				}
+			}
+		}
+
 		select {
 		case entry := <-handler.entryChan:
 			entries = append(entries, entry)
 		case <-handler.requestShutdownChan:
+			shuttingDown = true
+			emptyEntryChan()
 			break listenLoop
 		}
 
-		timeoutChan := time.After(handler.App.Env.LOG_STORE_INTERVAL)
-	collectBatchLoop:
-		for {
-			select {
-			case entry := <-handler.entryChan:
-				entries = append(entries, entry)
-			case <-handler.requestShutdownChan:
-				for {
-					select {
-					case entry := <-handler.entryChan:
-						entries = append(entries, entry)
-					default:
-						break collectBatchLoop
-					}
+		if !shuttingDown {
+			timeoutChan := time.After(handler.App.Env.LOG_STORE_INTERVAL)
+		collectBatchLoop:
+			for {
+				select {
+				case entry := <-handler.entryChan:
+					entries = append(entries, entry)
+				case <-handler.requestShutdownChan:
+					shuttingDown = true
+					emptyEntryChan()
+					break collectBatchLoop
+				case <-timeoutChan:
+					break collectBatchLoop
 				}
-			case <-timeoutChan:
-				break collectBatchLoop
-			}
-			if len(entries) >= MaxSaveBatchSize {
-				break
+				if len(entries) >= MaxSaveBatchSize {
+					break
+				}
 			}
 		}
 
@@ -121,6 +137,10 @@ listenLoop:
 				stdErr.Error(),
 			)
 		}
+
+		if shuttingDown {
+			break listenLoop
+		}
 	}
 	close(handler.requestShutdownChan)
 	close(handler.shutdownFinishedChan)
@@ -140,30 +160,12 @@ func (handler Handler) Enabled(_ context.Context, level slog.Level) bool {
 	return level >= handler.Level
 }
 
-// Handle handles the Record.
-// It will only be called when Enabled returns true.
-// The Context argument is as for Enabled.
-// It is present solely to provide Handlers access to the context's values.
-// Canceling the context should not affect record processing.
-// (Among other things, log messages may be necessary to debug a
-// cancellation-related problem.)
-//
-// Handle methods that produce output should observe the following rules:
-//   - If r.Time is the zero time, ignore the time.
-//   - If r.PC is zero, ignore it.
-//   - Attr's values should be resolved.
-//   - If an Attr's key and value are both the zero value, ignore the Attr.
-//     This can be tested with attr.Equal(Attr{}).
-//   - If a group's key is empty, inline the group's Attrs.
-//   - If a group has no Attrs (even if it has a non-empty key),
-//     ignore it.
-//
-// [Logger] discards any errors from Handle. Wrap the Handle method to
-// process any errors from Handlers.
 func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 	entry := &entry{
-		level:   int(record.Level),
-		message: record.Message,
+		level:         int(record.Level),
+		message:       record.Message,
+		publicMessage: handler.baseSpecialProps.publicMessage,
+		userID:        handler.baseSpecialProps.userID,
 	}
 	if !record.Time.IsZero() {
 		entry.time = record.Time
@@ -176,9 +178,15 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 		entry.sourceLine = source.Line
 	}
 
-	attrs := map[string]any{}
+	attrs := maps.Clone(handler.baseAttrs)
 	record.Attrs(func(attr slog.Attr) bool {
-		handler.appendAttr(attr, attrs, entry)
+		specialProps := handler.appendAttr(attr, attrs, true)
+		if specialProps.publicMessage != "" {
+			entry.publicMessage = specialProps.publicMessage
+		}
+		if specialProps.userID != 0 {
+			entry.userID = specialProps.userID
+		}
 		return true
 	})
 	entry.attributes = attrs
@@ -193,39 +201,52 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 	handler.entryChan <- entry
 	return nil
 }
-func (handler Handler) appendAttr(attr slog.Attr, attrs map[string]any, entry *entry) {
+
+type specialProperties struct {
+	publicMessage string
+	userID        int
+}
+
+func (handler Handler) appendAttr(attr slog.Attr, attrs map[string]any, isTopLevel bool) specialProperties {
+	specialProps := specialProperties{}
 	attr.Value = attr.Value.Resolve()
 	if attr.Equal(slog.Attr{}) {
-		return
+		return specialProps
 	}
 
 	kind := attr.Value.Kind()
 	if kind == slog.KindGroup {
 		groupAttrs := attr.Value.Group()
 		if len(groupAttrs) == 0 {
-			return
+			return specialProps
 		}
 		// If the key is non-empty, write it out and indent the rest of the attrs.
 		// Otherwise, inline the attrs.
 		if attr.Key == "" { // Inline
 			for _, attr := range groupAttrs {
-				handler.appendAttr(attr, attrs, entry)
+				newProps := handler.appendAttr(attr, attrs, true)
+				if newProps.publicMessage != "" {
+					specialProps.publicMessage = newProps.publicMessage
+				}
+				if newProps.userID != 0 {
+					specialProps.userID = newProps.userID
+				}
 			}
 		} else {
 			groupAttr := map[string]any{}
 			for _, attr := range groupAttrs {
-				handler.appendAttr(attr, groupAttr, nil) // Ignore the special keys if they're in a group
+				_ = handler.appendAttr(attr, groupAttr, false)
 			}
 			attrs[attr.Key] = groupAttr
 		}
 	}
 
-	if entry != nil && attr.Key == PublicMessageKey {
-		entry.publicMessage = attr.Value.String()
-	} else if entry != nil && attr.Key == UserIDKey {
+	if isTopLevel && attr.Key == PublicMessageKey {
+		specialProps.publicMessage = attr.Value.String()
+	} else if isTopLevel && attr.Key == UserIDKey {
 		intValue, ok := attr.Value.Any().(int)
 		if ok {
-			entry.userID = intValue
+			specialProps.userID = intValue
 		} else {
 			typeOf := reflect.TypeOf(attr.Value.Any())
 			fmt.Printf("warning: userID property in log statement was not an int so has been ignored. type: %v", typeOf) // TODO: can the logger call itself?
@@ -234,35 +255,37 @@ func (handler Handler) appendAttr(attr slog.Attr, attrs map[string]any, entry *e
 	} else {
 		attrs[attr.Key] = attr.Value.Any()
 	}
+	return specialProps
 }
-
-// func (handler *Handler) appendAttr(buffer []byte, attr slog.Attr) []byte {
-// 	attr.Value = attr.Value.Resolve()
-// 	if attr.Equal(slog.Attr{}) {
-// 		return buffer
-// 	}
-
-// 	switch attr.Value.Kind() {
-// 	case slog.KindGroup:
-// 		// TODO: implement
-// 	default:
-// 		if len(buffer) != 0 {
-// 			buffer = append(buffer, " "...)
-// 		}
-// 		buffer = append(buffer, attr.Key...)
-// 		buffer = append(buffer, "="...)
-// 		buffer = append(buffer, attr.Value.String()...)
-// 	}
-
-// 	return buffer
-// }
 
 // WithAttrs returns a new Handler whose attributes consist of
 // both the receiver's attributes and the arguments.
 // The Handler owns the slice: it may retain, modify or discard it.
 func (handler Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	if len(attrs) == 0 {
+		return handler
+	}
+	handler = handler.Clone()
 	handler.textHandler = handler.textHandler.WithAttrs(attrs)
-	panic("not implemented")
+	baseAttrs := handler.baseAttrs
+	for _, key := range handler.baseGroups {
+		groupMap, ok := baseAttrs[key].(map[string]any)
+		if ok {
+			groupMap = maps.Clone(groupMap)
+		} else {
+			groupMap = map[string]any{}
+		}
+		baseAttrs[key] = groupMap
+	}
+	for _, attr := range attrs {
+		specialProps := handler.appendAttr(attr, baseAttrs, len(handler.baseGroups) == 0)
+		if specialProps.publicMessage != "" {
+			handler.baseSpecialProps.publicMessage = specialProps.publicMessage
+		}
+		if specialProps.userID != 0 {
+			handler.baseSpecialProps.userID = specialProps.userID
+		}
+	}
 	return handler
 }
 
@@ -286,7 +309,18 @@ func (handler Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 //
 // If the name is empty, WithGroup returns the receiver.
 func (handler Handler) WithGroup(name string) slog.Handler {
+	if name == "" {
+		return handler
+	}
+	handler = handler.Clone()
 	handler.textHandler = handler.textHandler.WithGroup(name)
-	panic("not implemented")
+	handler.baseGroups = append(handler.baseGroups, name)
+	return handler
+}
+
+// Note: channels and the text handler won't be copied
+func (handler Handler) Clone() Handler {
+	handler.baseAttrs = maps.Clone(handler.baseAttrs) // The items will be shallow cloned when modified
+	handler.baseGroups = slices.Clone(handler.baseGroups)
 	return handler
 }
