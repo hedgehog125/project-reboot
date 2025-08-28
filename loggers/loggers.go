@@ -7,7 +7,6 @@ import (
 	"maps"
 	"os"
 	"reflect"
-	"slices"
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -60,6 +59,7 @@ func NewHandler(
 		textHandler: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 			Level: level,
 		}),
+		baseAttrs:            map[string]any{},
 		entryChan:            make(chan *entry, 100),
 		requestShutdownChan:  make(chan struct{}),
 		shutdownFinishedChan: make(chan struct{}),
@@ -162,10 +162,8 @@ func (handler Handler) Enabled(_ context.Context, level slog.Level) bool {
 
 func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 	entry := &entry{
-		level:         int(record.Level),
-		message:       record.Message,
-		publicMessage: handler.baseSpecialProps.publicMessage,
-		userID:        handler.baseSpecialProps.userID,
+		level:   int(record.Level),
+		message: record.Message,
 	}
 	if !record.Time.IsZero() {
 		entry.time = record.Time
@@ -178,18 +176,15 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 		entry.sourceLine = source.Line
 	}
 
-	attrs := maps.Clone(handler.baseAttrs)
+	attrs := make([]slog.Attr, 0, record.NumAttrs())
 	record.Attrs(func(attr slog.Attr) bool {
-		specialProps := handler.appendAttr(attr, attrs, true)
-		if specialProps.publicMessage != "" {
-			entry.publicMessage = specialProps.publicMessage
-		}
-		if specialProps.userID != 0 {
-			entry.userID = specialProps.userID
-		}
+		attrs = append(attrs, attr)
 		return true
 	})
-	entry.attributes = attrs
+	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs, maps.Clone(handler.baseAttrs))
+	entry.publicMessage = specialProps.publicMessage
+	entry.userID = specialProps.userID
+	entry.attributes = resolvedAttrs
 
 	stdErr := handler.textHandler.Handle(ctx, record)
 	if stdErr != nil {
@@ -207,7 +202,33 @@ type specialProperties struct {
 	userID        int
 }
 
-func (handler Handler) appendAttr(attr slog.Attr, attrs map[string]any, isTopLevel bool) specialProperties {
+func (handler Handler) resolveNestedAttrs(attrs []slog.Attr, resolved map[string]any) (map[string]any, specialProperties) {
+	nestedResolved := resolved
+	for _, key := range handler.baseGroups {
+		newMap := map[string]any{}
+		nestedResolved[key] = newMap
+		nestedResolved = newMap
+	}
+
+	isTopLevel := len(handler.baseGroups) == 0
+	specialProps := specialProperties{
+		publicMessage: handler.baseSpecialProps.publicMessage,
+		userID:        handler.baseSpecialProps.userID,
+	}
+	for _, attr := range attrs {
+		newSpecialProps := handler.appendAttr(attr, nestedResolved, isTopLevel)
+		if newSpecialProps.publicMessage != "" {
+			specialProps.publicMessage = newSpecialProps.publicMessage
+		}
+		if newSpecialProps.userID != 0 {
+			specialProps.userID = newSpecialProps.userID
+		}
+	}
+	return resolved, specialProps
+}
+
+// Note: handler.baseGroups is handled by appendNestedAttrs instead
+func (handler Handler) appendAttr(attr slog.Attr, outputAttrs map[string]any, isTopLevel bool) specialProperties {
 	specialProps := specialProperties{}
 	attr.Value = attr.Value.Resolve()
 	if attr.Equal(slog.Attr{}) {
@@ -224,12 +245,12 @@ func (handler Handler) appendAttr(attr slog.Attr, attrs map[string]any, isTopLev
 		// Otherwise, inline the attrs.
 		if attr.Key == "" { // Inline
 			for _, attr := range groupAttrs {
-				newProps := handler.appendAttr(attr, attrs, true)
-				if newProps.publicMessage != "" {
-					specialProps.publicMessage = newProps.publicMessage
+				newSpecialProps := handler.appendAttr(attr, outputAttrs, true)
+				if newSpecialProps.publicMessage != "" {
+					specialProps.publicMessage = newSpecialProps.publicMessage
 				}
-				if newProps.userID != 0 {
-					specialProps.userID = newProps.userID
+				if newSpecialProps.userID != 0 {
+					specialProps.userID = newSpecialProps.userID
 				}
 			}
 		} else {
@@ -237,7 +258,7 @@ func (handler Handler) appendAttr(attr slog.Attr, attrs map[string]any, isTopLev
 			for _, attr := range groupAttrs {
 				_ = handler.appendAttr(attr, groupAttr, false)
 			}
-			attrs[attr.Key] = groupAttr
+			outputAttrs[attr.Key] = groupAttr
 		}
 	}
 
@@ -251,9 +272,9 @@ func (handler Handler) appendAttr(attr slog.Attr, attrs map[string]any, isTopLev
 			typeOf := reflect.TypeOf(attr.Value.Any())
 			fmt.Printf("warning: userID property in log statement was not an int so has been ignored. type: %v", typeOf) // TODO: can the logger call itself?
 		}
-		attrs[attr.Key] = attr.Value.Any() // Also store the value in the attributes so it's preserved if the user is deleted
+		outputAttrs[attr.Key] = attr.Value.Any() // Also store the value in the attributes so it's preserved if the user is deleted
 	} else {
-		attrs[attr.Key] = attr.Value.Any()
+		outputAttrs[attr.Key] = attr.Value.Any()
 	}
 	return specialProps
 }
@@ -265,27 +286,16 @@ func (handler Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	if len(attrs) == 0 {
 		return handler
 	}
-	handler = handler.Clone()
 	handler.textHandler = handler.textHandler.WithAttrs(attrs)
-	baseAttrs := handler.baseAttrs
-	for _, key := range handler.baseGroups {
-		groupMap, ok := baseAttrs[key].(map[string]any)
-		if ok {
-			groupMap = maps.Clone(groupMap)
-		} else {
-			groupMap = map[string]any{}
-		}
-		baseAttrs[key] = groupMap
+	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs, map[string]any{})
+	maps.Copy(handler.baseAttrs, resolvedAttrs) // Mutate baseAttrs rather than copying so other references are updated
+	if specialProps.publicMessage != "" {
+		handler.baseSpecialProps.publicMessage = specialProps.publicMessage
 	}
-	for _, attr := range attrs {
-		specialProps := handler.appendAttr(attr, baseAttrs, len(handler.baseGroups) == 0)
-		if specialProps.publicMessage != "" {
-			handler.baseSpecialProps.publicMessage = specialProps.publicMessage
-		}
-		if specialProps.userID != 0 {
-			handler.baseSpecialProps.userID = specialProps.userID
-		}
+	if specialProps.userID != 0 {
+		handler.baseSpecialProps.userID = specialProps.userID
 	}
+
 	return handler
 }
 
@@ -312,15 +322,10 @@ func (handler Handler) WithGroup(name string) slog.Handler {
 	if name == "" {
 		return handler
 	}
-	handler = handler.Clone()
 	handler.textHandler = handler.textHandler.WithGroup(name)
-	handler.baseGroups = append(handler.baseGroups, name)
-	return handler
-}
-
-// Note: channels and the text handler won't be copied
-func (handler Handler) Clone() Handler {
-	handler.baseAttrs = maps.Clone(handler.baseAttrs) // The items will be shallow cloned when modified
-	handler.baseGroups = slices.Clone(handler.baseGroups)
+	baseGroups := make([]string, len(handler.baseGroups)+1)
+	baseGroups[len(baseGroups)-1] = name
+	handler.baseGroups = baseGroups
+	handler.baseAttrs = map[string]any{}
 	return handler
 }

@@ -93,13 +93,31 @@ func TestLogger_SavesToDatabase(t *testing.T) {
 	})
 }
 
-// func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
-// 	t.Parallel()
-// 	db := testcommon.CreateDB()
-// 	defer db.Shutdown()
-// 	app := &common.App{
-// 		Database: db,
-// 		Env:      testcommon.DefaultEnv(),
-// 	}
-// 	logger := NewLogger(app)
-// }
+func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
+	t.Parallel()
+	db := testcommon.CreateDB()
+	defer db.Shutdown()
+	app := &common.App{
+		Database: db,
+		Env:      testcommon.DefaultEnv(),
+	}
+	logger := NewLogger(app)
+	app.Logger = logger
+	logger.Start()
+
+	logger.WithGroup("group").Info("created user", "userID", 123)
+
+	time.Sleep(5 * time.Millisecond)
+	logger.Shutdown()
+	logger.AssertWritten(t, []ExpectedEntry{
+		{
+			Message: "created user",
+			Level:   int(slog.LevelInfo),
+			Attributes: map[string]any{
+				"group": map[string]any{
+					"userID": 123,
+				},
+			},
+		},
+	})
+}
