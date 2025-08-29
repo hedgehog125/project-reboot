@@ -7,6 +7,7 @@ import (
 	"maps"
 	"os"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -181,7 +182,7 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 		attrs = append(attrs, attr)
 		return true
 	})
-	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs, maps.Clone(handler.baseAttrs))
+	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs)
 	entry.publicMessage = specialProps.publicMessage
 	entry.userID = specialProps.userID
 	entry.attributes = resolvedAttrs
@@ -202,7 +203,8 @@ type specialProperties struct {
 	userID        int
 }
 
-func (handler Handler) resolveNestedAttrs(attrs []slog.Attr, resolved map[string]any) (map[string]any, specialProperties) {
+func (handler Handler) resolveNestedAttrs(attrs []slog.Attr) (map[string]any, specialProperties) {
+	resolved := maps.Clone(handler.baseAttrs)
 	nestedResolved := resolved
 	for _, key := range handler.baseGroups {
 		newMap := map[string]any{}
@@ -260,22 +262,27 @@ func (handler Handler) appendAttr(attr slog.Attr, outputAttrs map[string]any, is
 			}
 			outputAttrs[attr.Key] = groupAttr
 		}
+		return specialProps
+	}
+	if isTopLevel {
+		if attr.Key == PublicMessageKey {
+			specialProps.publicMessage = attr.Value.String()
+			return specialProps
+		}
+		if attr.Key == UserIDKey {
+			intValue, ok := attr.Value.Any().(int)
+			if ok {
+				specialProps.userID = intValue
+			} else {
+				typeOf := reflect.TypeOf(attr.Value.Any())
+				fmt.Printf("warning: userID property in log statement was not an int so has been ignored. type: %v", typeOf) // TODO: can the logger call itself?
+			}
+			outputAttrs[attr.Key] = attr.Value.Any() // Also store the value in the attributes so it's preserved if the user is deleted
+			return specialProps
+		}
 	}
 
-	if isTopLevel && attr.Key == PublicMessageKey {
-		specialProps.publicMessage = attr.Value.String()
-	} else if isTopLevel && attr.Key == UserIDKey {
-		intValue, ok := attr.Value.Any().(int)
-		if ok {
-			specialProps.userID = intValue
-		} else {
-			typeOf := reflect.TypeOf(attr.Value.Any())
-			fmt.Printf("warning: userID property in log statement was not an int so has been ignored. type: %v", typeOf) // TODO: can the logger call itself?
-		}
-		outputAttrs[attr.Key] = attr.Value.Any() // Also store the value in the attributes so it's preserved if the user is deleted
-	} else {
-		outputAttrs[attr.Key] = attr.Value.Any()
-	}
+	outputAttrs[attr.Key] = attr.Value.Any()
 	return specialProps
 }
 
@@ -287,8 +294,10 @@ func (handler Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 		return handler
 	}
 	handler.textHandler = handler.textHandler.WithAttrs(attrs)
-	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs, map[string]any{})
-	maps.Copy(handler.baseAttrs, resolvedAttrs) // Mutate baseAttrs rather than copying so other references are updated
+	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs)
+	// maps.Copy(handler.baseAttrs, resolvedAttrs) // Mutate baseAttrs rather than copying so other references are updated
+	handler.baseAttrs = resolvedAttrs
+
 	if specialProps.publicMessage != "" {
 		handler.baseSpecialProps.publicMessage = specialProps.publicMessage
 	}
@@ -323,9 +332,7 @@ func (handler Handler) WithGroup(name string) slog.Handler {
 		return handler
 	}
 	handler.textHandler = handler.textHandler.WithGroup(name)
-	baseGroups := make([]string, len(handler.baseGroups)+1)
-	baseGroups[len(baseGroups)-1] = name
-	handler.baseGroups = baseGroups
-	handler.baseAttrs = map[string]any{}
+	handler.baseGroups = slices.Concat(handler.baseGroups, []string{name})
+	// handler.baseAttrs = map[string]any{}
 	return handler
 }

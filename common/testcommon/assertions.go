@@ -8,10 +8,10 @@ import (
 )
 
 func AssertJSONEqual(t *testing.T, expected any, actual any) {
-	expectedJSON, stdErr := json.MarshalIndent(expected, "", "\t")
+	expectedJSON, stdErr := json.Marshal(expected)
 	require.NoError(t, stdErr)
-	actualJSON, stdErr := json.MarshalIndent(actual, "", "\t")
+	actualJSON, stdErr := json.Marshal(actual)
 	require.NoError(t, stdErr)
 
-	require.JSONEq(t, string(expectedJSON), string(actualJSON))
+	require.Equal(t, string(expectedJSON), string(actualJSON))
 }

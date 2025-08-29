@@ -1,5 +1,7 @@
 package common
 
+import "sync"
+
 // Service types should go in services.go
 
 type ErrWithStrId struct {
@@ -15,4 +17,9 @@ type ErrWithIndex struct {
 type ErrWithPointer[T any] struct {
 	Err     error
 	Pointer T
+}
+
+type MutexValue[T any] struct {
+	Value T
+	Mutex sync.Mutex
 }

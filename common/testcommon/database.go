@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"sync/atomic"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
@@ -15,13 +15,16 @@ type TestDatabase struct {
 	client *ent.Client
 }
 
-var dbCounter atomic.Int64
+var dbCounter = common.MutexValue[int64]{}
 
 func CreateDB() *TestDatabase {
 	// TODO: review options
 	// TODO: what does shared cache do any why is it sometimes necessary in order to stop the database being deleted mid test?
 	// ^ this seems to enable WAL mode? Which isn't what I want
-	db, stdErr := sql.Open("sqlite3", fmt.Sprintf("file:temp%v?mode=memory&cache=shared&_fk=1&_busy_timeout=10000&_txlock=immediate", dbCounter.Add(1)))
+	dbCounter.Mutex.Lock()
+	defer dbCounter.Mutex.Unlock()
+	dbCounter.Value++
+	db, stdErr := sql.Open("sqlite3", fmt.Sprintf("file:temp%v?mode=memory&cache=shared&_fk=1&_busy_timeout=10000&_txlock=immediate", dbCounter.Value))
 	if stdErr != nil {
 		panic(fmt.Sprintf("failed to open test database. error: %v", stdErr.Error()))
 	}
