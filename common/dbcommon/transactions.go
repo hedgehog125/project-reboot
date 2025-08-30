@@ -51,6 +51,9 @@ func withTx(
 	txCallback func(ctx context.Context) (*ent.Tx, error),
 	fn func(tx *ent.Tx, ctx context.Context) error,
 ) error {
+	if ent.TxFromContext(ctx) != nil {
+		return ErrWrapperWithTx.Wrap(ErrUnexpectedTransaction)
+	}
 	tx, stdErr := txCallback(ctx)
 	if stdErr != nil {
 		return ErrWrapperWithTx.Wrap(

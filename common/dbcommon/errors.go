@@ -1,6 +1,10 @@
 package dbcommon
 
-import "github.com/hedgehog125/project-reboot/common"
+import (
+	"errors"
+
+	"github.com/hedgehog125/project-reboot/common"
+)
 
 const (
 	ErrTypeWithTx = "WithTx"
@@ -17,3 +21,7 @@ var ErrWrapperStartTx = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeSt
 var ErrWrapperCommitTx = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeCommitTx)
 var ErrWrapperCallback = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeCallback)
 var ErrWrapperWithTx = common.NewErrorWrapper(common.ErrTypeDbCommon, ErrTypeWithTx)
+
+var ErrUnexpectedTransaction = ErrWrapperStartTx.Wrap(
+	errors.New("found transaction in context. nested transactions are not supported"),
+)
