@@ -27,13 +27,14 @@ func (LogEntry) Fields() []ent.Field {
 		field.String("sourceFunction"),
 		field.Int("sourceLine"),
 		field.String("publicMessage"),
+		field.Int("userID").Optional(),
 	}
 }
 
 // Edges of the LogEntry.
 func (LogEntry) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("user", User.Type).Unique().Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("user", User.Type).Unique().Field("userID").Annotations(entsql.OnDelete(entsql.SetNull)),
 	}
 }
 

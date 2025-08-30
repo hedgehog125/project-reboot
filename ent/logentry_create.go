@@ -79,6 +79,20 @@ func (_c *LogEntryCreate) SetPublicMessage(v string) *LogEntryCreate {
 	return _c
 }
 
+// SetUserID sets the "userID" field.
+func (_c *LogEntryCreate) SetUserID(v int) *LogEntryCreate {
+	_c.mutation.SetUserID(v)
+	return _c
+}
+
+// SetNillableUserID sets the "userID" field if the given value is not nil.
+func (_c *LogEntryCreate) SetNillableUserID(v *int) *LogEntryCreate {
+	if v != nil {
+		_c.SetUserID(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *LogEntryCreate) SetID(v uuid.UUID) *LogEntryCreate {
 	_c.mutation.SetID(v)
@@ -89,20 +103,6 @@ func (_c *LogEntryCreate) SetID(v uuid.UUID) *LogEntryCreate {
 func (_c *LogEntryCreate) SetNillableID(v *uuid.UUID) *LogEntryCreate {
 	if v != nil {
 		_c.SetID(*v)
-	}
-	return _c
-}
-
-// SetUserID sets the "user" edge to the User entity by ID.
-func (_c *LogEntryCreate) SetUserID(id int) *LogEntryCreate {
-	_c.mutation.SetUserID(id)
-	return _c
-}
-
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (_c *LogEntryCreate) SetNillableUserID(id *int) *LogEntryCreate {
-	if id != nil {
-		_c = _c.SetUserID(*id)
 	}
 	return _c
 }
@@ -268,7 +268,7 @@ func (_c *LogEntryCreate) createSpec() (*LogEntry, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.log_entry_user = &nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -440,6 +440,24 @@ func (u *LogEntryUpsert) SetPublicMessage(v string) *LogEntryUpsert {
 // UpdatePublicMessage sets the "publicMessage" field to the value that was provided on create.
 func (u *LogEntryUpsert) UpdatePublicMessage() *LogEntryUpsert {
 	u.SetExcluded(logentry.FieldPublicMessage)
+	return u
+}
+
+// SetUserID sets the "userID" field.
+func (u *LogEntryUpsert) SetUserID(v int) *LogEntryUpsert {
+	u.Set(logentry.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "userID" field to the value that was provided on create.
+func (u *LogEntryUpsert) UpdateUserID() *LogEntryUpsert {
+	u.SetExcluded(logentry.FieldUserID)
+	return u
+}
+
+// ClearUserID clears the value of the "userID" field.
+func (u *LogEntryUpsert) ClearUserID() *LogEntryUpsert {
+	u.SetNull(logentry.FieldUserID)
 	return u
 }
 
@@ -628,6 +646,27 @@ func (u *LogEntryUpsertOne) SetPublicMessage(v string) *LogEntryUpsertOne {
 func (u *LogEntryUpsertOne) UpdatePublicMessage() *LogEntryUpsertOne {
 	return u.Update(func(s *LogEntryUpsert) {
 		s.UpdatePublicMessage()
+	})
+}
+
+// SetUserID sets the "userID" field.
+func (u *LogEntryUpsertOne) SetUserID(v int) *LogEntryUpsertOne {
+	return u.Update(func(s *LogEntryUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "userID" field to the value that was provided on create.
+func (u *LogEntryUpsertOne) UpdateUserID() *LogEntryUpsertOne {
+	return u.Update(func(s *LogEntryUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// ClearUserID clears the value of the "userID" field.
+func (u *LogEntryUpsertOne) ClearUserID() *LogEntryUpsertOne {
+	return u.Update(func(s *LogEntryUpsert) {
+		s.ClearUserID()
 	})
 }
 
@@ -983,6 +1022,27 @@ func (u *LogEntryUpsertBulk) SetPublicMessage(v string) *LogEntryUpsertBulk {
 func (u *LogEntryUpsertBulk) UpdatePublicMessage() *LogEntryUpsertBulk {
 	return u.Update(func(s *LogEntryUpsert) {
 		s.UpdatePublicMessage()
+	})
+}
+
+// SetUserID sets the "userID" field.
+func (u *LogEntryUpsertBulk) SetUserID(v int) *LogEntryUpsertBulk {
+	return u.Update(func(s *LogEntryUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "userID" field to the value that was provided on create.
+func (u *LogEntryUpsertBulk) UpdateUserID() *LogEntryUpsertBulk {
+	return u.Update(func(s *LogEntryUpsert) {
+		s.UpdateUserID()
+	})
+}
+
+// ClearUserID clears the value of the "userID" field.
+func (u *LogEntryUpsertBulk) ClearUserID() *LogEntryUpsertBulk {
+	return u.Update(func(s *LogEntryUpsert) {
+		s.ClearUserID()
 	})
 }
 

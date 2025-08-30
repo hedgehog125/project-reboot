@@ -2,7 +2,6 @@ package loggers
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"maps"
 	"os"
@@ -68,7 +67,8 @@ func NewHandler(
 		SaveToDatabase: saveToDatabase,
 		ShouldPrint:    shouldPrint,
 		textHandler: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			Level: level,
+			Level:     level,
+			AddSource: true,
 		}),
 		baseAttrs:            map[string]any{},
 		entryChan:            make(chan *entry, 100),
@@ -130,8 +130,13 @@ listenLoop:
 			}
 		}
 
+		ctx := handler.shutdownCtx
+		var cancel context.CancelFunc
+		if ctx == nil {
+			ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
+		}
 		bulkWriteErr := dbcommon.WithWriteTx(
-			handler.shutdownCtx, handler.App.Database,
+			ctx, handler.App.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
 				return tx.LogEntry.MapCreateBulk(entries, func(lec *ent.LogEntryCreate, i int) {
 					entry := entries[i]
@@ -143,6 +148,9 @@ listenLoop:
 						SetSourceFunction(entry.sourceFunction).
 						SetSourceLine(entry.sourceLine).
 						SetPublicMessage(entry.publicMessage)
+					if entry.userID != 0 {
+						lec.SetUserID(entry.userID)
+					}
 				}).Exec(ctx)
 			},
 		)
@@ -157,11 +165,11 @@ listenLoop:
 				} else {
 					timeout = 100 * time.Millisecond
 				}
-				ctx, cancel := context.WithTimeout(handler.shutdownCtx, timeout)
+				ctx, cancel := context.WithTimeout(ctx, timeout)
 				stdErr := dbcommon.WithWriteTx(
 					ctx, handler.App.Database,
 					func(tx *ent.Tx, ctx context.Context) error {
-						return tx.LogEntry.Create().
+						builder := tx.LogEntry.Create().
 							SetTime(entry.time).SetTimeKnown(entry.timeKnown).
 							SetLevel(entry.level).
 							SetMessage(entry.message).
@@ -169,8 +177,12 @@ listenLoop:
 							SetSourceFile(entry.sourceFile).
 							SetSourceFunction(entry.sourceFunction).
 							SetSourceLine(entry.sourceLine).
-							SetPublicMessage(entry.publicMessage).
-							Exec(ctx)
+							SetPublicMessage(entry.publicMessage)
+						if entry.userID != 0 {
+							// TODO: don't set this and instead hydrate in a second query, that way invalid IDs don't prevent log storage
+							builder.SetUserID(entry.userID)
+						}
+						return builder.Exec(ctx)
 					},
 				)
 				cancel()
@@ -185,6 +197,7 @@ listenLoop:
 							pc,
 						)
 						record.AddAttrs(slog.Any("log", entry))
+						record.AddAttrs(slog.Any("error", stdErr))
 						handler.Handle(
 							context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
 							record,
@@ -210,6 +223,9 @@ listenLoop:
 				selfLogged = true
 			}
 		}
+		if cancel != nil {
+			cancel()
+		}
 
 		if shuttingDown {
 			if selfLogged {
@@ -228,19 +244,14 @@ listenLoop:
 	handler.cancelShutdownCtx()
 }
 func (handler *Handler) Shutdown() {
-	// TODO: timeout?
 	// TODO: what if it's not running?
-	fmt.Println("logger shutting down")
 	handler.mu.Lock()
 	ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
 	handler.shutdownCtx = ctx
 	handler.cancelShutdownCtx = cancel
 	handler.mu.Unlock()
-	// TODO: this panics if the handler has to shut itself down due to an error
 	handler.requestShutdownChan <- struct{}{}
-	fmt.Println("logger finishing saving logs")
 	<-handler.shutdownFinishedChan
-	fmt.Println("logger stopped")
 }
 
 func (handler Handler) Enabled(_ context.Context, level slog.Level) bool {
@@ -270,19 +281,27 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 		attrs = append(attrs, attr)
 		return true
 	})
-	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs)
+	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs, !disableErrLogging)
 	entry.publicMessage = specialProps.publicMessage
 	entry.userID = specialProps.userID
 	entry.attributes = resolvedAttrs
 
 	stdErr := handler.textHandler.Handle(ctx, record)
-	if stdErr != nil {
-		fmt.Printf(
-			"warning: log Handler.textHandler.Handle returned an error. error:\n%v",
-			stdErr.Error(),
+	handler.entryChan <- entry
+	if stdErr != nil && !disableErrLogging {
+		pc, _, _, _ := runtime.Caller(0)
+		record := slog.NewRecord(
+			handler.App.Clock.Now(),
+			slog.LevelWarn,
+			"logger Handler.textHandler.Handle returned an error",
+			pc,
+		)
+		record.AddAttrs(slog.Any("error", stdErr))
+		handler.Handle(
+			context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
+			record,
 		)
 	}
-	handler.entryChan <- entry
 	return nil
 }
 
@@ -291,7 +310,7 @@ type specialProperties struct {
 	userID        int
 }
 
-func (handler Handler) resolveNestedAttrs(attrs []slog.Attr) (map[string]any, specialProperties) {
+func (handler Handler) resolveNestedAttrs(attrs []slog.Attr, logErrors bool) (map[string]any, specialProperties) {
 	resolved := maps.Clone(handler.baseAttrs)
 	nestedResolved := resolved
 	for _, key := range handler.baseGroups {
@@ -311,7 +330,7 @@ func (handler Handler) resolveNestedAttrs(attrs []slog.Attr) (map[string]any, sp
 		userID:        handler.baseSpecialProps.userID,
 	}
 	for _, attr := range attrs {
-		newSpecialProps := handler.appendAttr(attr, nestedResolved, isTopLevel)
+		newSpecialProps := handler.appendAttr(attr, nestedResolved, isTopLevel, logErrors)
 		if newSpecialProps.publicMessage != "" {
 			specialProps.publicMessage = newSpecialProps.publicMessage
 		}
@@ -323,7 +342,10 @@ func (handler Handler) resolveNestedAttrs(attrs []slog.Attr) (map[string]any, sp
 }
 
 // Note: handler.baseGroups is handled by appendNestedAttrs instead
-func (handler Handler) appendAttr(attr slog.Attr, outputAttrs map[string]any, isTopLevel bool) specialProperties {
+func (handler Handler) appendAttr(
+	attr slog.Attr, outputAttrs map[string]any,
+	isTopLevel bool, logErrors bool,
+) specialProperties {
 	specialProps := specialProperties{}
 	attr.Value = attr.Value.Resolve()
 	if attr.Equal(slog.Attr{}) {
@@ -340,7 +362,7 @@ func (handler Handler) appendAttr(attr slog.Attr, outputAttrs map[string]any, is
 		// Otherwise, inline the attrs.
 		if attr.Key == "" { // Inline
 			for _, attr := range groupAttrs {
-				newSpecialProps := handler.appendAttr(attr, outputAttrs, true)
+				newSpecialProps := handler.appendAttr(attr, outputAttrs, true, logErrors)
 				if newSpecialProps.publicMessage != "" {
 					specialProps.publicMessage = newSpecialProps.publicMessage
 				}
@@ -351,7 +373,7 @@ func (handler Handler) appendAttr(attr slog.Attr, outputAttrs map[string]any, is
 		} else {
 			groupAttr := map[string]any{}
 			for _, attr := range groupAttrs {
-				_ = handler.appendAttr(attr, groupAttr, false)
+				_ = handler.appendAttr(attr, groupAttr, false, logErrors)
 			}
 			outputAttrs[attr.Key] = groupAttr
 		}
@@ -363,12 +385,24 @@ func (handler Handler) appendAttr(attr slog.Attr, outputAttrs map[string]any, is
 			return specialProps
 		}
 		if attr.Key == UserIDKey {
-			intValue, ok := attr.Value.Any().(int)
+			intValue, ok := attr.Value.Any().(int64)
 			if ok {
-				specialProps.userID = intValue
+				specialProps.userID = int(intValue)
 			} else {
-				typeOf := reflect.TypeOf(attr.Value.Any())
-				fmt.Printf("warning: userID property in log statement was not an int so has been ignored. type: %v", typeOf) // TODO: can the logger call itself?
+				if logErrors {
+					pc, _, _, _ := runtime.Caller(0)
+					record := slog.NewRecord(
+						handler.App.Clock.Now(),
+						slog.LevelWarn,
+						"userID property in log statement was not an int so has been ignored",
+						pc,
+					)
+					record.AddAttrs(slog.String("type", reflect.TypeOf(attr.Value.Any()).String()))
+					handler.Handle(
+						context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
+						record,
+					)
+				}
 			}
 			outputAttrs[attr.Key] = attr.Value.Any() // Also store the value in the attributes so it's preserved if the user is deleted
 			return specialProps
@@ -387,7 +421,7 @@ func (handler Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 		return handler
 	}
 	handler.textHandler = handler.textHandler.WithAttrs(attrs)
-	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs)
+	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs, true)
 	// maps.Copy(handler.baseAttrs, resolvedAttrs) // Mutate baseAttrs rather than copying so other references are updated
 	handler.baseAttrs = resolvedAttrs
 

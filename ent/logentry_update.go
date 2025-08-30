@@ -161,17 +161,23 @@ func (_u *LogEntryUpdate) SetNillablePublicMessage(v *string) *LogEntryUpdate {
 	return _u
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (_u *LogEntryUpdate) SetUserID(id int) *LogEntryUpdate {
-	_u.mutation.SetUserID(id)
+// SetUserID sets the "userID" field.
+func (_u *LogEntryUpdate) SetUserID(v int) *LogEntryUpdate {
+	_u.mutation.SetUserID(v)
 	return _u
 }
 
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (_u *LogEntryUpdate) SetNillableUserID(id *int) *LogEntryUpdate {
-	if id != nil {
-		_u = _u.SetUserID(*id)
+// SetNillableUserID sets the "userID" field if the given value is not nil.
+func (_u *LogEntryUpdate) SetNillableUserID(v *int) *LogEntryUpdate {
+	if v != nil {
+		_u.SetUserID(*v)
 	}
+	return _u
+}
+
+// ClearUserID clears the value of the "userID" field.
+func (_u *LogEntryUpdate) ClearUserID() *LogEntryUpdate {
+	_u.mutation.ClearUserID()
 	return _u
 }
 
@@ -441,17 +447,23 @@ func (_u *LogEntryUpdateOne) SetNillablePublicMessage(v *string) *LogEntryUpdate
 	return _u
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (_u *LogEntryUpdateOne) SetUserID(id int) *LogEntryUpdateOne {
-	_u.mutation.SetUserID(id)
+// SetUserID sets the "userID" field.
+func (_u *LogEntryUpdateOne) SetUserID(v int) *LogEntryUpdateOne {
+	_u.mutation.SetUserID(v)
 	return _u
 }
 
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (_u *LogEntryUpdateOne) SetNillableUserID(id *int) *LogEntryUpdateOne {
-	if id != nil {
-		_u = _u.SetUserID(*id)
+// SetNillableUserID sets the "userID" field if the given value is not nil.
+func (_u *LogEntryUpdateOne) SetNillableUserID(v *int) *LogEntryUpdateOne {
+	if v != nil {
+		_u.SetUserID(*v)
 	}
+	return _u
+}
+
+// ClearUserID clears the value of the "userID" field.
+func (_u *LogEntryUpdateOne) ClearUserID() *LogEntryUpdateOne {
+	_u.mutation.ClearUserID()
 	return _u
 }
 

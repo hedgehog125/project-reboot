@@ -25,6 +25,8 @@ func DefaultEnv() *common.Env {
 			Threads: 1,
 		},
 
+		LOG_STORE_INTERVAL: time.Hour * 999,
+
 		DISCORD_TOKEN:  "",
 		SENDGRID_TOKEN: "",
 	}

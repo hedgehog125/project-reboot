@@ -25,7 +25,6 @@ type LogEntryQuery struct {
 	inters     []Interceptor
 	predicates []predicate.LogEntry
 	withUser   *UserQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -371,18 +370,11 @@ func (_q *LogEntryQuery) prepareQuery(ctx context.Context) error {
 func (_q *LogEntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*LogEntry, error) {
 	var (
 		nodes       = []*LogEntry{}
-		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
 			_q.withUser != nil,
 		}
 	)
-	if _q.withUser != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, logentry.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*LogEntry).scanValues(nil, columns)
 	}
@@ -414,10 +406,7 @@ func (_q *LogEntryQuery) loadUser(ctx context.Context, query *UserQuery, nodes [
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*LogEntry)
 	for i := range nodes {
-		if nodes[i].log_entry_user == nil {
-			continue
-		}
-		fk := *nodes[i].log_entry_user
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -434,7 +423,7 @@ func (_q *LogEntryQuery) loadUser(ctx context.Context, query *UserQuery, nodes [
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "log_entry_user" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "userID" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -467,6 +456,9 @@ func (_q *LogEntryQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != logentry.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withUser != nil {
+			_spec.Node.AddColumnOnce(logentry.FieldUserID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

@@ -12,7 +12,8 @@ import (
 )
 
 type TestDatabase struct {
-	client *ent.Client
+	client       *ent.Client
+	startTxHooks []func(tx *ent.Tx) error
 }
 
 var dbCounter = common.MutexValue[int64]{}
@@ -42,7 +43,8 @@ func CreateDB() *TestDatabase {
 	}
 
 	return &TestDatabase{
-		client: client,
+		client:       client,
+		startTxHooks: []func(tx *ent.Tx) error{},
 	}
 }
 func (db *TestDatabase) Start() {
@@ -52,16 +54,47 @@ func (db *TestDatabase) Client() *ent.Client {
 	return db.client
 }
 func (db *TestDatabase) ReadTx(ctx context.Context) (*ent.Tx, error) {
-	return db.client.BeginTx(ctx, &sql.TxOptions{
+	tx, stdErr := db.client.BeginTx(ctx, &sql.TxOptions{
 		ReadOnly: true,
 	})
+	if stdErr != nil {
+		return nil, stdErr
+	}
+	stdErr = db.runStartTxHooks(tx)
+	if stdErr != nil {
+		_ = tx.Rollback()
+		return nil, stdErr
+	}
+	return tx, nil
 }
 func (db *TestDatabase) WriteTx(ctx context.Context) (*ent.Tx, error) {
-	return db.client.Tx(ctx)
+	tx, stdErr := db.client.Tx(ctx)
+	if stdErr != nil {
+		return nil, stdErr
+	}
+	stdErr = db.runStartTxHooks(tx)
+	if stdErr != nil {
+		_ = tx.Rollback()
+		return nil, stdErr
+	}
+	return tx, nil
 }
 func (db *TestDatabase) Shutdown() {
 	err := db.client.Close()
 	if err != nil {
 		fmt.Printf("warning: an error occurred while shutting down the database:\n%v\n", err.Error())
 	}
+}
+
+func (db *TestDatabase) AddStartTxHook(hook func(tx *ent.Tx) error) {
+	db.startTxHooks = append(db.startTxHooks, hook)
+}
+func (db *TestDatabase) runStartTxHooks(tx *ent.Tx) error {
+	for _, hook := range db.startTxHooks {
+		stdErr := hook(tx)
+		if stdErr != nil {
+			return stdErr
+		}
+	}
+	return nil
 }

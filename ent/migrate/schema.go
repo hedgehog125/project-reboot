@@ -54,7 +54,7 @@ var (
 		{Name: "source_function", Type: field.TypeString},
 		{Name: "source_line", Type: field.TypeInt},
 		{Name: "public_message", Type: field.TypeString},
-		{Name: "log_entry_user", Type: field.TypeInt, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt, Nullable: true},
 	}
 	// LogEntriesTable holds the schema information for the "log_entries" table.
 	LogEntriesTable = &schema.Table{
@@ -66,7 +66,7 @@ var (
 				Symbol:     "log_entries_users_user",
 				Columns:    []*schema.Column{LogEntriesColumns[10]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{

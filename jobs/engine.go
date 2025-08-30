@@ -351,10 +351,10 @@ func (engine *Engine) EnqueueEncoded(
 	}
 
 	// Otherwise the engine will look for the job before it's committed
-	tx.OnCommit(func(next ent.Committer) ent.Committer {
+	tx.OnCommit(func(committer ent.Committer) ent.Committer {
 		return ent.CommitFunc(
 			func(ctx context.Context, tx *ent.Tx) error {
-				stdErr := next.Commit(ctx, tx)
+				stdErr := committer.Commit(ctx, tx)
 				if stdErr != nil {
 					return stdErr
 				}

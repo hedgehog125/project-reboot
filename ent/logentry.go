@@ -38,11 +38,12 @@ type LogEntry struct {
 	SourceLine int `json:"sourceLine,omitempty"`
 	// PublicMessage holds the value of the "publicMessage" field.
 	PublicMessage string `json:"publicMessage,omitempty"`
+	// UserID holds the value of the "userID" field.
+	UserID int `json:"userID,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LogEntryQuery when eager-loading is set.
-	Edges          LogEntryEdges `json:"edges"`
-	log_entry_user *int
-	selectValues   sql.SelectValues
+	Edges        LogEntryEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // LogEntryEdges holds the relations/edges for other nodes in the graph.
@@ -74,7 +75,7 @@ func (*LogEntry) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case logentry.FieldTimeKnown:
 			values[i] = new(sql.NullBool)
-		case logentry.FieldLevel, logentry.FieldSourceLine:
+		case logentry.FieldLevel, logentry.FieldSourceLine, logentry.FieldUserID:
 			values[i] = new(sql.NullInt64)
 		case logentry.FieldMessage, logentry.FieldSourceFile, logentry.FieldSourceFunction, logentry.FieldPublicMessage:
 			values[i] = new(sql.NullString)
@@ -82,8 +83,6 @@ func (*LogEntry) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case logentry.FieldID:
 			values[i] = new(uuid.UUID)
-		case logentry.ForeignKeys[0]: // log_entry_user
-			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -161,12 +160,11 @@ func (_m *LogEntry) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.PublicMessage = value.String
 			}
-		case logentry.ForeignKeys[0]:
+		case logentry.FieldUserID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field log_entry_user", value)
+				return fmt.Errorf("unexpected type %T for field userID", values[i])
 			} else if value.Valid {
-				_m.log_entry_user = new(int)
-				*_m.log_entry_user = int(value.Int64)
+				_m.UserID = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -235,6 +233,9 @@ func (_m *LogEntry) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("publicMessage=")
 	builder.WriteString(_m.PublicMessage)
+	builder.WriteString(", ")
+	builder.WriteString("userID=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UserID))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -96,6 +96,11 @@ func PublicMessage(v string) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldEQ(FieldPublicMessage, v))
 }
 
+// UserID applies equality check predicate on the "userID" field. It's identical to UserIDEQ.
+func UserID(v int) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldEQ(FieldUserID, v))
+}
+
 // TimeEQ applies the EQ predicate on the "time" field.
 func TimeEQ(v time.Time) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldEQ(FieldTime, v))
@@ -484,6 +489,36 @@ func PublicMessageEqualFold(v string) predicate.LogEntry {
 // PublicMessageContainsFold applies the ContainsFold predicate on the "publicMessage" field.
 func PublicMessageContainsFold(v string) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldContainsFold(FieldPublicMessage, v))
+}
+
+// UserIDEQ applies the EQ predicate on the "userID" field.
+func UserIDEQ(v int) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "userID" field.
+func UserIDNEQ(v int) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "userID" field.
+func UserIDIn(vs ...int) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "userID" field.
+func UserIDNotIn(vs ...int) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// UserIDIsNil applies the IsNil predicate on the "userID" field.
+func UserIDIsNil() predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldIsNull(FieldUserID))
+}
+
+// UserIDNotNil applies the NotNil predicate on the "userID" field.
+func UserIDNotNil() predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldNotNull(FieldUserID))
 }
 
 // HasUser applies the HasEdge predicate on the "user" edge.

@@ -57,7 +57,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "logentry" package.
 	LogsInverseTable = "log_entries"
 	// LogsColumn is the table column denoting the logs relation/edge.
-	LogsColumn = "log_entry_user"
+	LogsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.

@@ -1662,27 +1662,64 @@ func (m *LogEntryMutation) ResetPublicMessage() {
 	m.publicMessage = nil
 }
 
-// SetUserID sets the "user" edge to the User entity by id.
-func (m *LogEntryMutation) SetUserID(id int) {
-	m.user = &id
+// SetUserID sets the "userID" field.
+func (m *LogEntryMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "userID" field in the mutation.
+func (m *LogEntryMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "userID" field's value of the LogEntry entity.
+// If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LogEntryMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ClearUserID clears the value of the "userID" field.
+func (m *LogEntryMutation) ClearUserID() {
+	m.user = nil
+	m.clearedFields[logentry.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "userID" field was cleared in this mutation.
+func (m *LogEntryMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[logentry.FieldUserID]
+	return ok
+}
+
+// ResetUserID resets all changes to the "userID" field.
+func (m *LogEntryMutation) ResetUserID() {
+	m.user = nil
+	delete(m.clearedFields, logentry.FieldUserID)
 }
 
 // ClearUser clears the "user" edge to the User entity.
 func (m *LogEntryMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[logentry.FieldUserID] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
 func (m *LogEntryMutation) UserCleared() bool {
-	return m.cleareduser
-}
-
-// UserID returns the "user" edge ID in the mutation.
-func (m *LogEntryMutation) UserID() (id int, exists bool) {
-	if m.user != nil {
-		return *m.user, true
-	}
-	return
+	return m.UserIDCleared() || m.cleareduser
 }
 
 // UserIDs returns the "user" edge IDs in the mutation.
@@ -1735,7 +1772,7 @@ func (m *LogEntryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LogEntryMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.time != nil {
 		fields = append(fields, logentry.FieldTime)
 	}
@@ -1763,6 +1800,9 @@ func (m *LogEntryMutation) Fields() []string {
 	if m.publicMessage != nil {
 		fields = append(fields, logentry.FieldPublicMessage)
 	}
+	if m.user != nil {
+		fields = append(fields, logentry.FieldUserID)
+	}
 	return fields
 }
 
@@ -1789,6 +1829,8 @@ func (m *LogEntryMutation) Field(name string) (ent.Value, bool) {
 		return m.SourceLine()
 	case logentry.FieldPublicMessage:
 		return m.PublicMessage()
+	case logentry.FieldUserID:
+		return m.UserID()
 	}
 	return nil, false
 }
@@ -1816,6 +1858,8 @@ func (m *LogEntryMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldSourceLine(ctx)
 	case logentry.FieldPublicMessage:
 		return m.OldPublicMessage(ctx)
+	case logentry.FieldUserID:
+		return m.OldUserID(ctx)
 	}
 	return nil, fmt.Errorf("unknown LogEntry field %s", name)
 }
@@ -1888,6 +1932,13 @@ func (m *LogEntryMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetPublicMessage(v)
 		return nil
+	case logentry.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown LogEntry field %s", name)
 }
@@ -1944,7 +1995,11 @@ func (m *LogEntryMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *LogEntryMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(logentry.FieldUserID) {
+		fields = append(fields, logentry.FieldUserID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1957,6 +2012,11 @@ func (m *LogEntryMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *LogEntryMutation) ClearField(name string) error {
+	switch name {
+	case logentry.FieldUserID:
+		m.ClearUserID()
+		return nil
+	}
 	return fmt.Errorf("unknown LogEntry nullable field %s", name)
 }
 
@@ -1990,6 +2050,9 @@ func (m *LogEntryMutation) ResetField(name string) error {
 		return nil
 	case logentry.FieldPublicMessage:
 		m.ResetPublicMessage()
+		return nil
+	case logentry.FieldUserID:
+		m.ResetUserID()
 		return nil
 	}
 	return fmt.Errorf("unknown LogEntry field %s", name)

@@ -1,7 +1,11 @@
 package loggers_test
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"log/slog"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -10,6 +14,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
 	"github.com/hedgehog125/project-reboot/loggers"
+	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,6 +43,7 @@ type ExpectedEntry struct {
 	PublicMessage string
 	Level         int
 	Attributes    map[string]any
+	UserID        int
 	// UserID should be asserted by its attribute
 }
 
@@ -49,6 +55,7 @@ func (service *Logger) AssertWritten(t *testing.T, expectedEntries []ExpectedEnt
 		expected := expectedEntries[i]
 		require.Equal(t, expected.Message, entry.Message)
 		require.Equal(t, expected.PublicMessage, entry.PublicMessage)
+		require.Equal(t, expected.UserID, entry.UserID)
 		require.Equal(t, expected.Level, entry.Level)
 
 		if expected.Attributes == nil {
@@ -212,4 +219,172 @@ func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
 			Level:   int(slog.LevelWarn),
 		},
 	})
+}
+
+func TestLogger_SpecialAttributes(t *testing.T) {
+	t.Parallel()
+	db := testcommon.CreateDB()
+	userIDs := []int{}
+	for i := range 2 {
+		userOb := db.Client().User.Create().SetUsername(fmt.Sprintf("user%v", i+1)).
+			SetContent([]byte{1}).SetFileName("file.zip").SetMime("application/zip").
+			SetNonce([]byte{1}).SetKeySalt([]byte{1}).
+			SetHashTime(0).SetHashMemory(0).SetHashThreads(0).
+			SaveX(t.Context())
+		userIDs = append(userIDs, userOb.ID)
+	}
+
+	defer db.Shutdown()
+	app := &common.App{
+		Database: db,
+		Env:      testcommon.DefaultEnv(),
+		Clock:    clockwork.NewRealClock(),
+	}
+	logger := NewLogger(app)
+	app.Logger = logger
+	logger.Start()
+
+	logger.Info("deleted expired sessions", loggers.UserIDKey, userIDs[0])
+	logger.Info(
+		"public message nobody will be sent",
+		loggers.PublicMessageKey, "public version of \"public message nobody will be sent\"",
+	)
+	logger.Info(
+		"updated password",
+		loggers.UserIDKey, userIDs[1],
+		loggers.PublicMessageKey,
+		"your password was updated",
+		"hiddenData",
+		"shh",
+	)
+
+	time.Sleep(5 * time.Millisecond)
+	logger.Shutdown()
+	logger.AssertWritten(t, []ExpectedEntry{
+		{
+			Message: "deleted expired sessions",
+			Level:   int(slog.LevelInfo),
+			UserID:  1,
+			Attributes: map[string]any{
+				"userID": userIDs[0],
+			},
+		},
+		{
+			Message:       "public message nobody will be sent",
+			Level:         int(slog.LevelInfo),
+			PublicMessage: "public version of \"public message nobody will be sent\"",
+		},
+		{
+			Message:       "updated password",
+			Level:         int(slog.LevelInfo),
+			PublicMessage: "your password was updated",
+			UserID:        userIDs[1],
+			Attributes: map[string]any{
+				"userID":     userIDs[1],
+				"hiddenData": "shh",
+			},
+		},
+	})
+}
+
+func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
+	t.Parallel()
+	db := testcommon.CreateDB()
+	defer db.Shutdown()
+
+	var successfulCreateCounter atomic.Int64
+	var createAttemptCounter atomic.Int64
+	var pendingMutations = common.MutexValue[map[*ent.Tx]int64]{
+		Value: map[*ent.Tx]int64{},
+	}
+	db.AddStartTxHook(func(tx *ent.Tx) error {
+		tx.LogEntry.Use(func(next ent.Mutator) ent.Mutator {
+			return ent.MutateFunc(func(ctx context.Context, mutation ent.Mutation) (ent.Value, error) {
+				if mutation.Op().Is(ent.OpCreate) {
+					pendingMutations.Mutex.Lock()
+					pendingMutations.Value[tx]++
+					pendingMutations.Mutex.Unlock()
+					if createAttemptCounter.Add(1) <= 1 {
+						return nil, errors.New("temporary but unretryable error")
+					}
+				}
+				return next.Mutate(ctx, mutation)
+			})
+		})
+		tx.OnCommit(func(committer ent.Committer) ent.Committer {
+			return ent.CommitFunc(
+				func(ctx context.Context, tx *ent.Tx) error {
+					stdErr := committer.Commit(ctx, tx)
+					if stdErr != nil {
+						return stdErr
+					}
+
+					pendingMutations.Mutex.Lock()
+					successfulCreateCounter.Add(pendingMutations.Value[tx])
+					delete(pendingMutations.Value, tx)
+					pendingMutations.Mutex.Unlock()
+					return nil
+				},
+			)
+		})
+		return nil
+	})
+
+	app := &common.App{
+		Database: db,
+		Env:      testcommon.DefaultEnv(),
+		Clock:    clockwork.NewRealClock(),
+	}
+	logger := NewLogger(app)
+	app.Logger = logger
+	logger.Start()
+
+	logger.Info("doing something")
+	logger.Info("doing something else")
+
+	time.Sleep(5 * time.Millisecond)
+	logger.Shutdown()
+	logger.AssertWritten(t, []ExpectedEntry{
+		{
+			Message: "doing something",
+			Level:   int(slog.LevelInfo),
+		},
+		{
+			Message: "doing something else",
+			Level:   int(slog.LevelInfo),
+		},
+		{
+			Message: "bulk log write failed but the individual fallback writes all succeeded, so the writes took longer than they should have",
+			Level:   int(slog.LevelWarn),
+			Attributes: map[string]any{
+				"error": map[string]any{
+					"categories": []any{
+						"callback",
+						"WithTx",
+						"db common [package]",
+					},
+					"debugValues": []any{
+						map[string]any{
+							"Value":   []any{},
+							"message": "no previous errors",
+							"name":    "previous retry errors (WithRetries)",
+						},
+						map[string]any{
+							"Value":   nil,
+							"message": "max retries: 0, base backoff: 0s, backoff multiplier: 0",
+							"name":    "retries reset by WithRetries from...",
+						},
+					},
+					"errDuplicatesCategory":  false,
+					"error":                  "db common [package] error: WithTx error: callback error: temporary but unretryable error",
+					"innerError":             "temporary but unretryable error",
+					"maxRetries":             0,
+					"retryBackoffBase":       0,
+					"retryBackoffMultiplier": 0,
+				},
+			},
+		},
+	})
+	// Should do a bulk create that fails, retry that with 2 individual creates and then do another bulk create to store the warning
+	require.Equal(t, int64(3), successfulCreateCounter.Load())
 }
