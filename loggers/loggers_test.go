@@ -123,7 +123,7 @@ func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
 	jobLogger.With("timeTaken", time.Second).Debug("job did something")
 	jobCallbackLogger.Debug("doing something else", "callbackValue2", 5)
 
-	// TODO: expand these tests
+	logger.Warn("simple warning")
 
 	time.Sleep(5 * time.Millisecond)
 	logger.Shutdown()
@@ -206,6 +206,10 @@ func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
 					"callbackValue2": 5,
 				},
 			},
+		},
+		{
+			Message: "simple warning",
+			Level:   int(slog.LevelWarn),
 		},
 	})
 }

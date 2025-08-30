@@ -207,7 +207,12 @@ func (handler Handler) resolveNestedAttrs(attrs []slog.Attr) (map[string]any, sp
 	resolved := maps.Clone(handler.baseAttrs)
 	nestedResolved := resolved
 	for _, key := range handler.baseGroups {
-		newMap := map[string]any{}
+		newMap, ok := nestedResolved[key].(map[string]any)
+		if ok {
+			newMap = maps.Clone(newMap)
+		} else {
+			newMap = map[string]any{}
+		}
 		nestedResolved[key] = newMap
 		nestedResolved = newMap
 	}
