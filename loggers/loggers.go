@@ -7,7 +7,9 @@ import (
 	"maps"
 	"os"
 	"reflect"
+	"runtime"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -16,11 +18,15 @@ import (
 )
 
 const (
+	// Special attributes
 	PublicMessageKey = "publicMessage"
 	UserIDKey        = "userID"
 
 	MaxSaveBatchSize = 100
+	ShutdownTimeout  = 5 * time.Second
 )
+
+type disableErrorLoggingKey = struct{} // Used to prevent infinite loops
 
 type Handler struct {
 	App                  *common.App
@@ -33,19 +39,23 @@ type Handler struct {
 	baseGroups           []string
 	entryChan            chan *entry
 	requestShutdownChan  chan struct{}
+	shutdownCtx          context.Context
+	cancelShutdownCtx    context.CancelFunc
 	shutdownFinishedChan chan struct{}
+	mu                   *sync.Mutex
 }
 type entry struct {
-	time           time.Time
-	timeKnown      bool
-	level          int
-	message        string
-	attributes     map[string]any
-	sourceFile     string
-	sourceFunction string
-	sourceLine     int
-	publicMessage  string
-	userID         int
+	time                time.Time
+	timeKnown           bool
+	level               int
+	message             string
+	attributes          map[string]any
+	sourceFile          string
+	sourceFunction      string
+	sourceLine          int
+	publicMessage       string
+	userID              int
+	disableErrorLogging bool
 }
 
 func NewHandler(
@@ -64,14 +74,17 @@ func NewHandler(
 		entryChan:            make(chan *entry, 100),
 		requestShutdownChan:  make(chan struct{}),
 		shutdownFinishedChan: make(chan struct{}),
+		mu:                   &sync.Mutex{},
 	}
 }
 
 func (handler *Handler) Listen() {
 	shuttingDown := false
+	loggedBulkWarning := false
 listenLoop:
 	for {
 		entries := []*entry{}
+		selfLogged := false
 		emptyEntryChan := func() {
 			for {
 				select {
@@ -83,13 +96,17 @@ listenLoop:
 			}
 		}
 
-		select {
-		case entry := <-handler.entryChan:
-			entries = append(entries, entry)
-		case <-handler.requestShutdownChan:
-			shuttingDown = true
+		if shuttingDown {
 			emptyEntryChan()
-			break listenLoop
+		} else {
+			select {
+			case entry := <-handler.entryChan:
+				entries = append(entries, entry)
+			case <-handler.requestShutdownChan:
+				shuttingDown = true
+				emptyEntryChan()
+				break listenLoop
+			}
 		}
 
 		if !shuttingDown {
@@ -104,6 +121,7 @@ listenLoop:
 					emptyEntryChan()
 					break collectBatchLoop
 				case <-timeoutChan:
+					loggedBulkWarning = false
 					break collectBatchLoop
 				}
 				if len(entries) >= MaxSaveBatchSize {
@@ -112,8 +130,8 @@ listenLoop:
 			}
 		}
 
-		stdErr := dbcommon.WithWriteTx(
-			context.TODO(), handler.App.Database,
+		bulkWriteErr := dbcommon.WithWriteTx(
+			handler.shutdownCtx, handler.App.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
 				return tx.LogEntry.MapCreateBulk(entries, func(lec *ent.LogEntryCreate, i int) {
 					entry := entries[i]
@@ -128,28 +146,96 @@ listenLoop:
 				}).Exec(ctx)
 			},
 		)
-		if stdErr != nil {
-			// TODO: fall back to individual creates, some entries may be invalid
-			// TODO: log a warning if they all succeed, because otherwise doing this just reduced performance for no benefit
-
-			// TODO: can the logger call itself?
-			fmt.Printf(
-				"error: unable to store logs to database. error:\n%v",
-				stdErr.Error(),
-			)
+		if bulkWriteErr != nil {
+			allSucceeded := true
+			for _, entry := range entries {
+				var timeout time.Duration
+				if entry.level >= int(slog.LevelError) {
+					timeout = time.Second
+				} else if entry.level >= int(slog.LevelWarn) {
+					timeout = 500 * time.Millisecond
+				} else {
+					timeout = 100 * time.Millisecond
+				}
+				ctx, cancel := context.WithTimeout(handler.shutdownCtx, timeout)
+				stdErr := dbcommon.WithWriteTx(
+					ctx, handler.App.Database,
+					func(tx *ent.Tx, ctx context.Context) error {
+						return tx.LogEntry.Create().
+							SetTime(entry.time).SetTimeKnown(entry.timeKnown).
+							SetLevel(entry.level).
+							SetMessage(entry.message).
+							SetAttributes(entry.attributes).
+							SetSourceFile(entry.sourceFile).
+							SetSourceFunction(entry.sourceFunction).
+							SetSourceLine(entry.sourceLine).
+							SetPublicMessage(entry.publicMessage).
+							Exec(ctx)
+					},
+				)
+				cancel()
+				if stdErr != nil {
+					allSucceeded = false
+					if !entry.disableErrorLogging {
+						pc, _, _, _ := runtime.Caller(0)
+						record := slog.NewRecord(
+							handler.App.Clock.Now(),
+							slog.LevelError,
+							"failed to write log entry to database",
+							pc,
+						)
+						record.AddAttrs(slog.Any("log", entry))
+						handler.Handle(
+							context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
+							record,
+						)
+						selfLogged = true
+					}
+				}
+			}
+			if allSucceeded && !loggedBulkWarning {
+				pc, _, _, _ := runtime.Caller(0)
+				record := slog.NewRecord(
+					handler.App.Clock.Now(),
+					slog.LevelWarn,
+					"bulk log write failed but the individual fallback writes all succeeded, so the writes took longer than they should have",
+					pc,
+				)
+				record.AddAttrs(slog.Any("error", bulkWriteErr))
+				handler.Handle(
+					context.Background(),
+					record,
+				)
+				loggedBulkWarning = true
+				selfLogged = true
+			}
 		}
 
 		if shuttingDown {
-			break listenLoop
+			if selfLogged {
+				select {
+				case <-handler.shutdownCtx.Done():
+					break listenLoop
+				default:
+				}
+			} else {
+				break listenLoop
+			}
 		}
 	}
 	close(handler.requestShutdownChan)
 	close(handler.shutdownFinishedChan)
+	handler.cancelShutdownCtx()
 }
 func (handler *Handler) Shutdown() {
 	// TODO: timeout?
 	// TODO: what if it's not running?
 	fmt.Println("logger shutting down")
+	handler.mu.Lock()
+	ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
+	handler.shutdownCtx = ctx
+	handler.cancelShutdownCtx = cancel
+	handler.mu.Unlock()
 	// TODO: this panics if the handler has to shut itself down due to an error
 	handler.requestShutdownChan <- struct{}{}
 	fmt.Println("logger finishing saving logs")
@@ -162,9 +248,11 @@ func (handler Handler) Enabled(_ context.Context, level slog.Level) bool {
 }
 
 func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
+	disableErrLogging, _ := ctx.Value(disableErrorLoggingKey{}).(bool)
 	entry := &entry{
-		level:   int(record.Level),
-		message: record.Message,
+		level:               int(record.Level),
+		message:             record.Message,
+		disableErrorLogging: disableErrLogging,
 	}
 	if !record.Time.IsZero() {
 		entry.time = record.Time
