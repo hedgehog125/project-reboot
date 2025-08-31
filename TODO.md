@@ -37,6 +37,7 @@
 -   -   Cancel failed job
 -   -   Retry failed job
 -   -   Update job body
+-   When the admin is locked, whether temporarily or permanently, errors should make the server enter some kind of lockdown state? Need to weigh up pros and cons
 
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 -   Bump priority of jobs as they get older

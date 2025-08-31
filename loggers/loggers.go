@@ -2,6 +2,7 @@ package loggers
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"maps"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
+	"github.com/hedgehog125/project-reboot/messengers"
 )
 
 const (
@@ -296,20 +298,35 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 			baseCtx = handler.shutdownCtx
 		}
 		ctx, cancel := context.WithTimeout(baseCtx, 2*time.Second)
-		defer cancel()
-		userOb, stdErr := dbcommon.WithReadTx(
+		var queuedCount int
+		var errs map[string]*common.Error
+		stdErr := dbcommon.WithWriteTx(
 			ctx, handler.App.Database,
-			func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
-				return tx.User.Query().Where(user.Username(handler.App.Env.ADMIN_USERNAME)).Only(ctx)
+			func(tx *ent.Tx, ctx context.Context) error {
+				userOb, stdErr := tx.User.Query().Where(user.Username(handler.App.Env.ADMIN_USERNAME)).Only(ctx)
+				if stdErr != nil {
+					return stdErr
+				}
+				var commErr *common.Error
+				queuedCount, errs, commErr = handler.App.Messengers.SendUsingAll(
+					&common.Message{
+						Type: common.MessageAdminError,
+						User: userOb,
+					},
+					ctx,
+				)
+
+				return commErr.StandardError()
 			},
 		)
+		cancel()
 		if stdErr != nil {
 			// TODO: add a special context item to notify the admin by crashing
 			pc, _, _, _ := runtime.Caller(0)
 			record := slog.NewRecord(
 				handler.App.Clock.Now(),
 				slog.LevelError,
-				"failed to read admin user to notify them about an error",
+				"failed to message admin about an error",
 				pc,
 			)
 			record.AddAttrs(slog.Any("error", stdErr))
@@ -321,45 +338,27 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 			return true
 		}
 
-		queuedCount, errs, commErr := handler.App.Messengers.SendUsingAll(
-			&common.Message{
-				Type: common.MessageAdminError,
-				User: userOb,
-			},
-			ctx,
-		)
-		cancel()
-		if commErr == nil {
-			if len(errs) > 0 { // SendUsingAll will have logged
-				*loggedAdminNotificationErrorPtr = true
-				selfLogged = true
-			}
-			if queuedCount == 0 {
-				// TODO: add a special context item to notify the admin by crashing
-				pc, _, _, _ := runtime.Caller(0)
-				record := slog.NewRecord(
-					handler.App.Clock.Now(),
-					slog.LevelError,
-					"admin user has no contacts. couldn't notify them about an error",
-					pc,
-				)
-				handler.Handle(
-					context.Background(),
-					record,
-				)
-				*loggedAdminNotificationErrorPtr = true
-				selfLogged = true
-			}
-		} else {
+		if len(errs) > 0 { // SendUsingAll will have logged
+			// TODO: log something with a special context item to notify the admin by crashing
+			*loggedAdminNotificationErrorPtr = true
+			selfLogged = true
+		}
+		if queuedCount == 0 {
 			// TODO: add a special context item to notify the admin by crashing
+			message := "admin user has no contacts so couldn't notify them about an error"
+			for _, commErr := range errs {
+				if !errors.Is(commErr, messengers.ErrNoContactForUser) {
+					message = "unable to prepare messages to notify admin about an error, see the errors before"
+				}
+			}
+
 			pc, _, _, _ := runtime.Caller(0)
 			record := slog.NewRecord(
 				handler.App.Clock.Now(),
 				slog.LevelError,
-				"failed to schedule jobs to notify admin about an error",
+				message,
 				pc,
 			)
-			record.AddAttrs(slog.Any("error", commErr))
 			handler.Handle(
 				context.Background(),
 				record,
