@@ -90,7 +90,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 				return commErr
 			}
 
-			_, commErr = app.Messengers.SendUsingAll(
+			_, _, commErr = app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.Message2FA,
 					User: userOb,

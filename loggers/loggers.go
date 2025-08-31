@@ -14,6 +14,7 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
 const (
@@ -81,8 +82,10 @@ func NewHandler(
 func (handler *Handler) Listen() {
 	shuttingDown := false
 	loggedBulkWarning := false
+	loggedAdminNotificationError := false
 listenLoop:
 	for {
+		shouldReEnableSelfLogging := false
 		entries := []*entry{}
 		selfLogged := false
 		emptyEntryChan := func() {
@@ -121,7 +124,7 @@ listenLoop:
 					emptyEntryChan()
 					break collectBatchLoop
 				case <-timeoutChan:
-					loggedBulkWarning = false
+					shouldReEnableSelfLogging = true
 					break collectBatchLoop
 				}
 				if len(entries) >= MaxSaveBatchSize {
@@ -130,103 +133,22 @@ listenLoop:
 			}
 		}
 
-		ctx := handler.shutdownCtx
-		var cancel context.CancelFunc
-		if ctx == nil {
-			ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
-		}
-		bulkWriteErr := dbcommon.WithWriteTx(
-			ctx, handler.App.Database,
-			func(tx *ent.Tx, ctx context.Context) error {
-				return tx.LogEntry.MapCreateBulk(entries, func(lec *ent.LogEntryCreate, i int) {
-					entry := entries[i]
-					lec.SetTime(entry.time).SetTimeKnown(entry.timeKnown).
-						SetLevel(entry.level).
-						SetMessage(entry.message).
-						SetAttributes(entry.attributes).
-						SetSourceFile(entry.sourceFile).
-						SetSourceFunction(entry.sourceFunction).
-						SetSourceLine(entry.sourceLine).
-						SetPublicMessage(entry.publicMessage)
-					if entry.userID != 0 {
-						lec.SetUserID(entry.userID)
-					}
-				}).Exec(ctx)
-			},
-		)
+		bulkWriteErr := handler.bulkWrite(entries)
 		if bulkWriteErr != nil {
-			allSucceeded := true
-			for _, entry := range entries {
-				var timeout time.Duration
-				if entry.level >= int(slog.LevelError) {
-					timeout = time.Second
-				} else if entry.level >= int(slog.LevelWarn) {
-					timeout = 500 * time.Millisecond
-				} else {
-					timeout = 100 * time.Millisecond
-				}
-				ctx, cancel := context.WithTimeout(ctx, timeout)
-				stdErr := dbcommon.WithWriteTx(
-					ctx, handler.App.Database,
-					func(tx *ent.Tx, ctx context.Context) error {
-						builder := tx.LogEntry.Create().
-							SetTime(entry.time).SetTimeKnown(entry.timeKnown).
-							SetLevel(entry.level).
-							SetMessage(entry.message).
-							SetAttributes(entry.attributes).
-							SetSourceFile(entry.sourceFile).
-							SetSourceFunction(entry.sourceFunction).
-							SetSourceLine(entry.sourceLine).
-							SetPublicMessage(entry.publicMessage)
-						if entry.userID != 0 {
-							// TODO: don't set this and instead hydrate in a second query, that way invalid IDs don't prevent log storage
-							builder.SetUserID(entry.userID)
-						}
-						return builder.Exec(ctx)
-					},
-				)
-				cancel()
-				if stdErr != nil {
-					allSucceeded = false
-					if !entry.disableErrorLogging {
-						pc, _, _, _ := runtime.Caller(0)
-						record := slog.NewRecord(
-							handler.App.Clock.Now(),
-							slog.LevelError,
-							"failed to write log entry to database",
-							pc,
-						)
-						record.AddAttrs(slog.Any("log", entry))
-						record.AddAttrs(slog.Any("error", stdErr))
-						handler.Handle(
-							context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
-							record,
-						)
-						selfLogged = true
-					}
-				}
-			}
-			if allSucceeded && !loggedBulkWarning {
-				pc, _, _, _ := runtime.Caller(0)
-				record := slog.NewRecord(
-					handler.App.Clock.Now(),
-					slog.LevelWarn,
-					"bulk log write failed but the individual fallback writes all succeeded, so the writes took longer than they should have",
-					pc,
-				)
-				record.AddAttrs(slog.Any("error", bulkWriteErr))
-				handler.Handle(
-					context.Background(),
-					record,
-				)
-				loggedBulkWarning = true
+			if handler.individualWriteFallback(entries, bulkWriteErr, &loggedBulkWarning) {
+				shouldReEnableSelfLogging = false
 				selfLogged = true
 			}
 		}
-		if cancel != nil {
-			cancel()
+		if handler.maybeNotifyAdmin(entries, &loggedAdminNotificationError) {
+			shouldReEnableSelfLogging = false
+			selfLogged = true
 		}
 
+		if shouldReEnableSelfLogging {
+			loggedBulkWarning = false
+			loggedAdminNotificationError = false
+		}
 		if shuttingDown {
 			if selfLogged {
 				select {
@@ -234,6 +156,7 @@ listenLoop:
 					break listenLoop
 				default:
 				}
+				time.Sleep(5 * time.Millisecond) // Give the channels a second so that all the entries that were added can be read
 			} else {
 				break listenLoop
 			}
@@ -243,6 +166,211 @@ listenLoop:
 	close(handler.shutdownFinishedChan)
 	handler.cancelShutdownCtx()
 }
+func (handler *Handler) bulkWrite(entries []*entry) error {
+	ctx := handler.shutdownCtx
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+	}
+	return dbcommon.WithWriteTx(
+		ctx, handler.App.Database,
+		func(tx *ent.Tx, ctx context.Context) error {
+			return tx.LogEntry.MapCreateBulk(entries, func(lec *ent.LogEntryCreate, i int) {
+				entry := entries[i]
+				lec.SetTime(entry.time).SetTimeKnown(entry.timeKnown).
+					SetLevel(entry.level).
+					SetMessage(entry.message).
+					SetAttributes(entry.attributes).
+					SetSourceFile(entry.sourceFile).
+					SetSourceFunction(entry.sourceFunction).
+					SetSourceLine(entry.sourceLine).
+					SetPublicMessage(entry.publicMessage)
+				if entry.userID != 0 {
+					lec.SetUserID(entry.userID)
+				}
+			}).Exec(ctx)
+		},
+	)
+}
+func (handler *Handler) individualWriteFallback(
+	entries []*entry,
+	bulkWriteErr error,
+	loggedBulkWarningPtr *bool,
+) bool {
+	selfLogged := false
+	allSucceeded := true
+	for _, entry := range entries {
+		var timeout time.Duration
+		if entry.level >= int(slog.LevelError) {
+			timeout = time.Second
+		} else if entry.level >= int(slog.LevelWarn) {
+			timeout = 500 * time.Millisecond
+		} else {
+			timeout = 100 * time.Millisecond
+		}
+		baseCtx := context.Background()
+		if handler.shutdownCtx != nil {
+			baseCtx = handler.shutdownCtx
+		}
+		ctx, cancel := context.WithTimeout(baseCtx, timeout)
+		stdErr := dbcommon.WithWriteTx(
+			ctx, handler.App.Database,
+			func(tx *ent.Tx, ctx context.Context) error {
+				builder := tx.LogEntry.Create().
+					SetTime(entry.time).SetTimeKnown(entry.timeKnown).
+					SetLevel(entry.level).
+					SetMessage(entry.message).
+					SetAttributes(entry.attributes).
+					SetSourceFile(entry.sourceFile).
+					SetSourceFunction(entry.sourceFunction).
+					SetSourceLine(entry.sourceLine).
+					SetPublicMessage(entry.publicMessage)
+				if entry.userID != 0 {
+					// TODO: don't set this and instead hydrate in a second query, that way invalid IDs don't prevent log storage
+					builder.SetUserID(entry.userID)
+				}
+				return builder.Exec(ctx)
+			},
+		)
+		cancel()
+		if stdErr != nil {
+			allSucceeded = false
+			if !entry.disableErrorLogging {
+				pc, _, _, _ := runtime.Caller(0)
+				record := slog.NewRecord(
+					handler.App.Clock.Now(),
+					slog.LevelError,
+					"failed to write log entry to database",
+					pc,
+				)
+				record.AddAttrs(slog.Any("log", entry))
+				record.AddAttrs(slog.Any("error", stdErr))
+				handler.Handle(
+					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
+					record,
+				)
+				selfLogged = true
+			}
+		}
+	}
+	if allSucceeded && !*loggedBulkWarningPtr {
+		pc, _, _, _ := runtime.Caller(0)
+		record := slog.NewRecord(
+			handler.App.Clock.Now(),
+			slog.LevelWarn,
+			"bulk log write failed but the individual fallback writes all succeeded, so the writes took longer than they should have",
+			pc,
+		)
+		record.AddAttrs(slog.Any("error", bulkWriteErr))
+		handler.Handle(
+			context.Background(),
+			record,
+		)
+		*loggedBulkWarningPtr = true
+		selfLogged = true
+	}
+	return selfLogged
+}
+func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificationErrorPtr *bool) bool {
+	if *loggedAdminNotificationErrorPtr {
+		return false
+	}
+	selfLogged := false
+
+	shouldNotifyAdmin := false
+	if handler.App.Env.ADMIN_USERNAME != "" {
+		for _, entry := range entries {
+			if entry.level >= int(slog.LevelError) {
+				shouldNotifyAdmin = true
+				break
+			}
+		}
+	}
+	if shouldNotifyAdmin {
+		// TODO: rate limiting!
+
+		// TODO: reserve a bit of time for this in case the database writing times out during a shutdown
+		baseCtx := context.Background()
+		if handler.shutdownCtx != nil {
+			baseCtx = handler.shutdownCtx
+		}
+		ctx, cancel := context.WithTimeout(baseCtx, 2*time.Second)
+		defer cancel()
+		userOb, stdErr := dbcommon.WithReadTx(
+			ctx, handler.App.Database,
+			func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
+				return tx.User.Query().Where(user.Username(handler.App.Env.ADMIN_USERNAME)).Only(ctx)
+			},
+		)
+		if stdErr != nil {
+			// TODO: add a special context item to notify the admin by crashing
+			pc, _, _, _ := runtime.Caller(0)
+			record := slog.NewRecord(
+				handler.App.Clock.Now(),
+				slog.LevelError,
+				"failed to read admin user to notify them about an error",
+				pc,
+			)
+			record.AddAttrs(slog.Any("error", stdErr))
+			handler.Handle(
+				context.Background(),
+				record,
+			)
+			*loggedAdminNotificationErrorPtr = true
+			return true
+		}
+
+		queuedCount, errs, commErr := handler.App.Messengers.SendUsingAll(
+			&common.Message{
+				Type: common.MessageAdminError,
+				User: userOb,
+			},
+			ctx,
+		)
+		cancel()
+		if commErr == nil {
+			if len(errs) > 0 { // SendUsingAll will have logged
+				*loggedAdminNotificationErrorPtr = true
+				selfLogged = true
+			}
+			if queuedCount == 0 {
+				// TODO: add a special context item to notify the admin by crashing
+				pc, _, _, _ := runtime.Caller(0)
+				record := slog.NewRecord(
+					handler.App.Clock.Now(),
+					slog.LevelError,
+					"admin user has no contacts. couldn't notify them about an error",
+					pc,
+				)
+				handler.Handle(
+					context.Background(),
+					record,
+				)
+				*loggedAdminNotificationErrorPtr = true
+				selfLogged = true
+			}
+		} else {
+			// TODO: add a special context item to notify the admin by crashing
+			pc, _, _, _ := runtime.Caller(0)
+			record := slog.NewRecord(
+				handler.App.Clock.Now(),
+				slog.LevelError,
+				"failed to schedule jobs to notify admin about an error",
+				pc,
+			)
+			record.AddAttrs(slog.Any("error", commErr))
+			handler.Handle(
+				context.Background(),
+				record,
+			)
+			*loggedAdminNotificationErrorPtr = true
+			selfLogged = true
+		}
+	}
+	return selfLogged
+}
+
 func (handler *Handler) Shutdown() {
 	// TODO: what if it's not running?
 	handler.mu.Lock()

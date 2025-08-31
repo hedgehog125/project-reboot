@@ -65,7 +65,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			_, commErr := app.Messengers.SendUsingAll(
+			_, _, commErr := app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.MessageLogin,
 					User: userOb,

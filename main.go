@@ -31,6 +31,8 @@ func main() {
 	app.Server.Start()
 	app.Jobs.Start()
 
+	app.Logger.Error("testing")
+
 	services.ConfigureShutdown(
 		services.NewShutdownTask(func() {
 			app.Scheduler.Shutdown()

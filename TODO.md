@@ -6,6 +6,7 @@
 -   -   Successful login attempts also directly send a message, a job then runs every day to send reminders
 -   -   Probably use slog
 -   -   Errors should send a message to the admin user with a cooldown so as not to spam. Maybe just say there's an error, please investigate?
+-   Pass the special log entry properties as pointers so that boilerplate isn't needed
 -   Replace cron system with a simple custom job scheduler
 -   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download

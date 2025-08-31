@@ -47,7 +47,7 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 				)
 			}
 
-			_, commErr := app.Messengers.SendUsingAll(
+			_, _, commErr := app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.MessageTest,
 					User: userOb,

@@ -81,6 +81,7 @@ func (registry *Registry) Send(
 		return ErrWrapperSend.Wrap(ErrWrapperPrepare.Wrap(stdErr))
 	}
 
+	// TODO: if this is a MessageTypeAdminError, add a special context item to the error log to notify the admin by crashing, rather than trying to notify again
 	_, commErr := registry.App.Jobs.Enqueue(
 		jobscommon.JoinPaths(registry.jobNamePrefix, versionedType),
 		preparedData,
@@ -94,14 +95,17 @@ func (registry *Registry) Send(
 }
 func (registry *Registry) SendUsingAll(
 	message *common.Message, ctx context.Context,
-) (map[string]*common.Error, *common.Error) {
+) (int, map[string]*common.Error, *common.Error) {
 	errs := make(map[string]*common.Error)
+	messagesQueued := 0
 	for versionedType := range registry.messengers {
 		commErr := registry.Send(versionedType, message, ctx)
-		if commErr != nil {
+		if commErr == nil {
+			messagesQueued++
+		} else {
 			errs[versionedType] = commErr
 			if !ErrWrapperPrepare.HasWrapped(commErr) {
-				return errs, commErr
+				return messagesQueued, errs, commErr
 			}
 			if !errors.Is(commErr, ErrNoContactForUser) {
 				// Just log an error and let the admin deal with this, there's not much the user can do
@@ -109,5 +113,5 @@ func (registry *Registry) SendUsingAll(
 			}
 		}
 	}
-	return errs, nil
+	return messagesQueued, errs, nil
 }

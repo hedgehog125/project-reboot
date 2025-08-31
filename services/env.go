@@ -35,6 +35,7 @@ func LoadEnvironmentVariables() *common.Env {
 		},
 
 		LOG_STORE_INTERVAL: common.RequireMillisecondsEnv("LOG_STORE_INTERVAL"),
+		ADMIN_USERNAME:     common.RequireEnv("ADMIN_USERNAME"),
 
 		DISCORD_TOKEN:  common.OptionalEnv("DISCORD_TOKEN", ""),
 		SENDGRID_TOKEN: common.OptionalEnv("SENDGRID_TOKEN", ""),

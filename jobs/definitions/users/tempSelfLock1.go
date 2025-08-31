@@ -44,7 +44,7 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 					return common.ErrWrapperDatabase.Wrap(stdErr)
 				}
 
-				_, commErr := app.Messengers.SendUsingAll(
+				_, _, commErr := app.Messengers.SendUsingAll(
 					&common.Message{
 						Type:  common.MessageSelfLock,
 						User:  userOb,

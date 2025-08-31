@@ -32,6 +32,7 @@ type Env struct {
 	PASSWORD_HASH_SETTINGS *PasswordHashSettings
 
 	LOG_STORE_INTERVAL time.Duration
+	ADMIN_USERNAME     string
 
 	DISCORD_TOKEN  string
 	SENDGRID_TOKEN string // TODO: implement
@@ -63,18 +64,21 @@ type MessengerService interface {
 	// The error map is more like warnings about why specific messengers failed to prepare, they are logged already so you might just want to ignore them
 	//
 	// But check the second *Error value first because you should fail the transaction if it's not nil
-	SendUsingAll(message *Message, ctx context.Context) (map[string]*Error, *Error)
+	//
+	// Note: the number of successfully queued messages (the int return value) might not be 0 if some messages were queued before a non-messenger specific error occurred
+	SendUsingAll(message *Message, ctx context.Context) (int, map[string]*Error, *Error)
 }
 type MessageType string
 
 const (
-	MessageTest     = "test"
-	MessageRegular  = "regular"
-	MessageLogin    = "login"
-	MessageReset    = "reset"
-	MessageLock     = "lock"
-	MessageSelfLock = "selfLock"
-	Message2FA      = "2FA"
+	MessageTest       = "test"
+	MessageAdminError = "adminError"
+	MessageRegular    = "regular"
+	MessageLogin      = "login"
+	MessageReset      = "reset"
+	MessageLock       = "lock"
+	MessageSelfLock   = "selfLock"
+	Message2FA        = "2FA"
 )
 
 type Message struct {
