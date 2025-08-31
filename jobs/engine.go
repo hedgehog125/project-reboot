@@ -275,6 +275,7 @@ func (engine *Engine) runJob(
 ) {
 	fmt.Printf("running job %v\n", job.ID)
 	stdErr := jobDefinition.Handler(&Context{
+		Job:        job,
 		Definition: jobDefinition,
 		Context:    context.TODO(),
 		Body:       job.Body,

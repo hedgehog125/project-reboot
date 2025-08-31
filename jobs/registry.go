@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/ent"
 )
 
 type Registry struct {
@@ -38,6 +39,7 @@ type Definition struct {
 type HandlerFunc func(jobCtx *Context) error
 
 type Context struct {
+	*ent.Job
 	Definition *Definition
 	Context    context.Context
 	Body       json.RawMessage
@@ -59,32 +61,38 @@ func NewRegistry(app *common.App) *Registry {
 }
 
 func (registry *Registry) Register(definition *Definition) {
-	fullID := common.GetVersionedType(definition.ID, definition.Version)
-	if _, exists := registry.jobs[fullID]; exists {
-		log.Fatalf("job definition with ID \"%s\" already exists", fullID)
+	versionedType := common.GetVersionedType(definition.ID, definition.Version)
+	if _, exists := registry.jobs[versionedType]; exists {
+		log.Fatalf("job definition with ID \"%s\" already exists", versionedType)
 	}
 	prepareJobDefinition(definition)
-	registry.jobs[fullID] = definition
+	registry.jobs[versionedType] = definition
 }
 func prepareJobDefinition(definition *Definition) {
-	fullID := common.GetVersionedType(definition.ID, definition.Version)
+	versionedType := common.GetVersionedType(definition.ID, definition.Version)
 	if definition.BodyType != nil {
 		bodyType := reflect.TypeOf(definition.BodyType)
-		// It's worth standardising the body types to some sort of JSON object, even if it only has a single property
-		// This allows new properties to be added in a backwards compatible way and SQLite possibly prefers working this way?
-		if bodyType.Kind() == reflect.Pointer {
-			if bodyType.Elem().Kind() != reflect.Struct {
-				log.Fatalf("job definition %s body type must be a pointer to a struct, instead found a pointer to a different kind", fullID)
-			}
-		} else {
-			log.Fatalf("job definition %s body type must be a pointer (to a struct)", fullID)
-		}
+		AssertTypeIsValidBodyType(bodyType, versionedType)
 		definition.reflectedBodyType = bodyType
 	}
 	if definition.Weight < 1 {
-		log.Fatalf("job definition %s weight must be 1 or higher", fullID)
+		log.Fatalf("job definition %s weight must be 1 or higher", versionedType)
 	}
 	if definition.Priority < LowPriority || definition.Priority > RealtimePriority {
-		log.Fatalf("job definition %s priority must be between -1 (LowPriority) and 5 (RealtimePriority)", fullID)
+		log.Fatalf("job definition %s priority must be between -1 (LowPriority) and 5 (RealtimePriority)", versionedType)
+	}
+}
+func AssertTypeIsValidBodyType(bodyType reflect.Type, versionedType string) {
+	// It's worth standardising the body types to some sort of JSON object, even if it only has a single property
+	// This allows new properties to be added in a backwards compatible way and SQLite possibly prefers working this way?
+	if bodyType.Kind() == reflect.Pointer {
+		if bodyType.Elem().Kind() != reflect.Struct {
+			log.Fatalf(
+				"job definition %s body type must be a pointer to a struct, instead found a pointer to a different kind",
+				versionedType,
+			)
+		}
+	} else {
+		log.Fatalf("job definition %s body type must be a pointer (to a struct)", versionedType)
 	}
 }

@@ -47,17 +47,18 @@ type Handler struct {
 	mu                   *sync.Mutex
 }
 type entry struct {
-	time                time.Time
-	timeKnown           bool
-	level               int
-	message             string
-	attributes          map[string]any
-	sourceFile          string
-	sourceFunction      string
-	sourceLine          int
-	publicMessage       string
-	userID              int
-	disableErrorLogging bool
+	time                         time.Time
+	timeKnown                    bool
+	level                        int
+	message                      string
+	attributes                   map[string]any
+	sourceFile                   string
+	sourceFunction               string
+	sourceLine                   int
+	publicMessage                string
+	userID                       int
+	disableErrorLogging          bool
+	useAdminNotificationFallback bool
 }
 
 func NewHandler(
@@ -281,16 +282,25 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 	selfLogged := false
 
 	shouldNotifyAdmin := false
+	useFallback := false
 	if handler.App.Env.ADMIN_USERNAME != "" {
 		for _, entry := range entries {
 			if entry.level >= int(slog.LevelError) {
 				shouldNotifyAdmin = true
-				break
+			}
+			if entry.useAdminNotificationFallback {
+				useFallback = true
 			}
 		}
 	}
 	if shouldNotifyAdmin {
 		// TODO: rate limiting!
+		if useFallback {
+			handler.App.Shutdown("crashing to notify admin because messengers failed")
+			// Set here rather than at the fallback error logs to ensure the logger loops back around to here
+			*loggedAdminNotificationErrorPtr = true
+			return selfLogged
+		}
 
 		// TODO: reserve a bit of time for this in case the database writing times out during a shutdown
 		baseCtx := context.Background()
@@ -321,7 +331,6 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 		)
 		cancel()
 		if stdErr != nil {
-			// TODO: add a special context item to notify the admin by crashing
 			pc, _, _, _ := runtime.Caller(0)
 			record := slog.NewRecord(
 				handler.App.Clock.Now(),
@@ -331,10 +340,9 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 			)
 			record.AddAttrs(slog.Any("error", stdErr))
 			handler.Handle(
-				context.Background(),
+				context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
 				record,
 			)
-			*loggedAdminNotificationErrorPtr = true
 			return true
 		}
 
@@ -344,9 +352,9 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 			selfLogged = true
 		}
 		if queuedCount == 0 {
-			// TODO: add a special context item to notify the admin by crashing
 			message := "admin user has no contacts so couldn't notify them about an error"
 			for _, commErr := range errs {
+				// TODO: this error should be moved to common (or common/errors?) to avoid circular imports in the future
 				if !errors.Is(commErr, messengers.ErrNoContactForUser) {
 					message = "unable to prepare messages to notify admin about an error, see the errors before"
 				}
@@ -360,10 +368,9 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 				pc,
 			)
 			handler.Handle(
-				context.Background(),
+				context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
 				record,
 			)
-			*loggedAdminNotificationErrorPtr = true
 			selfLogged = true
 		}
 	}
@@ -387,10 +394,12 @@ func (handler Handler) Enabled(_ context.Context, level slog.Level) bool {
 
 func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 	disableErrLogging, _ := ctx.Value(disableErrorLoggingKey{}).(bool)
+	useAdminNotificationFallback, _ := ctx.Value(common.AdminNotificationFallbackKey{}).(bool)
 	entry := &entry{
-		level:               int(record.Level),
-		message:             record.Message,
-		disableErrorLogging: disableErrLogging,
+		level:                        int(record.Level),
+		message:                      record.Message,
+		disableErrorLogging:          disableErrLogging,
+		useAdminNotificationFallback: useAdminNotificationFallback,
 	}
 	if !record.Time.IsZero() {
 		entry.time = record.Time

@@ -11,6 +11,36 @@ func main() {
 		Env:   services.LoadEnvironmentVariables(),
 		Clock: clockwork.NewRealClock(),
 	}
+	shutdownService := services.NewShutdown(
+		app,
+		services.NewShutdownTask(func() {
+			if app.Scheduler != nil {
+				app.Scheduler.Shutdown()
+			}
+		}, true),
+		services.NewShutdownTask(func() {
+			if app.Server != nil {
+				app.Server.Shutdown()
+			}
+		}, true),
+
+		services.NewShutdownTask(func() {
+			if app.Jobs != nil {
+				app.Jobs.Shutdown()
+			}
+		}, false),
+		services.NewShutdownTask(func() {
+			if app.Logger != nil {
+				app.Logger.Shutdown() // Note: logs will still be written to the console after this, just not stored
+			}
+		}, false),
+		services.NewShutdownTask(func() {
+			if app.Database != nil {
+				app.Database.Shutdown()
+			}
+		}, false),
+	)
+	app.ShutdownService = shutdownService
 
 	app.State = services.InitState()
 	app.Logger = services.NewLogger(app)
@@ -26,27 +56,9 @@ func main() {
 	}
 	app.Server = services.NewServer(app)
 
-	// TODO: add panic handling
 	app.Scheduler.Start()
 	app.Server.Start()
 	app.Jobs.Start()
 
-	services.ConfigureShutdown(
-		services.NewShutdownTask(func() {
-			app.Scheduler.Shutdown()
-		}, true),
-		services.NewShutdownTask(func() {
-			app.Server.Shutdown()
-		}, true),
-
-		services.NewShutdownTask(func() {
-			app.Jobs.Shutdown()
-		}, false),
-		services.NewShutdownTask(func() {
-			app.Logger.Shutdown()
-		}, false),
-		services.NewShutdownTask(func() {
-			app.Database.Shutdown()
-		}, false),
-	)
+	shutdownService.Listen()
 }

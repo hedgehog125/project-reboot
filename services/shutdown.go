@@ -1,11 +1,12 @@
 package services
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/hedgehog125/project-reboot/common"
 )
 
 type ShutdownTask struct {
@@ -20,25 +21,56 @@ func NewShutdownTask(callback func(), concurrent bool) *ShutdownTask {
 	}
 }
 
-func ConfigureShutdown(tasks ...*ShutdownTask) {
+type Shutdown struct {
+	app                   *common.App
+	tasks                 []*ShutdownTask
+	shutdownStartedChan   chan struct{}
+	shutdownCompletedChan chan struct{}
+	shutdownOnce          sync.Once
+}
+
+func NewShutdown(app *common.App, tasks ...*ShutdownTask) *Shutdown {
+	return &Shutdown{
+		app:                   app,
+		tasks:                 tasks,
+		shutdownStartedChan:   make(chan struct{}),
+		shutdownCompletedChan: make(chan struct{}),
+	}
+}
+func (shutdown *Shutdown) Listen() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	<-sigChan
-
-	fmt.Println("\nshutting down...")
-	var wg sync.WaitGroup
-	for _, task := range tasks {
-		if task.Concurrent {
-			wg.Add(1)
-			go func() {
-				task.Callback()
-				wg.Done()
-			}()
-		} else {
-			wg.Wait()
-			task.Callback()
-		}
+	select {
+	case <-sigChan:
+		shutdown.Shutdown("")
+	case <-shutdown.shutdownStartedChan:
+		<-shutdown.shutdownCompletedChan
 	}
-	wg.Wait()
-	fmt.Println("shut down.")
+}
+func (shutdown *Shutdown) Shutdown(reason string) {
+	shutdown.shutdownOnce.Do(func() {
+		close(shutdown.shutdownStartedChan)
+		if reason == "" {
+			shutdown.app.Logger.Info("\nshutting down...")
+		} else {
+			shutdown.app.Logger.Error("\nshutting down due to a critical error!", "reason", reason)
+		}
+		var wg sync.WaitGroup
+		for _, task := range shutdown.tasks {
+			if task.Concurrent {
+				wg.Go(func() {
+					task.Callback()
+				})
+			} else {
+				wg.Wait()
+				task.Callback()
+			}
+		}
+		wg.Wait()
+		shutdown.app.Logger.Info("\nshut down.")
+		close(shutdown.shutdownCompletedChan)
+		if reason != "" {
+			os.Exit(1)
+		}
+	})
 }

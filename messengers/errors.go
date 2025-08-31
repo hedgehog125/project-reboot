@@ -32,3 +32,6 @@ var ErrWrapperSend = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSen
 var ErrWrapperFormat = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeFormatMessage)
 var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeMessengers).
 	SetChild(common.ErrWrapperDatabase)
+
+// Job errors
+var ErrWrapperHandlerWrapper = common.NewErrorWrapper("handler wrapper")

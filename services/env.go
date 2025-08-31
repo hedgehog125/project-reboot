@@ -34,8 +34,9 @@ func LoadEnvironmentVariables() *common.Env {
 			Threads: common.RequireUint8Env("PASSWORD_HASH_THREADS"),
 		},
 
-		LOG_STORE_INTERVAL: common.RequireMillisecondsEnv("LOG_STORE_INTERVAL"),
-		ADMIN_USERNAME:     common.RequireEnv("ADMIN_USERNAME"),
+		LOG_STORE_INTERVAL:    common.RequireMillisecondsEnv("LOG_STORE_INTERVAL"),
+		ADMIN_USERNAME:        common.RequireEnv("ADMIN_USERNAME"),
+		ADMIN_MESSAGE_TIMEOUT: common.RequireSecondsEnv("ADMIN_MESSAGE_TIMEOUT"),
 
 		DISCORD_TOKEN:  common.OptionalEnv("DISCORD_TOKEN", ""),
 		SENDGRID_TOKEN: common.OptionalEnv("SENDGRID_TOKEN", ""),

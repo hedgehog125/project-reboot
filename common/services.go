@@ -33,6 +33,10 @@ type Env struct {
 
 	LOG_STORE_INTERVAL time.Duration
 	ADMIN_USERNAME     string
+	// How long the server should wait for messengers to succeed before crashing the server to send the message
+	// Note: this time will be exceeded as it's a simple check when the job succeeds and doesn't take into account when the next retry is
+	// Note: currently all of the successfully prepared messages must succeed for a crash to be avoided
+	ADMIN_MESSAGE_TIMEOUT time.Duration
 
 	DISCORD_TOKEN  string
 	SENDGRID_TOKEN string // TODO: implement
@@ -51,6 +55,7 @@ type App struct {
 	Env              *Env
 	Clock            clockwork.Clock
 	Logger           LoggerService
+	ShutdownService  ShutdownService
 	Database         DatabaseService
 	State            *State
 	TwoFactorActions TwoFactorActionService
@@ -58,6 +63,11 @@ type App struct {
 	Server           ServerService
 	Jobs             JobService
 	Scheduler        SchedulerService
+}
+
+// If reason is "", the server will exit with a 0 exit code
+func (app *App) Shutdown(reason string) {
+	go app.ShutdownService.Shutdown(reason)
 }
 
 type MessengerService interface {
@@ -104,6 +114,16 @@ type LoggerService interface {
 	WithGroup(name string) *slog.Logger
 	Start()    // Should fatalf rather than returning an error
 	Shutdown() // Should log warning rather than return an error
+}
+
+// When in a context passed to a logger.Error call, the server will deliberately crash to notify the admin as opposed to sending a message
+type AdminNotificationFallbackKey struct{}
+
+type ShutdownService interface {
+	// Note: this blocks until shutdown is complete, crashes should usually call this in a separate Goroutine
+	//
+	// If reason is "", the server will exit with a 0 exit code
+	Shutdown(reason string)
 }
 
 type DatabaseService interface {
