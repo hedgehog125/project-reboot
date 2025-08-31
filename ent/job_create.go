@@ -53,6 +53,20 @@ func (_c *JobCreate) SetNillableDue(v *time.Time) *JobCreate {
 	return _c
 }
 
+// SetOriginallyDue sets the "originallyDue" field.
+func (_c *JobCreate) SetOriginallyDue(v time.Time) *JobCreate {
+	_c.mutation.SetOriginallyDue(v)
+	return _c
+}
+
+// SetNillableOriginallyDue sets the "originallyDue" field if the given value is not nil.
+func (_c *JobCreate) SetNillableOriginallyDue(v *time.Time) *JobCreate {
+	if v != nil {
+		_c.SetOriginallyDue(*v)
+	}
+	return _c
+}
+
 // SetStarted sets the "started" field.
 func (_c *JobCreate) SetStarted(v time.Time) *JobCreate {
 	_c.mutation.SetStarted(v)
@@ -210,6 +224,10 @@ func (_c *JobCreate) defaults() {
 		v := job.DefaultDue()
 		_c.mutation.SetDue(v)
 	}
+	if _, ok := _c.mutation.OriginallyDue(); !ok {
+		v := job.DefaultOriginallyDue()
+		_c.mutation.SetOriginallyDue(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := job.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -239,6 +257,9 @@ func (_c *JobCreate) check() error {
 	}
 	if _, ok := _c.mutation.Due(); !ok {
 		return &ValidationError{Name: "due", err: errors.New(`ent: missing required field "Job.due"`)}
+	}
+	if _, ok := _c.mutation.OriginallyDue(); !ok {
+		return &ValidationError{Name: "originallyDue", err: errors.New(`ent: missing required field "Job.originallyDue"`)}
 	}
 	if _, ok := _c.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Job.type"`)}
@@ -320,6 +341,10 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Due(); ok {
 		_spec.SetField(job.FieldDue, field.TypeTime, value)
 		_node.Due = value
+	}
+	if value, ok := _c.mutation.OriginallyDue(); ok {
+		_spec.SetField(job.FieldOriginallyDue, field.TypeTime, value)
+		_node.OriginallyDue = value
 	}
 	if value, ok := _c.mutation.Started(); ok {
 		_spec.SetField(job.FieldStarted, field.TypeTime, value)
@@ -434,6 +459,18 @@ func (u *JobUpsert) SetDue(v time.Time) *JobUpsert {
 // UpdateDue sets the "due" field to the value that was provided on create.
 func (u *JobUpsert) UpdateDue() *JobUpsert {
 	u.SetExcluded(job.FieldDue)
+	return u
+}
+
+// SetOriginallyDue sets the "originallyDue" field.
+func (u *JobUpsert) SetOriginallyDue(v time.Time) *JobUpsert {
+	u.Set(job.FieldOriginallyDue, v)
+	return u
+}
+
+// UpdateOriginallyDue sets the "originallyDue" field to the value that was provided on create.
+func (u *JobUpsert) UpdateOriginallyDue() *JobUpsert {
+	u.SetExcluded(job.FieldOriginallyDue)
 	return u
 }
 
@@ -666,6 +703,20 @@ func (u *JobUpsertOne) SetDue(v time.Time) *JobUpsertOne {
 func (u *JobUpsertOne) UpdateDue() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateDue()
+	})
+}
+
+// SetOriginallyDue sets the "originallyDue" field.
+func (u *JobUpsertOne) SetOriginallyDue(v time.Time) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetOriginallyDue(v)
+	})
+}
+
+// UpdateOriginallyDue sets the "originallyDue" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateOriginallyDue() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateOriginallyDue()
 	})
 }
 
@@ -1091,6 +1142,20 @@ func (u *JobUpsertBulk) SetDue(v time.Time) *JobUpsertBulk {
 func (u *JobUpsertBulk) UpdateDue() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateDue()
+	})
+}
+
+// SetOriginallyDue sets the "originallyDue" field.
+func (u *JobUpsertBulk) SetOriginallyDue(v time.Time) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetOriginallyDue(v)
+	})
+}
+
+// UpdateOriginallyDue sets the "originallyDue" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateOriginallyDue() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdateOriginallyDue()
 	})
 }
 

@@ -58,6 +58,20 @@ func (_u *JobUpdate) SetNillableDue(v *time.Time) *JobUpdate {
 	return _u
 }
 
+// SetOriginallyDue sets the "originallyDue" field.
+func (_u *JobUpdate) SetOriginallyDue(v time.Time) *JobUpdate {
+	_u.mutation.SetOriginallyDue(v)
+	return _u
+}
+
+// SetNillableOriginallyDue sets the "originallyDue" field if the given value is not nil.
+func (_u *JobUpdate) SetNillableOriginallyDue(v *time.Time) *JobUpdate {
+	if v != nil {
+		_u.SetOriginallyDue(*v)
+	}
+	return _u
+}
+
 // SetStarted sets the "started" field.
 func (_u *JobUpdate) SetStarted(v time.Time) *JobUpdate {
 	_u.mutation.SetStarted(v)
@@ -302,6 +316,9 @@ func (_u *JobUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Due(); ok {
 		_spec.SetField(job.FieldDue, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.OriginallyDue(); ok {
+		_spec.SetField(job.FieldOriginallyDue, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Started(); ok {
 		_spec.SetField(job.FieldStarted, field.TypeTime, value)
 	}
@@ -399,6 +416,20 @@ func (_u *JobUpdateOne) SetDue(v time.Time) *JobUpdateOne {
 func (_u *JobUpdateOne) SetNillableDue(v *time.Time) *JobUpdateOne {
 	if v != nil {
 		_u.SetDue(*v)
+	}
+	return _u
+}
+
+// SetOriginallyDue sets the "originallyDue" field.
+func (_u *JobUpdateOne) SetOriginallyDue(v time.Time) *JobUpdateOne {
+	_u.mutation.SetOriginallyDue(v)
+	return _u
+}
+
+// SetNillableOriginallyDue sets the "originallyDue" field if the given value is not nil.
+func (_u *JobUpdateOne) SetNillableOriginallyDue(v *time.Time) *JobUpdateOne {
+	if v != nil {
+		_u.SetOriginallyDue(*v)
 	}
 	return _u
 }
@@ -676,6 +707,9 @@ func (_u *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	}
 	if value, ok := _u.mutation.Due(); ok {
 		_spec.SetField(job.FieldDue, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.OriginallyDue(); ok {
+		_spec.SetField(job.FieldOriginallyDue, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Started(); ok {
 		_spec.SetField(job.FieldStarted, field.TypeTime, value)

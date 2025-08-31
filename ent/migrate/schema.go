@@ -13,6 +13,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created", Type: field.TypeTime},
 		{Name: "due", Type: field.TypeTime},
+		{Name: "originally_due", Type: field.TypeTime},
 		{Name: "started", Type: field.TypeTime, Nullable: true},
 		{Name: "type", Type: field.TypeString, Size: 128},
 		{Name: "version", Type: field.TypeInt},
@@ -33,7 +34,7 @@ var (
 			{
 				Name:    "job_status_priority_due",
 				Unique:  false,
-				Columns: []*schema.Column{JobsColumns[9], JobsColumns[6], JobsColumns[2]},
+				Columns: []*schema.Column{JobsColumns[10], JobsColumns[7], JobsColumns[2]},
 			},
 			{
 				Name:    "job_due",

@@ -19,6 +19,8 @@ const (
 	FieldCreated = "created"
 	// FieldDue holds the string denoting the due field in the database.
 	FieldDue = "due"
+	// FieldOriginallyDue holds the string denoting the originallydue field in the database.
+	FieldOriginallyDue = "originally_due"
 	// FieldStarted holds the string denoting the started field in the database.
 	FieldStarted = "started"
 	// FieldType holds the string denoting the type field in the database.
@@ -48,6 +50,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreated,
 	FieldDue,
+	FieldOriginallyDue,
 	FieldStarted,
 	FieldType,
 	FieldVersion,
@@ -75,6 +78,8 @@ var (
 	DefaultCreated func() time.Time
 	// DefaultDue holds the default value on creation for the "due" field.
 	DefaultDue func() time.Time
+	// DefaultOriginallyDue holds the default value on creation for the "originallyDue" field.
+	DefaultOriginallyDue func() time.Time
 	// TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	TypeValidator func(string) error
 	// DefaultRetries holds the default value on creation for the "retries" field.
@@ -130,6 +135,11 @@ func ByCreated(opts ...sql.OrderTermOption) OrderOption {
 // ByDue orders the results by the due field.
 func ByDue(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDue, opts...).ToFunc()
+}
+
+// ByOriginallyDue orders the results by the originallyDue field.
+func ByOriginallyDue(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOriginallyDue, opts...).ToFunc()
 }
 
 // ByStarted orders the results by the started field.

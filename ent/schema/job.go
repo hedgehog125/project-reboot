@@ -21,6 +21,7 @@ func (Job) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Time("created").Default(time.Now),
 		field.Time("due").Default(time.Now),
+		field.Time("originallyDue").Default(time.Now), // Due is updated for retries
 		field.Time("started").Optional(),
 		field.String("type").MinLen(1).MaxLen(128),
 		field.Int("version"),

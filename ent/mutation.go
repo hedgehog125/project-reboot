@@ -45,6 +45,7 @@ type JobMutation struct {
 	id                 *uuid.UUID
 	created            *time.Time
 	due                *time.Time
+	originallyDue      *time.Time
 	started            *time.Time
 	_type              *string
 	version            *int
@@ -241,6 +242,42 @@ func (m *JobMutation) OldDue(ctx context.Context) (v time.Time, err error) {
 // ResetDue resets all changes to the "due" field.
 func (m *JobMutation) ResetDue() {
 	m.due = nil
+}
+
+// SetOriginallyDue sets the "originallyDue" field.
+func (m *JobMutation) SetOriginallyDue(t time.Time) {
+	m.originallyDue = &t
+}
+
+// OriginallyDue returns the value of the "originallyDue" field in the mutation.
+func (m *JobMutation) OriginallyDue() (r time.Time, exists bool) {
+	v := m.originallyDue
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOriginallyDue returns the old "originallyDue" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldOriginallyDue(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOriginallyDue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOriginallyDue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOriginallyDue: %w", err)
+	}
+	return oldValue.OriginallyDue, nil
+}
+
+// ResetOriginallyDue resets all changes to the "originallyDue" field.
+func (m *JobMutation) ResetOriginallyDue() {
+	m.originallyDue = nil
 }
 
 // SetStarted sets the "started" field.
@@ -765,12 +802,15 @@ func (m *JobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *JobMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.created != nil {
 		fields = append(fields, job.FieldCreated)
 	}
 	if m.due != nil {
 		fields = append(fields, job.FieldDue)
+	}
+	if m.originallyDue != nil {
+		fields = append(fields, job.FieldOriginallyDue)
 	}
 	if m.started != nil {
 		fields = append(fields, job.FieldStarted)
@@ -814,6 +854,8 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.Created()
 	case job.FieldDue:
 		return m.Due()
+	case job.FieldOriginallyDue:
+		return m.OriginallyDue()
 	case job.FieldStarted:
 		return m.Started()
 	case job.FieldType:
@@ -847,6 +889,8 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldCreated(ctx)
 	case job.FieldDue:
 		return m.OldDue(ctx)
+	case job.FieldOriginallyDue:
+		return m.OldOriginallyDue(ctx)
 	case job.FieldStarted:
 		return m.OldStarted(ctx)
 	case job.FieldType:
@@ -889,6 +933,13 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDue(v)
+		return nil
+	case job.FieldOriginallyDue:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOriginallyDue(v)
 		return nil
 	case job.FieldStarted:
 		v, ok := value.(time.Time)
@@ -1086,6 +1137,9 @@ func (m *JobMutation) ResetField(name string) error {
 		return nil
 	case job.FieldDue:
 		m.ResetDue()
+		return nil
+	case job.FieldOriginallyDue:
+		m.ResetOriginallyDue()
 		return nil
 	case job.FieldStarted:
 		m.ResetStarted()

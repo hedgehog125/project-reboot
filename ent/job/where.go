@@ -65,6 +65,11 @@ func Due(v time.Time) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldDue, v))
 }
 
+// OriginallyDue applies equality check predicate on the "originallyDue" field. It's identical to OriginallyDueEQ.
+func OriginallyDue(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldOriginallyDue, v))
+}
+
 // Started applies equality check predicate on the "started" field. It's identical to StartedEQ.
 func Started(v time.Time) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldStarted, v))
@@ -183,6 +188,46 @@ func DueLT(v time.Time) predicate.Job {
 // DueLTE applies the LTE predicate on the "due" field.
 func DueLTE(v time.Time) predicate.Job {
 	return predicate.Job(sql.FieldLTE(FieldDue, v))
+}
+
+// OriginallyDueEQ applies the EQ predicate on the "originallyDue" field.
+func OriginallyDueEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldOriginallyDue, v))
+}
+
+// OriginallyDueNEQ applies the NEQ predicate on the "originallyDue" field.
+func OriginallyDueNEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldOriginallyDue, v))
+}
+
+// OriginallyDueIn applies the In predicate on the "originallyDue" field.
+func OriginallyDueIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldOriginallyDue, vs...))
+}
+
+// OriginallyDueNotIn applies the NotIn predicate on the "originallyDue" field.
+func OriginallyDueNotIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldOriginallyDue, vs...))
+}
+
+// OriginallyDueGT applies the GT predicate on the "originallyDue" field.
+func OriginallyDueGT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGT(FieldOriginallyDue, v))
+}
+
+// OriginallyDueGTE applies the GTE predicate on the "originallyDue" field.
+func OriginallyDueGTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGTE(FieldOriginallyDue, v))
+}
+
+// OriginallyDueLT applies the LT predicate on the "originallyDue" field.
+func OriginallyDueLT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLT(FieldOriginallyDue, v))
+}
+
+// OriginallyDueLTE applies the LTE predicate on the "originallyDue" field.
+func OriginallyDueLTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLTE(FieldOriginallyDue, v))
 }
 
 // StartedEQ applies the EQ predicate on the "started" field.

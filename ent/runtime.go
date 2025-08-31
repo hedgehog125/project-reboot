@@ -28,8 +28,12 @@ func init() {
 	jobDescDue := jobFields[2].Descriptor()
 	// job.DefaultDue holds the default value on creation for the due field.
 	job.DefaultDue = jobDescDue.Default.(func() time.Time)
+	// jobDescOriginallyDue is the schema descriptor for originallyDue field.
+	jobDescOriginallyDue := jobFields[3].Descriptor()
+	// job.DefaultOriginallyDue holds the default value on creation for the originallyDue field.
+	job.DefaultOriginallyDue = jobDescOriginallyDue.Default.(func() time.Time)
 	// jobDescType is the schema descriptor for type field.
-	jobDescType := jobFields[4].Descriptor()
+	jobDescType := jobFields[5].Descriptor()
 	// job.TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	job.TypeValidator = func() func(string) error {
 		validators := jobDescType.Validators
@@ -47,15 +51,15 @@ func init() {
 		}
 	}()
 	// jobDescRetries is the schema descriptor for retries field.
-	jobDescRetries := jobFields[10].Descriptor()
+	jobDescRetries := jobFields[11].Descriptor()
 	// job.DefaultRetries holds the default value on creation for the retries field.
 	job.DefaultRetries = jobDescRetries.Default.(int)
 	// jobDescRetriedFraction is the schema descriptor for retriedFraction field.
-	jobDescRetriedFraction := jobFields[11].Descriptor()
+	jobDescRetriedFraction := jobFields[12].Descriptor()
 	// job.DefaultRetriedFraction holds the default value on creation for the retriedFraction field.
 	job.DefaultRetriedFraction = jobDescRetriedFraction.Default.(float64)
 	// jobDescLoggedStallWarning is the schema descriptor for loggedStallWarning field.
-	jobDescLoggedStallWarning := jobFields[12].Descriptor()
+	jobDescLoggedStallWarning := jobFields[13].Descriptor()
 	// job.DefaultLoggedStallWarning holds the default value on creation for the loggedStallWarning field.
 	job.DefaultLoggedStallWarning = jobDescLoggedStallWarning.Default.(bool)
 	// jobDescID is the schema descriptor for id field.
