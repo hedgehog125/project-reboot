@@ -417,9 +417,7 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 		attrs = append(attrs, attr)
 		return true
 	})
-	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs, !disableErrLogging)
-	entry.publicMessage = specialProps.publicMessage
-	entry.userID = specialProps.userID
+	resolvedAttrs := handler.resolveNestedAttrs(attrs, !disableErrLogging, &entry.publicMessage, &entry.userID)
 	entry.attributes = resolvedAttrs
 
 	stdErr := handler.textHandler.Handle(ctx, record)
@@ -446,7 +444,10 @@ type specialProperties struct {
 	userID        int
 }
 
-func (handler Handler) resolveNestedAttrs(attrs []slog.Attr, logErrors bool) (map[string]any, specialProperties) {
+func (handler Handler) resolveNestedAttrs(
+	attrs []slog.Attr, logErrors bool,
+	publicMessagePtr *string, userIDPtr *int,
+) map[string]any {
 	resolved := maps.Clone(handler.baseAttrs)
 	nestedResolved := resolved
 	for _, key := range handler.baseGroups {
@@ -461,69 +462,53 @@ func (handler Handler) resolveNestedAttrs(attrs []slog.Attr, logErrors bool) (ma
 	}
 
 	isTopLevel := len(handler.baseGroups) == 0
-	specialProps := specialProperties{
-		publicMessage: handler.baseSpecialProps.publicMessage,
-		userID:        handler.baseSpecialProps.userID,
-	}
 	for _, attr := range attrs {
-		newSpecialProps := handler.appendAttr(attr, nestedResolved, isTopLevel, logErrors)
-		if newSpecialProps.publicMessage != "" {
-			specialProps.publicMessage = newSpecialProps.publicMessage
-		}
-		if newSpecialProps.userID != 0 {
-			specialProps.userID = newSpecialProps.userID
-		}
+		handler.appendAttr(attr, nestedResolved, isTopLevel, logErrors, publicMessagePtr, userIDPtr)
 	}
-	return resolved, specialProps
+	return resolved
 }
 
 // Note: handler.baseGroups is handled by appendNestedAttrs instead
 func (handler Handler) appendAttr(
 	attr slog.Attr, outputAttrs map[string]any,
 	isTopLevel bool, logErrors bool,
-) specialProperties {
-	specialProps := specialProperties{}
+	publicMessagePtr *string, userIDPtr *int,
+) {
 	attr.Value = attr.Value.Resolve()
 	if attr.Equal(slog.Attr{}) {
-		return specialProps
+		return
 	}
 
 	kind := attr.Value.Kind()
 	if kind == slog.KindGroup {
 		groupAttrs := attr.Value.Group()
 		if len(groupAttrs) == 0 {
-			return specialProps
+			return
 		}
 		// If the key is non-empty, write it out and indent the rest of the attrs.
 		// Otherwise, inline the attrs.
 		if attr.Key == "" { // Inline
 			for _, attr := range groupAttrs {
-				newSpecialProps := handler.appendAttr(attr, outputAttrs, true, logErrors)
-				if newSpecialProps.publicMessage != "" {
-					specialProps.publicMessage = newSpecialProps.publicMessage
-				}
-				if newSpecialProps.userID != 0 {
-					specialProps.userID = newSpecialProps.userID
-				}
+				handler.appendAttr(attr, outputAttrs, true, logErrors, publicMessagePtr, userIDPtr)
 			}
 		} else {
 			groupAttr := map[string]any{}
 			for _, attr := range groupAttrs {
-				_ = handler.appendAttr(attr, groupAttr, false, logErrors)
+				handler.appendAttr(attr, groupAttr, false, logErrors, common.Pointer(""), common.Pointer(0))
 			}
 			outputAttrs[attr.Key] = groupAttr
 		}
-		return specialProps
+		return
 	}
 	if isTopLevel {
 		if attr.Key == PublicMessageKey {
-			specialProps.publicMessage = attr.Value.String()
-			return specialProps
+			*publicMessagePtr = attr.Value.String()
+			return
 		}
 		if attr.Key == UserIDKey {
 			intValue, ok := attr.Value.Any().(int64)
 			if ok {
-				specialProps.userID = int(intValue)
+				*userIDPtr = int(intValue)
 			} else {
 				if logErrors {
 					pc, _, _, _ := runtime.Caller(0)
@@ -541,61 +526,32 @@ func (handler Handler) appendAttr(
 				}
 			}
 			outputAttrs[attr.Key] = attr.Value.Any() // Also store the value in the attributes so it's preserved if the user is deleted
-			return specialProps
+			return
 		}
 	}
 
 	outputAttrs[attr.Key] = attr.Value.Any()
-	return specialProps
 }
 
-// WithAttrs returns a new Handler whose attributes consist of
-// both the receiver's attributes and the arguments.
-// The Handler owns the slice: it may retain, modify or discard it.
 func (handler Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	if len(attrs) == 0 {
 		return handler
 	}
 	handler.textHandler = handler.textHandler.WithAttrs(attrs)
-	resolvedAttrs, specialProps := handler.resolveNestedAttrs(attrs, true)
-	// maps.Copy(handler.baseAttrs, resolvedAttrs) // Mutate baseAttrs rather than copying so other references are updated
+	resolvedAttrs := handler.resolveNestedAttrs(
+		attrs, true,
+		&handler.baseSpecialProps.publicMessage, &handler.baseSpecialProps.userID,
+	)
 	handler.baseAttrs = resolvedAttrs
-
-	if specialProps.publicMessage != "" {
-		handler.baseSpecialProps.publicMessage = specialProps.publicMessage
-	}
-	if specialProps.userID != 0 {
-		handler.baseSpecialProps.userID = specialProps.userID
-	}
 
 	return handler
 }
 
-// WithGroup returns a new Handler with the given group appended to
-// the receiver's existing groups.
-// The keys of all subsequent attributes, whether added by With or in a
-// Record, should be qualified by the sequence of group names.
-//
-// How this qualification happens is up to the Handler, so long as
-// this Handler's attribute keys differ from those of another Handler
-// with a different sequence of group names.
-//
-// A Handler should treat WithGroup as starting a Group of Attrs that ends
-// at the end of the log event. That is,
-//
-//	logger.WithGroup("s").LogAttrs(ctx, level, msg, slog.Int("a", 1), slog.Int("b", 2))
-//
-// should behave like
-//
-//	logger.LogAttrs(ctx, level, msg, slog.Group("s", slog.Int("a", 1), slog.Int("b", 2)))
-//
-// If the name is empty, WithGroup returns the receiver.
 func (handler Handler) WithGroup(name string) slog.Handler {
 	if name == "" {
 		return handler
 	}
 	handler.textHandler = handler.textHandler.WithGroup(name)
 	handler.baseGroups = slices.Concat(handler.baseGroups, []string{name})
-	// handler.baseAttrs = map[string]any{}
 	return handler
 }

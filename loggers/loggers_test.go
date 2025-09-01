@@ -53,15 +53,24 @@ func (service *Logger) AssertWritten(t *testing.T, expectedEntries []ExpectedEnt
 	require.Len(t, entries, len(expectedEntries))
 	for i, entry := range entries {
 		expected := expectedEntries[i]
-		require.Equal(t, expected.Message, entry.Message)
-		require.Equal(t, expected.PublicMessage, entry.PublicMessage)
-		require.Equal(t, expected.UserID, entry.UserID)
-		require.Equal(t, expected.Level, entry.Level)
+		prefix := fmt.Sprintf("Logger.AssertWritten: entry %v:", i)
+		require.Equal(t, expected.Message, entry.Message,
+			fmt.Sprintf("%v \"Message\" properties should match", prefix),
+		)
+		require.Equal(t, expected.PublicMessage, entry.PublicMessage,
+			fmt.Sprintf("%v \"PublicMessage\" properties should match", prefix),
+		)
+		require.Equal(t, expected.UserID, entry.UserID,
+			fmt.Sprintf("%v \"UserID\" properties should match", prefix),
+		)
+		require.Equal(t, expected.Level, entry.Level,
+			fmt.Sprintf("%v \"Level\" properties should match", prefix),
+		)
 
 		if expected.Attributes == nil {
 			expected.Attributes = map[string]any{}
 		}
-		testcommon.AssertJSONEqual(t, expected.Attributes, entry.Attributes)
+		testcommon.AssertJSONEqual(t, expected.Attributes, entry.Attributes, fmt.Sprintf("%v \"Attributes\" properties", prefix))
 	}
 }
 
@@ -72,6 +81,7 @@ func TestLogger_SavesToDatabase(t *testing.T) {
 	app := &common.App{
 		Database: db,
 		Env:      testcommon.DefaultEnv(),
+		Clock:    clockwork.NewRealClock(),
 	}
 	logger := NewLogger(app)
 	app.Logger = logger
@@ -104,20 +114,54 @@ func TestLogger_SavesToDatabase(t *testing.T) {
 	})
 }
 
-func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
+func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) { // TODO: implement
 	t.Parallel()
 	db := testcommon.CreateDB()
 	defer db.Shutdown()
 	app := &common.App{
 		Database: db,
 		Env:      testcommon.DefaultEnv(),
+		Clock:    clockwork.NewRealClock(),
 	}
 	logger := NewLogger(app)
 	app.Logger = logger
 	logger.Start()
 
-	logger.With("requestID", "request-1").Info("created user", "userID", 1)
-	logger.WithGroup("group").Info("created user", "userID", 2)
+	logger.Info("created user", "userID", 1)
+
+	time.Sleep(5 * time.Millisecond)
+	logger.Shutdown()
+	logger.AssertWritten(t, []ExpectedEntry{
+		{
+			Message: "created user",
+			Level:   int(slog.LevelInfo),
+			Attributes: map[string]any{
+				"userID": 1,
+			},
+		},
+	})
+}
+
+func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
+	t.Parallel()
+	db := testcommon.CreateDB()
+	defer db.Shutdown()
+	userIDs := []int{}
+	for i := range 2 {
+		userIDs = append(userIDs, testcommon.NewDummyUser(i+1, db.Client(), t.Context()).ID)
+	}
+
+	app := &common.App{
+		Database: db,
+		Env:      testcommon.DefaultEnv(),
+		Clock:    clockwork.NewRealClock(),
+	}
+	logger := NewLogger(app)
+	app.Logger = logger
+	logger.Start()
+
+	logger.With("requestID", "request-1").Info("created user", "userID", userIDs[0])
+	logger.WithGroup("group").Info("created user", "userID", userIDs[1])
 	logger.With(
 		"requestID", "request-2",
 	).WithGroup("user_data").Info("user session started", "username", "alice")
@@ -138,17 +182,19 @@ func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
 		{
 			Message: "created user",
 			Level:   int(slog.LevelInfo),
+			UserID:  userIDs[0],
 			Attributes: map[string]any{
 				"requestID": "request-1",
-				"userID":    1,
+				"userID":    userIDs[0],
 			},
 		},
 		{
 			Message: "created user",
 			Level:   int(slog.LevelInfo),
+			// No UserID property because it's in a group
 			Attributes: map[string]any{
 				"group": map[string]any{
-					"userID": 2,
+					"userID": userIDs[1],
 				},
 			},
 		},
@@ -224,17 +270,12 @@ func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
 func TestLogger_SpecialAttributes(t *testing.T) {
 	t.Parallel()
 	db := testcommon.CreateDB()
+	defer db.Shutdown()
 	userIDs := []int{}
 	for i := range 2 {
-		userOb := db.Client().User.Create().SetUsername(fmt.Sprintf("user%v", i+1)).
-			SetContent([]byte{1}).SetFileName("file.zip").SetMime("application/zip").
-			SetNonce([]byte{1}).SetKeySalt([]byte{1}).
-			SetHashTime(0).SetHashMemory(0).SetHashThreads(0).
-			SaveX(t.Context())
-		userIDs = append(userIDs, userOb.ID)
+		userIDs = append(userIDs, testcommon.NewDummyUser(i+1, db.Client(), t.Context()).ID)
 	}
 
-	defer db.Shutdown()
 	app := &common.App{
 		Database: db,
 		Env:      testcommon.DefaultEnv(),

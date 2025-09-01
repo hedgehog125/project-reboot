@@ -1,11 +1,7 @@
 # TODO
 
--   Store logs to database
--   -   Should have categories (e.g login) and types (e.g failed login)
--   -   Logs associated with your user that have the user facing attribute set to true are sent in the regular email
--   -   Successful login attempts also directly send a message, a job then runs every day to send reminders
--   -   Probably use slog
--   -   Errors should send a message to the admin user with a cooldown so as not to spam. Maybe just say there's an error, please investigate?
+-   Rate limiting service
+-   -   Use it to prevent spamming the admin when errors occur. Have a rate limit for admin error messages and crash signals individually
 -   Pass the special log entry properties as pointers so that boilerplate isn't needed
 -   Replace cron system with a simple custom job scheduler
 -   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
@@ -37,6 +33,11 @@
 -   -   Cancel failed job
 -   -   Retry failed job
 -   -   Update job body
+-   Send regular messages to users and the admin
+-   -   Should have a clear message if nothing has happened, otherwise it displays totals for each type of message (e.g failed login) and all of the logs in chronological order
+-   -   Is it worth having general categories in logs (e.g login) like errors do?
+-   -   Occasionally have to click a link in it to verify that messenger is still working
+-   -   -   Should that link only be there when necessary?
 -   Recover panics in all of the service implementations and trigger a shutdown. They should recover once if it's a service like the database but otherwise remain shut down
 -   When the admin is locked, whether temporarily or permanently, errors should make the server enter some kind of lockdown state? Need to weigh up pros and cons
 
