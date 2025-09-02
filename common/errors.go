@@ -475,3 +475,7 @@ func UnrecoverablePanic(message string) {
 		ShouldRecover: false,
 	})
 }
+
+func IsErrorType(err error, targetTypePtr any) bool {
+	return errors.As(err, &targetTypePtr)
+}

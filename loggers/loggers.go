@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
@@ -217,10 +218,11 @@ func (handler *Handler) individualWriteFallback(
 			baseCtx = handler.shutdownCtx
 		}
 		ctx, cancel := context.WithTimeout(baseCtx, timeout)
-		stdErr := dbcommon.WithWriteTx(
+		defer cancel()
+		entryID, stdErr := dbcommon.WithReadWriteTx(
 			ctx, handler.App.Database,
-			func(tx *ent.Tx, ctx context.Context) error {
-				builder := tx.LogEntry.Create().
+			func(tx *ent.Tx, ctx context.Context) (uuid.UUID, error) {
+				ob, stdErr := tx.LogEntry.Create().
 					SetTime(entry.time).SetTimeKnown(entry.timeKnown).
 					SetLevel(entry.level).
 					SetMessage(entry.message).
@@ -228,16 +230,17 @@ func (handler *Handler) individualWriteFallback(
 					SetSourceFile(entry.sourceFile).
 					SetSourceFunction(entry.sourceFunction).
 					SetSourceLine(entry.sourceLine).
-					SetPublicMessage(entry.publicMessage)
-				if entry.userID != 0 {
-					// TODO: don't set this and instead hydrate in a second query, that way invalid IDs don't prevent log storage
-					builder.SetUserID(entry.userID)
+					SetPublicMessage(entry.publicMessage).
+					// UserID is hydrated later in case it was the cause of the original error
+					Save(ctx)
+				if stdErr != nil {
+					return uuid.UUID{}, stdErr
 				}
-				return builder.Exec(ctx)
+				return ob.ID, stdErr
 			},
 		)
-		cancel()
 		if stdErr != nil {
+			cancel()
 			allSucceeded = false
 			if !entry.disableErrorLogging {
 				pc, _, _, _ := runtime.Caller(0)
@@ -255,6 +258,53 @@ func (handler *Handler) individualWriteFallback(
 				)
 				selfLogged = true
 			}
+			continue
+		}
+		if entry.userID == 0 {
+			cancel()
+			continue
+		}
+		stdErr = dbcommon.WithWriteTx(
+			ctx, handler.App.Database,
+			func(tx *ent.Tx, ctx context.Context) error {
+				return tx.LogEntry.UpdateOneID(entryID).SetUserID(entry.userID).Exec(ctx)
+			},
+		)
+		cancel()
+		if stdErr != nil {
+			if common.IsErrorType(stdErr, &ent.ConstraintError{}) {
+				pc, _, _, _ := runtime.Caller(0)
+				record := slog.NewRecord(
+					handler.App.Clock.Now(),
+					slog.LevelWarn,
+					"couldn't find user with ID provided in log statement",
+					pc,
+				)
+				record.AddAttrs(slog.Any("log", entry))
+				record.AddAttrs(slog.Any("error", stdErr))
+				handler.Handle(
+					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
+					record,
+				)
+				selfLogged = true
+			} else {
+				pc, _, _, _ := runtime.Caller(0)
+				record := slog.NewRecord(
+					handler.App.Clock.Now(),
+					slog.LevelError,
+					"couldn't set UserID field on log statement",
+					pc,
+				)
+				record.AddAttrs(slog.Any("log", entry))
+				record.AddAttrs(slog.Any("error", stdErr))
+				handler.Handle(
+					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
+					record,
+				)
+				selfLogged = true
+			}
+			allSucceeded = false
+			continue
 		}
 	}
 	if allSucceeded && !*loggedBulkWarningPtr {
@@ -308,6 +358,7 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 			baseCtx = handler.shutdownCtx
 		}
 		ctx, cancel := context.WithTimeout(baseCtx, 2*time.Second)
+		defer cancel()
 		var queuedCount int
 		var errs map[string]*common.Error
 		stdErr := dbcommon.WithWriteTx(

@@ -9,6 +9,8 @@ import (
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
+// TODO: what happens if expired contexts are passed?
+
 func WithReadTx[T any](
 	ctx context.Context, db common.DatabaseService,
 	fn func(tx *ent.Tx, ctx context.Context) (T, error),

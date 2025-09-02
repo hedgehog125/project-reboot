@@ -114,7 +114,7 @@ func TestLogger_SavesToDatabase(t *testing.T) {
 	})
 }
 
-func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) { // TODO: implement
+func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) {
 	t.Parallel()
 	db := testcommon.CreateDB()
 	defer db.Shutdown()
@@ -137,6 +137,34 @@ func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) { // TODO: implement
 			Level:   int(slog.LevelInfo),
 			Attributes: map[string]any{
 				"userID": 1,
+			},
+		},
+		{
+			Message: "couldn't find user with ID provided in log statement",
+			Level:   int(slog.LevelWarn),
+			Attributes: map[string]any{
+				"error": map[string]any{
+					"categories": []any{"callback", "WithTx", "db common [package]"},
+					"debugValues": []any{
+						map[string]any{
+							"Value":   []any{},
+							"message": "no previous errors",
+							"name":    "previous retry errors (WithRetries)",
+						},
+						map[string]any{
+							"Value":   nil,
+							"message": "max retries: 0, base backoff: 0s, backoff multiplier: 0",
+							"name":    "retries reset by WithRetries from...",
+						},
+					},
+					"errDuplicatesCategory":  false,
+					"error":                  "db common [package] error: WithTx error: callback error: ent: constraint failed: FOREIGN KEY constraint failed",
+					"innerError":             "ent: constraint failed: FOREIGN KEY constraint failed",
+					"maxRetries":             0,
+					"retryBackoffBase":       0,
+					"retryBackoffMultiplier": 0,
+				},
+				"log": map[string]any{},
 			},
 		},
 	})
