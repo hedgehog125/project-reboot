@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
@@ -49,16 +48,23 @@ func (engine *Engine) Listen() {
 	engine.mu.Lock()
 	if engine.Running {
 		engine.mu.Unlock()
-		panic("job engine is already running")
+		engine.App.Logger.Warn("job engine is already running")
+		return
 	}
 	engine.Running = true
 	engine.mu.Unlock()
-	fmt.Println("job engine running")
 
 	completedJobChan := make(chan completedJob, min(engine.App.Env.MAX_TOTAL_JOB_WEIGHT, 100))
 	currentWeight := 0
 
 	handleCompletedJob := func(completedJob completedJob) {
+		logger := engine.App.Logger.With(
+			"jobID",
+			completedJob.Object.ID,
+			"jobType",
+			common.GetVersionedType(completedJob.Object.Type, completedJob.Object.Version),
+		)
+
 		currentWeight -= completedJob.Object.Weight
 		if completedJob.Err == nil {
 			stdErr := dbcommon.WithWriteTx(context.TODO(), engine.App.Database,
@@ -67,22 +73,23 @@ func (engine *Engine) Listen() {
 				},
 			)
 			if stdErr != nil {
-				// A restart is unlikely to help, so we'll just have to log the error
-				// TODO: log error
-				fmt.Printf("failed to delete job: %v\n", stdErr.Error())
+				logger.Error("failed to delete job", "error", stdErr)
 			}
-			fmt.Printf("job %s completed after %d retries\n", completedJob.Object.ID, completedJob.Object.Retries)
+			logger.Info("job completed", "totalRetries", completedJob.Object.Retries)
 		} else {
 			if completedJob.Err.MaxRetries < 0 {
 				if completedJob.Err.MaxRetries == -1 {
-					fmt.Printf("warning job %s error has unlimited retries (-1). Setting to UnlimitedRetriesLimit\n", completedJob.Object.ID)
+					logger.Warn("error returned by job has unlimited retries (-1). Setting to UnlimitedRetriesLimit")
 					completedJob.Err.MaxRetries = UnlimitedRetriesLimit
 				}
 				completedJob.Err.MaxRetries = 0
 			}
 			if completedJob.Err.MaxRetries > 0 {
 				if completedJob.Err.RetryBackoffBase < time.Second {
-					fmt.Printf("warning job %s error has low a base retry backoff of %vms. Did you forget to wrap it in WithRetries?\n", completedJob.Object.ID, completedJob.Err.RetryBackoffBase.Milliseconds())
+					logger.Warn(
+						"error returned by job has a low base retry backoff. Did you forget to wrap it in WithRetries?",
+						"retryBackoffBase", completedJob.Err.RetryBackoffBase,
+					)
 				}
 			}
 			retriedFraction := completedJob.Object.RetriedFraction
@@ -90,7 +97,7 @@ func (engine *Engine) Listen() {
 				retriedFraction += 1 / float64(completedJob.Err.MaxRetries+1)
 			}
 			shouldRetry := retriedFraction >= 1-common.BackoffMaxRetriesEpsilon || completedJob.Err.MaxRetries < 1
-			backoff := common.CalculateBackoff( // TODO: is the jitter too much?
+			backoff := common.CalculateBackoff(
 				completedJob.Object.Retries,
 				completedJob.Err.RetryBackoffBase,
 				completedJob.Err.RetryBackoffMultiplier,
@@ -99,16 +106,20 @@ func (engine *Engine) Listen() {
 			stdErr := dbcommon.WithWriteTx(context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) error {
 					if shouldRetry {
-						fmt.Printf("job %s failed after %d retries. error:\n%v\n", completedJob.Object.ID, completedJob.Object.Retries, completedJob.Err.Error())
+						logger.Error(
+							"job failed",
+							"error", completedJob.Err,
+							"totalRetries", completedJob.Object.Retries,
+						)
 						return tx.Job.UpdateOneID(completedJob.Object.ID).
 							SetStatus("failed").
 							Exec(ctx)
 					} else {
-						fmt.Printf(
-							"queueing job %v for retry in %v. error:\n%v\n",
-							completedJob.Object.ID,
-							backoff,
-							completedJob.Err.Dump(),
+						logger.Info(
+							"queueing job for retry",
+							"backoff", backoff,
+							"error", completedJob.Err,
+							"totalRetries", completedJob.Object.Retries,
 						)
 						sendJobSignal = true
 						return tx.Job.UpdateOneID(completedJob.Object.ID).
@@ -122,44 +133,37 @@ func (engine *Engine) Listen() {
 				},
 			)
 			if stdErr != nil {
-				// A restart is unlikely to help, so we'll just have to log the error
-				// TODO: log error
-				fmt.Printf("failed to mark job as failed / reset to pending: %v\n", stdErr.Error())
+				logger.Error("failed to mark job as failed / reset to pending", "error", stdErr)
 			} else {
 				if sendJobSignal {
-					fmt.Println("sending new job signal")
 					select {
 					case engine.newJobChan <- struct{}{}:
 					default:
-						fmt.Println("new job signal already sent")
 					}
 				}
 			}
 		}
 	}
-	runJobs := func() bool {
+	runJobs := func() bool { // TODO: remove this return value
 		for {
 			currentJob, stdErr := dbcommon.WithReadTx(
 				context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) (*ent.Job, error) {
-					currentJob, stdErr := tx.Job.Query().
+					return tx.Job.Query().
 						Where(job.StatusEQ("pending"), job.DueLTE(time.Now())).
 						Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
 						First(context.TODO())
-					if stdErr != nil {
-						return nil, ErrWrapperListen.Wrap(ErrWrapperDatabase.Wrap(stdErr)).AddCategory("query next job")
-					}
-					return currentJob, nil
 				},
 			)
 			if stdErr != nil {
 				if ent.IsNotFound(stdErr) {
 					return false
-				} else {
-					// This is worse than failing to update specific jobs, the program can't really continue without a job system
-					fmt.Printf("get current job error: %v\n", stdErr.Error())
-					return true // Shutdown
 				}
+				// We won't shutdown directly but a few restarts might be tried by the health service, though this probably won't help
+				// The download endpoint also checks that the job system is healthy before sending the file, as there could be a pending self lock that can't run due to the failing job system
+				engine.App.Logger.Error("failed to get current job to run", "error", stdErr)
+				engine.App.Clock.Sleep(250 * time.Millisecond)
+				continue
 			}
 
 			maxTotalWeightToStart := engine.App.Env.MAX_TOTAL_JOB_WEIGHT - currentWeight
@@ -180,18 +184,18 @@ func (engine *Engine) Listen() {
 			stdErr = dbcommon.WithWriteTx(
 				context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) error {
-					stdErr = tx.Job.UpdateOneID(currentJob.ID).
+					return tx.Job.UpdateOneID(currentJob.ID).
 						SetStatus("running").SetStarted(time.Now()).
 						Exec(context.TODO())
-					if stdErr != nil {
-						return ErrWrapperListen.Wrap(ErrWrapperDatabase.Wrap(stdErr)).AddCategory("update job")
-					}
-					return nil
 				},
 			)
 			if stdErr != nil {
-				fmt.Printf("failed to update job %s to running. error:\n%v\n", currentJob.ID, stdErr.Error())
-				time.Sleep(500 * time.Millisecond)
+				engine.App.Logger.Error(
+					"failed to update job status to running",
+					"jobID", currentJob.ID,
+					"error", stdErr,
+				)
+				engine.App.Clock.Sleep(250 * time.Millisecond)
 				continue
 			}
 
@@ -215,7 +219,6 @@ func (engine *Engine) Listen() {
 
 listenLoop:
 	for {
-		fmt.Println("run job loop")
 		if runJobs() { // Shutdown
 			break listenLoop
 		}
@@ -236,8 +239,9 @@ listenLoop:
 				maxWaitTime = timeUntil
 			}
 		} else if !ent.IsNotFound(stdErr) {
-			fmt.Printf("failed to query next due job: %v\n", stdErr.Error())
-			break listenLoop
+			engine.App.Logger.Error("failed to query next due job", "error", stdErr)
+			time.Sleep(250 * time.Millisecond)
+			continue
 		}
 
 		for currentWeight > 0 {
@@ -254,7 +258,6 @@ listenLoop:
 		engine.waitingForJobsChan = make(chan struct{})
 		engine.mu.Unlock()
 
-		fmt.Println("waiting for new jobs")
 		select {
 		case <-time.After(maxWaitTime):
 		case <-engine.newJobChan:
@@ -273,11 +276,18 @@ func (engine *Engine) runJob(
 	jobDefinition *Definition, job *ent.Job,
 	completedJobChan chan completedJob,
 ) {
-	fmt.Printf("running job %v\n", job.ID)
+	logger := engine.App.Logger.With(
+		"jobID",
+		job.ID,
+		"jobType",
+		common.GetVersionedType(job.Type, job.Version),
+	)
+	logger.Info("running job")
 	stdErr := jobDefinition.Handler(&Context{
 		Job:        job,
 		Definition: jobDefinition,
-		Context:    context.TODO(),
+		Context:    context.TODO(), // TODO: put the logger in the context
+		Logger:     logger,
 		Body:       job.Body,
 	})
 	completedJobChan <- completedJob{
@@ -293,12 +303,12 @@ func (engine *Engine) WaitForJobs() {
 func (engine *Engine) Shutdown() {
 	// TODO: timeout?
 	// TODO: what if it's not running?
-	fmt.Println("job engine shutting down")
+	engine.App.Logger.Info("requesting job engine shutdown")
 	// TODO: this panics if the engine has to shut itself down due to an error
 	engine.requestShutdownChan <- struct{}{}
-	fmt.Println("job engine finishing jobs")
+	engine.App.Logger.Info("waiting for job engine to finish jobs")
 	<-engine.shutdownFinishedChan
-	fmt.Println("job engine stopped")
+	engine.App.Logger.Info("job engine stopped")
 }
 
 func (engine *Engine) Enqueue(
@@ -360,16 +370,13 @@ func (engine *Engine) EnqueueEncoded(
 					return stdErr
 				}
 
-				fmt.Println("sending new job signal")
 				select {
 				case engine.newJobChan <- struct{}{}:
 				default:
-					fmt.Println("new job signal already sent")
 				}
 				return nil
 			},
 		)
 	})
-
 	return job.ID, nil
 }

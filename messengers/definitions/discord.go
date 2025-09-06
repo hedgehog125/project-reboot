@@ -104,7 +104,7 @@ func Discord1(app *common.App) *messengers.Definition {
 			defer func() {
 				stdErr := session.Close()
 				if stdErr != nil {
-					fmt.Printf("warning: error closing Discord session:\n%v\n", stdErr)
+					jobCtx.Logger.Warn("error closing Discord session", "error", stdErr)
 				}
 			}()
 

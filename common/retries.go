@@ -13,7 +13,7 @@ const BackoffMaxRetriesEpsilon = 1e-9
 
 // TODO: enforce a timeout or log a warning if it's exceeded? Some contexts don't have a deadline but instead can just be cancelled after a while
 func WithRetries(
-	ctx context.Context, fn func() error,
+	ctx context.Context, logger Logger, fn func() error,
 ) error {
 	maxObservedRunTime := time.Duration(0)
 	retriedFraction := float64(0) // When >= 1, max retries is reached
@@ -74,7 +74,7 @@ func WithRetries(
 			return wrapError(commErr)
 		}
 
-		fmt.Printf("waiting %vms\n", backoff.Milliseconds())
+		logger.Debug("[WithRetries] waiting %vms", backoff.Milliseconds())
 
 		select {
 		case <-time.After(backoff):

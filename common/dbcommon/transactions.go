@@ -2,7 +2,6 @@ package dbcommon
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -15,13 +14,13 @@ func WithReadTx[T any](
 	ctx context.Context, db common.DatabaseService,
 	fn func(tx *ent.Tx, ctx context.Context) (T, error),
 ) (T, error) {
-	return withRetryingTx(ctx, db.ReadTx, fn)
+	return withRetryingTx(ctx, db, db.ReadTx, fn)
 }
 func WithWriteTx(
 	ctx context.Context, db common.DatabaseService,
 	fn func(tx *ent.Tx, ctx context.Context) error,
 ) error {
-	_, stdErr := withRetryingTx(ctx, db.WriteTx, func(tx *ent.Tx, ctx context.Context) (struct{}, error) {
+	_, stdErr := withRetryingTx(ctx, db, db.WriteTx, func(tx *ent.Tx, ctx context.Context) (struct{}, error) {
 		return struct{}{}, fn(tx, ctx)
 	})
 	return stdErr
@@ -30,17 +29,17 @@ func WithReadWriteTx[T any](
 	ctx context.Context, db common.DatabaseService,
 	fn func(tx *ent.Tx, ctx context.Context) (T, error),
 ) (T, error) {
-	return withRetryingTx(ctx, db.WriteTx, fn)
+	return withRetryingTx(ctx, db, db.WriteTx, fn)
 }
 
 func withRetryingTx[T any](
-	ctx context.Context,
+	ctx context.Context, db common.DatabaseService,
 	txCallback func(ctx context.Context) (*ent.Tx, error),
 	fn func(tx *ent.Tx, ctx context.Context) (T, error),
 ) (T, error) {
 	var returnValue T
-	stdErr := common.WithRetries(ctx, func() error {
-		return withTx(ctx, txCallback, func(tx *ent.Tx, ctx context.Context) error {
+	stdErr := common.WithRetries(ctx, common.GetLogger(ctx, db), func() error {
+		return withTx(ctx, db, txCallback, func(tx *ent.Tx, ctx context.Context) error {
 			var stdErr error
 			returnValue, stdErr = fn(tx, ctx)
 			return stdErr
@@ -49,7 +48,7 @@ func withRetryingTx[T any](
 	return returnValue, stdErr
 }
 func withTx(
-	ctx context.Context,
+	ctx context.Context, db common.DatabaseService,
 	txCallback func(ctx context.Context) (*ent.Tx, error),
 	fn func(tx *ent.Tx, ctx context.Context) error,
 ) error {
@@ -78,8 +77,8 @@ func withTx(
 	if stdErr != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
-			// TODO: log instead
-			panic(fmt.Sprintf("error while rolling back transaction:\n%v\nerror that caused rollback:\n%v", stdErr, rollbackErr))
+			// TODO: handle "transaction already committed or rolled back" errors?
+			common.GetLogger(ctx, db).Error("error rolling back transaction", "error", rollbackErr, "originalError", stdErr)
 		}
 		return ErrWrapperWithTx.Wrap(ErrWrapperCallback.Wrap(stdErr))
 	}

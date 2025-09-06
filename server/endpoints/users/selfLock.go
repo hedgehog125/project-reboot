@@ -19,9 +19,9 @@ import (
 const MAX_SELF_LOCK_DURATION = 14 * (24 * time.Hour)
 
 type SelfLockPayload struct {
-	Username string               `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
-	Password string               `binding:"required,min=8,max=256"                   json:"password"`
-	Until    common.ISOTimeString `binding:"required" json:"until"`
+	Username string    `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
+	Password string    `binding:"required,min=8,max=256"                   json:"password"`
+	Until    time.Time `binding:"required" json:"until"`
 }
 type SelfLockResponse struct {
 	Errors            []servercommon.ErrorDetail `binding:"required" json:"errors"`
@@ -80,9 +80,8 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 				clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
 				//exhaustruct:enforce
 				&userjobs.TempSelfLock1Body{
-					// TODO: can this be accessed through the registry instead?
 					Username: body.Username,
-					Until:    common.ISOTimeString{Time: until},
+					Until:    until,
 				},
 				ctx,
 			)

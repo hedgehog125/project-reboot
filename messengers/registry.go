@@ -172,7 +172,11 @@ func (registry *Registry) SendUsingAll(
 			}
 			if !errors.Is(commErr, ErrNoContactForUser) {
 				// Just log an error and let the admin deal with this, there's not much the user can do
-				fmt.Printf("failed to prepare message for %s: %v\n", versionedType, commErr)
+				registry.App.Logger.Error(
+					"failed to prepare message",
+					"messengerType", versionedType,
+					"error", commErr,
+				)
 			}
 		}
 	}

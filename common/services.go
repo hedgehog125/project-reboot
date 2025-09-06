@@ -70,6 +70,10 @@ func (app *App) Shutdown(reason string) {
 	go app.ShutdownService.Shutdown(reason)
 }
 
+type HasDefaultLogger interface {
+	DefaultLogger() Logger
+}
+
 type MessengerService interface {
 	// The error map is more like warnings about why specific messengers failed to prepare, they are logged already so you might just want to ignore them
 	//
@@ -98,7 +102,7 @@ type Message struct {
 	Until time.Time
 }
 
-type LoggerService interface {
+type Logger interface {
 	Debug(msg string, args ...any)
 	DebugContext(ctx context.Context, msg string, args ...any)
 	Enabled(ctx context.Context, level slog.Level) bool
@@ -112,12 +116,18 @@ type LoggerService interface {
 	WarnContext(ctx context.Context, msg string, args ...any)
 	With(args ...any) *slog.Logger
 	WithGroup(name string) *slog.Logger
+}
+type LoggerService interface {
+	Logger
 	Start()    // Should fatalf rather than returning an error
 	Shutdown() // Should log warning rather than return an error
 }
 
 // When in a context passed to a logger.Error call, the server will deliberately crash to notify the admin as opposed to sending a message
 type AdminNotificationFallbackKey struct{}
+
+// Used to store a logger override in a context
+type LoggerKey struct{}
 
 type ShutdownService interface {
 	// Note: this blocks until shutdown is complete, crashes should usually call this in a separate Goroutine
@@ -127,6 +137,7 @@ type ShutdownService interface {
 }
 
 type DatabaseService interface {
+	HasDefaultLogger
 	Start()    // Should fatalf rather than returning an error
 	Shutdown() // Should log warning rather than return an error
 	Client() *ent.Client

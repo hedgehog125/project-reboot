@@ -51,9 +51,9 @@ func (shutdown *Shutdown) Shutdown(reason string) {
 	shutdown.shutdownOnce.Do(func() {
 		close(shutdown.shutdownStartedChan)
 		if reason == "" {
-			shutdown.app.Logger.Info("\nshutting down...")
+			shutdown.app.Logger.Info("shutting down...")
 		} else {
-			shutdown.app.Logger.Error("\nshutting down due to a critical error!", "reason", reason)
+			shutdown.app.Logger.Error("shutting down due to a critical error!", "reason", reason)
 		}
 		var wg sync.WaitGroup
 		for _, task := range shutdown.tasks {
@@ -67,7 +67,7 @@ func (shutdown *Shutdown) Shutdown(reason string) {
 			}
 		}
 		wg.Wait()
-		shutdown.app.Logger.Info("\nshut down.")
+		shutdown.app.Logger.Info("shut down.")
 		close(shutdown.shutdownCompletedChan)
 		if reason != "" {
 			os.Exit(1)

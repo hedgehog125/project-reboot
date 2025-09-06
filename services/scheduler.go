@@ -43,6 +43,7 @@ func (service *schedulerService) Start() {
 func (service *schedulerService) Shutdown() {
 	err := service.scheduler.Shutdown()
 	if err != nil {
+		// TODO: replace with slog when the new scheduler is written
 		fmt.Printf("warning: an error occurred while shutting down the scheduler:\n%v\n", err.Error())
 	}
 }

@@ -2,7 +2,6 @@
 
 -   Rate limiting service
 -   -   Use it to prevent spamming the admin when errors occur. Have a rate limit for admin error messages and crash signals individually
--   Pass the special log entry properties as pointers so that boilerplate isn't needed
 -   Replace cron system with a simple custom job scheduler
 -   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download
@@ -40,6 +39,8 @@
 -   -   -   Should that link only be there when necessary?
 -   Recover panics in all of the service implementations and trigger a shutdown. They should recover once if it's a service like the database but otherwise remain shut down
 -   When the admin is locked, whether temporarily or permanently, errors should make the server enter some kind of lockdown state? Need to weigh up pros and cons
+-   Refactor the logger
+-   -   Mostly to improve the self logging
 
 -   Is the benchmark properly thread-safe? Can guessChan be received in multiple places like that? Maybe should send a done signal down nextPasswordChan to the workers?
 -   Bump priority of jobs as they get older

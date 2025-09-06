@@ -24,7 +24,7 @@ func main() {
 	app := &common.App{
 		Env: services.LoadEnvironmentVariables(),
 	}
-	app.Database = services.NewDatabase(app.Env)
+	app.Database = services.NewDatabase(app)
 	app.Database.Start()
 	defer app.Database.Shutdown()
 

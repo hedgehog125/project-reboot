@@ -65,7 +65,7 @@ var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
 
 	return wrappedErr.AddCategories(ErrTypeOther, ErrTypeDatabase)
 })
-var ErrWrapperAPI = NewErrorWrapper(ErrTypeAPI) // TODO: add retrying
+var ErrWrapperAPI = NewErrorWrapper(ErrTypeAPI)
 
 var ErrNoTxInContext = NewErrorWithCategories("no db transaction found in context")
 
@@ -441,7 +441,6 @@ func (errWrapper *ConstantErrorWrapper) SetChild(child ErrorWrapper) *ConstantEr
 	return newErrWrapper
 }
 
-// TODO: add some kind of AddCategory method?
 func (errWrapper ConstantErrorWrapper) Clone() *ConstantErrorWrapper {
 	copiedErrWrapper := errWrapper
 	copiedErrWrapper.Categories = slices.Clone(copiedErrWrapper.Categories)
@@ -460,20 +459,6 @@ func NewDynamicErrorWrapper(callback func(err error) *Error) *DynamicErrorWrappe
 }
 func (errWrapper *DynamicErrorWrapper) Wrap(err error) *Error {
 	return errWrapper.callback(err)
-}
-
-// TODO: rename and probably rework
-type ContextPanic struct {
-	Message       string
-	ShouldRecover bool
-}
-
-// Crashes the whole server rather than just sending a 500
-func UnrecoverablePanic(message string) {
-	panic(&ContextPanic{
-		Message:       message,
-		ShouldRecover: false,
-	})
 }
 
 func IsErrorType(err error, targetTypePtr any) bool {

@@ -13,6 +13,7 @@ import (
 
 type TestDatabase struct {
 	client       *ent.Client
+	logger       common.Logger
 	startTxHooks []func(tx *ent.Tx) error
 }
 
@@ -44,6 +45,7 @@ func CreateDB() *TestDatabase {
 
 	return &TestDatabase{
 		client:       client,
+		logger:       common.GetLogger(context.Background(), nil),
 		startTxHooks: []func(tx *ent.Tx) error{},
 	}
 }
@@ -80,10 +82,13 @@ func (db *TestDatabase) WriteTx(ctx context.Context) (*ent.Tx, error) {
 	return tx, nil
 }
 func (db *TestDatabase) Shutdown() {
-	err := db.client.Close()
-	if err != nil {
-		fmt.Printf("warning: an error occurred while shutting down the database:\n%v\n", err.Error())
+	stdErr := db.client.Close()
+	if stdErr != nil {
+		db.logger.Warn("an error occurred while shutting down a test database", "error", stdErr)
 	}
+}
+func (db *TestDatabase) DefaultLogger() common.Logger {
+	return db.logger
 }
 
 func (db *TestDatabase) AddStartTxHook(hook func(tx *ent.Tx) error) {

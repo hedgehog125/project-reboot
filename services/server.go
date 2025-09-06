@@ -15,7 +15,7 @@ import (
 )
 
 type Server struct {
-	env    *common.Env
+	App    *common.App
 	Router *gin.Engine
 	Server *http.Server
 }
@@ -30,29 +30,29 @@ func NewServer(app *common.App) *Server {
 	router.Use(middleware.NewTimeoutMiddleware()) // TODO: why does the error middleware have to go after? This middleware seems to write otherwise
 	router.Use(middleware.NewErrorMiddleware())
 	adminMiddleware := middleware.NewAdminProtectedMiddleware(app.State)
-	serverApp := servercommon.ServerApp{
+	serverApp := &servercommon.ServerApp{
 		App:             app,
 		Router:          router,
 		AdminMiddleware: adminMiddleware,
 	}
-	endpoints.ConfigureEndpoints(router.Group(""), &serverApp)
+	endpoints.ConfigureEndpoints(router.Group(""), serverApp)
 
 	return &Server{
-		env:    app.Env,
+		App:    app,
 		Router: router,
 	}
 }
 
 func (service *Server) Start() {
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%v", service.env.PORT),
+		Addr:    fmt.Sprintf(":%v", service.App.Env.PORT),
 		Handler: service.Router.Handler(),
 	}
 
 	go func() {
-		err := server.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
-			log.Fatalf("an error occurred while running the HTTP server:\n%v", err.Error())
+		stdErr := server.ListenAndServe()
+		if stdErr != nil && stdErr != http.ErrServerClosed {
+			log.Fatalf("an error occurred while starting the HTTP server:\n%v", stdErr.Error())
 		}
 	}()
 
@@ -62,8 +62,8 @@ func (service *Server) Shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	err := service.Server.Shutdown(ctx)
-	if err != nil {
-		fmt.Printf("warning: an error occurred while shutting down the HTTP server:\n%v\n", err.Error())
+	stdErr := service.Server.Shutdown(ctx)
+	if stdErr != nil {
+		service.App.Logger.Warn("an error occurred while shutting down the HTTP server", stdErr)
 	}
 }

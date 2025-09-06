@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
@@ -10,10 +11,9 @@ import (
 	"github.com/hedgehog125/project-reboot/jobs"
 )
 
-// TODO: these types need to go somewhere else so that the services package can run jobs? Maybe not since the jobs package doesn't actually depend on too much?
 type TempSelfLock1Body struct {
-	Username string               `binding:"required" json:"username"`
-	Until    common.ISOTimeString `binding:"required" json:"until"`
+	Username string    `binding:"required" json:"username"`
+	Until    time.Time `binding:"required" json:"until"`
 }
 
 func TempSelfLock1(app *common.App) *jobs.Definition {
@@ -38,7 +38,7 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 				if stdErr != nil {
 					return common.ErrWrapperDatabase.Wrap(stdErr)
 				}
-				userOb, stdErr = userOb.Update().SetLockedUntil(body.Until.Time).
+				userOb, stdErr = userOb.Update().SetLockedUntil(body.Until).
 					Save(ctx)
 				if stdErr != nil {
 					return common.ErrWrapperDatabase.Wrap(stdErr)
@@ -48,7 +48,7 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 					&common.Message{
 						Type:  common.MessageSelfLock,
 						User:  userOb,
-						Until: body.Until.Time,
+						Until: body.Until,
 					},
 					ctx,
 				)

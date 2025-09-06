@@ -44,7 +44,7 @@ func main() {
 
 	app.State = services.InitState()
 	app.Logger = services.NewLogger(app)
-	app.Database = services.NewDatabase(app.Env)
+	app.Database = services.NewDatabase(app)
 	app.Database.Start()
 	app.Logger.Start()
 	app.Scheduler = services.NewScheduler(app)

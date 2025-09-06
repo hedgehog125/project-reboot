@@ -1,7 +1,7 @@
 package services
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -13,7 +13,8 @@ func LoadEnvironmentVariables() *common.Env {
 	if !isDevEnvDefined {
 		stdErr := godotenv.Load(".env")
 		if stdErr != nil {
-			fmt.Printf("warning: error loading .env file: %v\n", stdErr.Error())
+			// The usual logger hasn't been created yet
+			slog.Warn("error loading .env file", "error", stdErr)
 		}
 	}
 

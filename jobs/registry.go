@@ -43,6 +43,7 @@ type Context struct {
 	Definition *Definition
 	Context    context.Context
 	Body       json.RawMessage
+	Logger     common.Logger
 }
 
 func (ctx *Context) Decode(pointer any) *common.Error {

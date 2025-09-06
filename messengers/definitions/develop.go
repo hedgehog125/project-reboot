@@ -2,6 +2,7 @@ package definitions
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/jobs"
@@ -36,7 +37,7 @@ func Develop1() *messengers.Definition {
 				return commErr
 			}
 
-			fmt.Println(body.FullMessage)
+			fmt.Fprintln(os.Stdout, body.FullMessage)
 			return nil
 		},
 	}

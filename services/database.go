@@ -16,15 +16,15 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func NewDatabase(env *common.Env) *Database {
+func NewDatabase(app *common.App) *Database {
 	return &Database{
-		env:       env,
+		app:       app,
 		readyChan: make(chan struct{}),
 	}
 }
 
 type Database struct {
-	env       *common.Env
+	app       *common.App
 	client    *ent.Client
 	readyChan chan struct{}
 }
@@ -32,14 +32,14 @@ type Database struct {
 func (service *Database) Start() {
 	defer close(service.readyChan)
 
-	err := os.MkdirAll(service.env.MOUNT_PATH, 0700)
+	err := os.MkdirAll(service.app.Env.MOUNT_PATH, 0700)
 	if err != nil {
 		log.Fatalf("couldn't create storage directory. Error:\n%v", err)
 	}
 
-	db, err := sql.Open("sqlite3", fmt.Sprintf("%v?_fk=1&_busy_timeout=10000", filepath.Join(service.env.MOUNT_PATH, "database.sqlite3")))
+	db, err := sql.Open("sqlite3", fmt.Sprintf("%v?_fk=1&_busy_timeout=10000", filepath.Join(service.app.Env.MOUNT_PATH, "database.sqlite3")))
 	if err != nil {
-		log.Fatalf("couldn't start database. Error:\n%v", err)
+		log.Fatalf("couldn't start database. error:\n%v", err)
 	}
 
 	db.SetMaxIdleConns(5)
@@ -54,7 +54,7 @@ func (service *Database) Start() {
 	err = client.Schema.Create(ctx)
 	if err != nil {
 		_ = client.Close()
-		log.Fatalf("couldn't create schema resources. Error:\n%v", err)
+		log.Fatalf("couldn't create schema resources. error:\n%v", err)
 	}
 }
 
@@ -75,8 +75,11 @@ func (service *Database) WriteTx(ctx context.Context) (*ent.Tx, error) {
 
 func (service *Database) Shutdown() {
 	<-service.readyChan
-	err := service.client.Close()
-	if err != nil {
-		fmt.Printf("warning: an error occurred while shutting down the database:\n%v\n", err.Error())
+	stdErr := service.client.Close()
+	if stdErr != nil {
+		service.app.Logger.Warn("an error occurred while shutting down the database", stdErr)
 	}
+}
+func (service *Database) DefaultLogger() common.Logger {
+	return service.app.Logger
 }
