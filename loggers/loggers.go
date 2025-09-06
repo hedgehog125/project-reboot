@@ -18,6 +18,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/messengers"
+	"github.com/lmittmann/tint"
 )
 
 const (
@@ -36,7 +37,7 @@ type Handler struct {
 	Level                slog.Level
 	SaveToDatabase       bool
 	ShouldPrint          bool
-	textHandler          slog.Handler
+	tintHandler          slog.Handler
 	baseAttrs            map[string]any
 	baseSpecialProps     specialProperties
 	baseGroups           []string
@@ -71,9 +72,10 @@ func NewHandler(
 		Level:          level,
 		SaveToDatabase: saveToDatabase,
 		ShouldPrint:    shouldPrint,
-		textHandler: slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			Level:     level,
-			AddSource: true,
+		tintHandler: tint.NewHandler(os.Stdout, &tint.Options{
+			Level:      level,
+			AddSource:  true,
+			TimeFormat: time.TimeOnly,
 		}),
 		baseAttrs:            map[string]any{},
 		entryChan:            make(chan *entry, 100),
@@ -112,7 +114,6 @@ listenLoop:
 			case <-handler.requestShutdownChan:
 				shuttingDown = true
 				emptyEntryChan()
-				break listenLoop
 			}
 		}
 
@@ -160,6 +161,7 @@ listenLoop:
 					break listenLoop
 				default:
 				}
+				// TODO: remove?
 				time.Sleep(5 * time.Millisecond) // Give the channels a second so that all the entries that were added can be read
 			} else {
 				break listenLoop
@@ -471,7 +473,7 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 	resolvedAttrs := handler.resolveNestedAttrs(attrs, !disableErrLogging, &entry.publicMessage, &entry.userID)
 	entry.attributes = resolvedAttrs
 
-	stdErr := handler.textHandler.Handle(ctx, record)
+	stdErr := handler.tintHandler.Handle(ctx, record)
 	handler.entryChan <- entry
 	if stdErr != nil && !disableErrLogging {
 		pc, _, _, _ := runtime.Caller(0)
@@ -588,7 +590,7 @@ func (handler Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	if len(attrs) == 0 {
 		return handler
 	}
-	handler.textHandler = handler.textHandler.WithAttrs(attrs)
+	handler.tintHandler = handler.tintHandler.WithAttrs(attrs)
 	resolvedAttrs := handler.resolveNestedAttrs(
 		attrs, true,
 		&handler.baseSpecialProps.publicMessage, &handler.baseSpecialProps.userID,
@@ -602,7 +604,7 @@ func (handler Handler) WithGroup(name string) slog.Handler {
 	if name == "" {
 		return handler
 	}
-	handler.textHandler = handler.textHandler.WithGroup(name)
+	handler.tintHandler = handler.tintHandler.WithGroup(name)
 	handler.baseGroups = slices.Concat(handler.baseGroups, []string{name})
 	return handler
 }

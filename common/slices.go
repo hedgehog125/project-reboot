@@ -92,7 +92,7 @@ func checkPathPattern(path []string, pattern []string) bool {
 			}
 
 			remainingPattern = remainingPattern[patternIndex:]
-			patternIndex = 0
+			// patternIndex should be set to 0, but it's not read
 			firstPatternLiteralIndex := slices.IndexFunc(remainingPattern, func(value string) bool {
 				return !(value == "**" || value == "***") // Find first literal or *
 			})

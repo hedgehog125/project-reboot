@@ -92,7 +92,6 @@ func TestLogger_SavesToDatabase(t *testing.T) {
 	logger.Warn("warning")
 	logger.Error("error")
 
-	time.Sleep(5 * time.Millisecond)
 	logger.Shutdown()
 	logger.AssertWritten(t, []ExpectedEntry{
 		{
@@ -129,7 +128,6 @@ func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) {
 
 	logger.Info("created user", "userID", 1)
 
-	time.Sleep(5 * time.Millisecond)
 	logger.Shutdown()
 	logger.AssertWritten(t, []ExpectedEntry{
 		{
@@ -204,7 +202,6 @@ func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
 
 	logger.Warn("simple warning")
 
-	time.Sleep(5 * time.Millisecond)
 	logger.Shutdown()
 	logger.AssertWritten(t, []ExpectedEntry{
 		{
@@ -327,7 +324,6 @@ func TestLogger_SpecialAttributes(t *testing.T) {
 		"shh",
 	)
 
-	time.Sleep(5 * time.Millisecond)
 	logger.Shutdown()
 	logger.AssertWritten(t, []ExpectedEntry{
 		{
@@ -411,7 +407,6 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 	logger.Info("doing something")
 	logger.Info("doing something else")
 
-	time.Sleep(5 * time.Millisecond)
 	logger.Shutdown()
 	logger.AssertWritten(t, []ExpectedEntry{
 		{

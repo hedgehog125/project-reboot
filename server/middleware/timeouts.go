@@ -9,7 +9,7 @@ import (
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
-func NewTimeoutMiddleware() gin.HandlerFunc {
+func NewTimeout() gin.HandlerFunc {
 	return timeout.New(
 		timeout.WithTimeout(30*time.Second),
 		// timeout.WithHandler(func(ginCtx *gin.Context) {

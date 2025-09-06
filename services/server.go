@@ -24,12 +24,14 @@ func NewServer(app *common.App) *Server {
 	router := gin.New()
 	// router.SetTrustedProxies(nil)
 	router.TrustedPlatform = app.Env.PROXY_ORIGINAL_IP_HEADER_NAME
-	router.Use(gin.Logger()) // TODO: replace. This currently logs errors to std, which should probably be handled by the error middleware
+	router.Use(middleware.NewLogger(app.Logger))
+	router.Use(gin.Logger()) // TODO: make the custom logger log completed requests so this isn't needed
+	// TODO: ^ this is logging "Error #01: ..."
 
-	router.Static("/static", "./public")          // Has to go before otherwise files are sent but with a 404 status
-	router.Use(middleware.NewTimeoutMiddleware()) // TODO: why does the error middleware have to go after? This middleware seems to write otherwise
-	router.Use(middleware.NewErrorMiddleware())
-	adminMiddleware := middleware.NewAdminProtectedMiddleware(app.State)
+	router.Static("/static", "./public") // Has to go before otherwise files are sent but with a 404 status
+	router.Use(middleware.NewTimeout())  // TODO: why does the error middleware have to go after? This middleware seems to write otherwise
+	router.Use(middleware.NewError())
+	adminMiddleware := middleware.NewAdminProtected(app.State)
 	serverApp := &servercommon.ServerApp{
 		App:             app,
 		Router:          router,

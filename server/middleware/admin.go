@@ -10,7 +10,7 @@ import (
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
-func NewAdminProtectedMiddleware(state *common.State) gin.HandlerFunc {
+func NewAdminProtected(state *common.State) gin.HandlerFunc {
 	return func(ginCtx *gin.Context) {
 		headerValue := ginCtx.GetHeader("authorization")
 		if headerValue == "" {

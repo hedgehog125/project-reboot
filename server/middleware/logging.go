@@ -8,7 +8,7 @@ import (
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
-func NewLoggerMiddleware(logger common.Logger) gin.HandlerFunc {
+func NewLogger(logger common.Logger) gin.HandlerFunc {
 	return func(ginCtx *gin.Context) {
 		ginCtx.Set(servercommon.LoggerKey, logger.With(
 			"url", ginCtx.Request.URL,
@@ -20,7 +20,7 @@ func NewLoggerMiddleware(logger common.Logger) gin.HandlerFunc {
 }
 
 // TODO: handle panics and stop the default error handler from being registered
-func NewErrorMiddleware() gin.HandlerFunc {
+func NewError() gin.HandlerFunc {
 	return func(ginCtx *gin.Context) {
 		logger := servercommon.GetLogger(ginCtx)
 		ginCtx.Next()

@@ -66,7 +66,7 @@ formPage2.addEventListener("submit", async (e) => {
 		return;
 	}
 
-	displayMessage("Success.");
+	displayMessage("Success. You should have received a confirmation message.");
 });
 
 function displayMessage(message) {
