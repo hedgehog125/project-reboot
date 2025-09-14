@@ -2194,7 +2194,8 @@ type SessionMutation struct {
 	id            *int
 	time          *time.Time
 	code          *[]byte
-	codeValidFrom *time.Time
+	validFrom     *time.Time
+	validUntil    *time.Time
 	userAgent     *string
 	ip            *string
 	clearedFields map[string]struct{}
@@ -2375,40 +2376,76 @@ func (m *SessionMutation) ResetCode() {
 	m.code = nil
 }
 
-// SetCodeValidFrom sets the "codeValidFrom" field.
-func (m *SessionMutation) SetCodeValidFrom(t time.Time) {
-	m.codeValidFrom = &t
+// SetValidFrom sets the "validFrom" field.
+func (m *SessionMutation) SetValidFrom(t time.Time) {
+	m.validFrom = &t
 }
 
-// CodeValidFrom returns the value of the "codeValidFrom" field in the mutation.
-func (m *SessionMutation) CodeValidFrom() (r time.Time, exists bool) {
-	v := m.codeValidFrom
+// ValidFrom returns the value of the "validFrom" field in the mutation.
+func (m *SessionMutation) ValidFrom() (r time.Time, exists bool) {
+	v := m.validFrom
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCodeValidFrom returns the old "codeValidFrom" field's value of the Session entity.
+// OldValidFrom returns the old "validFrom" field's value of the Session entity.
 // If the Session object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SessionMutation) OldCodeValidFrom(ctx context.Context) (v time.Time, err error) {
+func (m *SessionMutation) OldValidFrom(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCodeValidFrom is only allowed on UpdateOne operations")
+		return v, errors.New("OldValidFrom is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCodeValidFrom requires an ID field in the mutation")
+		return v, errors.New("OldValidFrom requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCodeValidFrom: %w", err)
+		return v, fmt.Errorf("querying old value for OldValidFrom: %w", err)
 	}
-	return oldValue.CodeValidFrom, nil
+	return oldValue.ValidFrom, nil
 }
 
-// ResetCodeValidFrom resets all changes to the "codeValidFrom" field.
-func (m *SessionMutation) ResetCodeValidFrom() {
-	m.codeValidFrom = nil
+// ResetValidFrom resets all changes to the "validFrom" field.
+func (m *SessionMutation) ResetValidFrom() {
+	m.validFrom = nil
+}
+
+// SetValidUntil sets the "validUntil" field.
+func (m *SessionMutation) SetValidUntil(t time.Time) {
+	m.validUntil = &t
+}
+
+// ValidUntil returns the value of the "validUntil" field in the mutation.
+func (m *SessionMutation) ValidUntil() (r time.Time, exists bool) {
+	v := m.validUntil
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValidUntil returns the old "validUntil" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SessionMutation) OldValidUntil(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValidUntil is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValidUntil requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValidUntil: %w", err)
+	}
+	return oldValue.ValidUntil, nil
+}
+
+// ResetValidUntil resets all changes to the "validUntil" field.
+func (m *SessionMutation) ResetValidUntil() {
+	m.validUntil = nil
 }
 
 // SetUserAgent sets the "userAgent" field.
@@ -2556,15 +2593,18 @@ func (m *SessionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SessionMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.time != nil {
 		fields = append(fields, session.FieldTime)
 	}
 	if m.code != nil {
 		fields = append(fields, session.FieldCode)
 	}
-	if m.codeValidFrom != nil {
-		fields = append(fields, session.FieldCodeValidFrom)
+	if m.validFrom != nil {
+		fields = append(fields, session.FieldValidFrom)
+	}
+	if m.validUntil != nil {
+		fields = append(fields, session.FieldValidUntil)
 	}
 	if m.userAgent != nil {
 		fields = append(fields, session.FieldUserAgent)
@@ -2584,8 +2624,10 @@ func (m *SessionMutation) Field(name string) (ent.Value, bool) {
 		return m.Time()
 	case session.FieldCode:
 		return m.Code()
-	case session.FieldCodeValidFrom:
-		return m.CodeValidFrom()
+	case session.FieldValidFrom:
+		return m.ValidFrom()
+	case session.FieldValidUntil:
+		return m.ValidUntil()
 	case session.FieldUserAgent:
 		return m.UserAgent()
 	case session.FieldIP:
@@ -2603,8 +2645,10 @@ func (m *SessionMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldTime(ctx)
 	case session.FieldCode:
 		return m.OldCode(ctx)
-	case session.FieldCodeValidFrom:
-		return m.OldCodeValidFrom(ctx)
+	case session.FieldValidFrom:
+		return m.OldValidFrom(ctx)
+	case session.FieldValidUntil:
+		return m.OldValidUntil(ctx)
 	case session.FieldUserAgent:
 		return m.OldUserAgent(ctx)
 	case session.FieldIP:
@@ -2632,12 +2676,19 @@ func (m *SessionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCode(v)
 		return nil
-	case session.FieldCodeValidFrom:
+	case session.FieldValidFrom:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCodeValidFrom(v)
+		m.SetValidFrom(v)
+		return nil
+	case session.FieldValidUntil:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValidUntil(v)
 		return nil
 	case session.FieldUserAgent:
 		v, ok := value.(string)
@@ -2708,8 +2759,11 @@ func (m *SessionMutation) ResetField(name string) error {
 	case session.FieldCode:
 		m.ResetCode()
 		return nil
-	case session.FieldCodeValidFrom:
-		m.ResetCodeValidFrom()
+	case session.FieldValidFrom:
+		m.ResetValidFrom()
+		return nil
+	case session.FieldValidUntil:
+		m.ResetValidUntil()
 		return nil
 	case session.FieldUserAgent:
 		m.ResetUserAgent()

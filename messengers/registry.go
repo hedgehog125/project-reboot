@@ -141,7 +141,6 @@ func (registry *Registry) Send(
 		))
 	}
 
-	// TODO: if this is a MessageTypeAdminError, add a special context item to the error log to notify the admin by crashing, rather than trying to notify again
 	_, commErr := registry.App.Jobs.Enqueue(
 		jobscommon.JoinPaths(registry.jobNamePrefix, versionedType),
 		&bodyWrapperType{
@@ -152,6 +151,23 @@ func (registry *Registry) Send(
 	)
 	if commErr != nil {
 		return ErrWrapperSend.Wrap(ErrWrapperEnqueueJob.Wrap(commErr))
+	}
+
+	logMessage, commErr := FormatDefaultMessage(message)
+	logger := registry.App.Logger.With(
+		"userID", message.User.ID,
+		"messageType", versionedType,
+	)
+	if commErr == nil {
+		logger.Info(
+			"sending message to user",
+			"message", logMessage,
+		)
+	} else {
+		logger.Warn(
+			"sending a message that FormatDefaultMessage couldn't format",
+			"error", commErr,
+		)
 	}
 
 	return nil

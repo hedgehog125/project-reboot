@@ -33,7 +33,7 @@ form.addEventListener("submit", async (e) => {
 
 	const {
 		authorizationCode: newAuthorizationCode,
-		authorizationCodeValidAt,
+		validFrom,
 		content,
 		filename,
 		mime,
@@ -45,7 +45,7 @@ form.addEventListener("submit", async (e) => {
 		return;
 	}
 
-	const asDate = new Date(authorizationCodeValidAt);
+	const asDate = new Date(validFrom);
 	displayMessage(
 		// TODO: include time
 		`Success! The following authorisation code will be valid on ${asDate.toLocaleDateString()}.`,

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log/slog"
+
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/services"
 	"github.com/jonboulle/clockwork"
@@ -43,7 +45,11 @@ func main() {
 	app.ShutdownService = shutdownService
 
 	app.State = services.InitState()
-	app.Logger = services.NewLogger(app)
+	{
+		logger := services.NewLogger(app)
+		app.Logger = logger
+		slog.SetDefault(logger.Logger)
+	}
 	app.Database = services.NewDatabase(app)
 	app.Database.Start()
 	app.Logger.Start()

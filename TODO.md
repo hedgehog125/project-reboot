@@ -1,18 +1,22 @@
 # TODO
 
+-   Add a log to every time the messenger service is called
 -   Rate limiting service
 -   -   Use it to prevent spamming the admin when errors occur. Have a rate limit for admin error messages and crash signals individually
 -   Replace cron system with a simple custom job scheduler
 -   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
+-   -   Send messages for each active session
+-   -   Delete expired sessions and 2FA actions periodically
+-   Delete sessions on self lock, user update or admin lock
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download
 -   -   n = max(ceil(configured_messengers / 2), 1)
 -   -   If 1 is configured, can only require one. Configuring 2 allows one to fail so it's a bit more resilient. 3 still means only 1 can fail, so you get a good balance. And then after 4, neither way is likely to be an issue
 -   Use hash-wasm on the frontend when backend rate limits the hashing. It's single threaded but multithreaded WASM seems to be patchy at the moment, even in languages with good support like Rust
 -   -   Switch to SvelteKit at the same time
 -   -   Backend should limit number of concurrent hash requests to avoid using too much RAM
--   Make util that allows returning a servercommon.Error from endpoint handlers
--   Use common.ErrWrapperDatabase as base for DB error wrappers
--   Account locking until a specified date for if you know you won't have access to your devices for a while
+-   Add limits on self-locking so a hacker can't lock you out forever
+-   -   Attempting to get an authorisation code when locked should send the unlock date
+-   -   Admins should be able to reset it so if there's an unauthorised login, the user can block with a self lock, the admin can reset them and then they can block again without waiting
 -   Automatically delete expired 2FA actions
 -   Store timestamp in session so it can be double checked to ensure it's still valid by comparing to auth_timestamps_valid_from in users table
 -   Email messenger

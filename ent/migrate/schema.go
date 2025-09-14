@@ -83,7 +83,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "time", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeBytes, Unique: true},
-		{Name: "code_valid_from", Type: field.TypeTime},
+		{Name: "valid_from", Type: field.TypeTime},
+		{Name: "valid_until", Type: field.TypeTime},
 		{Name: "user_agent", Type: field.TypeString},
 		{Name: "ip", Type: field.TypeString},
 		{Name: "session_user", Type: field.TypeInt, Nullable: true},
@@ -96,7 +97,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sessions_users_user",
-				Columns:    []*schema.Column{SessionsColumns[6]},
+				Columns:    []*schema.Column{SessionsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

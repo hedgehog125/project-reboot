@@ -70,7 +70,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			}
 			_, _, commErr := app.Messengers.SendUsingAll(
 				&common.Message{
-					Type: common.MessageReset,
+					Type: common.MessageUserUpdate,
 					User: userOb,
 				},
 				ctx,

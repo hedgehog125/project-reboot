@@ -26,10 +26,11 @@ type Env struct {
 	JOB_POLL_INTERVAL    time.Duration
 	MAX_TOTAL_JOB_WEIGHT int
 
-	UNLOCK_TIME time.Duration
-	// TODO: implement
-	AUTH_CODE_VALID_FOR    time.Duration
-	PASSWORD_HASH_SETTINGS *PasswordHashSettings
+	UNLOCK_TIME         time.Duration
+	AUTH_CODE_VALID_FOR time.Duration
+	// Once used, how much longer the auth code remains valid for
+	USED_AUTH_CODE_VALID_FOR time.Duration
+	PASSWORD_HASH_SETTINGS   *PasswordHashSettings
 
 	LOG_STORE_INTERVAL time.Duration
 	ADMIN_USERNAME     string
@@ -89,17 +90,18 @@ const (
 	MessageAdminError = "adminError"
 	MessageRegular    = "regular"
 	MessageLogin      = "login"
-	MessageReset      = "reset"
+	MessageDownload   = "download"
+	MessageUserUpdate = "userUpdate"
 	MessageLock       = "lock"
 	MessageSelfLock   = "selfLock"
 	Message2FA        = "2FA"
 )
 
 type Message struct {
-	Type  MessageType
-	User  *ent.User
-	Code  string
-	Until time.Time
+	Type MessageType
+	User *ent.User
+	Code string
+	Time time.Time
 }
 
 type Logger interface {

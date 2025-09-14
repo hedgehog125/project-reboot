@@ -65,9 +65,14 @@ func Code(v []byte) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldCode, v))
 }
 
-// CodeValidFrom applies equality check predicate on the "codeValidFrom" field. It's identical to CodeValidFromEQ.
-func CodeValidFrom(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldEQ(FieldCodeValidFrom, v))
+// ValidFrom applies equality check predicate on the "validFrom" field. It's identical to ValidFromEQ.
+func ValidFrom(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldValidFrom, v))
+}
+
+// ValidUntil applies equality check predicate on the "validUntil" field. It's identical to ValidUntilEQ.
+func ValidUntil(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldValidUntil, v))
 }
 
 // UserAgent applies equality check predicate on the "userAgent" field. It's identical to UserAgentEQ.
@@ -160,44 +165,84 @@ func CodeLTE(v []byte) predicate.Session {
 	return predicate.Session(sql.FieldLTE(FieldCode, v))
 }
 
-// CodeValidFromEQ applies the EQ predicate on the "codeValidFrom" field.
-func CodeValidFromEQ(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldEQ(FieldCodeValidFrom, v))
+// ValidFromEQ applies the EQ predicate on the "validFrom" field.
+func ValidFromEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldValidFrom, v))
 }
 
-// CodeValidFromNEQ applies the NEQ predicate on the "codeValidFrom" field.
-func CodeValidFromNEQ(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldNEQ(FieldCodeValidFrom, v))
+// ValidFromNEQ applies the NEQ predicate on the "validFrom" field.
+func ValidFromNEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldValidFrom, v))
 }
 
-// CodeValidFromIn applies the In predicate on the "codeValidFrom" field.
-func CodeValidFromIn(vs ...time.Time) predicate.Session {
-	return predicate.Session(sql.FieldIn(FieldCodeValidFrom, vs...))
+// ValidFromIn applies the In predicate on the "validFrom" field.
+func ValidFromIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldValidFrom, vs...))
 }
 
-// CodeValidFromNotIn applies the NotIn predicate on the "codeValidFrom" field.
-func CodeValidFromNotIn(vs ...time.Time) predicate.Session {
-	return predicate.Session(sql.FieldNotIn(FieldCodeValidFrom, vs...))
+// ValidFromNotIn applies the NotIn predicate on the "validFrom" field.
+func ValidFromNotIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldValidFrom, vs...))
 }
 
-// CodeValidFromGT applies the GT predicate on the "codeValidFrom" field.
-func CodeValidFromGT(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldGT(FieldCodeValidFrom, v))
+// ValidFromGT applies the GT predicate on the "validFrom" field.
+func ValidFromGT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGT(FieldValidFrom, v))
 }
 
-// CodeValidFromGTE applies the GTE predicate on the "codeValidFrom" field.
-func CodeValidFromGTE(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldGTE(FieldCodeValidFrom, v))
+// ValidFromGTE applies the GTE predicate on the "validFrom" field.
+func ValidFromGTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGTE(FieldValidFrom, v))
 }
 
-// CodeValidFromLT applies the LT predicate on the "codeValidFrom" field.
-func CodeValidFromLT(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldLT(FieldCodeValidFrom, v))
+// ValidFromLT applies the LT predicate on the "validFrom" field.
+func ValidFromLT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLT(FieldValidFrom, v))
 }
 
-// CodeValidFromLTE applies the LTE predicate on the "codeValidFrom" field.
-func CodeValidFromLTE(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldLTE(FieldCodeValidFrom, v))
+// ValidFromLTE applies the LTE predicate on the "validFrom" field.
+func ValidFromLTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLTE(FieldValidFrom, v))
+}
+
+// ValidUntilEQ applies the EQ predicate on the "validUntil" field.
+func ValidUntilEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldValidUntil, v))
+}
+
+// ValidUntilNEQ applies the NEQ predicate on the "validUntil" field.
+func ValidUntilNEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldValidUntil, v))
+}
+
+// ValidUntilIn applies the In predicate on the "validUntil" field.
+func ValidUntilIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldValidUntil, vs...))
+}
+
+// ValidUntilNotIn applies the NotIn predicate on the "validUntil" field.
+func ValidUntilNotIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldValidUntil, vs...))
+}
+
+// ValidUntilGT applies the GT predicate on the "validUntil" field.
+func ValidUntilGT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGT(FieldValidUntil, v))
+}
+
+// ValidUntilGTE applies the GTE predicate on the "validUntil" field.
+func ValidUntilGTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGTE(FieldValidUntil, v))
+}
+
+// ValidUntilLT applies the LT predicate on the "validUntil" field.
+func ValidUntilLT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLT(FieldValidUntil, v))
+}
+
+// ValidUntilLTE applies the LTE predicate on the "validUntil" field.
+func ValidUntilLTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLTE(FieldValidUntil, v))
 }
 
 // UserAgentEQ applies the EQ predicate on the "userAgent" field.

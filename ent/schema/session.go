@@ -19,7 +19,8 @@ func (Session) Fields() []ent.Field { // TODO: auto delete once used? Or also af
 	return []ent.Field{
 		field.Time("time").Default(time.Now),     // TODO: will this be an issue with testing?
 		field.Bytes("code").Unique().MinLen(128), // The randomly generated authorisation code that will become valid after enough time
-		field.Time("codeValidFrom"),
+		field.Time("validFrom"),
+		field.Time("validUntil"),
 		field.String("userAgent"),
 		field.String("ip"),
 	}

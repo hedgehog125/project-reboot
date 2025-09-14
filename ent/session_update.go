@@ -49,16 +49,30 @@ func (_u *SessionUpdate) SetCode(v []byte) *SessionUpdate {
 	return _u
 }
 
-// SetCodeValidFrom sets the "codeValidFrom" field.
-func (_u *SessionUpdate) SetCodeValidFrom(v time.Time) *SessionUpdate {
-	_u.mutation.SetCodeValidFrom(v)
+// SetValidFrom sets the "validFrom" field.
+func (_u *SessionUpdate) SetValidFrom(v time.Time) *SessionUpdate {
+	_u.mutation.SetValidFrom(v)
 	return _u
 }
 
-// SetNillableCodeValidFrom sets the "codeValidFrom" field if the given value is not nil.
-func (_u *SessionUpdate) SetNillableCodeValidFrom(v *time.Time) *SessionUpdate {
+// SetNillableValidFrom sets the "validFrom" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableValidFrom(v *time.Time) *SessionUpdate {
 	if v != nil {
-		_u.SetCodeValidFrom(*v)
+		_u.SetValidFrom(*v)
+	}
+	return _u
+}
+
+// SetValidUntil sets the "validUntil" field.
+func (_u *SessionUpdate) SetValidUntil(v time.Time) *SessionUpdate {
+	_u.mutation.SetValidUntil(v)
+	return _u
+}
+
+// SetNillableValidUntil sets the "validUntil" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableValidUntil(v *time.Time) *SessionUpdate {
+	if v != nil {
+		_u.SetValidUntil(*v)
 	}
 	return _u
 }
@@ -176,8 +190,11 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(session.FieldCode, field.TypeBytes, value)
 	}
-	if value, ok := _u.mutation.CodeValidFrom(); ok {
-		_spec.SetField(session.FieldCodeValidFrom, field.TypeTime, value)
+	if value, ok := _u.mutation.ValidFrom(); ok {
+		_spec.SetField(session.FieldValidFrom, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.ValidUntil(); ok {
+		_spec.SetField(session.FieldValidUntil, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(session.FieldUserAgent, field.TypeString, value)
@@ -254,16 +271,30 @@ func (_u *SessionUpdateOne) SetCode(v []byte) *SessionUpdateOne {
 	return _u
 }
 
-// SetCodeValidFrom sets the "codeValidFrom" field.
-func (_u *SessionUpdateOne) SetCodeValidFrom(v time.Time) *SessionUpdateOne {
-	_u.mutation.SetCodeValidFrom(v)
+// SetValidFrom sets the "validFrom" field.
+func (_u *SessionUpdateOne) SetValidFrom(v time.Time) *SessionUpdateOne {
+	_u.mutation.SetValidFrom(v)
 	return _u
 }
 
-// SetNillableCodeValidFrom sets the "codeValidFrom" field if the given value is not nil.
-func (_u *SessionUpdateOne) SetNillableCodeValidFrom(v *time.Time) *SessionUpdateOne {
+// SetNillableValidFrom sets the "validFrom" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableValidFrom(v *time.Time) *SessionUpdateOne {
 	if v != nil {
-		_u.SetCodeValidFrom(*v)
+		_u.SetValidFrom(*v)
+	}
+	return _u
+}
+
+// SetValidUntil sets the "validUntil" field.
+func (_u *SessionUpdateOne) SetValidUntil(v time.Time) *SessionUpdateOne {
+	_u.mutation.SetValidUntil(v)
+	return _u
+}
+
+// SetNillableValidUntil sets the "validUntil" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableValidUntil(v *time.Time) *SessionUpdateOne {
+	if v != nil {
+		_u.SetValidUntil(*v)
 	}
 	return _u
 }
@@ -411,8 +442,11 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(session.FieldCode, field.TypeBytes, value)
 	}
-	if value, ok := _u.mutation.CodeValidFrom(); ok {
-		_spec.SetField(session.FieldCodeValidFrom, field.TypeTime, value)
+	if value, ok := _u.mutation.ValidFrom(); ok {
+		_spec.SetField(session.FieldValidFrom, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.ValidUntil(); ok {
+		_spec.SetField(session.FieldValidUntil, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(session.FieldUserAgent, field.TypeString, value)

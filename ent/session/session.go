@@ -18,8 +18,10 @@ const (
 	FieldTime = "time"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
-	// FieldCodeValidFrom holds the string denoting the codevalidfrom field in the database.
-	FieldCodeValidFrom = "code_valid_from"
+	// FieldValidFrom holds the string denoting the validfrom field in the database.
+	FieldValidFrom = "valid_from"
+	// FieldValidUntil holds the string denoting the validuntil field in the database.
+	FieldValidUntil = "valid_until"
 	// FieldUserAgent holds the string denoting the useragent field in the database.
 	FieldUserAgent = "user_agent"
 	// FieldIP holds the string denoting the ip field in the database.
@@ -42,7 +44,8 @@ var Columns = []string{
 	FieldID,
 	FieldTime,
 	FieldCode,
-	FieldCodeValidFrom,
+	FieldValidFrom,
+	FieldValidUntil,
 	FieldUserAgent,
 	FieldIP,
 }
@@ -88,9 +91,14 @@ func ByTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTime, opts...).ToFunc()
 }
 
-// ByCodeValidFrom orders the results by the codeValidFrom field.
-func ByCodeValidFrom(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCodeValidFrom, opts...).ToFunc()
+// ByValidFrom orders the results by the validFrom field.
+func ByValidFrom(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldValidFrom, opts...).ToFunc()
+}
+
+// ByValidUntil orders the results by the validUntil field.
+func ByValidUntil(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldValidUntil, opts...).ToFunc()
 }
 
 // ByUserAgent orders the results by the userAgent field.

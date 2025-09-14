@@ -22,8 +22,10 @@ type Session struct {
 	Time time.Time `json:"time,omitempty"`
 	// Code holds the value of the "code" field.
 	Code []byte `json:"code,omitempty"`
-	// CodeValidFrom holds the value of the "codeValidFrom" field.
-	CodeValidFrom time.Time `json:"codeValidFrom,omitempty"`
+	// ValidFrom holds the value of the "validFrom" field.
+	ValidFrom time.Time `json:"validFrom,omitempty"`
+	// ValidUntil holds the value of the "validUntil" field.
+	ValidUntil time.Time `json:"validUntil,omitempty"`
 	// UserAgent holds the value of the "userAgent" field.
 	UserAgent string `json:"userAgent,omitempty"`
 	// IP holds the value of the "ip" field.
@@ -66,7 +68,7 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case session.FieldUserAgent, session.FieldIP:
 			values[i] = new(sql.NullString)
-		case session.FieldTime, session.FieldCodeValidFrom:
+		case session.FieldTime, session.FieldValidFrom, session.FieldValidUntil:
 			values[i] = new(sql.NullTime)
 		case session.ForeignKeys[0]: // session_user
 			values[i] = new(sql.NullInt64)
@@ -103,11 +105,17 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.Code = *value
 			}
-		case session.FieldCodeValidFrom:
+		case session.FieldValidFrom:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field codeValidFrom", values[i])
+				return fmt.Errorf("unexpected type %T for field validFrom", values[i])
 			} else if value.Valid {
-				_m.CodeValidFrom = value.Time
+				_m.ValidFrom = value.Time
+			}
+		case session.FieldValidUntil:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field validUntil", values[i])
+			} else if value.Valid {
+				_m.ValidUntil = value.Time
 			}
 		case session.FieldUserAgent:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -175,8 +183,11 @@ func (_m *Session) String() string {
 	builder.WriteString("code=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Code))
 	builder.WriteString(", ")
-	builder.WriteString("codeValidFrom=")
-	builder.WriteString(_m.CodeValidFrom.Format(time.ANSIC))
+	builder.WriteString("validFrom=")
+	builder.WriteString(_m.ValidFrom.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("validUntil=")
+	builder.WriteString(_m.ValidUntil.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("userAgent=")
 	builder.WriteString(_m.UserAgent)

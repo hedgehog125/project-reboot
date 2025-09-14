@@ -21,9 +21,10 @@ type GetAuthorizationCodePayload struct {
 }
 
 type GetAuthorizationCodeResponse struct {
-	Errors                   []servercommon.ErrorDetail `binding:"required" json:"errors"`
-	AuthorizationCode        string                     `json:"authorizationCode"`
-	AuthorizationCodeValidAt time.Time                  `json:"authorizationCodeValidAt"`
+	Errors            []servercommon.ErrorDetail `binding:"required" json:"errors"`
+	AuthorizationCode string                     `json:"authorizationCode"`
+	ValidFrom         time.Time                  `json:"validFrom"`
+	ValidUntil        time.Time                  `json:"validUntil"`
 }
 
 func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -65,10 +66,12 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
+			validFrom := clock.Now().Add(app.Env.UNLOCK_TIME)
 			_, _, commErr := app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.MessageLogin,
 					User: userOb,
+					Time: validFrom,
 				},
 				ctx,
 			)
@@ -77,12 +80,13 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			}
 
 			authCode := core.RandomAuthCode()
-			validAt := clock.Now().Add(app.Env.UNLOCK_TIME)
+			validUntil := clock.Now().Add(app.Env.AUTH_CODE_VALID_FOR)
 
 			_, stdErr = tx.Session.Create().
 				SetUser(userOb).
 				SetCode(authCode).
-				SetCodeValidFrom(validAt).
+				SetValidFrom(validFrom).
+				SetValidUntil(validUntil).
 				SetUserAgent(ginCtx.Request.UserAgent()).
 				SetIP(ginCtx.ClientIP()).
 				Save(ctx)
@@ -91,9 +95,10 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			}
 
 			ginCtx.JSON(http.StatusOK, GetAuthorizationCodeResponse{
-				Errors:                   []servercommon.ErrorDetail{},
-				AuthorizationCode:        base64.StdEncoding.EncodeToString(authCode),
-				AuthorizationCodeValidAt: validAt,
+				Errors:            []servercommon.ErrorDetail{},
+				AuthorizationCode: base64.StdEncoding.EncodeToString(authCode),
+				ValidFrom:         validFrom,
+				ValidUntil:        validUntil,
 			})
 			return nil
 		})

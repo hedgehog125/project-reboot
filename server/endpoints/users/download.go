@@ -23,11 +23,12 @@ type DownloadPayload struct {
 }
 
 type DownloadResponse struct {
-	Errors                   []servercommon.ErrorDetail `binding:"required" json:"errors"`
-	AuthorizationCodeValidAt *time.Time                 `json:"authorizationCodeValidAt"`
-	Content                  []byte                     `json:"content"`
-	Filename                 string                     `json:"filename"`
-	Mime                     string                     `json:"mime"`
+	Errors                      []servercommon.ErrorDetail `binding:"required" json:"errors"`
+	AuthorizationCodeValidFrom  *time.Time                 `json:"authorizationCodeValidFrom"`
+	AuthorizationCodeValidUntil *time.Time                 `json:"authorizationCodeValidUntil"`
+	Content                     []byte                     `json:"content"`
+	Filename                    string                     `json:"filename"`
+	Mime                        string                     `json:"mime"`
 }
 
 func Download(app *servercommon.ServerApp) gin.HandlerFunc {
@@ -43,55 +44,50 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		userOb, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
-			sessionOb, stdErr := tx.Session.Query().
-				Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
-				Select(session.FieldCode, session.FieldCodeValidFrom).
-				First(ctx)
-			if stdErr != nil {
-				return nil, servercommon.SendUnauthorizedIfNotFound(
-					common.ErrWrapperDatabase.Wrap(stdErr),
-				)
-			}
-
-			if clock.Now().Before(sessionOb.CodeValidFrom) {
-				ginCtx.JSON(http.StatusBadRequest, DownloadResponse{
-					Errors: []servercommon.ErrorDetail{
-						{
-							Message: "authorization code is not valid yet",
-							Code:    "CODE_NOT_VALID_YET",
-						},
-					},
-					AuthorizationCodeValidAt: &sessionOb.CodeValidFrom,
-				})
-				return nil, servercommon.ErrCancelTransaction.Clone()
-			}
-
-			userOb, stdErr := tx.User.Query().
-				Where(user.Username(body.Username)).
-				Select(
-					user.FieldUsername,
-					// Contacts aren't needed
-
-					user.FieldContent,
-					user.FieldFileName,
-					user.FieldMime,
-					user.FieldNonce,
-					user.FieldKeySalt,
-					user.FieldHashTime,
-					user.FieldHashMemory,
-					user.FieldHashThreads,
-				).
-				Only(ctx)
-			if stdErr != nil {
-				return nil, common.ErrWrapperDatabase.Wrap(stdErr)
-			}
-			return userOb, nil
-		})
+		sessionOb, stdErr := dbcommon.WithReadTx(
+			ginCtx, app.Database,
+			func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
+				sessionOb, stdErr := tx.Session.Query().
+					Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
+					WithUser().
+					First(ctx)
+				if stdErr != nil {
+					return nil, servercommon.SendUnauthorizedIfNotFound(
+						common.ErrWrapperDatabase.Wrap(stdErr),
+					)
+				}
+				if clock.Now().After(sessionOb.ValidUntil) {
+					stdErr := tx.Session.DeleteOneID(sessionOb.ID).Exec(ctx)
+					if stdErr != nil {
+						servercommon.GetLogger(ginCtx).Error(
+							"unable to delete expired session",
+							"error",
+							stdErr,
+						)
+					}
+					return nil, servercommon.NewUnauthorizedError()
+				}
+				return sessionOb, nil
+			},
+		)
 		if stdErr != nil {
 			return stdErr
 		}
+		if clock.Now().Before(sessionOb.ValidFrom) {
+			ginCtx.JSON(http.StatusBadRequest, DownloadResponse{
+				Errors: []servercommon.ErrorDetail{
+					{
+						Message: "authorization code is not valid yet",
+						Code:    "CODE_NOT_VALID_YET",
+					},
+				},
+				AuthorizationCodeValidFrom:  &sessionOb.ValidFrom,
+				AuthorizationCodeValidUntil: &sessionOb.ValidUntil,
+			})
+			return nil
+		}
 
+		userOb := sessionOb.Edges.User
 		encryptionKey := core.HashPassword(
 			body.Password,
 			userOb.KeySalt,
@@ -109,17 +105,37 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			)
 		}
 
+		stdErr = dbcommon.WithWriteTx(
+			ginCtx, app.Database,
+			func(tx *ent.Tx, ctx context.Context) error {
+				stdErr := tx.Session.UpdateOneID(sessionOb.ID).
+					SetValidUntil(clock.Now().Add(app.Env.USED_AUTH_CODE_VALID_FOR)).
+					Exec(ctx)
+				if stdErr != nil {
+					return stdErr
+				}
+				_, _, commErr := app.Messengers.SendUsingAll(
+					&common.Message{
+						Type: common.MessageDownload,
+						User: userOb,
+					},
+					ctx,
+				)
+				return commErr.StandardError()
+			},
+		)
+		if stdErr != nil {
+			return stdErr
+		}
+
 		ginCtx.JSON(http.StatusOK, DownloadResponse{
-			Errors:                   []servercommon.ErrorDetail{},
-			AuthorizationCodeValidAt: nil,
-			Content:                  decrypted,
-			Filename:                 userOb.FileName,
-			Mime:                     userOb.Mime,
+			Errors:                      []servercommon.ErrorDetail{},
+			AuthorizationCodeValidFrom:  nil,
+			AuthorizationCodeValidUntil: nil,
+			Content:                     decrypted,
+			Filename:                    userOb.FileName,
+			Mime:                        userOb.Mime,
 		})
 		return nil
-
-		// TODO: log this event to database
-		// TODO: reduce session expiry to 1 hour
-		// TODO: notify user in the background
 	})
 }

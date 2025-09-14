@@ -1,6 +1,7 @@
 package services
 
 import (
+	"log"
 	"log/slog"
 	"os"
 
@@ -18,7 +19,7 @@ func LoadEnvironmentVariables() *common.Env {
 		}
 	}
 
-	return &common.Env{
+	env := &common.Env{
 		IS_DEV:                        common.RequireBoolEnv("IS_DEV"),
 		PORT:                          common.RequireIntEnv("PORT"),
 		MOUNT_PATH:                    common.RequireEnv("MOUNT_PATH"),
@@ -27,8 +28,9 @@ func LoadEnvironmentVariables() *common.Env {
 		JOB_POLL_INTERVAL:    common.RequireSecondsEnv("JOB_POLL_INTERVAL"),
 		MAX_TOTAL_JOB_WEIGHT: common.RequireIntEnv("MAX_TOTAL_JOB_WEIGHT"),
 
-		UNLOCK_TIME:         common.RequireSecondsEnv("UNLOCK_TIME"),
-		AUTH_CODE_VALID_FOR: common.RequireSecondsEnv("AUTH_CODE_VALID_FOR"),
+		UNLOCK_TIME:              common.RequireSecondsEnv("UNLOCK_TIME"),
+		AUTH_CODE_VALID_FOR:      common.RequireSecondsEnv("AUTH_CODE_VALID_FOR"),
+		USED_AUTH_CODE_VALID_FOR: common.RequireSecondsEnv("USED_AUTH_CODE_VALID_FOR"),
 		PASSWORD_HASH_SETTINGS: &common.PasswordHashSettings{
 			Time:    common.RequireUint32Env("PASSWORD_HASH_TIME"),
 			Memory:  common.RequireUint32Env("PASSWORD_HASH_MEMORY"),
@@ -41,5 +43,14 @@ func LoadEnvironmentVariables() *common.Env {
 
 		DISCORD_TOKEN:  common.OptionalEnv("DISCORD_TOKEN", ""),
 		SENDGRID_TOKEN: common.OptionalEnv("SENDGRID_TOKEN", ""),
+	}
+	ValidateEnvironmentVariables(env)
+	return env
+}
+func ValidateEnvironmentVariables(env *common.Env) {
+	if float64(env.AUTH_CODE_VALID_FOR)/float64(env.UNLOCK_TIME) < 1.1 {
+		log.Fatalf(
+			"AUTH_CODE_VALID_FOR must be at least slightly larger than UNLOCK_TIME because a download requires the auth code to be valid and the unlock time needs to have passed",
+		)
 	}
 }

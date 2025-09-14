@@ -43,9 +43,15 @@ func (_c *SessionCreate) SetCode(v []byte) *SessionCreate {
 	return _c
 }
 
-// SetCodeValidFrom sets the "codeValidFrom" field.
-func (_c *SessionCreate) SetCodeValidFrom(v time.Time) *SessionCreate {
-	_c.mutation.SetCodeValidFrom(v)
+// SetValidFrom sets the "validFrom" field.
+func (_c *SessionCreate) SetValidFrom(v time.Time) *SessionCreate {
+	_c.mutation.SetValidFrom(v)
+	return _c
+}
+
+// SetValidUntil sets the "validUntil" field.
+func (_c *SessionCreate) SetValidUntil(v time.Time) *SessionCreate {
+	_c.mutation.SetValidUntil(v)
 	return _c
 }
 
@@ -134,8 +140,11 @@ func (_c *SessionCreate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Session.code": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.CodeValidFrom(); !ok {
-		return &ValidationError{Name: "codeValidFrom", err: errors.New(`ent: missing required field "Session.codeValidFrom"`)}
+	if _, ok := _c.mutation.ValidFrom(); !ok {
+		return &ValidationError{Name: "validFrom", err: errors.New(`ent: missing required field "Session.validFrom"`)}
+	}
+	if _, ok := _c.mutation.ValidUntil(); !ok {
+		return &ValidationError{Name: "validUntil", err: errors.New(`ent: missing required field "Session.validUntil"`)}
 	}
 	if _, ok := _c.mutation.UserAgent(); !ok {
 		return &ValidationError{Name: "userAgent", err: errors.New(`ent: missing required field "Session.userAgent"`)}
@@ -178,9 +187,13 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 		_spec.SetField(session.FieldCode, field.TypeBytes, value)
 		_node.Code = value
 	}
-	if value, ok := _c.mutation.CodeValidFrom(); ok {
-		_spec.SetField(session.FieldCodeValidFrom, field.TypeTime, value)
-		_node.CodeValidFrom = value
+	if value, ok := _c.mutation.ValidFrom(); ok {
+		_spec.SetField(session.FieldValidFrom, field.TypeTime, value)
+		_node.ValidFrom = value
+	}
+	if value, ok := _c.mutation.ValidUntil(); ok {
+		_spec.SetField(session.FieldValidUntil, field.TypeTime, value)
+		_node.ValidUntil = value
 	}
 	if value, ok := _c.mutation.UserAgent(); ok {
 		_spec.SetField(session.FieldUserAgent, field.TypeString, value)
@@ -283,15 +296,27 @@ func (u *SessionUpsert) UpdateCode() *SessionUpsert {
 	return u
 }
 
-// SetCodeValidFrom sets the "codeValidFrom" field.
-func (u *SessionUpsert) SetCodeValidFrom(v time.Time) *SessionUpsert {
-	u.Set(session.FieldCodeValidFrom, v)
+// SetValidFrom sets the "validFrom" field.
+func (u *SessionUpsert) SetValidFrom(v time.Time) *SessionUpsert {
+	u.Set(session.FieldValidFrom, v)
 	return u
 }
 
-// UpdateCodeValidFrom sets the "codeValidFrom" field to the value that was provided on create.
-func (u *SessionUpsert) UpdateCodeValidFrom() *SessionUpsert {
-	u.SetExcluded(session.FieldCodeValidFrom)
+// UpdateValidFrom sets the "validFrom" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateValidFrom() *SessionUpsert {
+	u.SetExcluded(session.FieldValidFrom)
+	return u
+}
+
+// SetValidUntil sets the "validUntil" field.
+func (u *SessionUpsert) SetValidUntil(v time.Time) *SessionUpsert {
+	u.Set(session.FieldValidUntil, v)
+	return u
+}
+
+// UpdateValidUntil sets the "validUntil" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateValidUntil() *SessionUpsert {
+	u.SetExcluded(session.FieldValidUntil)
 	return u
 }
 
@@ -387,17 +412,31 @@ func (u *SessionUpsertOne) UpdateCode() *SessionUpsertOne {
 	})
 }
 
-// SetCodeValidFrom sets the "codeValidFrom" field.
-func (u *SessionUpsertOne) SetCodeValidFrom(v time.Time) *SessionUpsertOne {
+// SetValidFrom sets the "validFrom" field.
+func (u *SessionUpsertOne) SetValidFrom(v time.Time) *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
-		s.SetCodeValidFrom(v)
+		s.SetValidFrom(v)
 	})
 }
 
-// UpdateCodeValidFrom sets the "codeValidFrom" field to the value that was provided on create.
-func (u *SessionUpsertOne) UpdateCodeValidFrom() *SessionUpsertOne {
+// UpdateValidFrom sets the "validFrom" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateValidFrom() *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
-		s.UpdateCodeValidFrom()
+		s.UpdateValidFrom()
+	})
+}
+
+// SetValidUntil sets the "validUntil" field.
+func (u *SessionUpsertOne) SetValidUntil(v time.Time) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetValidUntil(v)
+	})
+}
+
+// UpdateValidUntil sets the "validUntil" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateValidUntil() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateValidUntil()
 	})
 }
 
@@ -661,17 +700,31 @@ func (u *SessionUpsertBulk) UpdateCode() *SessionUpsertBulk {
 	})
 }
 
-// SetCodeValidFrom sets the "codeValidFrom" field.
-func (u *SessionUpsertBulk) SetCodeValidFrom(v time.Time) *SessionUpsertBulk {
+// SetValidFrom sets the "validFrom" field.
+func (u *SessionUpsertBulk) SetValidFrom(v time.Time) *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
-		s.SetCodeValidFrom(v)
+		s.SetValidFrom(v)
 	})
 }
 
-// UpdateCodeValidFrom sets the "codeValidFrom" field to the value that was provided on create.
-func (u *SessionUpsertBulk) UpdateCodeValidFrom() *SessionUpsertBulk {
+// UpdateValidFrom sets the "validFrom" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateValidFrom() *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
-		s.UpdateCodeValidFrom()
+		s.UpdateValidFrom()
+	})
+}
+
+// SetValidUntil sets the "validUntil" field.
+func (u *SessionUpsertBulk) SetValidUntil(v time.Time) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetValidUntil(v)
+	})
+}
+
+// UpdateValidUntil sets the "validUntil" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateValidUntil() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateValidUntil()
 	})
 }
 

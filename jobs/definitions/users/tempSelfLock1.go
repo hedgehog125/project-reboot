@@ -46,13 +46,20 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 
 				_, _, commErr := app.Messengers.SendUsingAll(
 					&common.Message{
-						Type:  common.MessageSelfLock,
-						User:  userOb,
-						Until: body.Until,
+						Type: common.MessageSelfLock,
+						User: userOb,
+						Time: body.Until,
 					},
 					ctx,
 				)
-				return commErr.StandardError()
+				if commErr != nil {
+					return commErr
+				}
+				jobCtx.Logger.Info(
+					"user has successfully self-locked",
+					"userID", userOb.ID,
+				)
+				return nil
 			})
 		},
 	}

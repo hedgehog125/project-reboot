@@ -86,6 +86,7 @@ func (err *Error) SetCommonError(commErr *common.Error) *Error {
 	copiedErr.CommonError = commErr
 	return copiedErr
 }
+
 func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) *Error {
 	return err.SetCommonError(err.CommonError.ConfigureRetries(
 		maxRetries, baseBackoff, backoffMultiplier,
