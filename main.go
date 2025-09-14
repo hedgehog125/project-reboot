@@ -59,10 +59,11 @@ func main() {
 		messengerService := services.NewMessengers(app)
 		app.Messengers = messengerService
 		app.Jobs = services.NewJobs(app, messengerService.RegisterJobs)
+		// TODO: check for stalled jobs and mark them as failed before the scheduler starts
 	}
 	app.Server = services.NewServer(app)
 
-	app.Scheduler.Start()
+	app.Scheduler.Start() // Note: initialises some state, e.g the rotating admin code
 	app.Server.Start()
 	app.Jobs.Start()
 

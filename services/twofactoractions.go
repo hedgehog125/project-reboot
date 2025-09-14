@@ -26,22 +26,22 @@ func (service *TwoFactorActions) Create(
 	expiresAt time.Time,
 	body any,
 	ctx context.Context,
-) (uuid.UUID, string, *common.Error) {
+) (*ent.TwoFactorAction, string, *common.Error) {
 	encoded, commErr := service.app.Jobs.Encode(
 		versionedType,
 		body,
 	)
 	if commErr != nil {
-		return uuid.UUID{}, "", twofactoractions.ErrWrapperCreate.Wrap(commErr)
+		return nil, "", twofactoractions.ErrWrapperCreate.Wrap(commErr)
 	}
 	jobType, version, commErr := common.ParseVersionedType(versionedType)
 	if commErr != nil { // This shouldn't happen because of the Encode call but just in case
-		return uuid.UUID{}, "", twofactoractions.ErrWrapperCreate.Wrap(commErr)
+		return nil, "", twofactoractions.ErrWrapperCreate.Wrap(commErr)
 	}
 
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
-		return uuid.UUID{}, "", twofactoractions.ErrWrapperCreate.Wrap(
+		return nil, "", twofactoractions.ErrWrapperCreate.Wrap(
 			twofactoractions.ErrNoTxInContext,
 		)
 	}
@@ -53,55 +53,55 @@ func (service *TwoFactorActions) Create(
 		SetExpiresAt(expiresAt).
 		SetCode(code).Save(ctx)
 	if err != nil {
-		return uuid.UUID{}, code, twofactoractions.ErrWrapperCreate.Wrap(
+		return nil, code, twofactoractions.ErrWrapperCreate.Wrap(
 			twofactoractions.ErrWrapperDatabase.Wrap(err),
 		)
 	}
 
-	return action.ID, code, nil
+	return action, code, nil
 }
 func (service *TwoFactorActions) Confirm(
 	actionID uuid.UUID, code string,
 	ctx context.Context,
-) (uuid.UUID, *common.Error) {
+) (*ent.Job, *common.Error) {
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
-		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+		return nil, twofactoractions.ErrWrapperConfirm.Wrap(
 			twofactoractions.ErrNoTxInContext,
 		)
 	}
 	action, stdErr := tx.TwoFactorAction.Get(ctx, actionID)
 	if stdErr != nil {
-		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+		return nil, twofactoractions.ErrWrapperConfirm.Wrap(
 			twofactoractions.ErrNotFound,
 		)
 	}
 	if subtle.ConstantTimeCompare([]byte(code), []byte(action.Code)) == 0 {
-		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+		return nil, twofactoractions.ErrWrapperConfirm.Wrap(
 			twofactoractions.ErrWrongCode,
 		)
 	}
 
 	stdErr = tx.TwoFactorAction.DeleteOne(action).Exec(ctx)
 	if stdErr != nil {
-		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+		return nil, twofactoractions.ErrWrapperConfirm.Wrap(
 			twofactoractions.ErrWrapperDatabase.Wrap(stdErr),
 		)
 	}
 
 	if action.ExpiresAt.Before(service.app.Clock.Now()) {
-		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(
+		return nil, twofactoractions.ErrWrapperConfirm.Wrap(
 			twofactoractions.ErrExpired,
 		)
 	}
 
-	jobID, commErr := service.app.Jobs.EnqueueEncoded(
+	job, commErr := service.app.Jobs.EnqueueEncoded(
 		common.GetVersionedType(action.Type, action.Version),
 		action.Body,
 		ctx,
 	)
 	if commErr != nil {
-		return uuid.UUID{}, twofactoractions.ErrWrapperConfirm.Wrap(commErr)
+		return nil, twofactoractions.ErrWrapperConfirm.Wrap(commErr)
 	}
-	return jobID, nil
+	return job, nil
 }

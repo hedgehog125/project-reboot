@@ -159,12 +159,24 @@ type JobService interface {
 		versionedType string,
 		body any,
 		ctx context.Context,
-	) (uuid.UUID, *Error)
+	) (*ent.Job, *Error)
 	EnqueueEncoded(
 		versionedType string,
 		encodedBody json.RawMessage,
 		ctx context.Context,
-	) (uuid.UUID, *Error)
+	) (*ent.Job, *Error)
+	EnqueueWithModifier(
+		versionedType string,
+		body any,
+		modifications func(*ent.JobCreate) *ent.JobCreate,
+		ctx context.Context,
+	) (*ent.Job, *Error)
+	EnqueueEncodedWithModifier(
+		versionedType string,
+		encodedBody json.RawMessage,
+		modifications func(*ent.JobCreate) *ent.JobCreate,
+		ctx context.Context,
+	) (*ent.Job, *Error)
 	WaitForJobs()
 	Encode(versionedType string, body any) (json.RawMessage, *Error)
 }
@@ -174,8 +186,8 @@ type TwoFactorActionService interface {
 		expiresAt time.Time,
 		body any,
 		ctx context.Context,
-	) (uuid.UUID, string, *Error)
-	Confirm(actionID uuid.UUID, code string, ctx context.Context) (uuid.UUID, *Error)
+	) (*ent.TwoFactorAction, string, *Error)
+	Confirm(actionID uuid.UUID, code string, ctx context.Context) (*ent.Job, *Error)
 }
 
 type SchedulerService interface {

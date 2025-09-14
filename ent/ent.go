@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
+	"github.com/hedgehog125/project-reboot/ent/periodicjob"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 	"github.com/hedgehog125/project-reboot/ent/user"
@@ -79,6 +80,7 @@ func checkColumn(t, c string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			job.Table:             job.ValidColumn,
 			logentry.Table:        logentry.ValidColumn,
+			periodicjob.Table:     periodicjob.ValidColumn,
 			session.Table:         session.ValidColumn,
 			twofactoraction.Table: twofactoraction.ValidColumn,
 			user.Table:            user.ValidColumn,

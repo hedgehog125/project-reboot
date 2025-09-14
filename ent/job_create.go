@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
+	"github.com/hedgehog125/project-reboot/ent/periodicjob"
 )
 
 // JobCreate is the builder for creating a Job entity.
@@ -167,6 +168,20 @@ func (_c *JobCreate) SetNillableLoggedStallWarning(v *bool) *JobCreate {
 	return _c
 }
 
+// SetPeriodicJobID sets the "periodicJobID" field.
+func (_c *JobCreate) SetPeriodicJobID(v int) *JobCreate {
+	_c.mutation.SetPeriodicJobID(v)
+	return _c
+}
+
+// SetNillablePeriodicJobID sets the "periodicJobID" field if the given value is not nil.
+func (_c *JobCreate) SetNillablePeriodicJobID(v *int) *JobCreate {
+	if v != nil {
+		_c.SetPeriodicJobID(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *JobCreate) SetID(v uuid.UUID) *JobCreate {
 	_c.mutation.SetID(v)
@@ -179,6 +194,11 @@ func (_c *JobCreate) SetNillableID(v *uuid.UUID) *JobCreate {
 		_c.SetID(*v)
 	}
 	return _c
+}
+
+// SetPeriodicJob sets the "periodicJob" edge to the PeriodicJob entity.
+func (_c *JobCreate) SetPeriodicJob(v *PeriodicJob) *JobCreate {
+	return _c.SetPeriodicJobID(v.ID)
 }
 
 // Mutation returns the JobMutation object of the builder.
@@ -385,6 +405,23 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LoggedStallWarning(); ok {
 		_spec.SetField(job.FieldLoggedStallWarning, field.TypeBool, value)
 		_node.LoggedStallWarning = value
+	}
+	if nodes := _c.mutation.PeriodicJobIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   job.PeriodicJobTable,
+			Columns: []string{job.PeriodicJobColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(periodicjob.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.PeriodicJobID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -627,6 +664,24 @@ func (u *JobUpsert) SetLoggedStallWarning(v bool) *JobUpsert {
 // UpdateLoggedStallWarning sets the "loggedStallWarning" field to the value that was provided on create.
 func (u *JobUpsert) UpdateLoggedStallWarning() *JobUpsert {
 	u.SetExcluded(job.FieldLoggedStallWarning)
+	return u
+}
+
+// SetPeriodicJobID sets the "periodicJobID" field.
+func (u *JobUpsert) SetPeriodicJobID(v int) *JobUpsert {
+	u.Set(job.FieldPeriodicJobID, v)
+	return u
+}
+
+// UpdatePeriodicJobID sets the "periodicJobID" field to the value that was provided on create.
+func (u *JobUpsert) UpdatePeriodicJobID() *JobUpsert {
+	u.SetExcluded(job.FieldPeriodicJobID)
+	return u
+}
+
+// ClearPeriodicJobID clears the value of the "periodicJobID" field.
+func (u *JobUpsert) ClearPeriodicJobID() *JobUpsert {
+	u.SetNull(job.FieldPeriodicJobID)
 	return u
 }
 
@@ -899,6 +954,27 @@ func (u *JobUpsertOne) SetLoggedStallWarning(v bool) *JobUpsertOne {
 func (u *JobUpsertOne) UpdateLoggedStallWarning() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateLoggedStallWarning()
+	})
+}
+
+// SetPeriodicJobID sets the "periodicJobID" field.
+func (u *JobUpsertOne) SetPeriodicJobID(v int) *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.SetPeriodicJobID(v)
+	})
+}
+
+// UpdatePeriodicJobID sets the "periodicJobID" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdatePeriodicJobID() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdatePeriodicJobID()
+	})
+}
+
+// ClearPeriodicJobID clears the value of the "periodicJobID" field.
+func (u *JobUpsertOne) ClearPeriodicJobID() *JobUpsertOne {
+	return u.Update(func(s *JobUpsert) {
+		s.ClearPeriodicJobID()
 	})
 }
 
@@ -1338,6 +1414,27 @@ func (u *JobUpsertBulk) SetLoggedStallWarning(v bool) *JobUpsertBulk {
 func (u *JobUpsertBulk) UpdateLoggedStallWarning() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
 		s.UpdateLoggedStallWarning()
+	})
+}
+
+// SetPeriodicJobID sets the "periodicJobID" field.
+func (u *JobUpsertBulk) SetPeriodicJobID(v int) *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.SetPeriodicJobID(v)
+	})
+}
+
+// UpdatePeriodicJobID sets the "periodicJobID" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdatePeriodicJobID() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.UpdatePeriodicJobID()
+	})
+}
+
+// ClearPeriodicJobID clears the value of the "periodicJobID" field.
+func (u *JobUpsertBulk) ClearPeriodicJobID() *JobUpsertBulk {
+	return u.Update(func(s *JobUpsert) {
+		s.ClearPeriodicJobID()
 	})
 }
 

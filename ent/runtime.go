@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
+	"github.com/hedgehog125/project-reboot/ent/periodicjob"
 	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -72,6 +73,26 @@ func init() {
 	logentryDescID := logentryFields[0].Descriptor()
 	// logentry.DefaultID holds the default value on creation for the id field.
 	logentry.DefaultID = logentryDescID.Default.(func() uuid.UUID)
+	periodicjobFields := schema.PeriodicJob{}.Fields()
+	_ = periodicjobFields
+	// periodicjobDescType is the schema descriptor for type field.
+	periodicjobDescType := periodicjobFields[0].Descriptor()
+	// periodicjob.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	periodicjob.TypeValidator = func() func(string) error {
+		validators := periodicjobDescType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(_type string) error {
+			for _, fn := range fns {
+				if err := fn(_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
 	// sessionDescTime is the schema descriptor for time field.

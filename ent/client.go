@@ -18,6 +18,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
+	"github.com/hedgehog125/project-reboot/ent/periodicjob"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 	"github.com/hedgehog125/project-reboot/ent/user"
@@ -32,6 +33,8 @@ type Client struct {
 	Job *JobClient
 	// LogEntry is the client for interacting with the LogEntry builders.
 	LogEntry *LogEntryClient
+	// PeriodicJob is the client for interacting with the PeriodicJob builders.
+	PeriodicJob *PeriodicJobClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// TwoFactorAction is the client for interacting with the TwoFactorAction builders.
@@ -51,6 +54,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Job = NewJobClient(c.config)
 	c.LogEntry = NewLogEntryClient(c.config)
+	c.PeriodicJob = NewPeriodicJobClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.TwoFactorAction = NewTwoFactorActionClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -148,6 +152,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:          cfg,
 		Job:             NewJobClient(cfg),
 		LogEntry:        NewLogEntryClient(cfg),
+		PeriodicJob:     NewPeriodicJobClient(cfg),
 		Session:         NewSessionClient(cfg),
 		TwoFactorAction: NewTwoFactorActionClient(cfg),
 		User:            NewUserClient(cfg),
@@ -172,6 +177,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:          cfg,
 		Job:             NewJobClient(cfg),
 		LogEntry:        NewLogEntryClient(cfg),
+		PeriodicJob:     NewPeriodicJobClient(cfg),
 		Session:         NewSessionClient(cfg),
 		TwoFactorAction: NewTwoFactorActionClient(cfg),
 		User:            NewUserClient(cfg),
@@ -203,21 +209,21 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Job.Use(hooks...)
-	c.LogEntry.Use(hooks...)
-	c.Session.Use(hooks...)
-	c.TwoFactorAction.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Job, c.LogEntry, c.PeriodicJob, c.Session, c.TwoFactorAction, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Job.Intercept(interceptors...)
-	c.LogEntry.Intercept(interceptors...)
-	c.Session.Intercept(interceptors...)
-	c.TwoFactorAction.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Job, c.LogEntry, c.PeriodicJob, c.Session, c.TwoFactorAction, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -227,6 +233,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Job.mutate(ctx, m)
 	case *LogEntryMutation:
 		return c.LogEntry.mutate(ctx, m)
+	case *PeriodicJobMutation:
+		return c.PeriodicJob.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
 	case *TwoFactorActionMutation:
@@ -344,6 +352,22 @@ func (c *JobClient) GetX(ctx context.Context, id uuid.UUID) *Job {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryPeriodicJob queries the periodicJob edge of a Job.
+func (c *JobClient) QueryPeriodicJob(_m *Job) *PeriodicJobQuery {
+	query := (&PeriodicJobClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(job.Table, job.FieldID, id),
+			sqlgraph.To(periodicjob.Table, periodicjob.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, job.PeriodicJobTable, job.PeriodicJobColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -517,6 +541,155 @@ func (c *LogEntryClient) mutate(ctx context.Context, m *LogEntryMutation) (Value
 		return (&LogEntryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown LogEntry mutation op: %q", m.Op())
+	}
+}
+
+// PeriodicJobClient is a client for the PeriodicJob schema.
+type PeriodicJobClient struct {
+	config
+}
+
+// NewPeriodicJobClient returns a client for the PeriodicJob from the given config.
+func NewPeriodicJobClient(c config) *PeriodicJobClient {
+	return &PeriodicJobClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `periodicjob.Hooks(f(g(h())))`.
+func (c *PeriodicJobClient) Use(hooks ...Hook) {
+	c.hooks.PeriodicJob = append(c.hooks.PeriodicJob, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `periodicjob.Intercept(f(g(h())))`.
+func (c *PeriodicJobClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PeriodicJob = append(c.inters.PeriodicJob, interceptors...)
+}
+
+// Create returns a builder for creating a PeriodicJob entity.
+func (c *PeriodicJobClient) Create() *PeriodicJobCreate {
+	mutation := newPeriodicJobMutation(c.config, OpCreate)
+	return &PeriodicJobCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PeriodicJob entities.
+func (c *PeriodicJobClient) CreateBulk(builders ...*PeriodicJobCreate) *PeriodicJobCreateBulk {
+	return &PeriodicJobCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PeriodicJobClient) MapCreateBulk(slice any, setFunc func(*PeriodicJobCreate, int)) *PeriodicJobCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PeriodicJobCreateBulk{err: fmt.Errorf("calling to PeriodicJobClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PeriodicJobCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PeriodicJobCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PeriodicJob.
+func (c *PeriodicJobClient) Update() *PeriodicJobUpdate {
+	mutation := newPeriodicJobMutation(c.config, OpUpdate)
+	return &PeriodicJobUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PeriodicJobClient) UpdateOne(_m *PeriodicJob) *PeriodicJobUpdateOne {
+	mutation := newPeriodicJobMutation(c.config, OpUpdateOne, withPeriodicJob(_m))
+	return &PeriodicJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PeriodicJobClient) UpdateOneID(id int) *PeriodicJobUpdateOne {
+	mutation := newPeriodicJobMutation(c.config, OpUpdateOne, withPeriodicJobID(id))
+	return &PeriodicJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PeriodicJob.
+func (c *PeriodicJobClient) Delete() *PeriodicJobDelete {
+	mutation := newPeriodicJobMutation(c.config, OpDelete)
+	return &PeriodicJobDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PeriodicJobClient) DeleteOne(_m *PeriodicJob) *PeriodicJobDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PeriodicJobClient) DeleteOneID(id int) *PeriodicJobDeleteOne {
+	builder := c.Delete().Where(periodicjob.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PeriodicJobDeleteOne{builder}
+}
+
+// Query returns a query builder for PeriodicJob.
+func (c *PeriodicJobClient) Query() *PeriodicJobQuery {
+	return &PeriodicJobQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePeriodicJob},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PeriodicJob entity by its id.
+func (c *PeriodicJobClient) Get(ctx context.Context, id int) (*PeriodicJob, error) {
+	return c.Query().Where(periodicjob.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PeriodicJobClient) GetX(ctx context.Context, id int) *PeriodicJob {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryJobs queries the jobs edge of a PeriodicJob.
+func (c *PeriodicJobClient) QueryJobs(_m *PeriodicJob) *JobQuery {
+	query := (&JobClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(periodicjob.Table, periodicjob.FieldID, id),
+			sqlgraph.To(job.Table, job.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, periodicjob.JobsTable, periodicjob.JobsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PeriodicJobClient) Hooks() []Hook {
+	return c.hooks.PeriodicJob
+}
+
+// Interceptors returns the client interceptors.
+func (c *PeriodicJobClient) Interceptors() []Interceptor {
+	return c.inters.PeriodicJob
+}
+
+func (c *PeriodicJobClient) mutate(ctx context.Context, m *PeriodicJobMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PeriodicJobCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PeriodicJobUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PeriodicJobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PeriodicJobDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PeriodicJob mutation op: %q", m.Op())
 	}
 }
 
@@ -970,9 +1143,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Job, LogEntry, Session, TwoFactorAction, User []ent.Hook
+		Job, LogEntry, PeriodicJob, Session, TwoFactorAction, User []ent.Hook
 	}
 	inters struct {
-		Job, LogEntry, Session, TwoFactorAction, User []ent.Interceptor
+		Job, LogEntry, PeriodicJob, Session, TwoFactorAction, User []ent.Interceptor
 	}
 )

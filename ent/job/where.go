@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 )
@@ -108,6 +109,11 @@ func RetriedFraction(v float64) predicate.Job {
 // LoggedStallWarning applies equality check predicate on the "loggedStallWarning" field. It's identical to LoggedStallWarningEQ.
 func LoggedStallWarning(v bool) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldLoggedStallWarning, v))
+}
+
+// PeriodicJobID applies equality check predicate on the "periodicJobID" field. It's identical to PeriodicJobIDEQ.
+func PeriodicJobID(v int) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldPeriodicJobID, v))
 }
 
 // CreatedEQ applies the EQ predicate on the "created" field.
@@ -573,6 +579,59 @@ func LoggedStallWarningEQ(v bool) predicate.Job {
 // LoggedStallWarningNEQ applies the NEQ predicate on the "loggedStallWarning" field.
 func LoggedStallWarningNEQ(v bool) predicate.Job {
 	return predicate.Job(sql.FieldNEQ(FieldLoggedStallWarning, v))
+}
+
+// PeriodicJobIDEQ applies the EQ predicate on the "periodicJobID" field.
+func PeriodicJobIDEQ(v int) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldPeriodicJobID, v))
+}
+
+// PeriodicJobIDNEQ applies the NEQ predicate on the "periodicJobID" field.
+func PeriodicJobIDNEQ(v int) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldPeriodicJobID, v))
+}
+
+// PeriodicJobIDIn applies the In predicate on the "periodicJobID" field.
+func PeriodicJobIDIn(vs ...int) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldPeriodicJobID, vs...))
+}
+
+// PeriodicJobIDNotIn applies the NotIn predicate on the "periodicJobID" field.
+func PeriodicJobIDNotIn(vs ...int) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldPeriodicJobID, vs...))
+}
+
+// PeriodicJobIDIsNil applies the IsNil predicate on the "periodicJobID" field.
+func PeriodicJobIDIsNil() predicate.Job {
+	return predicate.Job(sql.FieldIsNull(FieldPeriodicJobID))
+}
+
+// PeriodicJobIDNotNil applies the NotNil predicate on the "periodicJobID" field.
+func PeriodicJobIDNotNil() predicate.Job {
+	return predicate.Job(sql.FieldNotNull(FieldPeriodicJobID))
+}
+
+// HasPeriodicJob applies the HasEdge predicate on the "periodicJob" edge.
+func HasPeriodicJob() predicate.Job {
+	return predicate.Job(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, PeriodicJobTable, PeriodicJobColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPeriodicJobWith applies the HasEdge predicate on the "periodicJob" edge with a given conditions (other predicates).
+func HasPeriodicJobWith(preds ...predicate.PeriodicJob) predicate.Job {
+	return predicate.Job(func(s *sql.Selector) {
+		step := newPeriodicJobStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/hedgehog125/project-reboot/ent/job"
+	"github.com/hedgehog125/project-reboot/ent/periodicjob"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 )
 
@@ -251,9 +252,40 @@ func (_u *JobUpdate) SetNillableLoggedStallWarning(v *bool) *JobUpdate {
 	return _u
 }
 
+// SetPeriodicJobID sets the "periodicJobID" field.
+func (_u *JobUpdate) SetPeriodicJobID(v int) *JobUpdate {
+	_u.mutation.SetPeriodicJobID(v)
+	return _u
+}
+
+// SetNillablePeriodicJobID sets the "periodicJobID" field if the given value is not nil.
+func (_u *JobUpdate) SetNillablePeriodicJobID(v *int) *JobUpdate {
+	if v != nil {
+		_u.SetPeriodicJobID(*v)
+	}
+	return _u
+}
+
+// ClearPeriodicJobID clears the value of the "periodicJobID" field.
+func (_u *JobUpdate) ClearPeriodicJobID() *JobUpdate {
+	_u.mutation.ClearPeriodicJobID()
+	return _u
+}
+
+// SetPeriodicJob sets the "periodicJob" edge to the PeriodicJob entity.
+func (_u *JobUpdate) SetPeriodicJob(v *PeriodicJob) *JobUpdate {
+	return _u.SetPeriodicJobID(v.ID)
+}
+
 // Mutation returns the JobMutation object of the builder.
 func (_u *JobUpdate) Mutation() *JobMutation {
 	return _u.mutation
+}
+
+// ClearPeriodicJob clears the "periodicJob" edge to the PeriodicJob entity.
+func (_u *JobUpdate) ClearPeriodicJob() *JobUpdate {
+	_u.mutation.ClearPeriodicJob()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -371,6 +403,35 @@ func (_u *JobUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.LoggedStallWarning(); ok {
 		_spec.SetField(job.FieldLoggedStallWarning, field.TypeBool, value)
+	}
+	if _u.mutation.PeriodicJobCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   job.PeriodicJobTable,
+			Columns: []string{job.PeriodicJobColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(periodicjob.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PeriodicJobIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   job.PeriodicJobTable,
+			Columns: []string{job.PeriodicJobColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(periodicjob.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -613,9 +674,40 @@ func (_u *JobUpdateOne) SetNillableLoggedStallWarning(v *bool) *JobUpdateOne {
 	return _u
 }
 
+// SetPeriodicJobID sets the "periodicJobID" field.
+func (_u *JobUpdateOne) SetPeriodicJobID(v int) *JobUpdateOne {
+	_u.mutation.SetPeriodicJobID(v)
+	return _u
+}
+
+// SetNillablePeriodicJobID sets the "periodicJobID" field if the given value is not nil.
+func (_u *JobUpdateOne) SetNillablePeriodicJobID(v *int) *JobUpdateOne {
+	if v != nil {
+		_u.SetPeriodicJobID(*v)
+	}
+	return _u
+}
+
+// ClearPeriodicJobID clears the value of the "periodicJobID" field.
+func (_u *JobUpdateOne) ClearPeriodicJobID() *JobUpdateOne {
+	_u.mutation.ClearPeriodicJobID()
+	return _u
+}
+
+// SetPeriodicJob sets the "periodicJob" edge to the PeriodicJob entity.
+func (_u *JobUpdateOne) SetPeriodicJob(v *PeriodicJob) *JobUpdateOne {
+	return _u.SetPeriodicJobID(v.ID)
+}
+
 // Mutation returns the JobMutation object of the builder.
 func (_u *JobUpdateOne) Mutation() *JobMutation {
 	return _u.mutation
+}
+
+// ClearPeriodicJob clears the "periodicJob" edge to the PeriodicJob entity.
+func (_u *JobUpdateOne) ClearPeriodicJob() *JobUpdateOne {
+	_u.mutation.ClearPeriodicJob()
+	return _u
 }
 
 // Where appends a list predicates to the JobUpdate builder.
@@ -763,6 +855,35 @@ func (_u *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	}
 	if value, ok := _u.mutation.LoggedStallWarning(); ok {
 		_spec.SetField(job.FieldLoggedStallWarning, field.TypeBool, value)
+	}
+	if _u.mutation.PeriodicJobCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   job.PeriodicJobTable,
+			Columns: []string{job.PeriodicJobColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(periodicjob.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PeriodicJobIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   job.PeriodicJobTable,
+			Columns: []string{job.PeriodicJobColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(periodicjob.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Job{config: _u.config}
 	_spec.Assign = _node.assignValues

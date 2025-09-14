@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
@@ -304,9 +303,8 @@ func (engine *Engine) Shutdown() {
 	// TODO: timeout?
 	// TODO: what if it's not running?
 	engine.App.Logger.Info("requesting job engine shutdown")
-	// TODO: this panics if the engine has to shut itself down due to an error
 	engine.requestShutdownChan <- struct{}{}
-	engine.App.Logger.Info("waiting for job engine to finish jobs")
+	engine.App.Logger.Info("waiting for job engine to finish jobs...")
 	<-engine.shutdownFinishedChan
 	engine.App.Logger.Info("job engine stopped")
 }
@@ -315,50 +313,69 @@ func (engine *Engine) Enqueue(
 	versionedType string,
 	body any,
 	ctx context.Context,
-) (uuid.UUID, *common.Error) {
+) (*ent.Job, *common.Error) {
+	return engine.EnqueueWithModifier(versionedType, body, nil, ctx)
+}
+func (engine *Engine) EnqueueEncoded(
+	versionedType string,
+	encodedBody json.RawMessage,
+	ctx context.Context,
+) (*ent.Job, *common.Error) {
+	return engine.EnqueueEncodedWithModifier(versionedType, encodedBody, nil, ctx)
+}
+
+func (engine *Engine) EnqueueWithModifier(
+	versionedType string,
+	body any,
+	modifier func(*ent.JobCreate) *ent.JobCreate,
+	ctx context.Context,
+) (*ent.Job, *common.Error) {
 	_, ok := engine.Registry.jobs[versionedType]
 	if !ok {
-		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrUnknownJobType)
+		return nil, ErrWrapperEnqueue.Wrap(ErrUnknownJobType)
 	}
 	encoded, commErr := engine.Registry.Encode(
 		versionedType,
 		body,
 	)
 	if commErr != nil {
-		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(commErr)
+		return nil, ErrWrapperEnqueue.Wrap(commErr)
 	}
 
-	return engine.EnqueueEncoded(versionedType, encoded, ctx)
+	return engine.EnqueueEncodedWithModifier(versionedType, encoded, modifier, ctx)
 }
-
-func (engine *Engine) EnqueueEncoded(
+func (engine *Engine) EnqueueEncodedWithModifier(
 	versionedType string,
 	encodedBody json.RawMessage,
+	modifier func(*ent.JobCreate) *ent.JobCreate,
 	ctx context.Context,
-) (uuid.UUID, *common.Error) {
+) (*ent.Job, *common.Error) {
 	jobDefinition, ok := engine.Registry.jobs[versionedType]
 	if !ok {
-		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrUnknownJobType)
+		return nil, ErrWrapperEnqueue.Wrap(ErrUnknownJobType)
 	}
 
 	jobType, version, commErr := common.ParseVersionedType(versionedType)
 	if commErr != nil { // This shouldn't happen because of the Encode call but just in case
-		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(commErr)
+		return nil, ErrWrapperEnqueue.Wrap(commErr)
 	}
 
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
-		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrNoTxInContext)
+		return nil, ErrWrapperEnqueue.Wrap(ErrNoTxInContext)
 	}
-	job, stdErr := tx.Job.Create().
+	jobCreate := tx.Job.Create().
 		SetType(jobType).
 		SetVersion(version).
 		SetPriority(jobDefinition.Priority).
 		SetWeight(jobDefinition.Weight).
-		SetBody(encodedBody).
-		Save(ctx)
+		SetBody(encodedBody)
+	if modifier != nil {
+		jobCreate = modifier(jobCreate)
+	}
+	job, stdErr := jobCreate.Save(ctx)
 	if stdErr != nil {
-		return uuid.UUID{}, ErrWrapperEnqueue.Wrap(ErrWrapperDatabase.Wrap(stdErr))
+		return nil, ErrWrapperEnqueue.Wrap(ErrWrapperDatabase.Wrap(stdErr))
 	}
 
 	// Otherwise the engine will look for the job before it's committed
@@ -378,5 +395,5 @@ func (engine *Engine) EnqueueEncoded(
 			},
 		)
 	})
-	return job.ID, nil
+	return job, nil
 }

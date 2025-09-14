@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
+	"github.com/hedgehog125/project-reboot/ent/periodicjob"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -32,6 +33,7 @@ const (
 	// Node types.
 	TypeJob             = "Job"
 	TypeLogEntry        = "LogEntry"
+	TypePeriodicJob     = "PeriodicJob"
 	TypeSession         = "Session"
 	TypeTwoFactorAction = "TwoFactorAction"
 	TypeUser            = "User"
@@ -63,6 +65,8 @@ type JobMutation struct {
 	addretriedFraction *float64
 	loggedStallWarning *bool
 	clearedFields      map[string]struct{}
+	periodicJob        *int
+	clearedperiodicJob bool
 	done               bool
 	oldValue           func(context.Context) (*Job, error)
 	predicates         []predicate.Job
@@ -768,6 +772,82 @@ func (m *JobMutation) ResetLoggedStallWarning() {
 	m.loggedStallWarning = nil
 }
 
+// SetPeriodicJobID sets the "periodicJobID" field.
+func (m *JobMutation) SetPeriodicJobID(i int) {
+	m.periodicJob = &i
+}
+
+// PeriodicJobID returns the value of the "periodicJobID" field in the mutation.
+func (m *JobMutation) PeriodicJobID() (r int, exists bool) {
+	v := m.periodicJob
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPeriodicJobID returns the old "periodicJobID" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldPeriodicJobID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPeriodicJobID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPeriodicJobID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPeriodicJobID: %w", err)
+	}
+	return oldValue.PeriodicJobID, nil
+}
+
+// ClearPeriodicJobID clears the value of the "periodicJobID" field.
+func (m *JobMutation) ClearPeriodicJobID() {
+	m.periodicJob = nil
+	m.clearedFields[job.FieldPeriodicJobID] = struct{}{}
+}
+
+// PeriodicJobIDCleared returns if the "periodicJobID" field was cleared in this mutation.
+func (m *JobMutation) PeriodicJobIDCleared() bool {
+	_, ok := m.clearedFields[job.FieldPeriodicJobID]
+	return ok
+}
+
+// ResetPeriodicJobID resets all changes to the "periodicJobID" field.
+func (m *JobMutation) ResetPeriodicJobID() {
+	m.periodicJob = nil
+	delete(m.clearedFields, job.FieldPeriodicJobID)
+}
+
+// ClearPeriodicJob clears the "periodicJob" edge to the PeriodicJob entity.
+func (m *JobMutation) ClearPeriodicJob() {
+	m.clearedperiodicJob = true
+	m.clearedFields[job.FieldPeriodicJobID] = struct{}{}
+}
+
+// PeriodicJobCleared reports if the "periodicJob" edge to the PeriodicJob entity was cleared.
+func (m *JobMutation) PeriodicJobCleared() bool {
+	return m.PeriodicJobIDCleared() || m.clearedperiodicJob
+}
+
+// PeriodicJobIDs returns the "periodicJob" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PeriodicJobID instead. It exists only for internal usage by the builders.
+func (m *JobMutation) PeriodicJobIDs() (ids []int) {
+	if id := m.periodicJob; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPeriodicJob resets all changes to the "periodicJob" edge.
+func (m *JobMutation) ResetPeriodicJob() {
+	m.periodicJob = nil
+	m.clearedperiodicJob = false
+}
+
 // Where appends a list predicates to the JobMutation builder.
 func (m *JobMutation) Where(ps ...predicate.Job) {
 	m.predicates = append(m.predicates, ps...)
@@ -802,7 +882,7 @@ func (m *JobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *JobMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created != nil {
 		fields = append(fields, job.FieldCreated)
 	}
@@ -842,6 +922,9 @@ func (m *JobMutation) Fields() []string {
 	if m.loggedStallWarning != nil {
 		fields = append(fields, job.FieldLoggedStallWarning)
 	}
+	if m.periodicJob != nil {
+		fields = append(fields, job.FieldPeriodicJobID)
+	}
 	return fields
 }
 
@@ -876,6 +959,8 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.RetriedFraction()
 	case job.FieldLoggedStallWarning:
 		return m.LoggedStallWarning()
+	case job.FieldPeriodicJobID:
+		return m.PeriodicJobID()
 	}
 	return nil, false
 }
@@ -911,6 +996,8 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldRetriedFraction(ctx)
 	case job.FieldLoggedStallWarning:
 		return m.OldLoggedStallWarning(ctx)
+	case job.FieldPeriodicJobID:
+		return m.OldPeriodicJobID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Job field %s", name)
 }
@@ -1011,6 +1098,13 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLoggedStallWarning(v)
 		return nil
+	case job.FieldPeriodicJobID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPeriodicJobID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Job field %s", name)
 }
@@ -1107,6 +1201,9 @@ func (m *JobMutation) ClearedFields() []string {
 	if m.FieldCleared(job.FieldStarted) {
 		fields = append(fields, job.FieldStarted)
 	}
+	if m.FieldCleared(job.FieldPeriodicJobID) {
+		fields = append(fields, job.FieldPeriodicJobID)
+	}
 	return fields
 }
 
@@ -1123,6 +1220,9 @@ func (m *JobMutation) ClearField(name string) error {
 	switch name {
 	case job.FieldStarted:
 		m.ClearStarted()
+		return nil
+	case job.FieldPeriodicJobID:
+		m.ClearPeriodicJobID()
 		return nil
 	}
 	return fmt.Errorf("unknown Job nullable field %s", name)
@@ -1171,25 +1271,37 @@ func (m *JobMutation) ResetField(name string) error {
 	case job.FieldLoggedStallWarning:
 		m.ResetLoggedStallWarning()
 		return nil
+	case job.FieldPeriodicJobID:
+		m.ResetPeriodicJobID()
+		return nil
 	}
 	return fmt.Errorf("unknown Job field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *JobMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.periodicJob != nil {
+		edges = append(edges, job.EdgePeriodicJob)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *JobMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case job.EdgePeriodicJob:
+		if id := m.periodicJob; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *JobMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -1201,25 +1313,42 @@ func (m *JobMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *JobMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedperiodicJob {
+		edges = append(edges, job.EdgePeriodicJob)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *JobMutation) EdgeCleared(name string) bool {
+	switch name {
+	case job.EdgePeriodicJob:
+		return m.clearedperiodicJob
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *JobMutation) ClearEdge(name string) error {
+	switch name {
+	case job.EdgePeriodicJob:
+		m.ClearPeriodicJob()
+		return nil
+	}
 	return fmt.Errorf("unknown Job unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *JobMutation) ResetEdge(name string) error {
+	switch name {
+	case job.EdgePeriodicJob:
+		m.ResetPeriodicJob()
+		return nil
+	}
 	return fmt.Errorf("unknown Job edge %s", name)
 }
 
@@ -2184,6 +2313,591 @@ func (m *LogEntryMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown LogEntry edge %s", name)
+}
+
+// PeriodicJobMutation represents an operation that mutates the PeriodicJob nodes in the graph.
+type PeriodicJobMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *int
+	_type               *string
+	version             *int
+	addversion          *int
+	lastScheduledNewJob *time.Time
+	clearedFields       map[string]struct{}
+	jobs                map[uuid.UUID]struct{}
+	removedjobs         map[uuid.UUID]struct{}
+	clearedjobs         bool
+	done                bool
+	oldValue            func(context.Context) (*PeriodicJob, error)
+	predicates          []predicate.PeriodicJob
+}
+
+var _ ent.Mutation = (*PeriodicJobMutation)(nil)
+
+// periodicjobOption allows management of the mutation configuration using functional options.
+type periodicjobOption func(*PeriodicJobMutation)
+
+// newPeriodicJobMutation creates new mutation for the PeriodicJob entity.
+func newPeriodicJobMutation(c config, op Op, opts ...periodicjobOption) *PeriodicJobMutation {
+	m := &PeriodicJobMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePeriodicJob,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPeriodicJobID sets the ID field of the mutation.
+func withPeriodicJobID(id int) periodicjobOption {
+	return func(m *PeriodicJobMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PeriodicJob
+		)
+		m.oldValue = func(ctx context.Context) (*PeriodicJob, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PeriodicJob.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPeriodicJob sets the old PeriodicJob of the mutation.
+func withPeriodicJob(node *PeriodicJob) periodicjobOption {
+	return func(m *PeriodicJobMutation) {
+		m.oldValue = func(context.Context) (*PeriodicJob, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PeriodicJobMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PeriodicJobMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PeriodicJobMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PeriodicJobMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PeriodicJob.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetType sets the "type" field.
+func (m *PeriodicJobMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *PeriodicJobMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the PeriodicJob entity.
+// If the PeriodicJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodicJobMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *PeriodicJobMutation) ResetType() {
+	m._type = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *PeriodicJobMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *PeriodicJobMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the PeriodicJob entity.
+// If the PeriodicJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodicJobMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *PeriodicJobMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *PeriodicJobMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *PeriodicJobMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetLastScheduledNewJob sets the "lastScheduledNewJob" field.
+func (m *PeriodicJobMutation) SetLastScheduledNewJob(t time.Time) {
+	m.lastScheduledNewJob = &t
+}
+
+// LastScheduledNewJob returns the value of the "lastScheduledNewJob" field in the mutation.
+func (m *PeriodicJobMutation) LastScheduledNewJob() (r time.Time, exists bool) {
+	v := m.lastScheduledNewJob
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastScheduledNewJob returns the old "lastScheduledNewJob" field's value of the PeriodicJob entity.
+// If the PeriodicJob object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PeriodicJobMutation) OldLastScheduledNewJob(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastScheduledNewJob is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastScheduledNewJob requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastScheduledNewJob: %w", err)
+	}
+	return oldValue.LastScheduledNewJob, nil
+}
+
+// ClearLastScheduledNewJob clears the value of the "lastScheduledNewJob" field.
+func (m *PeriodicJobMutation) ClearLastScheduledNewJob() {
+	m.lastScheduledNewJob = nil
+	m.clearedFields[periodicjob.FieldLastScheduledNewJob] = struct{}{}
+}
+
+// LastScheduledNewJobCleared returns if the "lastScheduledNewJob" field was cleared in this mutation.
+func (m *PeriodicJobMutation) LastScheduledNewJobCleared() bool {
+	_, ok := m.clearedFields[periodicjob.FieldLastScheduledNewJob]
+	return ok
+}
+
+// ResetLastScheduledNewJob resets all changes to the "lastScheduledNewJob" field.
+func (m *PeriodicJobMutation) ResetLastScheduledNewJob() {
+	m.lastScheduledNewJob = nil
+	delete(m.clearedFields, periodicjob.FieldLastScheduledNewJob)
+}
+
+// AddJobIDs adds the "jobs" edge to the Job entity by ids.
+func (m *PeriodicJobMutation) AddJobIDs(ids ...uuid.UUID) {
+	if m.jobs == nil {
+		m.jobs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.jobs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearJobs clears the "jobs" edge to the Job entity.
+func (m *PeriodicJobMutation) ClearJobs() {
+	m.clearedjobs = true
+}
+
+// JobsCleared reports if the "jobs" edge to the Job entity was cleared.
+func (m *PeriodicJobMutation) JobsCleared() bool {
+	return m.clearedjobs
+}
+
+// RemoveJobIDs removes the "jobs" edge to the Job entity by IDs.
+func (m *PeriodicJobMutation) RemoveJobIDs(ids ...uuid.UUID) {
+	if m.removedjobs == nil {
+		m.removedjobs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.jobs, ids[i])
+		m.removedjobs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedJobs returns the removed IDs of the "jobs" edge to the Job entity.
+func (m *PeriodicJobMutation) RemovedJobsIDs() (ids []uuid.UUID) {
+	for id := range m.removedjobs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// JobsIDs returns the "jobs" edge IDs in the mutation.
+func (m *PeriodicJobMutation) JobsIDs() (ids []uuid.UUID) {
+	for id := range m.jobs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetJobs resets all changes to the "jobs" edge.
+func (m *PeriodicJobMutation) ResetJobs() {
+	m.jobs = nil
+	m.clearedjobs = false
+	m.removedjobs = nil
+}
+
+// Where appends a list predicates to the PeriodicJobMutation builder.
+func (m *PeriodicJobMutation) Where(ps ...predicate.PeriodicJob) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PeriodicJobMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PeriodicJobMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PeriodicJob, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PeriodicJobMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PeriodicJobMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PeriodicJob).
+func (m *PeriodicJobMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PeriodicJobMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m._type != nil {
+		fields = append(fields, periodicjob.FieldType)
+	}
+	if m.version != nil {
+		fields = append(fields, periodicjob.FieldVersion)
+	}
+	if m.lastScheduledNewJob != nil {
+		fields = append(fields, periodicjob.FieldLastScheduledNewJob)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PeriodicJobMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case periodicjob.FieldType:
+		return m.GetType()
+	case periodicjob.FieldVersion:
+		return m.Version()
+	case periodicjob.FieldLastScheduledNewJob:
+		return m.LastScheduledNewJob()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PeriodicJobMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case periodicjob.FieldType:
+		return m.OldType(ctx)
+	case periodicjob.FieldVersion:
+		return m.OldVersion(ctx)
+	case periodicjob.FieldLastScheduledNewJob:
+		return m.OldLastScheduledNewJob(ctx)
+	}
+	return nil, fmt.Errorf("unknown PeriodicJob field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PeriodicJobMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case periodicjob.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case periodicjob.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case periodicjob.FieldLastScheduledNewJob:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastScheduledNewJob(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PeriodicJob field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PeriodicJobMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, periodicjob.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PeriodicJobMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case periodicjob.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PeriodicJobMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case periodicjob.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PeriodicJob numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PeriodicJobMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(periodicjob.FieldLastScheduledNewJob) {
+		fields = append(fields, periodicjob.FieldLastScheduledNewJob)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PeriodicJobMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PeriodicJobMutation) ClearField(name string) error {
+	switch name {
+	case periodicjob.FieldLastScheduledNewJob:
+		m.ClearLastScheduledNewJob()
+		return nil
+	}
+	return fmt.Errorf("unknown PeriodicJob nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PeriodicJobMutation) ResetField(name string) error {
+	switch name {
+	case periodicjob.FieldType:
+		m.ResetType()
+		return nil
+	case periodicjob.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case periodicjob.FieldLastScheduledNewJob:
+		m.ResetLastScheduledNewJob()
+		return nil
+	}
+	return fmt.Errorf("unknown PeriodicJob field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PeriodicJobMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.jobs != nil {
+		edges = append(edges, periodicjob.EdgeJobs)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PeriodicJobMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case periodicjob.EdgeJobs:
+		ids := make([]ent.Value, 0, len(m.jobs))
+		for id := range m.jobs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PeriodicJobMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedjobs != nil {
+		edges = append(edges, periodicjob.EdgeJobs)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PeriodicJobMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case periodicjob.EdgeJobs:
+		ids := make([]ent.Value, 0, len(m.removedjobs))
+		for id := range m.removedjobs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PeriodicJobMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedjobs {
+		edges = append(edges, periodicjob.EdgeJobs)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PeriodicJobMutation) EdgeCleared(name string) bool {
+	switch name {
+	case periodicjob.EdgeJobs:
+		return m.clearedjobs
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PeriodicJobMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PeriodicJob unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PeriodicJobMutation) ResetEdge(name string) error {
+	switch name {
+	case periodicjob.EdgeJobs:
+		m.ResetJobs()
+		return nil
+	}
+	return fmt.Errorf("unknown PeriodicJob edge %s", name)
 }
 
 // SessionMutation represents an operation that mutates the Session nodes in the graph.

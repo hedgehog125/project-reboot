@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -41,8 +42,19 @@ const (
 	FieldRetriedFraction = "retried_fraction"
 	// FieldLoggedStallWarning holds the string denoting the loggedstallwarning field in the database.
 	FieldLoggedStallWarning = "logged_stall_warning"
+	// FieldPeriodicJobID holds the string denoting the periodicjobid field in the database.
+	FieldPeriodicJobID = "periodic_job_id"
+	// EdgePeriodicJob holds the string denoting the periodicjob edge name in mutations.
+	EdgePeriodicJob = "periodicJob"
 	// Table holds the table name of the job in the database.
 	Table = "jobs"
+	// PeriodicJobTable is the table that holds the periodicJob relation/edge.
+	PeriodicJobTable = "jobs"
+	// PeriodicJobInverseTable is the table name for the PeriodicJob entity.
+	// It exists in this package in order to avoid circular dependency with the "periodicjob" package.
+	PeriodicJobInverseTable = "periodic_jobs"
+	// PeriodicJobColumn is the table column denoting the periodicJob relation/edge.
+	PeriodicJobColumn = "periodic_job_id"
 )
 
 // Columns holds all SQL columns for job fields.
@@ -61,6 +73,7 @@ var Columns = []string{
 	FieldRetries,
 	FieldRetriedFraction,
 	FieldLoggedStallWarning,
+	FieldPeriodicJobID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -185,4 +198,23 @@ func ByRetriedFraction(opts ...sql.OrderTermOption) OrderOption {
 // ByLoggedStallWarning orders the results by the loggedStallWarning field.
 func ByLoggedStallWarning(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLoggedStallWarning, opts...).ToFunc()
+}
+
+// ByPeriodicJobID orders the results by the periodicJobID field.
+func ByPeriodicJobID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPeriodicJobID, opts...).ToFunc()
+}
+
+// ByPeriodicJobField orders the results by periodicJob field.
+func ByPeriodicJobField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPeriodicJobStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newPeriodicJobStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PeriodicJobInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PeriodicJobTable, PeriodicJobColumn),
+	)
 }
