@@ -18,6 +18,7 @@ func NewScheduler(app *common.App) *Scheduler {
 	engine.Register(func(app *common.App) {
 		core.UpdateAdminCode(app.State)
 	}, schedulers.FixedInterval(1*time.Hour))
+	engine.RegisterJob("invalid_job_1", schedulers.FixedInterval(10*time.Second), 1)
 
 	return &Scheduler{
 		Engine: engine,

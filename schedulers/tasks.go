@@ -120,13 +120,14 @@ func NewJobTask(versionedType string, delayFunc DelayFunc, maxConcurrentRuns int
 					if newPeriodicJobID == 0 {
 						app.Logger.Info(
 							"created new PeriodicJob as there wasn't one on startup",
-							"periodicJobID", newPeriodicJobID,
+							"periodicJobID", periodicJob.ID,
 							"jobType", versionedType,
 						)
 					} else {
 						app.Logger.Error(
 							"previously read PeriodicJob was not found when scheduling job, so created new periodic job",
-							"periodicJobID", newPeriodicJobID,
+							"periodicJobID", periodicJob.ID,
+							"previousPeriodicJobID", newPeriodicJobID,
 							"jobType", versionedType,
 						)
 					}
@@ -147,13 +148,18 @@ func NewJobTask(versionedType string, delayFunc DelayFunc, maxConcurrentRuns int
 				return commErr.StandardError()
 			},
 		)
-		if stdErr != nil {
+		if stdErr == nil {
+			periodicJobID = newPeriodicJobID
+			lastScheduled = newLastScheduled
+		} else {
 			app.Logger.Error(
 				"scheduler failed to enqueue job",
 				"error", stdErr, "jobType", versionedType,
 			)
+			// TODO: a delay of a millisecond (or maybe less?) is needed to prevent a deadlock on the database/jobs system
+			// Is that expected?
+			return 30 * time.Second
 		}
-		periodicJobID = newPeriodicJobID
 		return sleepTime
 	}
 
@@ -181,7 +187,7 @@ func NewJobTask(versionedType string, delayFunc DelayFunc, maxConcurrentRuns int
 			extraDelay := time.Duration(0)
 			for {
 				select {
-				case <-time.After(delayFunc(lastScheduled, engine.App) + extraDelay):
+				case <-time.After(max(delayFunc(lastScheduled, engine.App), 0) + extraDelay):
 				case <-engine.RequestShutdownChan:
 					return
 				}
