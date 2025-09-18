@@ -26,7 +26,10 @@ func CreateDB() *TestDatabase {
 	dbCounter.Mutex.Lock()
 	defer dbCounter.Mutex.Unlock()
 	dbCounter.Value++
-	db, stdErr := sql.Open("sqlite3", fmt.Sprintf("file:temp%v?mode=memory&cache=shared&_fk=1&_busy_timeout=10000&_txlock=immediate", dbCounter.Value))
+	db, stdErr := sql.Open("sqlite3", fmt.Sprintf(
+		"file:temp%v?mode=memory&cache=shared&_fk=1&_busy_timeout=250&_foreign_keys=on",
+		dbCounter.Value,
+	))
 	if stdErr != nil {
 		panic(fmt.Sprintf("failed to open test database. error: %v", stdErr.Error()))
 	}

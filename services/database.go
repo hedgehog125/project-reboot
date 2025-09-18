@@ -37,7 +37,7 @@ func (service *Database) Start() {
 		log.Fatalf("couldn't create storage directory. Error:\n%v", err)
 	}
 
-	db, err := sql.Open("sqlite3", fmt.Sprintf("%v?_fk=1&_busy_timeout=10000", filepath.Join(service.app.Env.MOUNT_PATH, "database.sqlite3")))
+	db, err := sql.Open("sqlite3", fmt.Sprintf("%v?_fk=1&_busy_timeout=250&_foreign_keys=on", filepath.Join(service.app.Env.MOUNT_PATH, "database.sqlite3")))
 	if err != nil {
 		log.Fatalf("couldn't start database. error:\n%v", err)
 	}

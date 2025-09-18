@@ -23,11 +23,11 @@ func NewEngine(app *common.App) *Engine {
 		shutdownFinishedChan: make(chan struct{}),
 	}
 }
-func (engine *Engine) Register(fn func(app *common.App), delayFunc DelayFunc) {
-	engine.RegisterTask(NewTask(fn, delayFunc))
+func (engine *Engine) Register(callback TaskCallback, delayFunc DelayFunc) {
+	engine.RegisterTask(NewTask(callback, delayFunc))
 }
-func (engine *Engine) RegisterJob(versionedName string, delayFunc DelayFunc, maxConcurrentRuns int) {
-	engine.RegisterTask(NewJobTask(versionedName, delayFunc, maxConcurrentRuns))
+func (engine *Engine) RegisterJob(versionedName string, delayFunc DelayFunc) {
+	engine.RegisterTask(NewJobTask(versionedName, delayFunc))
 }
 func (engine *Engine) RegisterTask(task Task) {
 	engine.tasks = append(engine.tasks, task)

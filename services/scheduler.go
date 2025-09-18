@@ -15,10 +15,12 @@ type Scheduler struct {
 func NewScheduler(app *common.App) *Scheduler {
 	engine := schedulers.NewEngine(app)
 
-	engine.Register(func(app *common.App) {
+	engine.Register(func(taskContext *schedulers.TaskContext) {
 		core.UpdateAdminCode(app.State)
-	}, schedulers.FixedInterval(1*time.Hour))
-	engine.RegisterJob("invalid_job_1", schedulers.FixedInterval(10*time.Second), 1)
+	}, schedulers.SimpleFixedInterval(1*time.Hour))
+	engine.Register(func(taskContext *schedulers.TaskContext) {
+		app.Logger.Info("it's a new day!")
+	}, schedulers.PersistentFixedInterval("TEST_PERIODIC_JOB", 24*time.Hour))
 
 	return &Scheduler{
 		Engine: engine,
