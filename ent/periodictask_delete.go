@@ -8,30 +8,30 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/periodicjob"
+	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 )
 
-// PeriodicJobDelete is the builder for deleting a PeriodicJob entity.
-type PeriodicJobDelete struct {
+// PeriodicTaskDelete is the builder for deleting a PeriodicTask entity.
+type PeriodicTaskDelete struct {
 	config
 	hooks    []Hook
-	mutation *PeriodicJobMutation
+	mutation *PeriodicTaskMutation
 }
 
-// Where appends a list predicates to the PeriodicJobDelete builder.
-func (_d *PeriodicJobDelete) Where(ps ...predicate.PeriodicJob) *PeriodicJobDelete {
+// Where appends a list predicates to the PeriodicTaskDelete builder.
+func (_d *PeriodicTaskDelete) Where(ps ...predicate.PeriodicTask) *PeriodicTaskDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *PeriodicJobDelete) Exec(ctx context.Context) (int, error) {
+func (_d *PeriodicTaskDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *PeriodicJobDelete) ExecX(ctx context.Context) int {
+func (_d *PeriodicTaskDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (_d *PeriodicJobDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *PeriodicJobDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(periodicjob.Table, sqlgraph.NewFieldSpec(periodicjob.FieldID, field.TypeInt))
+func (_d *PeriodicTaskDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(periodictask.Table, sqlgraph.NewFieldSpec(periodictask.FieldID, field.TypeInt))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (_d *PeriodicJobDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// PeriodicJobDeleteOne is the builder for deleting a single PeriodicJob entity.
-type PeriodicJobDeleteOne struct {
-	_d *PeriodicJobDelete
+// PeriodicTaskDeleteOne is the builder for deleting a single PeriodicTask entity.
+type PeriodicTaskDeleteOne struct {
+	_d *PeriodicTaskDelete
 }
 
-// Where appends a list predicates to the PeriodicJobDelete builder.
-func (_d *PeriodicJobDeleteOne) Where(ps ...predicate.PeriodicJob) *PeriodicJobDeleteOne {
+// Where appends a list predicates to the PeriodicTaskDelete builder.
+func (_d *PeriodicTaskDeleteOne) Where(ps ...predicate.PeriodicTask) *PeriodicTaskDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *PeriodicJobDeleteOne) Exec(ctx context.Context) error {
+func (_d *PeriodicTaskDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{periodicjob.Label}
+		return &NotFoundError{periodictask.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *PeriodicJobDeleteOne) ExecX(ctx context.Context) {
+func (_d *PeriodicTaskDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

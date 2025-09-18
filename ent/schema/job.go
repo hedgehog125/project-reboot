@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/google/uuid"
@@ -33,17 +32,12 @@ func (Job) Fields() []ent.Field {
 		field.Int("retries").Default(0),
 		field.Float("retriedFraction").Default(0),
 		field.Bool("loggedStallWarning").Default(false),
-		field.Int("periodicJobID").Optional(),
 	}
 }
 
 // Edges of the Job.
 func (Job) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.From("periodicJob", PeriodicJob.Type).
-			Ref("jobs").Field("periodicJobID").
-			Unique(),
-	}
+	return nil
 }
 
 func (Job) Indexes() []ent.Index {

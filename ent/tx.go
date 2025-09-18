@@ -16,8 +16,8 @@ type Tx struct {
 	Job *JobClient
 	// LogEntry is the client for interacting with the LogEntry builders.
 	LogEntry *LogEntryClient
-	// PeriodicJob is the client for interacting with the PeriodicJob builders.
-	PeriodicJob *PeriodicJobClient
+	// PeriodicTask is the client for interacting with the PeriodicTask builders.
+	PeriodicTask *PeriodicTaskClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// TwoFactorAction is the client for interacting with the TwoFactorAction builders.
@@ -157,7 +157,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Job = NewJobClient(tx.config)
 	tx.LogEntry = NewLogEntryClient(tx.config)
-	tx.PeriodicJob = NewPeriodicJobClient(tx.config)
+	tx.PeriodicTask = NewPeriodicTaskClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.TwoFactorAction = NewTwoFactorActionClient(tx.config)
 	tx.User = NewUserClient(tx.config)

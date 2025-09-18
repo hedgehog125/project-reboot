@@ -33,16 +33,16 @@ func (f LogEntryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LogEntryMutation", m)
 }
 
-// The PeriodicJobFunc type is an adapter to allow the use of ordinary
-// function as PeriodicJob mutator.
-type PeriodicJobFunc func(context.Context, *ent.PeriodicJobMutation) (ent.Value, error)
+// The PeriodicTaskFunc type is an adapter to allow the use of ordinary
+// function as PeriodicTask mutator.
+type PeriodicTaskFunc func(context.Context, *ent.PeriodicTaskMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f PeriodicJobFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.PeriodicJobMutation); ok {
+func (f PeriodicTaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PeriodicTaskMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PeriodicJobMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PeriodicTaskMutation", m)
 }
 
 // The SessionFunc type is an adapter to allow the use of ordinary

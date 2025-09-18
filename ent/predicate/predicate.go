@@ -12,8 +12,8 @@ type Job func(*sql.Selector)
 // LogEntry is the predicate function for logentry builders.
 type LogEntry func(*sql.Selector)
 
-// PeriodicJob is the predicate function for periodicjob builders.
-type PeriodicJob func(*sql.Selector)
+// PeriodicTask is the predicate function for periodictask builders.
+type PeriodicTask func(*sql.Selector)
 
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)

@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,92 +11,68 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/job"
-	"github.com/hedgehog125/project-reboot/ent/periodicjob"
+	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 )
 
-// PeriodicJobQuery is the builder for querying PeriodicJob entities.
-type PeriodicJobQuery struct {
+// PeriodicTaskQuery is the builder for querying PeriodicTask entities.
+type PeriodicTaskQuery struct {
 	config
 	ctx        *QueryContext
-	order      []periodicjob.OrderOption
+	order      []periodictask.OrderOption
 	inters     []Interceptor
-	predicates []predicate.PeriodicJob
-	withJobs   *JobQuery
+	predicates []predicate.PeriodicTask
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the PeriodicJobQuery builder.
-func (_q *PeriodicJobQuery) Where(ps ...predicate.PeriodicJob) *PeriodicJobQuery {
+// Where adds a new predicate for the PeriodicTaskQuery builder.
+func (_q *PeriodicTaskQuery) Where(ps ...predicate.PeriodicTask) *PeriodicTaskQuery {
 	_q.predicates = append(_q.predicates, ps...)
 	return _q
 }
 
 // Limit the number of records to be returned by this query.
-func (_q *PeriodicJobQuery) Limit(limit int) *PeriodicJobQuery {
+func (_q *PeriodicTaskQuery) Limit(limit int) *PeriodicTaskQuery {
 	_q.ctx.Limit = &limit
 	return _q
 }
 
 // Offset to start from.
-func (_q *PeriodicJobQuery) Offset(offset int) *PeriodicJobQuery {
+func (_q *PeriodicTaskQuery) Offset(offset int) *PeriodicTaskQuery {
 	_q.ctx.Offset = &offset
 	return _q
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (_q *PeriodicJobQuery) Unique(unique bool) *PeriodicJobQuery {
+func (_q *PeriodicTaskQuery) Unique(unique bool) *PeriodicTaskQuery {
 	_q.ctx.Unique = &unique
 	return _q
 }
 
 // Order specifies how the records should be ordered.
-func (_q *PeriodicJobQuery) Order(o ...periodicjob.OrderOption) *PeriodicJobQuery {
+func (_q *PeriodicTaskQuery) Order(o ...periodictask.OrderOption) *PeriodicTaskQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
 
-// QueryJobs chains the current query on the "jobs" edge.
-func (_q *PeriodicJobQuery) QueryJobs() *JobQuery {
-	query := (&JobClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(periodicjob.Table, periodicjob.FieldID, selector),
-			sqlgraph.To(job.Table, job.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, periodicjob.JobsTable, periodicjob.JobsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// First returns the first PeriodicJob entity from the query.
-// Returns a *NotFoundError when no PeriodicJob was found.
-func (_q *PeriodicJobQuery) First(ctx context.Context) (*PeriodicJob, error) {
+// First returns the first PeriodicTask entity from the query.
+// Returns a *NotFoundError when no PeriodicTask was found.
+func (_q *PeriodicTaskQuery) First(ctx context.Context) (*PeriodicTask, error) {
 	nodes, err := _q.Limit(1).All(setContextOp(ctx, _q.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{periodicjob.Label}
+		return nil, &NotFoundError{periodictask.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (_q *PeriodicJobQuery) FirstX(ctx context.Context) *PeriodicJob {
+func (_q *PeriodicTaskQuery) FirstX(ctx context.Context) *PeriodicTask {
 	node, err := _q.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -105,22 +80,22 @@ func (_q *PeriodicJobQuery) FirstX(ctx context.Context) *PeriodicJob {
 	return node
 }
 
-// FirstID returns the first PeriodicJob ID from the query.
-// Returns a *NotFoundError when no PeriodicJob ID was found.
-func (_q *PeriodicJobQuery) FirstID(ctx context.Context) (id int, err error) {
+// FirstID returns the first PeriodicTask ID from the query.
+// Returns a *NotFoundError when no PeriodicTask ID was found.
+func (_q *PeriodicTaskQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{periodicjob.Label}
+		err = &NotFoundError{periodictask.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *PeriodicJobQuery) FirstIDX(ctx context.Context) int {
+func (_q *PeriodicTaskQuery) FirstIDX(ctx context.Context) int {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -128,10 +103,10 @@ func (_q *PeriodicJobQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single PeriodicJob entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when more than one PeriodicJob entity is found.
-// Returns a *NotFoundError when no PeriodicJob entities are found.
-func (_q *PeriodicJobQuery) Only(ctx context.Context) (*PeriodicJob, error) {
+// Only returns a single PeriodicTask entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when more than one PeriodicTask entity is found.
+// Returns a *NotFoundError when no PeriodicTask entities are found.
+func (_q *PeriodicTaskQuery) Only(ctx context.Context) (*PeriodicTask, error) {
 	nodes, err := _q.Limit(2).All(setContextOp(ctx, _q.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
@@ -140,14 +115,14 @@ func (_q *PeriodicJobQuery) Only(ctx context.Context) (*PeriodicJob, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{periodicjob.Label}
+		return nil, &NotFoundError{periodictask.Label}
 	default:
-		return nil, &NotSingularError{periodicjob.Label}
+		return nil, &NotSingularError{periodictask.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (_q *PeriodicJobQuery) OnlyX(ctx context.Context) *PeriodicJob {
+func (_q *PeriodicTaskQuery) OnlyX(ctx context.Context) *PeriodicTask {
 	node, err := _q.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -155,10 +130,10 @@ func (_q *PeriodicJobQuery) OnlyX(ctx context.Context) *PeriodicJob {
 	return node
 }
 
-// OnlyID is like Only, but returns the only PeriodicJob ID in the query.
-// Returns a *NotSingularError when more than one PeriodicJob ID is found.
+// OnlyID is like Only, but returns the only PeriodicTask ID in the query.
+// Returns a *NotSingularError when more than one PeriodicTask ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *PeriodicJobQuery) OnlyID(ctx context.Context) (id int, err error) {
+func (_q *PeriodicTaskQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
@@ -167,15 +142,15 @@ func (_q *PeriodicJobQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{periodicjob.Label}
+		err = &NotFoundError{periodictask.Label}
 	default:
-		err = &NotSingularError{periodicjob.Label}
+		err = &NotSingularError{periodictask.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *PeriodicJobQuery) OnlyIDX(ctx context.Context) int {
+func (_q *PeriodicTaskQuery) OnlyIDX(ctx context.Context) int {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -183,18 +158,18 @@ func (_q *PeriodicJobQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of PeriodicJobs.
-func (_q *PeriodicJobQuery) All(ctx context.Context) ([]*PeriodicJob, error) {
+// All executes the query and returns a list of PeriodicTasks.
+func (_q *PeriodicTaskQuery) All(ctx context.Context) ([]*PeriodicTask, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryAll)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	qr := querierAll[[]*PeriodicJob, *PeriodicJobQuery]()
-	return withInterceptors[[]*PeriodicJob](ctx, _q, qr, _q.inters)
+	qr := querierAll[[]*PeriodicTask, *PeriodicTaskQuery]()
+	return withInterceptors[[]*PeriodicTask](ctx, _q, qr, _q.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (_q *PeriodicJobQuery) AllX(ctx context.Context) []*PeriodicJob {
+func (_q *PeriodicTaskQuery) AllX(ctx context.Context) []*PeriodicTask {
 	nodes, err := _q.All(ctx)
 	if err != nil {
 		panic(err)
@@ -202,20 +177,20 @@ func (_q *PeriodicJobQuery) AllX(ctx context.Context) []*PeriodicJob {
 	return nodes
 }
 
-// IDs executes the query and returns a list of PeriodicJob IDs.
-func (_q *PeriodicJobQuery) IDs(ctx context.Context) (ids []int, err error) {
+// IDs executes the query and returns a list of PeriodicTask IDs.
+func (_q *PeriodicTaskQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(periodicjob.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(periodictask.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *PeriodicJobQuery) IDsX(ctx context.Context) []int {
+func (_q *PeriodicTaskQuery) IDsX(ctx context.Context) []int {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -224,16 +199,16 @@ func (_q *PeriodicJobQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (_q *PeriodicJobQuery) Count(ctx context.Context) (int, error) {
+func (_q *PeriodicTaskQuery) Count(ctx context.Context) (int, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryCount)
 	if err := _q.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return withInterceptors[int](ctx, _q, querierCount[*PeriodicJobQuery](), _q.inters)
+	return withInterceptors[int](ctx, _q, querierCount[*PeriodicTaskQuery](), _q.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (_q *PeriodicJobQuery) CountX(ctx context.Context) int {
+func (_q *PeriodicTaskQuery) CountX(ctx context.Context) int {
 	count, err := _q.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -242,7 +217,7 @@ func (_q *PeriodicJobQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (_q *PeriodicJobQuery) Exist(ctx context.Context) (bool, error) {
+func (_q *PeriodicTaskQuery) Exist(ctx context.Context) (bool, error) {
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryExist)
 	switch _, err := _q.FirstID(ctx); {
 	case IsNotFound(err):
@@ -255,7 +230,7 @@ func (_q *PeriodicJobQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (_q *PeriodicJobQuery) ExistX(ctx context.Context) bool {
+func (_q *PeriodicTaskQuery) ExistX(ctx context.Context) bool {
 	exist, err := _q.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -263,34 +238,22 @@ func (_q *PeriodicJobQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the PeriodicJobQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the PeriodicTaskQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (_q *PeriodicJobQuery) Clone() *PeriodicJobQuery {
+func (_q *PeriodicTaskQuery) Clone() *PeriodicTaskQuery {
 	if _q == nil {
 		return nil
 	}
-	return &PeriodicJobQuery{
+	return &PeriodicTaskQuery{
 		config:     _q.config,
 		ctx:        _q.ctx.Clone(),
-		order:      append([]periodicjob.OrderOption{}, _q.order...),
+		order:      append([]periodictask.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.PeriodicJob{}, _q.predicates...),
-		withJobs:   _q.withJobs.Clone(),
+		predicates: append([]predicate.PeriodicTask{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithJobs tells the query-builder to eager-load the nodes that are connected to
-// the "jobs" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *PeriodicJobQuery) WithJobs(opts ...func(*JobQuery)) *PeriodicJobQuery {
-	query := (&JobClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withJobs = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -299,19 +262,19 @@ func (_q *PeriodicJobQuery) WithJobs(opts ...func(*JobQuery)) *PeriodicJobQuery 
 // Example:
 //
 //	var v []struct {
-//		Type string `json:"type,omitempty"`
+//		Name string `json:"name,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.PeriodicJob.Query().
-//		GroupBy(periodicjob.FieldType).
+//	client.PeriodicTask.Query().
+//		GroupBy(periodictask.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
-func (_q *PeriodicJobQuery) GroupBy(field string, fields ...string) *PeriodicJobGroupBy {
+func (_q *PeriodicTaskQuery) GroupBy(field string, fields ...string) *PeriodicTaskGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
-	grbuild := &PeriodicJobGroupBy{build: _q}
+	grbuild := &PeriodicTaskGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = periodicjob.Label
+	grbuild.label = periodictask.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -322,26 +285,26 @@ func (_q *PeriodicJobQuery) GroupBy(field string, fields ...string) *PeriodicJob
 // Example:
 //
 //	var v []struct {
-//		Type string `json:"type,omitempty"`
+//		Name string `json:"name,omitempty"`
 //	}
 //
-//	client.PeriodicJob.Query().
-//		Select(periodicjob.FieldType).
+//	client.PeriodicTask.Query().
+//		Select(periodictask.FieldName).
 //		Scan(ctx, &v)
-func (_q *PeriodicJobQuery) Select(fields ...string) *PeriodicJobSelect {
+func (_q *PeriodicTaskQuery) Select(fields ...string) *PeriodicTaskSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
-	sbuild := &PeriodicJobSelect{PeriodicJobQuery: _q}
-	sbuild.label = periodicjob.Label
+	sbuild := &PeriodicTaskSelect{PeriodicTaskQuery: _q}
+	sbuild.label = periodictask.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
 
-// Aggregate returns a PeriodicJobSelect configured with the given aggregations.
-func (_q *PeriodicJobQuery) Aggregate(fns ...AggregateFunc) *PeriodicJobSelect {
+// Aggregate returns a PeriodicTaskSelect configured with the given aggregations.
+func (_q *PeriodicTaskQuery) Aggregate(fns ...AggregateFunc) *PeriodicTaskSelect {
 	return _q.Select().Aggregate(fns...)
 }
 
-func (_q *PeriodicJobQuery) prepareQuery(ctx context.Context) error {
+func (_q *PeriodicTaskQuery) prepareQuery(ctx context.Context) error {
 	for _, inter := range _q.inters {
 		if inter == nil {
 			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
@@ -353,7 +316,7 @@ func (_q *PeriodicJobQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !periodicjob.ValidColumn(f) {
+		if !periodictask.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -367,21 +330,17 @@ func (_q *PeriodicJobQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (_q *PeriodicJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PeriodicJob, error) {
+func (_q *PeriodicTaskQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PeriodicTask, error) {
 	var (
-		nodes       = []*PeriodicJob{}
-		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
-			_q.withJobs != nil,
-		}
+		nodes = []*PeriodicTask{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
-		return (*PeriodicJob).scanValues(nil, columns)
+		return (*PeriodicTask).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
-		node := &PeriodicJob{config: _q.config}
+		node := &PeriodicTask{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -393,48 +352,10 @@ func (_q *PeriodicJobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withJobs; query != nil {
-		if err := _q.loadJobs(ctx, query, nodes,
-			func(n *PeriodicJob) { n.Edges.Jobs = []*Job{} },
-			func(n *PeriodicJob, e *Job) { n.Edges.Jobs = append(n.Edges.Jobs, e) }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
 }
 
-func (_q *PeriodicJobQuery) loadJobs(ctx context.Context, query *JobQuery, nodes []*PeriodicJob, init func(*PeriodicJob), assign func(*PeriodicJob, *Job)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*PeriodicJob)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(job.FieldPeriodicJobID)
-	}
-	query.Where(predicate.Job(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(periodicjob.JobsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.PeriodicJobID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "periodicJobID" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-
-func (_q *PeriodicJobQuery) sqlCount(ctx context.Context) (int, error) {
+func (_q *PeriodicTaskQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
@@ -443,8 +364,8 @@ func (_q *PeriodicJobQuery) sqlCount(ctx context.Context) (int, error) {
 	return sqlgraph.CountNodes(ctx, _q.driver, _spec)
 }
 
-func (_q *PeriodicJobQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(periodicjob.Table, periodicjob.Columns, sqlgraph.NewFieldSpec(periodicjob.FieldID, field.TypeInt))
+func (_q *PeriodicTaskQuery) querySpec() *sqlgraph.QuerySpec {
+	_spec := sqlgraph.NewQuerySpec(periodictask.Table, periodictask.Columns, sqlgraph.NewFieldSpec(periodictask.FieldID, field.TypeInt))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -453,9 +374,9 @@ func (_q *PeriodicJobQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, periodicjob.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, periodictask.FieldID)
 		for i := range fields {
-			if fields[i] != periodicjob.FieldID {
+			if fields[i] != periodictask.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -483,12 +404,12 @@ func (_q *PeriodicJobQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (_q *PeriodicJobQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (_q *PeriodicTaskQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(periodicjob.Table)
+	t1 := builder.Table(periodictask.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = periodicjob.Columns
+		columns = periodictask.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
@@ -515,28 +436,28 @@ func (_q *PeriodicJobQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// PeriodicJobGroupBy is the group-by builder for PeriodicJob entities.
-type PeriodicJobGroupBy struct {
+// PeriodicTaskGroupBy is the group-by builder for PeriodicTask entities.
+type PeriodicTaskGroupBy struct {
 	selector
-	build *PeriodicJobQuery
+	build *PeriodicTaskQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (_g *PeriodicJobGroupBy) Aggregate(fns ...AggregateFunc) *PeriodicJobGroupBy {
+func (_g *PeriodicTaskGroupBy) Aggregate(fns ...AggregateFunc) *PeriodicTaskGroupBy {
 	_g.fns = append(_g.fns, fns...)
 	return _g
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_g *PeriodicJobGroupBy) Scan(ctx context.Context, v any) error {
+func (_g *PeriodicTaskGroupBy) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _g.build.ctx, ent.OpQueryGroupBy)
 	if err := _g.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*PeriodicJobQuery, *PeriodicJobGroupBy](ctx, _g.build, _g, _g.build.inters, v)
+	return scanWithInterceptors[*PeriodicTaskQuery, *PeriodicTaskGroupBy](ctx, _g.build, _g, _g.build.inters, v)
 }
 
-func (_g *PeriodicJobGroupBy) sqlScan(ctx context.Context, root *PeriodicJobQuery, v any) error {
+func (_g *PeriodicTaskGroupBy) sqlScan(ctx context.Context, root *PeriodicTaskQuery, v any) error {
 	selector := root.sqlQuery(ctx).Select()
 	aggregation := make([]string, 0, len(_g.fns))
 	for _, fn := range _g.fns {
@@ -563,28 +484,28 @@ func (_g *PeriodicJobGroupBy) sqlScan(ctx context.Context, root *PeriodicJobQuer
 	return sql.ScanSlice(rows, v)
 }
 
-// PeriodicJobSelect is the builder for selecting fields of PeriodicJob entities.
-type PeriodicJobSelect struct {
-	*PeriodicJobQuery
+// PeriodicTaskSelect is the builder for selecting fields of PeriodicTask entities.
+type PeriodicTaskSelect struct {
+	*PeriodicTaskQuery
 	selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
-func (_s *PeriodicJobSelect) Aggregate(fns ...AggregateFunc) *PeriodicJobSelect {
+func (_s *PeriodicTaskSelect) Aggregate(fns ...AggregateFunc) *PeriodicTaskSelect {
 	_s.fns = append(_s.fns, fns...)
 	return _s
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (_s *PeriodicJobSelect) Scan(ctx context.Context, v any) error {
+func (_s *PeriodicTaskSelect) Scan(ctx context.Context, v any) error {
 	ctx = setContextOp(ctx, _s.ctx, ent.OpQuerySelect)
 	if err := _s.prepareQuery(ctx); err != nil {
 		return err
 	}
-	return scanWithInterceptors[*PeriodicJobQuery, *PeriodicJobSelect](ctx, _s.PeriodicJobQuery, _s, _s.inters, v)
+	return scanWithInterceptors[*PeriodicTaskQuery, *PeriodicTaskSelect](ctx, _s.PeriodicTaskQuery, _s, _s.inters, v)
 }
 
-func (_s *PeriodicJobSelect) sqlScan(ctx context.Context, root *PeriodicJobQuery, v any) error {
+func (_s *PeriodicTaskSelect) sqlScan(ctx context.Context, root *PeriodicTaskQuery, v any) error {
 	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(_s.fns))
 	for _, fn := range _s.fns {

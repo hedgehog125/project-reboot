@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
-	"github.com/hedgehog125/project-reboot/ent/periodicjob"
+	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -73,20 +73,20 @@ func init() {
 	logentryDescID := logentryFields[0].Descriptor()
 	// logentry.DefaultID holds the default value on creation for the id field.
 	logentry.DefaultID = logentryDescID.Default.(func() uuid.UUID)
-	periodicjobFields := schema.PeriodicJob{}.Fields()
-	_ = periodicjobFields
-	// periodicjobDescType is the schema descriptor for type field.
-	periodicjobDescType := periodicjobFields[0].Descriptor()
-	// periodicjob.TypeValidator is a validator for the "type" field. It is called by the builders before save.
-	periodicjob.TypeValidator = func() func(string) error {
-		validators := periodicjobDescType.Validators
+	periodictaskFields := schema.PeriodicTask{}.Fields()
+	_ = periodictaskFields
+	// periodictaskDescName is the schema descriptor for name field.
+	periodictaskDescName := periodictaskFields[0].Descriptor()
+	// periodictask.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	periodictask.NameValidator = func() func(string) error {
+		validators := periodictaskDescName.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
 		}
-		return func(_type string) error {
+		return func(name string) error {
 			for _, fn := range fns {
-				if err := fn(_type); err != nil {
+				if err := fn(name); err != nil {
 					return err
 				}
 			}

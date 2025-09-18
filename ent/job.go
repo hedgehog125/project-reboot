@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
-	"github.com/hedgehog125/project-reboot/ent/periodicjob"
 )
 
 // Job is the model entity for the Job schema.
@@ -46,32 +45,7 @@ type Job struct {
 	RetriedFraction float64 `json:"retriedFraction,omitempty"`
 	// LoggedStallWarning holds the value of the "loggedStallWarning" field.
 	LoggedStallWarning bool `json:"loggedStallWarning,omitempty"`
-	// PeriodicJobID holds the value of the "periodicJobID" field.
-	PeriodicJobID int `json:"periodicJobID,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the JobQuery when eager-loading is set.
-	Edges        JobEdges `json:"edges"`
-	selectValues sql.SelectValues
-}
-
-// JobEdges holds the relations/edges for other nodes in the graph.
-type JobEdges struct {
-	// PeriodicJob holds the value of the periodicJob edge.
-	PeriodicJob *PeriodicJob `json:"periodicJob,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// PeriodicJobOrErr returns the PeriodicJob value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e JobEdges) PeriodicJobOrErr() (*PeriodicJob, error) {
-	if e.PeriodicJob != nil {
-		return e.PeriodicJob, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: periodicjob.Label}
-	}
-	return nil, &NotLoadedError{edge: "periodicJob"}
+	selectValues       sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -85,7 +59,7 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case job.FieldRetriedFraction:
 			values[i] = new(sql.NullFloat64)
-		case job.FieldVersion, job.FieldPriority, job.FieldWeight, job.FieldRetries, job.FieldPeriodicJobID:
+		case job.FieldVersion, job.FieldPriority, job.FieldWeight, job.FieldRetries:
 			values[i] = new(sql.NullInt64)
 		case job.FieldType, job.FieldStatus:
 			values[i] = new(sql.NullString)
@@ -194,12 +168,6 @@ func (_m *Job) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LoggedStallWarning = value.Bool
 			}
-		case job.FieldPeriodicJobID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field periodicJobID", values[i])
-			} else if value.Valid {
-				_m.PeriodicJobID = int(value.Int64)
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -211,11 +179,6 @@ func (_m *Job) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Job) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryPeriodicJob queries the "periodicJob" edge of the Job entity.
-func (_m *Job) QueryPeriodicJob() *PeriodicJobQuery {
-	return NewJobClient(_m.config).QueryPeriodicJob(_m)
 }
 
 // Update returns a builder for updating this Job.
@@ -279,9 +242,6 @@ func (_m *Job) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("loggedStallWarning=")
 	builder.WriteString(fmt.Sprintf("%v", _m.LoggedStallWarning))
-	builder.WriteString(", ")
-	builder.WriteString("periodicJobID=")
-	builder.WriteString(fmt.Sprintf("%v", _m.PeriodicJobID))
 	builder.WriteByte(')')
 	return builder.String()
 }

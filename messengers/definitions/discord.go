@@ -108,6 +108,7 @@ func Discord1(app *common.App) *messengers.Definition {
 				}
 			}()
 
+			// TODO: it's probably worth caching this to reduce how often we're rate limited
 			channel, stdErr := session.UserChannelCreate(body.UserID)
 			if stdErr != nil {
 				return ErrWrapperDiscord.Wrap(stdErr)

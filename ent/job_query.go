@@ -13,18 +13,16 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
-	"github.com/hedgehog125/project-reboot/ent/periodicjob"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 )
 
 // JobQuery is the builder for querying Job entities.
 type JobQuery struct {
 	config
-	ctx             *QueryContext
-	order           []job.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Job
-	withPeriodicJob *PeriodicJobQuery
+	ctx        *QueryContext
+	order      []job.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Job
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,28 +57,6 @@ func (_q *JobQuery) Unique(unique bool) *JobQuery {
 func (_q *JobQuery) Order(o ...job.OrderOption) *JobQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryPeriodicJob chains the current query on the "periodicJob" edge.
-func (_q *JobQuery) QueryPeriodicJob() *PeriodicJobQuery {
-	query := (&PeriodicJobClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(job.Table, job.FieldID, selector),
-			sqlgraph.To(periodicjob.Table, periodicjob.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, job.PeriodicJobTable, job.PeriodicJobColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first Job entity from the query.
@@ -270,27 +246,15 @@ func (_q *JobQuery) Clone() *JobQuery {
 		return nil
 	}
 	return &JobQuery{
-		config:          _q.config,
-		ctx:             _q.ctx.Clone(),
-		order:           append([]job.OrderOption{}, _q.order...),
-		inters:          append([]Interceptor{}, _q.inters...),
-		predicates:      append([]predicate.Job{}, _q.predicates...),
-		withPeriodicJob: _q.withPeriodicJob.Clone(),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]job.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.Job{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithPeriodicJob tells the query-builder to eager-load the nodes that are connected to
-// the "periodicJob" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *JobQuery) WithPeriodicJob(opts ...func(*PeriodicJobQuery)) *JobQuery {
-	query := (&PeriodicJobClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withPeriodicJob = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -369,11 +333,8 @@ func (_q *JobQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *JobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Job, error) {
 	var (
-		nodes       = []*Job{}
-		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
-			_q.withPeriodicJob != nil,
-		}
+		nodes = []*Job{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Job).scanValues(nil, columns)
@@ -381,7 +342,6 @@ func (_q *JobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Job, err
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Job{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -393,43 +353,7 @@ func (_q *JobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Job, err
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withPeriodicJob; query != nil {
-		if err := _q.loadPeriodicJob(ctx, query, nodes, nil,
-			func(n *Job, e *PeriodicJob) { n.Edges.PeriodicJob = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (_q *JobQuery) loadPeriodicJob(ctx context.Context, query *PeriodicJobQuery, nodes []*Job, init func(*Job), assign func(*Job, *PeriodicJob)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Job)
-	for i := range nodes {
-		fk := nodes[i].PeriodicJobID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(periodicjob.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "periodicJobID" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (_q *JobQuery) sqlCount(ctx context.Context) (int, error) {
@@ -456,9 +380,6 @@ func (_q *JobQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != job.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withPeriodicJob != nil {
-			_spec.Node.AddColumnOnce(job.FieldPeriodicJobID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

@@ -24,21 +24,12 @@ var (
 		{Name: "retries", Type: field.TypeInt, Default: 0},
 		{Name: "retried_fraction", Type: field.TypeFloat64, Default: 0},
 		{Name: "logged_stall_warning", Type: field.TypeBool, Default: false},
-		{Name: "periodic_job_id", Type: field.TypeInt, Nullable: true},
 	}
 	// JobsTable holds the schema information for the "jobs" table.
 	JobsTable = &schema.Table{
 		Name:       "jobs",
 		Columns:    JobsColumns,
 		PrimaryKey: []*schema.Column{JobsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "jobs_periodic_jobs_jobs",
-				Columns:    []*schema.Column{JobsColumns[14]},
-				RefColumns: []*schema.Column{PeriodicJobsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "job_status_priority_due",
@@ -87,23 +78,22 @@ var (
 			},
 		},
 	}
-	// PeriodicJobsColumns holds the columns for the "periodic_jobs" table.
-	PeriodicJobsColumns = []*schema.Column{
+	// PeriodicTasksColumns holds the columns for the "periodic_tasks" table.
+	PeriodicTasksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "type", Type: field.TypeString, Size: 128},
-		{Name: "version", Type: field.TypeInt},
-		{Name: "last_scheduled_new_job", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString, Size: 128},
+		{Name: "last_ran", Type: field.TypeTime, Nullable: true},
 	}
-	// PeriodicJobsTable holds the schema information for the "periodic_jobs" table.
-	PeriodicJobsTable = &schema.Table{
-		Name:       "periodic_jobs",
-		Columns:    PeriodicJobsColumns,
-		PrimaryKey: []*schema.Column{PeriodicJobsColumns[0]},
+	// PeriodicTasksTable holds the schema information for the "periodic_tasks" table.
+	PeriodicTasksTable = &schema.Table{
+		Name:       "periodic_tasks",
+		Columns:    PeriodicTasksColumns,
+		PrimaryKey: []*schema.Column{PeriodicTasksColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "periodicjob_type_version",
+				Name:    "periodictask_name",
 				Unique:  true,
-				Columns: []*schema.Column{PeriodicJobsColumns[1], PeriodicJobsColumns[2]},
+				Columns: []*schema.Column{PeriodicTasksColumns[1]},
 			},
 		},
 	}
@@ -174,7 +164,7 @@ var (
 	Tables = []*schema.Table{
 		JobsTable,
 		LogEntriesTable,
-		PeriodicJobsTable,
+		PeriodicTasksTable,
 		SessionsTable,
 		TwoFactorActionsTable,
 		UsersTable,
@@ -182,7 +172,6 @@ var (
 )
 
 func init() {
-	JobsTable.ForeignKeys[0].RefTable = PeriodicJobsTable
 	LogEntriesTable.ForeignKeys[0].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 }
