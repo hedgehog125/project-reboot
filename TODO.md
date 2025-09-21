@@ -1,6 +1,5 @@
 # TODO
 
--   Bug: scheduled tasks can run multiple times on startup? Need to make them skip runs
 -   Use app.Core instead of directly using core package
 -   Replace cron system with a simple custom job scheduler
 -   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though

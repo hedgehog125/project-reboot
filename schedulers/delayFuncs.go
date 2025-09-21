@@ -2,6 +2,7 @@ package schedulers
 
 import (
 	"context"
+	"math"
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -23,10 +24,23 @@ type CommitDelayFunc = func(runTime time.Time, ctx context.Context)
 func SimpleFixedInterval(interval time.Duration) DelayFunc {
 	return func(delayCtx *DelayFuncContext) (time.Time, func(runTime time.Time, ctx context.Context)) {
 		nextRun := delayCtx.LastRan
+		now := delayCtx.App.Clock.Now()
 		if nextRun.IsZero() {
-			nextRun = delayCtx.App.Clock.Now()
+			nextRun = now
 		} else {
 			nextRun = nextRun.Add(interval)
+			skippedCalls := int64(math.Floor(float64(now.UnixNano()-nextRun.UnixNano()) / float64(interval)))
+			if skippedCalls > 1 {
+				newNextRun := nextRun.Add(interval * time.Duration(skippedCalls))
+				delayCtx.App.Logger.Warn(
+					"some calls were skipped for SimpleFixedInterval",
+					"skippedCalls", skippedCalls,
+					"nextRun", nextRun,
+					"newNextRun", newNextRun,
+					"now", now,
+				)
+				nextRun = newNextRun
+			}
 		}
 
 		return nextRun, func(runTime time.Time, ctx context.Context) {}
@@ -102,7 +116,23 @@ func PersistentFixedInterval(periodicTaskName string, interval time.Duration) De
 				return delayCtx.App.Clock.Now(), commit
 			}
 		}
-		return lastRan.Add(interval), commit
+
+		nextRun := lastRan.Add(interval)
+		now := delayCtx.App.Clock.Now()
+		skippedCalls := int64(math.Floor(float64(now.UnixNano()-nextRun.UnixNano()) / float64(interval)))
+		if skippedCalls > 1 {
+			// TODO: this still usually results in a double run
+			newNextRun := nextRun.Add(interval * time.Duration(skippedCalls))
+			delayCtx.App.Logger.Warn(
+				"some calls were skipped for PersistentFixedInterval",
+				"skippedCalls", skippedCalls,
+				"nextRun", nextRun,
+				"newNextRun", newNextRun,
+				"now", now,
+			)
+			nextRun = newNextRun
+		}
+		return nextRun, commit
 	}
 }
 
