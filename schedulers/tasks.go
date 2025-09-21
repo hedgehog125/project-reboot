@@ -39,11 +39,16 @@ func NewTask(callback TaskCallback, delayFunc DelayFunc) Task {
 		},
 		Run: func(engine *Engine) {
 			tick := func() {
+				ctx, cancel := context.WithTimeout(context.Background(), MaxTaskRunTime)
+				defer cancel()
 				callback(&TaskContext{
 					App:      engine.App,
 					CallTime: nextRun,
+					Context:  ctx,
 				})
-				ctx, cancel := context.WithTimeout(context.Background(), DelayFuncTimeout)
+				cancel()
+
+				ctx, cancel = context.WithTimeout(context.Background(), DelayFuncTimeout)
 				defer cancel()
 				commit(nextRun, ctx)
 

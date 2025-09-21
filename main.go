@@ -44,16 +44,15 @@ func main() {
 	)
 	app.ShutdownService = shutdownService
 
-	app.State = services.InitState()
 	{
 		logger := services.NewLogger(app)
 		app.Logger = logger
 		slog.SetDefault(logger.Logger)
 	}
+	app.Core = services.NewCore(app)
 	app.Database = services.NewDatabase(app)
 	app.Database.Start()
 	app.Logger.Start()
-	app.Scheduler = services.NewScheduler(app)
 	app.TwoFactorActions = services.NewTwoFactorActions(app)
 	{
 		messengerService := services.NewMessengers(app)
@@ -62,6 +61,7 @@ func main() {
 		// TODO: check for stalled jobs and mark them as failed before the scheduler starts
 	}
 	app.Server = services.NewServer(app)
+	app.Scheduler = services.NewScheduler(app)
 
 	app.Scheduler.Start() // Note: initialises some state, e.g the rotating admin code
 	app.Server.Start()

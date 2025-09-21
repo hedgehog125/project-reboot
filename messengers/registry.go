@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
@@ -110,7 +111,9 @@ func (registry *Registry) RegisterJobs(group *jobs.RegistryGroup) {
 }
 
 func (registry *Registry) Send(
-	versionedType string, message *common.Message, ctx context.Context,
+	versionedType string, message *common.Message,
+	sendTime time.Time,
+	ctx context.Context,
 ) *common.Error {
 	messengerDef, ok := registry.messengers[versionedType]
 	if !ok {
@@ -141,11 +144,14 @@ func (registry *Registry) Send(
 		))
 	}
 
-	_, commErr := registry.App.Jobs.Enqueue(
+	_, commErr := registry.App.Jobs.EnqueueWithModifier(
 		jobscommon.JoinPaths(registry.jobNamePrefix, versionedType),
 		&bodyWrapperType{
 			MessageType: message.Type,
 			Inner:       string(encoded),
+		},
+		func(jobCreate *ent.JobCreate) {
+			jobCreate.SetDue(sendTime)
 		},
 		ctx,
 	)
@@ -173,18 +179,20 @@ func (registry *Registry) Send(
 	return nil
 }
 func (registry *Registry) SendUsingAll(
-	message *common.Message, ctx context.Context,
+	message *common.Message,
+	sendTime time.Time,
+	ctx context.Context,
 ) (int, map[string]*common.Error, *common.Error) {
 	errs := make(map[string]*common.Error)
 	messagesQueued := 0
 	for versionedType := range registry.messengers {
-		commErr := registry.Send(versionedType, message, ctx)
+		commErr := registry.Send(versionedType, message, sendTime, ctx)
 		if commErr == nil {
 			messagesQueued++
 		} else {
 			errs[versionedType] = commErr
 			if !ErrWrapperPrepare.HasWrapped(commErr) {
-				return messagesQueued, errs, commErr
+				return messagesQueued, errs, ErrWrapperSendUsingAll.Wrap(commErr)
 			}
 			if !errors.Is(commErr, ErrNoContactForUser) {
 				// Just log an error and let the admin deal with this, there's not much the user can do
@@ -197,4 +205,24 @@ func (registry *Registry) SendUsingAll(
 		}
 	}
 	return messagesQueued, errs, nil
+}
+
+// Note: lastSendTime will be zero for the first call
+func (registry *Registry) SendBulk(
+	messages []*common.Message, sendTimeFunc func(lastSendTime time.Time, index int) time.Time, ctx context.Context,
+) *common.Error {
+	if len(messages) == 0 {
+		return nil
+	}
+	sendTime := sendTimeFunc(time.Time{}, 0)
+	for index, message := range messages {
+		_, _, commErr := registry.SendUsingAll(
+			message, sendTime, ctx,
+		)
+		if commErr != nil {
+			return ErrWrapperSendBulk.Wrap(commErr)
+		}
+		sendTime = sendTimeFunc(sendTime, index+1)
+	}
+	return nil
 }

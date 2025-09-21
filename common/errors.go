@@ -127,6 +127,10 @@ func (err *Error) Error() string {
 
 	return message + err.Err.Error()
 }
+
+// Use when you need to cast to an error interface and the *Error might be nil
+//
+// Otherwise you'll get a non-nil error interface that panics when you try to use it
 func (err *Error) StandardError() error {
 	if err == nil {
 		return nil

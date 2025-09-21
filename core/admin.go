@@ -11,26 +11,30 @@ import (
 // Doubled because the bytes are represented as base64
 const AdminCodeByteLength = 128
 
-func UpdateAdminCode(state *common.State) {
-	<-state.AdminCode
+type AdminCode []byte
 
-	adminCode := common.CryptoRandomBytes(AdminCodeByteLength)
-	fmt.Printf("\n==========\n\nadmin code:\n%v\n\n==========\n\n", base64.StdEncoding.EncodeToString(adminCode))
-
-	go func() { state.AdminCode <- adminCode }()
+func NewAdminCode() AdminCode {
+	return common.CryptoRandomBytes(AdminCodeByteLength)
+}
+func (adminCode AdminCode) String() string {
+	return base64.StdEncoding.EncodeToString(adminCode)
+}
+func (adminCode AdminCode) Print() {
+	fmt.Printf("\n==========\n\nadmin code:\n%v\n\n==========\n\n", adminCode.String())
 }
 
-func CheckAdminCode(givenCode string, state *common.State) bool {
-	currentCode := <-state.AdminCode
-	go func() { state.AdminCode <- currentCode }()
-	if len(currentCode) != AdminCodeByteLength { // Failsafe in case this is somehow unset or only partly written
+func CheckAdminCode(givenCode string, expected AdminCode, logger common.Logger) bool {
+	if len(expected) != AdminCodeByteLength { // Failsafe in case this is somehow unset or only partly written
+		logger.Error(
+			"current admin code is the wrong length, this should not happen!",
+			"length", len(expected),
+			"expectedLength", AdminCodeByteLength,
+		)
 		return false
 	}
-
 	givenBytes, err := base64.StdEncoding.DecodeString(givenCode)
 	if err != nil {
 		return false
 	}
-
-	return subtle.ConstantTimeCompare(givenBytes, currentCode) == 1
+	return subtle.ConstantTimeCompare(givenBytes, expected) == 1
 }

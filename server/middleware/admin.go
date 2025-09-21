@@ -6,11 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
-func NewAdminProtected(state *common.State) gin.HandlerFunc {
+func NewAdminProtected(core common.CoreService) gin.HandlerFunc {
 	return func(ginCtx *gin.Context) {
 		headerValue := ginCtx.GetHeader("authorization")
 		if headerValue == "" {
@@ -48,9 +47,7 @@ func NewAdminProtected(state *common.State) gin.HandlerFunc {
 			return
 		}
 
-		if core.CheckAdminCode(headerParts[1], state) {
-			ginCtx.Next()
-		} else {
+		if !core.CheckAdminCode(headerParts[1]) {
 			ginCtx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"errors": []servercommon.ErrorDetail{
 					{
@@ -61,5 +58,6 @@ func NewAdminProtected(state *common.State) gin.HandlerFunc {
 			})
 			return
 		}
+		ginCtx.Next()
 	}
 }

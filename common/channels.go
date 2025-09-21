@@ -1,8 +1,10 @@
 package common
 
-func InitChannel[T any](value T) chan T {
-	channel := make(chan T)
-	go func() { channel <- value }()
+func InitPoolChannel[T any](values ...T) chan T {
+	channel := make(chan T, len(values))
+	for _, value := range values {
+		channel <- value
+	}
 
 	return channel
 }

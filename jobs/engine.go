@@ -39,8 +39,9 @@ func NewEngine(registry *Registry) *Engine {
 }
 
 type completedJob struct {
-	Object *ent.Job
-	Err    *common.Error
+	Object    *ent.Job
+	StartTime time.Time
+	Err       *common.Error
 }
 
 func (engine *Engine) Listen() {
@@ -74,7 +75,11 @@ func (engine *Engine) Listen() {
 			if stdErr != nil {
 				logger.Error("failed to delete job", "error", stdErr)
 			}
-			logger.Info("job completed", "totalRetries", completedJob.Object.Retries)
+			logger.Info(
+				"job completed",
+				"totalRetries", completedJob.Object.Retries,
+				"runDuration", engine.App.Clock.Since(completedJob.StartTime),
+			)
 		} else {
 			if completedJob.Err.MaxRetries < 0 {
 				if completedJob.Err.MaxRetries == -1 {
@@ -208,8 +213,9 @@ func (engine *Engine) Listen() {
 				}
 			} else { // Note: this shouldn't happen
 				completedJobChan <- completedJob{
-					Object: currentJob,
-					Err:    ErrWrapperRunJob.Wrap(ErrUnknownJobType),
+					Object:    currentJob,
+					StartTime: engine.App.Clock.Now(),
+					Err:       ErrWrapperRunJob.Wrap(ErrUnknownJobType),
 				}
 			}
 			// Otherwise continue processing jobs
@@ -290,8 +296,9 @@ func (engine *Engine) runJob(
 		Body:       job.Body,
 	})
 	completedJobChan <- completedJob{
-		Object: job,
-		Err:    ErrWrapperRunJob.Wrap(stdErr),
+		Object:    job,
+		StartTime: engine.App.Clock.Now(),
+		Err:       ErrWrapperRunJob.Wrap(stdErr),
 	}
 }
 
@@ -327,7 +334,7 @@ func (engine *Engine) EnqueueEncoded(
 func (engine *Engine) EnqueueWithModifier(
 	versionedType string,
 	body any,
-	modifier func(*ent.JobCreate) *ent.JobCreate,
+	modifier func(jobCreate *ent.JobCreate),
 	ctx context.Context,
 ) (*ent.Job, *common.Error) {
 	_, ok := engine.Registry.jobs[versionedType]
@@ -347,7 +354,7 @@ func (engine *Engine) EnqueueWithModifier(
 func (engine *Engine) EnqueueEncodedWithModifier(
 	versionedType string,
 	encodedBody json.RawMessage,
-	modifier func(*ent.JobCreate) *ent.JobCreate,
+	modifier func(jobCreate *ent.JobCreate),
 	ctx context.Context,
 ) (*ent.Job, *common.Error) {
 	jobDefinition, ok := engine.Registry.jobs[versionedType]
@@ -371,7 +378,7 @@ func (engine *Engine) EnqueueEncodedWithModifier(
 		SetWeight(jobDefinition.Weight).
 		SetBody(encodedBody)
 	if modifier != nil {
-		jobCreate = modifier(jobCreate)
+		modifier(jobCreate)
 	}
 	job, stdErr := jobCreate.Save(ctx)
 	if stdErr != nil {

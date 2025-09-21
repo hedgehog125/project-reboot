@@ -3,8 +3,9 @@ package core
 import "github.com/hedgehog125/project-reboot/common"
 
 const (
-	ErrTypeEncrypt = "encrypt"
-	ErrTypeDecrypt = "decrypt"
+	ErrTypeEncrypt                    = "encrypt"
+	ErrTypeDecrypt                    = "decrypt"
+	ErrTypeSendActiveSessionReminders = "send active session reminders"
 	// Lower level
 	ErrTypeInvalidData = "invalid data"
 )
@@ -17,3 +18,8 @@ var ErrIncorrectPassword = common.NewErrorWithCategories("incorrect password", c
 // These functions don't categorize their errors
 var ErrWrapperEncrypt = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeEncrypt)
 var ErrWrapperDecrypt = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeDecrypt)
+
+var ErrWrapperSendActiveSessionReminders = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeSendActiveSessionReminders)
+
+var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeCore).
+	SetChild(common.ErrWrapperDatabase)

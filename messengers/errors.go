@@ -5,7 +5,9 @@ import (
 )
 
 const (
-	ErrTypeSend = "send"
+	ErrTypeSend         = "send"
+	ErrTypeSendUsingAll = "send using all"
+	ErrTypeSendBulk     = "send bulk"
 	// Lower level
 	ErrTypeFormatMessage = "format message"
 	ErrTypePrepare       = "prepare"
@@ -28,6 +30,8 @@ var ErrWrapperEnqueueJob = common.NewErrorWrapper(
 	common.ErrTypeMessengers, ErrTypeEnqueueJob,
 )
 var ErrWrapperSend = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSend)
+var ErrWrapperSendUsingAll = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSendUsingAll)
+var ErrWrapperSendBulk = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSendBulk)
 
 var ErrWrapperFormat = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeFormatMessage)
 var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeMessengers).

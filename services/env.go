@@ -28,9 +28,10 @@ func LoadEnvironmentVariables() *common.Env {
 		JOB_POLL_INTERVAL:    common.RequireSecondsEnv("JOB_POLL_INTERVAL"),
 		MAX_TOTAL_JOB_WEIGHT: common.RequireIntEnv("MAX_TOTAL_JOB_WEIGHT"),
 
-		UNLOCK_TIME:              common.RequireSecondsEnv("UNLOCK_TIME"),
-		AUTH_CODE_VALID_FOR:      common.RequireSecondsEnv("AUTH_CODE_VALID_FOR"),
-		USED_AUTH_CODE_VALID_FOR: common.RequireSecondsEnv("USED_AUTH_CODE_VALID_FOR"),
+		UNLOCK_TIME:                      common.RequireSecondsEnv("UNLOCK_TIME"),
+		AUTH_CODE_VALID_FOR:              common.RequireSecondsEnv("AUTH_CODE_VALID_FOR"),
+		USED_AUTH_CODE_VALID_FOR:         common.RequireSecondsEnv("USED_AUTH_CODE_VALID_FOR"),
+		ACTIVE_SESSION_REMINDER_INTERVAL: common.RequireSecondsEnv("ACTIVE_SESSION_REMINDER_INTERVAL"),
 		PASSWORD_HASH_SETTINGS: &common.PasswordHashSettings{
 			Time:    common.RequireUint32Env("PASSWORD_HASH_TIME"),
 			Memory:  common.RequireUint32Env("PASSWORD_HASH_MEMORY"),

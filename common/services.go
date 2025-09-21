@@ -29,8 +29,9 @@ type Env struct {
 	UNLOCK_TIME         time.Duration
 	AUTH_CODE_VALID_FOR time.Duration
 	// Once used, how much longer the auth code remains valid for
-	USED_AUTH_CODE_VALID_FOR time.Duration
-	PASSWORD_HASH_SETTINGS   *PasswordHashSettings
+	USED_AUTH_CODE_VALID_FOR         time.Duration
+	ACTIVE_SESSION_REMINDER_INTERVAL time.Duration
+	PASSWORD_HASH_SETTINGS           *PasswordHashSettings
 
 	LOG_STORE_INTERVAL time.Duration
 	ADMIN_USERNAME     string
@@ -49,19 +50,16 @@ type PasswordHashSettings struct {
 	Threads uint8
 }
 
-type State struct {
-	AdminCode chan []byte
-}
 type App struct {
 	Env              *Env
 	Clock            clockwork.Clock
 	Logger           LoggerService
 	ShutdownService  ShutdownService
 	Database         DatabaseService
-	State            *State
 	TwoFactorActions TwoFactorActionService
 	Messengers       MessengerService
 	Server           ServerService
+	Core             CoreService
 	Jobs             JobService
 	Scheduler        SchedulerService
 }
@@ -76,25 +74,42 @@ type HasDefaultLogger interface {
 }
 
 type MessengerService interface {
+	Send(
+		versionedType string, message *Message,
+		ctx context.Context,
+	) *Error
+	ScheduleSend(
+		versionedType string, message *Message,
+		sendTime time.Time,
+		ctx context.Context,
+	) *Error
+
 	// The error map is more like warnings about why specific messengers failed to prepare, they are logged already so you might just want to ignore them
 	//
 	// But check the second *Error value first because you should fail the transaction if it's not nil
 	//
 	// Note: the number of successfully queued messages (the int return value) might not be 0 if some messages were queued before a non-messenger specific error occurred
 	SendUsingAll(message *Message, ctx context.Context) (int, map[string]*Error, *Error)
+	ScheduleSendUsingAll(
+		message *Message,
+		sendTime time.Time,
+		ctx context.Context,
+	) (int, map[string]*Error, *Error)
+	SendBulk(messages []*Message, ctx context.Context) *Error
 }
 type MessageType string
 
 const (
-	MessageTest       = "test"
-	MessageAdminError = "adminError"
-	MessageRegular    = "regular"
-	MessageLogin      = "login"
-	MessageDownload   = "download"
-	MessageUserUpdate = "userUpdate"
-	MessageLock       = "lock"
-	MessageSelfLock   = "selfLock"
-	Message2FA        = "2FA"
+	MessageTest                  = "test"
+	MessageAdminError            = "adminError"
+	MessageRegular               = "regular"
+	MessageLogin                 = "login"
+	MessageActiveSessionReminder = "activeSessionReminder"
+	MessageDownload              = "download"
+	MessageUserUpdate            = "userUpdate"
+	MessageLock                  = "lock"
+	MessageSelfLock              = "selfLock"
+	Message2FA                   = "2FA"
 )
 
 type Message struct {
@@ -151,6 +166,11 @@ type ServerService interface {
 	Start()    // Should fatalf rather than returning an error
 	Shutdown() // Should log warning rather than return an error
 }
+type CoreService interface {
+	RotateAdminCode()
+	CheckAdminCode(givenCode string) bool
+	SendActiveSessionReminders(ctx context.Context) *Error
+}
 
 type JobService interface {
 	Start()    // Should fatalf rather than returning an error
@@ -168,13 +188,13 @@ type JobService interface {
 	EnqueueWithModifier(
 		versionedType string,
 		body any,
-		modifications func(*ent.JobCreate) *ent.JobCreate,
+		modifications func(jobCreate *ent.JobCreate),
 		ctx context.Context,
 	) (*ent.Job, *Error)
 	EnqueueEncodedWithModifier(
 		versionedType string,
 		encodedBody json.RawMessage,
-		modifications func(*ent.JobCreate) *ent.JobCreate,
+		modifications func(jobCreate *ent.JobCreate),
 		ctx context.Context,
 	) (*ent.Job, *Error)
 	WaitForJobs()

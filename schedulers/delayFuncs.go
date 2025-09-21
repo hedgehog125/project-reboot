@@ -22,11 +22,14 @@ type CommitDelayFunc = func(runTime time.Time, ctx context.Context)
 
 func SimpleFixedInterval(interval time.Duration) DelayFunc {
 	return func(delayCtx *DelayFuncContext) (time.Time, func(runTime time.Time, ctx context.Context)) {
-		lastRan := delayCtx.LastRan
-		if lastRan.IsZero() {
-			lastRan = delayCtx.App.Clock.Now()
+		nextRun := delayCtx.LastRan
+		if nextRun.IsZero() {
+			nextRun = delayCtx.App.Clock.Now()
+		} else {
+			nextRun = nextRun.Add(interval)
 		}
-		return lastRan.Add(interval), func(runTime time.Time, ctx context.Context) {}
+
+		return nextRun, func(runTime time.Time, ctx context.Context) {}
 	}
 }
 func PersistentFixedInterval(periodicTaskName string, interval time.Duration) DelayFunc {

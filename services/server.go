@@ -31,7 +31,7 @@ func NewServer(app *common.App) *Server {
 	router.Static("/static", "./public") // Has to go before otherwise files are sent but with a 404 status
 	router.Use(middleware.NewTimeout())  // TODO: why does the error middleware have to go after? This middleware seems to write otherwise
 	router.Use(middleware.NewError())
-	adminMiddleware := middleware.NewAdminProtected(app.State)
+	adminMiddleware := middleware.NewAdminProtected(app.Core)
 	serverApp := &servercommon.ServerApp{
 		App:             app,
 		Router:          router,
