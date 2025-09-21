@@ -75,7 +75,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			actionID, code, commErr := app.TwoFactorActions.Create(
+			action, code, commErr := app.TwoFactorActions.Create(
 				"users/TEMP_SELF_LOCK_1",
 				clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
 				//exhaustruct:enforce
@@ -104,7 +104,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			// TODO: wait for job to run and return error if it fails?
 			ginCtx.JSON(http.StatusCreated, SelfLockResponse{
 				Errors:            []servercommon.ErrorDetail{},
-				TwoFactorActionID: actionID.String(),
+				TwoFactorActionID: action.ID.String(),
 			})
 			return nil
 		})

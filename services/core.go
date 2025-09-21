@@ -37,3 +37,6 @@ func (service *Core) SendActiveSessionReminders(ctx context.Context) *common.Err
 		ctx, service.App.Clock, service.App.Messengers,
 	)
 }
+func (service *Core) DeleteExpiredSessions(ctx context.Context) *common.Error {
+	return core.DeleteExpiredSessions(ctx, service.App.Clock)
+}

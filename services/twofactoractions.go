@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 	"github.com/hedgehog125/project-reboot/twofactoractions"
 )
 
@@ -104,4 +105,22 @@ func (service *TwoFactorActions) Confirm(
 		return nil, twofactoractions.ErrWrapperConfirm.Wrap(commErr)
 	}
 	return job, nil
+}
+func (service *TwoFactorActions) DeleteExpiredActions(ctx context.Context) *common.Error {
+	tx := ent.TxFromContext(ctx)
+	if tx == nil {
+		return twofactoractions.ErrWrapperDeleteExpiredActions.Wrap(
+			twofactoractions.ErrNoTxInContext,
+		)
+	}
+
+	_, stdErr := tx.TwoFactorAction.Delete().
+		Where(twofactoraction.ExpiresAtLTE(service.app.Clock.Now())).
+		Exec(ctx)
+	if stdErr != nil {
+		return twofactoractions.ErrWrapperDeleteExpiredActions.Wrap(
+			twofactoractions.ErrWrapperDatabase.Wrap(stdErr),
+		)
+	}
+	return nil
 }

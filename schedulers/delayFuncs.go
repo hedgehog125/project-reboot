@@ -30,11 +30,11 @@ func SimpleFixedInterval(interval time.Duration) DelayFunc {
 		} else {
 			nextRun = nextRun.Add(interval)
 			skippedCalls := int64(math.Floor(float64(now.UnixNano()-nextRun.UnixNano()) / float64(interval)))
-			if skippedCalls > 1 {
+			if skippedCalls > 0 {
 				newNextRun := nextRun.Add(interval * time.Duration(skippedCalls))
 				delayCtx.App.Logger.Warn(
 					"some calls were skipped for SimpleFixedInterval",
-					"skippedCalls", skippedCalls,
+					"skippedCallCount", skippedCalls,
 					"nextRun", nextRun,
 					"newNextRun", newNextRun,
 					"now", now,
@@ -120,12 +120,13 @@ func PersistentFixedInterval(periodicTaskName string, interval time.Duration) De
 		nextRun := lastRan.Add(interval)
 		now := delayCtx.App.Clock.Now()
 		skippedCalls := int64(math.Floor(float64(now.UnixNano()-nextRun.UnixNano()) / float64(interval)))
-		if skippedCalls > 1 {
+		if skippedCalls > 0 {
 			// TODO: this still usually results in a double run
 			newNextRun := nextRun.Add(interval * time.Duration(skippedCalls))
 			delayCtx.App.Logger.Warn(
 				"some calls were skipped for PersistentFixedInterval",
-				"skippedCalls", skippedCalls,
+				"skippedCallCount", skippedCalls,
+				"periodicTaskName", periodicTaskName,
 				"nextRun", nextRun,
 				"newNextRun", newNextRun,
 				"now", now,

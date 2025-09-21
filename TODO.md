@@ -1,10 +1,6 @@
 # TODO
 
 -   Use app.Core instead of directly using core package
--   Replace cron system with a simple custom job scheduler
--   -   Log warning with how many scheduled runs were missed for each scheduled job on startup. Probably not worth adding an option to run them multiple times though
--   -   Send messages for each active session
--   -   Delete expired sessions and 2FA actions periodically
 -   Rate limiting service
 -   -   Use it to prevent spamming the admin when errors occur
 -   -   Will be volatile for performance reasons, since storing it in the database would mean even GET requests would require a write

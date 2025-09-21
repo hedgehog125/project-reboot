@@ -22,6 +22,8 @@ type Env struct {
 	PORT                          int
 	MOUNT_PATH                    string
 	PROXY_ORIGINAL_IP_HEADER_NAME string
+	// Things like deleting expired login sessions
+	CLEAN_UP_INTERVAL time.Duration
 
 	JOB_POLL_INTERVAL    time.Duration
 	MAX_TOTAL_JOB_WEIGHT int
@@ -170,6 +172,7 @@ type CoreService interface {
 	RotateAdminCode()
 	CheckAdminCode(givenCode string) bool
 	SendActiveSessionReminders(ctx context.Context) *Error
+	DeleteExpiredSessions(ctx context.Context) *Error
 }
 
 type JobService interface {
@@ -208,6 +211,7 @@ type TwoFactorActionService interface {
 		ctx context.Context,
 	) (*ent.TwoFactorAction, string, *Error)
 	Confirm(actionID uuid.UUID, code string, ctx context.Context) (*ent.Job, *Error)
+	DeleteExpiredActions(ctx context.Context) *Error
 }
 
 type SchedulerService interface {

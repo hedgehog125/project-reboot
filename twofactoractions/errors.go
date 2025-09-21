@@ -3,9 +3,10 @@ package twofactoractions
 import "github.com/hedgehog125/project-reboot/common"
 
 const (
-	ErrTypeCreate   = "create"
-	ErrTypeConfirm  = "confirm"
-	ErrTypeNotFound = "not found"
+	ErrTypeCreate               = "create"
+	ErrTypeConfirm              = "confirm"
+	ErrTypeDeleteExpiredActions = "delete expired actions"
+	ErrTypeNotFound             = "not found"
 )
 
 var ErrNoTxInContext = common.ErrNoTxInContext.AddCategory(common.ErrTypeTwoFactorAction)
@@ -21,5 +22,6 @@ var ErrExpired = common.NewErrorWithCategories(
 
 var ErrWrapperCreate = common.NewErrorWrapper(common.ErrTypeTwoFactorAction, ErrTypeCreate)
 var ErrWrapperConfirm = common.NewErrorWrapper(common.ErrTypeTwoFactorAction, ErrTypeConfirm)
+var ErrWrapperDeleteExpiredActions = common.NewErrorWrapper(common.ErrTypeTwoFactorAction, ErrTypeDeleteExpiredActions)
 
 var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeTwoFactorAction).SetChild(common.ErrWrapperDatabase)

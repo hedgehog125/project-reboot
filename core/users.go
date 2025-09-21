@@ -57,3 +57,20 @@ func SendActiveSessionReminders(ctx context.Context, clock clockwork.Clock, mess
 
 	return nil
 }
+
+func DeleteExpiredSessions(ctx context.Context, clock clockwork.Clock) *common.Error {
+	tx := ent.TxFromContext(ctx)
+	if tx == nil {
+		return ErrWrapperDeleteExpiredSessions.Wrap(common.ErrNoTxInContext)
+	}
+
+	_, stdErr := tx.Session.Delete().
+		Where(session.ValidUntilLTE(clock.Now())).
+		Exec(ctx)
+	if stdErr != nil {
+		return ErrWrapperDeleteExpiredSessions.Wrap(
+			ErrWrapperDatabase.Wrap(stdErr),
+		)
+	}
+	return nil
+}

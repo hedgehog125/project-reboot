@@ -6,6 +6,7 @@ const (
 	ErrTypeEncrypt                    = "encrypt"
 	ErrTypeDecrypt                    = "decrypt"
 	ErrTypeSendActiveSessionReminders = "send active session reminders"
+	ErrTypeDeleteExpiredSessions      = "delete expired sessions"
 	// Lower level
 	ErrTypeInvalidData = "invalid data"
 )
@@ -20,6 +21,7 @@ var ErrWrapperEncrypt = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeEncryp
 var ErrWrapperDecrypt = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeDecrypt)
 
 var ErrWrapperSendActiveSessionReminders = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeSendActiveSessionReminders)
+var ErrWrapperDeleteExpiredSessions = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeDeleteExpiredSessions)
 
 var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeCore).
 	SetChild(common.ErrWrapperDatabase)
