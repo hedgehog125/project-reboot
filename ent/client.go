@@ -495,7 +495,7 @@ func (c *LogEntryClient) QueryUser(_m *LogEntry) *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(logentry.Table, logentry.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, logentry.UserTable, logentry.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, logentry.UserTable, logentry.UserColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -777,7 +777,7 @@ func (c *SessionClient) QueryUser(_m *Session) *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(session.Table, session.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, session.UserTable, session.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, session.UserTable, session.UserColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1059,7 +1059,7 @@ func (c *UserClient) QuerySessions(_m *User) *SessionQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(session.Table, session.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.SessionsTable, user.SessionsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SessionsTable, user.SessionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1075,7 +1075,7 @@ func (c *UserClient) QueryLogs(_m *User) *LogEntryQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(logentry.Table, logentry.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.LogsTable, user.LogsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.LogsTable, user.LogsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

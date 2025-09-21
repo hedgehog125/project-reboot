@@ -269,7 +269,7 @@ func (_u *LogEntryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   logentry.UserTable,
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,
@@ -282,7 +282,7 @@ func (_u *LogEntryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   logentry.UserTable,
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,
@@ -585,7 +585,7 @@ func (_u *LogEntryUpdateOne) sqlSave(ctx context.Context) (_node *LogEntry, err 
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   logentry.UserTable,
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,
@@ -598,7 +598,7 @@ func (_u *LogEntryUpdateOne) sqlSave(ctx context.Context) (_node *LogEntry, err 
 	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   logentry.UserTable,
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,

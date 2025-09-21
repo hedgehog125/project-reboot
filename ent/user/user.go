@@ -50,7 +50,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "session" package.
 	SessionsInverseTable = "sessions"
 	// SessionsColumn is the table column denoting the sessions relation/edge.
-	SessionsColumn = "session_user"
+	SessionsColumn = "user_id"
 	// LogsTable is the table that holds the logs relation/edge.
 	LogsTable = "log_entries"
 	// LogsInverseTable is the table name for the LogEntry entity.
@@ -198,13 +198,13 @@ func newSessionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SessionsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, SessionsTable, SessionsColumn),
+		sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
 	)
 }
 func newLogsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LogsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, LogsTable, LogsColumn),
+		sqlgraph.Edge(sqlgraph.O2M, false, LogsTable, LogsColumn),
 	)
 }

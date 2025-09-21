@@ -30,10 +30,11 @@ type Session struct {
 	UserAgent string `json:"userAgent,omitempty"`
 	// IP holds the value of the "ip" field.
 	IP string `json:"ip,omitempty"`
+	// UserID holds the value of the "userID" field.
+	UserID int `json:"userID,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SessionQuery when eager-loading is set.
 	Edges        SessionEdges `json:"edges"`
-	session_user *int
 	selectValues sql.SelectValues
 }
 
@@ -64,14 +65,12 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case session.FieldCode:
 			values[i] = new([]byte)
-		case session.FieldID:
+		case session.FieldID, session.FieldUserID:
 			values[i] = new(sql.NullInt64)
 		case session.FieldUserAgent, session.FieldIP:
 			values[i] = new(sql.NullString)
 		case session.FieldTime, session.FieldValidFrom, session.FieldValidUntil:
 			values[i] = new(sql.NullTime)
-		case session.ForeignKeys[0]: // session_user
-			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -129,12 +128,11 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IP = value.String
 			}
-		case session.ForeignKeys[0]:
+		case session.FieldUserID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field session_user", value)
+				return fmt.Errorf("unexpected type %T for field userID", values[i])
 			} else if value.Valid {
-				_m.session_user = new(int)
-				*_m.session_user = int(value.Int64)
+				_m.UserID = int(value.Int64)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -194,6 +192,9 @@ func (_m *Session) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("ip=")
 	builder.WriteString(_m.IP)
+	builder.WriteString(", ")
+	builder.WriteString("userID=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UserID))
 	builder.WriteByte(')')
 	return builder.String()
 }

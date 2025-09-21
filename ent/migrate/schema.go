@@ -64,7 +64,7 @@ var (
 		PrimaryKey: []*schema.Column{LogEntriesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "log_entries_users_user",
+				Symbol:     "log_entries_users_logs",
 				Columns:    []*schema.Column{LogEntriesColumns[10]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -106,7 +106,7 @@ var (
 		{Name: "valid_until", Type: field.TypeTime},
 		{Name: "user_agent", Type: field.TypeString},
 		{Name: "ip", Type: field.TypeString},
-		{Name: "session_user", Type: field.TypeInt, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt},
 	}
 	// SessionsTable holds the schema information for the "sessions" table.
 	SessionsTable = &schema.Table{
@@ -115,7 +115,7 @@ var (
 		PrimaryKey: []*schema.Column{SessionsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "sessions_users_user",
+				Symbol:     "sessions_users_sessions",
 				Columns:    []*schema.Column{SessionsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,

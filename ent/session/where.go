@@ -85,6 +85,11 @@ func IP(v string) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldIP, v))
 }
 
+// UserID applies equality check predicate on the "userID" field. It's identical to UserIDEQ.
+func UserID(v int) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldUserID, v))
+}
+
 // TimeEQ applies the EQ predicate on the "time" field.
 func TimeEQ(v time.Time) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldTime, v))
@@ -375,12 +380,32 @@ func IPContainsFold(v string) predicate.Session {
 	return predicate.Session(sql.FieldContainsFold(FieldIP, v))
 }
 
+// UserIDEQ applies the EQ predicate on the "userID" field.
+func UserIDEQ(v int) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "userID" field.
+func UserIDNEQ(v int) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "userID" field.
+func UserIDIn(vs ...int) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "userID" field.
+func UserIDNotIn(vs ...int) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldUserID, vs...))
+}
+
 // HasUser applies the HasEdge predicate on the "user" edge.
 func HasUser() predicate.Session {
 	return predicate.Session(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

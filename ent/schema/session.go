@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"entgo.io/ent"
-	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -15,7 +14,7 @@ type Session struct {
 }
 
 // Fields of the Session.
-func (Session) Fields() []ent.Field { // TODO: auto delete once used? Or also after a certain amount of time
+func (Session) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("time").Default(time.Now),     // TODO: will this be an issue with testing?
 		field.Bytes("code").Unique().MinLen(128), // The randomly generated authorisation code that will become valid after enough time
@@ -23,12 +22,14 @@ func (Session) Fields() []ent.Field { // TODO: auto delete once used? Or also af
 		field.Time("validUntil"),
 		field.String("userAgent"),
 		field.String("ip"),
+		field.Int("userID"),
 	}
 }
 
 // Edges of the Session.
 func (Session) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("user", User.Type).Unique().Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.From("user", User.Type).Ref("sessions").
+			Field("userID").Unique().Required(),
 	}
 }

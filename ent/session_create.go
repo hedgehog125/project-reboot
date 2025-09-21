@@ -67,17 +67,9 @@ func (_c *SessionCreate) SetIP(v string) *SessionCreate {
 	return _c
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (_c *SessionCreate) SetUserID(id int) *SessionCreate {
-	_c.mutation.SetUserID(id)
-	return _c
-}
-
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (_c *SessionCreate) SetNillableUserID(id *int) *SessionCreate {
-	if id != nil {
-		_c = _c.SetUserID(*id)
-	}
+// SetUserID sets the "userID" field.
+func (_c *SessionCreate) SetUserID(v int) *SessionCreate {
+	_c.mutation.SetUserID(v)
 	return _c
 }
 
@@ -152,6 +144,12 @@ func (_c *SessionCreate) check() error {
 	if _, ok := _c.mutation.IP(); !ok {
 		return &ValidationError{Name: "ip", err: errors.New(`ent: missing required field "Session.ip"`)}
 	}
+	if _, ok := _c.mutation.UserID(); !ok {
+		return &ValidationError{Name: "userID", err: errors.New(`ent: missing required field "Session.userID"`)}
+	}
+	if len(_c.mutation.UserIDs()) == 0 {
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Session.user"`)}
+	}
 	return nil
 }
 
@@ -206,7 +204,7 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   session.UserTable,
 			Columns: []string{session.UserColumn},
 			Bidi:    false,
@@ -217,7 +215,7 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.session_user = &nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -344,6 +342,18 @@ func (u *SessionUpsert) UpdateIP() *SessionUpsert {
 	return u
 }
 
+// SetUserID sets the "userID" field.
+func (u *SessionUpsert) SetUserID(v int) *SessionUpsert {
+	u.Set(session.FieldUserID, v)
+	return u
+}
+
+// UpdateUserID sets the "userID" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateUserID() *SessionUpsert {
+	u.SetExcluded(session.FieldUserID)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -465,6 +475,20 @@ func (u *SessionUpsertOne) SetIP(v string) *SessionUpsertOne {
 func (u *SessionUpsertOne) UpdateIP() *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
 		s.UpdateIP()
+	})
+}
+
+// SetUserID sets the "userID" field.
+func (u *SessionUpsertOne) SetUserID(v int) *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "userID" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateUserID() *SessionUpsertOne {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateUserID()
 	})
 }
 
@@ -753,6 +777,20 @@ func (u *SessionUpsertBulk) SetIP(v string) *SessionUpsertBulk {
 func (u *SessionUpsertBulk) UpdateIP() *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
 		s.UpdateIP()
+	})
+}
+
+// SetUserID sets the "userID" field.
+func (u *SessionUpsertBulk) SetUserID(v int) *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.SetUserID(v)
+	})
+}
+
+// UpdateUserID sets the "userID" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateUserID() *SessionUpsertBulk {
+	return u.Update(func(s *SessionUpsert) {
+		s.UpdateUserID()
 	})
 }
 

@@ -2924,27 +2924,51 @@ func (m *SessionMutation) ResetIP() {
 	m.ip = nil
 }
 
-// SetUserID sets the "user" edge to the User entity by id.
-func (m *SessionMutation) SetUserID(id int) {
-	m.user = &id
+// SetUserID sets the "userID" field.
+func (m *SessionMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "userID" field in the mutation.
+func (m *SessionMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "userID" field's value of the Session entity.
+// If the Session object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SessionMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "userID" field.
+func (m *SessionMutation) ResetUserID() {
+	m.user = nil
 }
 
 // ClearUser clears the "user" edge to the User entity.
 func (m *SessionMutation) ClearUser() {
 	m.cleareduser = true
+	m.clearedFields[session.FieldUserID] = struct{}{}
 }
 
 // UserCleared reports if the "user" edge to the User entity was cleared.
 func (m *SessionMutation) UserCleared() bool {
 	return m.cleareduser
-}
-
-// UserID returns the "user" edge ID in the mutation.
-func (m *SessionMutation) UserID() (id int, exists bool) {
-	if m.user != nil {
-		return *m.user, true
-	}
-	return
 }
 
 // UserIDs returns the "user" edge IDs in the mutation.
@@ -2997,7 +3021,7 @@ func (m *SessionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SessionMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.time != nil {
 		fields = append(fields, session.FieldTime)
 	}
@@ -3015,6 +3039,9 @@ func (m *SessionMutation) Fields() []string {
 	}
 	if m.ip != nil {
 		fields = append(fields, session.FieldIP)
+	}
+	if m.user != nil {
+		fields = append(fields, session.FieldUserID)
 	}
 	return fields
 }
@@ -3036,6 +3063,8 @@ func (m *SessionMutation) Field(name string) (ent.Value, bool) {
 		return m.UserAgent()
 	case session.FieldIP:
 		return m.IP()
+	case session.FieldUserID:
+		return m.UserID()
 	}
 	return nil, false
 }
@@ -3057,6 +3086,8 @@ func (m *SessionMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldUserAgent(ctx)
 	case session.FieldIP:
 		return m.OldIP(ctx)
+	case session.FieldUserID:
+		return m.OldUserID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Session field %s", name)
 }
@@ -3108,6 +3139,13 @@ func (m *SessionMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIP(v)
 		return nil
+	case session.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Session field %s", name)
 }
@@ -3115,13 +3153,16 @@ func (m *SessionMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *SessionMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *SessionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
 	return nil, false
 }
 
@@ -3174,6 +3215,9 @@ func (m *SessionMutation) ResetField(name string) error {
 		return nil
 	case session.FieldIP:
 		m.ResetIP()
+		return nil
+	case session.FieldUserID:
+		m.ResetUserID()
 		return nil
 	}
 	return fmt.Errorf("unknown Session field %s", name)

@@ -105,16 +105,16 @@ func (_u *SessionUpdate) SetNillableIP(v *string) *SessionUpdate {
 	return _u
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (_u *SessionUpdate) SetUserID(id int) *SessionUpdate {
-	_u.mutation.SetUserID(id)
+// SetUserID sets the "userID" field.
+func (_u *SessionUpdate) SetUserID(v int) *SessionUpdate {
+	_u.mutation.SetUserID(v)
 	return _u
 }
 
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (_u *SessionUpdate) SetNillableUserID(id *int) *SessionUpdate {
-	if id != nil {
-		_u = _u.SetUserID(*id)
+// SetNillableUserID sets the "userID" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableUserID(v *int) *SessionUpdate {
+	if v != nil {
+		_u.SetUserID(*v)
 	}
 	return _u
 }
@@ -169,6 +169,9 @@ func (_u *SessionUpdate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Session.code": %w`, err)}
 		}
 	}
+	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Session.user"`)
+	}
 	return nil
 }
 
@@ -205,7 +208,7 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   session.UserTable,
 			Columns: []string{session.UserColumn},
 			Bidi:    false,
@@ -218,7 +221,7 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   session.UserTable,
 			Columns: []string{session.UserColumn},
 			Bidi:    false,
@@ -327,16 +330,16 @@ func (_u *SessionUpdateOne) SetNillableIP(v *string) *SessionUpdateOne {
 	return _u
 }
 
-// SetUserID sets the "user" edge to the User entity by ID.
-func (_u *SessionUpdateOne) SetUserID(id int) *SessionUpdateOne {
-	_u.mutation.SetUserID(id)
+// SetUserID sets the "userID" field.
+func (_u *SessionUpdateOne) SetUserID(v int) *SessionUpdateOne {
+	_u.mutation.SetUserID(v)
 	return _u
 }
 
-// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
-func (_u *SessionUpdateOne) SetNillableUserID(id *int) *SessionUpdateOne {
-	if id != nil {
-		_u = _u.SetUserID(*id)
+// SetNillableUserID sets the "userID" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableUserID(v *int) *SessionUpdateOne {
+	if v != nil {
+		_u.SetUserID(*v)
 	}
 	return _u
 }
@@ -404,6 +407,9 @@ func (_u *SessionUpdateOne) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Session.code": %w`, err)}
 		}
 	}
+	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Session.user"`)
+	}
 	return nil
 }
 
@@ -457,7 +463,7 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   session.UserTable,
 			Columns: []string{session.UserColumn},
 			Bidi:    false,
@@ -470,7 +476,7 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   session.UserTable,
 			Columns: []string{session.UserColumn},
 			Bidi:    false,

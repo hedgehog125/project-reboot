@@ -257,7 +257,7 @@ func (_c *LogEntryCreate) createSpec() (*LogEntry, *sqlgraph.CreateSpec) {
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   logentry.UserTable,
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,

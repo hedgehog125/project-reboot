@@ -75,7 +75,7 @@ func (_q *LogEntryQuery) QueryUser() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(logentry.Table, logentry.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, logentry.UserTable, logentry.UserColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, logentry.UserTable, logentry.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil

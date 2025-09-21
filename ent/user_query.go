@@ -77,7 +77,7 @@ func (_q *UserQuery) QuerySessions() *SessionQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(session.Table, session.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.SessionsTable, user.SessionsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SessionsTable, user.SessionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -99,7 +99,7 @@ func (_q *UserQuery) QueryLogs() *LogEntryQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(logentry.Table, logentry.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, user.LogsTable, user.LogsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.LogsTable, user.LogsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -457,7 +457,9 @@ func (_q *UserQuery) loadSessions(ctx context.Context, query *SessionQuery, node
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(session.FieldUserID)
+	}
 	query.Where(predicate.Session(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.SessionsColumn), fks...))
 	}))
@@ -466,13 +468,10 @@ func (_q *UserQuery) loadSessions(ctx context.Context, query *SessionQuery, node
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.session_user
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "session_user" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.UserID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "session_user" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "userID" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}
