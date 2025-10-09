@@ -32,6 +32,7 @@ const (
 	ErrTypeJobs            = "jobs [package]"
 	ErrTypeTwoFactorAction = "two factor action [package]"
 	ErrTypeMessengers      = "messengers [package]"
+	ErrTypeRateLimiting    = "rate limiting [package]"
 	ErrTypeDbCommon        = "db common [package]"
 	ErrTypeServerCommon    = "server common [package]"
 	// Similar idea here if it's unknown

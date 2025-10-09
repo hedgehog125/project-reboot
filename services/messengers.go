@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	BulkMessageDelay = 500 * time.Millisecond
+	BulkMessageDelay = 1500 * time.Millisecond
 )
 
 type Messengers struct {
