@@ -18,6 +18,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/messengers"
+	"github.com/hedgehog125/project-reboot/ratelimiting"
 	"github.com/lmittmann/tint"
 )
 
@@ -354,6 +355,28 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 			return selfLogged
 		}
 
+		session, commErr := handler.App.RateLimiter.RequestSession(
+			"admin-error-message", 1, "",
+		)
+		if commErr != nil {
+			if errors.Is(commErr, ratelimiting.ErrGlobalRateLimitExceeded) {
+				return selfLogged
+			}
+			pc, _, _, _ := runtime.Caller(0)
+			record := slog.NewRecord(
+				handler.App.Clock.Now(),
+				slog.LevelError,
+				"failed to check admin-error-message rate limit",
+				pc,
+			)
+			record.AddAttrs(slog.Any("error", commErr))
+			handler.Handle(
+				context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
+				record,
+			)
+			return true
+		}
+
 		// TODO: reserve a bit of time for this in case the database writing times out during a shutdown
 		baseCtx := context.Background()
 		if handler.shutdownCtx != nil {
@@ -384,6 +407,7 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 		)
 		cancel()
 		if stdErr != nil {
+			session.Cancel()
 			pc, _, _, _ := runtime.Caller(0)
 			record := slog.NewRecord(
 				handler.App.Clock.Now(),
@@ -400,11 +424,11 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 		}
 
 		if len(errs) > 0 { // SendUsingAll will have logged
-			// TODO: log something with a special context item to notify the admin by crashing
 			*loggedAdminNotificationErrorPtr = true
 			selfLogged = true
 		}
-		if queuedCount == 0 {
+		if queuedCount == 0 { // TODO: apply the same logic as what's used to check if a user was sufficiently notified of a login
+			session.Cancel()
 			message := "admin user has no contacts so couldn't notify them about an error"
 			for _, commErr := range errs {
 				// TODO: this error should be moved to common (or common/errors?) to avoid circular imports in the future

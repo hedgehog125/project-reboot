@@ -1,13 +1,6 @@
 # TODO
 
 -   Use app.Core instead of directly using core package
--   Rate limiting service
--   -   Should use contexts somehow?
--   -   Store event types with varying levels of detail. e.g "api", "api/users/:id/download" and "api/users/1/download". Have global and per user limit
--   -   These event types don't have an explicit hierarchy, the global middleware just checks the first two and then the request handler optionally checks the last one. Maybe not worth implementing that one for now though
--   -   Use it to prevent spamming the admin when errors occur
--   -   Will be volatile for performance reasons, since storing it in the database would mean even GET requests would require a write
--   -   Losing that data between restarts should be fine unless the server is crashing a lot. Shouldn't be much of a problem if the server auto-sleeps when idle as well
 -   Create key/value storage service
 -   -   Key should be a string and value is json.RawMessage
 -   -   Should have definitions system to enforce types and ensure the key is known

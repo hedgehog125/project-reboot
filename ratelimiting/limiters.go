@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
-	"github.com/jonboulle/clockwork"
 )
 
 type Limiter struct {
-	Clock  clockwork.Clock
+	App    *common.App
 	limits map[string]*limit
 	mu     sync.RWMutex
 }
@@ -35,9 +34,9 @@ func (counter counter) refresh(now time.Time, resetDuration time.Duration) count
 	return counter
 }
 
-func NewLimiter(clock clockwork.Clock) *Limiter {
+func NewLimiter(app *common.App) *Limiter {
 	return &Limiter{
-		Clock:  clock,
+		App:    app,
 		limits: map[string]*limit{},
 	}
 }
@@ -55,7 +54,7 @@ func (limiter *Limiter) Register(eventName string, globalMax int, userMax int, r
 	limiter.limits[eventName] = &limit{
 		globalCounter: counter{
 			value:     0,
-			nextReset: limiter.Clock.Now().Add(resetDuration),
+			nextReset: limiter.App.Clock.Now().Add(resetDuration),
 		},
 		globalMax:     globalMax,
 		userMax:       userMax,
@@ -80,12 +79,12 @@ func (limiter *Limiter) RequestSession(eventName string, amount int, user string
 	}
 	limit.mu.Lock()
 	defer limit.mu.Unlock()
-	globalCounter := limit.globalCounter.refresh(limiter.Clock.Now(), limit.resetDuration)
+	globalCounter := limit.globalCounter.refresh(limiter.App.Clock.Now(), limit.resetDuration)
 	globalCounter.value += amount
 	if limit.globalMax != -1 && globalCounter.value > limit.globalMax {
 		return nil, ErrWrapperRequestSession.Wrap(ErrGlobalRateLimitExceeded)
 	}
-	userCounter := limit.userCounters[user].refresh(limiter.Clock.Now(), limit.resetDuration)
+	userCounter := limit.userCounters[user].refresh(limiter.App.Clock.Now(), limit.resetDuration)
 	userCounter.value += amount
 	if limit.userMax != -1 && userCounter.value > limit.userMax {
 		return nil, ErrWrapperRequestSession.Wrap(ErrUserRateLimitExceeded)
@@ -108,12 +107,12 @@ func (session *Session) AdjustTo(amount int) *common.Error {
 	defer session.limit.mu.Unlock()
 
 	diff := amount - session.Amount
-	globalCounter := session.limit.globalCounter.refresh(session.limiter.Clock.Now(), session.limit.resetDuration)
+	globalCounter := session.limit.globalCounter.refresh(session.limiter.App.Clock.Now(), session.limit.resetDuration)
 	globalCounter.value = max(globalCounter.value+diff, 0)
 	if session.limit.globalMax != -1 && globalCounter.value > session.limit.globalMax {
 		return ErrWrapperAdjustTo.Wrap(ErrGlobalRateLimitExceeded)
 	}
-	userCounter := session.limit.userCounters[session.User].refresh(session.limiter.Clock.Now(), session.limit.resetDuration)
+	userCounter := session.limit.userCounters[session.User].refresh(session.limiter.App.Clock.Now(), session.limit.resetDuration)
 	userCounter.value = max(userCounter.value+diff, 0)
 	if session.limit.userMax != -1 && userCounter.value > session.limit.userMax {
 		return ErrWrapperAdjustTo.Wrap(ErrUserRateLimitExceeded)

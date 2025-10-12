@@ -12,7 +12,7 @@ type RateLimiter struct {
 }
 
 func NewRateLimiter(app *common.App) *RateLimiter {
-	limiter := ratelimiting.NewLimiter(app.Clock)
+	limiter := ratelimiting.NewLimiter(app)
 	definitions.Register(limiter.Group(""))
 	return &RateLimiter{
 		App:     app,

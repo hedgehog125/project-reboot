@@ -14,7 +14,9 @@ import (
 func TestRequestSession(t *testing.T) {
 	t.Parallel()
 	clock := clockwork.NewFakeClock()
-	limiter := ratelimiting.NewLimiter(clock)
+	limiter := ratelimiting.NewLimiter(&common.App{
+		Clock: clock,
+	})
 	limiter.Register("api", -1, 50, 15*time.Minute)
 	limiter.Register("hash-password", 51, 25, 15*time.Minute)
 

@@ -41,6 +41,8 @@ type Env struct {
 	// Note: this time will be exceeded as it's a simple check when the job succeeds and doesn't take into account when the next retry is
 	// Note: currently all of the successfully prepared messages must succeed for a crash to be avoided
 	ADMIN_MESSAGE_TIMEOUT time.Duration
+	// If it's been less than this amount of time since the last admin message, other errors won't send a message to avoid spamming the admin
+	MIN_ADMIN_MESSAGE_GAP time.Duration
 
 	DISCORD_TOKEN  string
 	SENDGRID_TOKEN string // TODO: implement
