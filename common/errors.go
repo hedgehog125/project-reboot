@@ -40,10 +40,15 @@ const (
 
 var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
 	wrappedErr := WrapErrorWithCategories(err)
+	if wrappedErr == nil {
+		return nil
+	}
+
 	sqliteErr := sqlite3.Error{}
 	if errors.Is(err, context.DeadlineExceeded) {
 		return wrappedErr.AddCategories(ErrTypeTimeout, ErrTypeDatabase)
-	} else if errors.As(err, &sqliteErr) {
+	}
+	if errors.As(err, &sqliteErr) {
 		if slices.Index([]sqlite3.ErrNo{
 			sqlite3.ErrFull,
 			sqlite3.ErrAuth,

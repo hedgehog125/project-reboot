@@ -7,9 +7,6 @@ import (
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
-// TODO: what happens if expired contexts are passed?
-// TODO: use common.ErrWrapperDatabase
-
 func WithReadTx[T any](
 	ctx context.Context, db common.DatabaseService,
 	fn func(tx *ent.Tx, ctx context.Context) (T, error),
@@ -52,6 +49,10 @@ func withTx(
 	txCallback func(ctx context.Context) (*ent.Tx, error),
 	fn func(tx *ent.Tx, ctx context.Context) error,
 ) error {
+	stdErr := ctx.Err()
+	if stdErr != nil {
+		return ErrWrapperWithTx.Wrap(stdErr)
+	}
 	if ent.TxFromContext(ctx) != nil {
 		return ErrWrapperWithTx.Wrap(ErrUnexpectedTransaction)
 	}
@@ -83,7 +84,7 @@ func withTx(
 				common.GetLogger(ctx, db).Error(
 					"withTx: error rolling back transaction",
 					"error", rollbackErr,
-					"originalError", stdErr,
+					"originalError", callbackErr,
 				)
 			}
 		}
