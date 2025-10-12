@@ -2,13 +2,13 @@ package dbcommon
 
 import (
 	"context"
-	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 )
 
 // TODO: what happens if expired contexts are passed?
+// TODO: use common.ErrWrapperDatabase
 
 func WithReadTx[T any](
 	ctx context.Context, db common.DatabaseService,
@@ -59,34 +59,44 @@ func withTx(
 	if stdErr != nil {
 		return ErrWrapperWithTx.Wrap(
 			ErrWrapperStartTx.Wrap(stdErr),
-		).ConfigureRetries(-1, 5*time.Millisecond, 1.5)
+		)
 	}
-	shouldRecover := true
+
+	var callbackErr error
 	defer func() {
-		if !shouldRecover {
-			return
+		panicValue := recover()
+		if panicValue != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				common.GetLogger(ctx, db).Error(
+					"withTx: error rolling back transaction after panic",
+					"error", rollbackErr,
+					"panicValue", panicValue,
+				)
+			}
+			panic(panicValue)
 		}
-		pErr := recover()
-		if pErr != nil {
-			tx.Rollback()
-			panic(pErr)
+		if callbackErr != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				// TODO: handle "transaction already committed or rolled back" errors? If they can still happen?
+				common.GetLogger(ctx, db).Error(
+					"withTx: error rolling back transaction",
+					"error", rollbackErr,
+					"originalError", stdErr,
+				)
+			}
 		}
 	}()
-	stdErr = fn(tx, ent.NewTxContext(ctx, tx))
-	shouldRecover = false
-	if stdErr != nil {
-		rollbackErr := tx.Rollback()
-		if rollbackErr != nil {
-			// TODO: handle "transaction already committed or rolled back" errors?
-			common.GetLogger(ctx, db).Error("error rolling back transaction", "error", rollbackErr, "originalError", stdErr)
-		}
-		return ErrWrapperWithTx.Wrap(ErrWrapperCallback.Wrap(stdErr))
+	callbackErr = fn(tx, ent.NewTxContext(ctx, tx))
+	if callbackErr != nil {
+		return ErrWrapperWithTx.Wrap(ErrWrapperCallback.Wrap(callbackErr))
 	}
 	stdErr = tx.Commit()
 	if stdErr != nil {
 		return ErrWrapperWithTx.Wrap(
 			ErrWrapperCommitTx.Wrap(stdErr),
-		).ConfigureRetries(-1, 5*time.Millisecond, 1.5)
+		)
 	}
 	return nil
 }

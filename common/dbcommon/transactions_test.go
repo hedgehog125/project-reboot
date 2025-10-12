@@ -4,10 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/testcommon"
 	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,9 +38,12 @@ func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 				SetVersion(1).
 				SetPriority(1).
 				SetWeight(1).
-				SetBody(json.RawMessage{}).
+				SetBody(json.RawMessage("{}")).
 				Save(ctx)
-			return stdErr
+			if stdErr != nil {
+				return common.ErrWrapperDatabase.Wrap(stdErr)
+			}
+			return nil
 		})
 		require.NoError(t, stdErr)
 	}
@@ -47,4 +54,72 @@ func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 	count, stdErr := db.Client().Job.Query().Count(t.Context())
 	require.NoError(t, stdErr)
 	require.Equal(t, JOB_COUNT, count)
+}
+func TestWithWriteTx_supports25CollidingIncrements(t *testing.T) {
+	t.Parallel()
+	INCREMENT_COUNT := 25
+	db := testcommon.CreateDB()
+	defer db.Shutdown()
+
+	stdErr := db.Client().Job.Create().
+		SetType("counter").
+		SetVersion(1).
+		SetPriority(1).
+		SetWeight(1).
+		SetBody(json.RawMessage(`{"count":0}`)).
+		Exec(t.Context())
+	require.NoError(t, stdErr)
+
+	var errCount atomic.Int32
+	var wg sync.WaitGroup
+	for range INCREMENT_COUNT {
+		wg.Go(func() {
+			stdErr := WithWriteTx(
+				t.Context(), db,
+				func(tx *ent.Tx, ctx context.Context) error {
+					job, stdErr := tx.Job.Query().Where(job.TypeEQ("counter")).Only(ctx)
+					if stdErr != nil {
+						errCount.Add(1)
+						return common.ErrWrapperDatabase.Wrap(stdErr)
+					}
+					// Extend the window when this transaction hasn't got a write lock
+					time.Sleep(10 * time.Millisecond)
+
+					var body struct {
+						Count int `json:"count"`
+					}
+					stdErr = json.Unmarshal(job.Body, &body)
+					if stdErr != nil {
+						errCount.Add(1)
+						return stdErr
+					}
+					body.Count++
+					newBody, stdErr := json.Marshal(body)
+					if stdErr != nil {
+						errCount.Add(1)
+						return stdErr
+					}
+					stdErr = job.Update().SetBody(json.RawMessage(newBody)).Exec(ctx)
+					if stdErr != nil {
+						errCount.Add(1)
+						return common.ErrWrapperDatabase.Wrap(stdErr)
+					}
+					return nil
+				},
+			)
+			require.NoError(t, stdErr)
+		})
+	}
+	wg.Wait()
+
+	jobOb, err := db.Client().Job.Query().Where(job.TypeEQ("counter")).Only(t.Context())
+	require.NoError(t, err)
+	var body struct {
+		Count int `json:"count"`
+	}
+	stdErr = json.Unmarshal(jobOb.Body, &body)
+	require.NoError(t, stdErr)
+	require.Equal(t, INCREMENT_COUNT, body.Count)
+	// Expect at least a few errors to have been retried (it should be way more than this on average)
+	require.GreaterOrEqual(t, errCount.Load(), int32(5))
 }
