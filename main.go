@@ -49,6 +49,7 @@ func main() {
 		app.Logger = logger
 		slog.SetDefault(logger.Logger)
 	}
+	app.RateLimiter = services.NewRateLimiter(app)
 	app.Core = services.NewCore(app)
 	app.Database = services.NewDatabase(app)
 	app.Database.Start()

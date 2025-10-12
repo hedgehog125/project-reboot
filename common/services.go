@@ -56,6 +56,7 @@ type App struct {
 	Env              *Env
 	Clock            clockwork.Clock
 	Logger           LoggerService
+	RateLimiter      LimiterService
 	ShutdownService  ShutdownService
 	Database         DatabaseService
 	TwoFactorActions TwoFactorActionService
@@ -136,17 +137,17 @@ type Logger interface {
 	With(args ...any) *slog.Logger
 	WithGroup(name string) *slog.Logger
 }
-type LoggerService interface {
-	Logger
-	Start()    // Should fatalf rather than returning an error
-	Shutdown() // Should log warning rather than return an error
-}
 
 // When in a context passed to a logger.Error call, the server will deliberately crash to notify the admin as opposed to sending a message
 type AdminNotificationFallbackKey struct{}
 
 // Used to store a logger override in a context
 type LoggerKey struct{}
+type LoggerService interface {
+	Logger
+	Start()    // Should fatalf rather than returning an error
+	Shutdown() // Should log warning rather than return an error
+}
 
 type ShutdownService interface {
 	// Note: this blocks until shutdown is complete, crashes should usually call this in a separate Goroutine
@@ -217,4 +218,12 @@ type TwoFactorActionService interface {
 type SchedulerService interface {
 	Start()    // Should fatalf rather than returning an error
 	Shutdown() // Should log warning rather than return an error
+}
+
+type LimiterService interface {
+	RequestSession(eventName string, amount int, user string) (LimiterSession, *Error)
+}
+type LimiterSession interface {
+	AdjustTo(amount int) *Error
+	Cancel()
 }

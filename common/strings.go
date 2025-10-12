@@ -43,3 +43,13 @@ func ParseVersionedType(versionedType string) (string, int, *Error) {
 
 	return versionedType[:separatorIndex], version, nil
 }
+
+func JoinPaths(path1, path2 string) string {
+	if path1 == "" {
+		return path2
+	}
+	if path2 == "" {
+		return path1
+	}
+	return fmt.Sprintf("%s/%s", path1, path2)
+}

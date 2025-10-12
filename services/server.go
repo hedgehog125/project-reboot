@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,12 +23,17 @@ type Server struct {
 
 func NewServer(app *common.App) *Server {
 	router := gin.New()
-	// router.SetTrustedProxies(nil)
-	router.TrustedPlatform = app.Env.PROXY_ORIGINAL_IP_HEADER_NAME
+	if app.Env.PROXY_ORIGINAL_IP_HEADER_NAME == "" {
+		router.SetTrustedProxies(nil)
+	} else {
+		router.TrustedPlatform = app.Env.PROXY_ORIGINAL_IP_HEADER_NAME
+	}
 	router.Use(middleware.NewLogger(app.Logger))
 	router.Use(gin.Logger()) // TODO: make the custom logger log completed requests so this isn't needed
 	// TODO: ^ this is logging "Error #01: ..."
 
+	router.LoadHTMLGlob("./server/templates/*.html")
+	router.Use(middleware.NewRateLimiting("api", app.RateLimiter))
 	router.Static("/static", "./public") // Has to go before otherwise files are sent but with a 404 status
 	router.Use(middleware.NewTimeout())  // TODO: why does the error middleware have to go after? This middleware seems to write otherwise
 	router.Use(middleware.NewError())
@@ -37,7 +43,7 @@ func NewServer(app *common.App) *Server {
 		Router:          router,
 		AdminMiddleware: adminMiddleware,
 	}
-	endpoints.ConfigureEndpoints(router.Group(""), serverApp)
+	endpoints.ConfigureEndpoints(router.Group(""), serverApp) // TODO: rework to be more like jobs registry, embed *gin.RouterGroup
 
 	return &Server{
 		App:    app,
@@ -47,18 +53,21 @@ func NewServer(app *common.App) *Server {
 
 func (service *Server) Start() {
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%v", service.App.Env.PORT),
-		Handler: service.Router.Handler(),
+		Addr:              fmt.Sprintf(":%v", service.App.Env.PORT),
+		Handler:           service.Router.Handler(),
+		ReadHeaderTimeout: 2 * time.Second,
+		ReadTimeout:       3 * time.Second,
+		WriteTimeout:      3 * time.Second,
+		IdleTimeout:       30 * time.Second,
 	}
+	service.Server = server
 
 	go func() {
 		stdErr := server.ListenAndServe()
-		if stdErr != nil && stdErr != http.ErrServerClosed {
+		if stdErr != nil && !errors.Is(stdErr, http.ErrServerClosed) {
 			log.Fatalf("an error occurred while starting the HTTP server:\n%v", stdErr.Error())
 		}
 	}()
-
-	service.Server = server
 }
 func (service *Server) Shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
