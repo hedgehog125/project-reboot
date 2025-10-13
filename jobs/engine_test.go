@@ -20,6 +20,8 @@ func TestEngine_runsJob(t *testing.T) {
 	app := &common.App{
 		Database: db,
 		Env:      testcommon.DefaultEnv(),
+		Logger:   testcommon.NewTestLogger(),
+		Clock:    clockwork.NewRealClock(),
 	}
 	type body = struct{}
 	completeJobChan := make(chan struct{})
@@ -60,6 +62,7 @@ func TestEngine_retriesJob(t *testing.T) {
 		Clock:    clockwork.NewRealClock(),
 		Database: db,
 		Env:      testcommon.DefaultEnv(),
+		Logger:   testcommon.NewTestLogger(),
 	}
 	type body = struct{}
 	completeJobChan := make(chan struct{})

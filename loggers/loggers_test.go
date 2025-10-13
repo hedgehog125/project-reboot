@@ -142,7 +142,10 @@ func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) {
 			Level:   int(slog.LevelWarn),
 			Attributes: map[string]any{
 				"error": map[string]any{
-					"categories": []any{"callback", "WithTx", "db common [package]"},
+					"categories": []any{
+						"auto wrapped", "other", "database [general]", "common [package]",
+						"callback", "WithTx", "db common [package]",
+					},
 					"debugValues": []any{
 						map[string]any{
 							"Value":   []any{},
@@ -156,7 +159,7 @@ func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) {
 						},
 					},
 					"errDuplicatesCategory":  false,
-					"error":                  "db common [package] error: WithTx error: callback error: ent: constraint failed: FOREIGN KEY constraint failed",
+					"error":                  "db common [package] error: WithTx error: callback error: common [package] error: database [general] error: other error: auto wrapped error: ent: constraint failed: FOREIGN KEY constraint failed",
 					"innerError":             "ent: constraint failed: FOREIGN KEY constraint failed",
 					"maxRetries":             0,
 					"retryBackoffBase":       0,
@@ -423,6 +426,8 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 			Attributes: map[string]any{
 				"error": map[string]any{
 					"categories": []any{
+						"auto wrapped",
+						"common [package]",
 						"callback",
 						"WithTx",
 						"db common [package]",
@@ -440,7 +445,7 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 						},
 					},
 					"errDuplicatesCategory":  false,
-					"error":                  "db common [package] error: WithTx error: callback error: temporary but unretryable error",
+					"error":                  "db common [package] error: WithTx error: callback error: common [package] error: auto wrapped error: temporary but unretryable error",
 					"innerError":             "temporary but unretryable error",
 					"maxRetries":             0,
 					"retryBackoffBase":       0,

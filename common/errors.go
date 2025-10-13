@@ -379,7 +379,7 @@ func AutoWrapError(err error) *Error {
 		return commErr.Clone()
 	}
 
-	commErr = WrapErrorWithCategories(err, "auto wrapped")
+	commErr = WrapErrorWithCategories(err, ErrTypeCommon, "auto wrapped")
 	if errors.As(err, &sqlite3.Error{}) {
 		return ErrWrapperDatabase.Wrap(commErr)
 	}

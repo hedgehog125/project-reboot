@@ -38,10 +38,9 @@ func main() {
 	userOb, stdErr := dbcommon.WithReadTx(
 		context.Background(), app.Database,
 		func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
-			userOb, stdErr := tx.User.Query().
+			return tx.User.Query().
 				Where(user.Username(*username)).
 				Only(ctx)
-			return userOb, stdErr
 		},
 	)
 	if stdErr != nil {

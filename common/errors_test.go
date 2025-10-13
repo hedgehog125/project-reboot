@@ -205,7 +205,7 @@ func TestError_Clone(t *testing.T) {
 	require.Equal(t, sentinelErr, copiedErr)
 	require.NotSame(t, sentinelErr, copiedErr)
 
-	copiedErr.AddCategory("new category")
+	copiedErr = copiedErr.AddCategory("new category")
 	require.NotEqual(t, sentinelErr, copiedErr)
 }
 

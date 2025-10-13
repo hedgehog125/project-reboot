@@ -156,7 +156,7 @@ func (engine *Engine) Listen() {
 					return tx.Job.Query().
 						Where(job.StatusEQ("pending"), job.DueLTE(time.Now())).
 						Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
-						First(context.TODO())
+						First(ctx)
 				},
 			)
 			if stdErr != nil {
@@ -190,7 +190,7 @@ func (engine *Engine) Listen() {
 				func(tx *ent.Tx, ctx context.Context) error {
 					return tx.Job.UpdateOneID(currentJob.ID).
 						SetStatus("running").SetStarted(time.Now()).
-						Exec(context.TODO())
+						Exec(ctx)
 				},
 			)
 			if stdErr != nil {

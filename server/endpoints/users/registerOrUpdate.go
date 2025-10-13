@@ -59,14 +59,14 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 				OnConflict().UpdateNewValues().
 				Exec(ctx)
 			if stdErr != nil {
-				return common.ErrWrapperDatabase.Wrap(stdErr)
+				return stdErr
 			}
 
 			userOb, stdErr := tx.User.Query().
 				Where(user.Username(body.Username)).
 				Only(ctx)
 			if stdErr != nil {
-				return common.ErrWrapperDatabase.Wrap(stdErr)
+				return stdErr
 			}
 			_, _, commErr := app.Messengers.SendUsingAll(
 				&common.Message{
@@ -83,7 +83,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 				session.HasUserWith(user.Username(body.Username)),
 			).Exec(ctx)
 			if stdErr != nil {
-				return common.ErrWrapperDatabase.Wrap(stdErr)
+				return stdErr
 			}
 
 			ginCtx.JSON(http.StatusCreated, RegisterOrUpdateResponse{
