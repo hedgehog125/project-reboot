@@ -132,5 +132,23 @@ func (session *Session) Cancel() {
 		))
 	}
 }
-
-// func (session *Session) RequestSubSession(resource string, amount int) (*Session, *common.Error)
+func (limiter *Limiter) DeleteInactiveUsers() {
+	limiter.mu.Lock()
+	defer limiter.mu.Unlock()
+	for _, limit := range limiter.limits {
+		func() {
+			limit.mu.Lock()
+			defer limit.mu.Unlock()
+			usersToDelete := []string{}
+			for user, counter := range limit.userCounters {
+				counter = counter.refresh(limiter.App.Clock.Now(), limit.resetDuration)
+				if counter.value == 0 {
+					usersToDelete = append(usersToDelete, user)
+				}
+			}
+			for _, user := range usersToDelete {
+				delete(limit.userCounters, user)
+			}
+		}()
+	}
+}

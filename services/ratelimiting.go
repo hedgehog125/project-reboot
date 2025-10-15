@@ -29,3 +29,6 @@ func (service *RateLimiter) RequestSession(
 	}
 	return session, commErr
 }
+func (service *RateLimiter) DeleteInactiveUsers() {
+	service.Limiter.DeleteInactiveUsers()
+}

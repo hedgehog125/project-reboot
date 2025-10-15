@@ -224,6 +224,7 @@ type SchedulerService interface {
 
 type LimiterService interface {
 	RequestSession(eventName string, amount int, user string) (LimiterSession, *Error)
+	DeleteInactiveUsers()
 }
 type LimiterSession interface {
 	AdjustTo(amount int) *Error

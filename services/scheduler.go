@@ -61,10 +61,11 @@ func NewScheduler(app *common.App) *Scheduler {
 			)
 			if stdErr != nil {
 				taskContext.App.Logger.Error(
-					"unable to run cleanup task",
+					"cleanup task's transaction failed",
 					"error", stdErr,
 				)
 			}
+			app.RateLimiter.DeleteInactiveUsers()
 		},
 		schedulers.SimpleFixedInterval(app.Env.CLEAN_UP_INTERVAL),
 	)
