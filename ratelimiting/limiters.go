@@ -100,11 +100,11 @@ func (limiter *Limiter) RequestSession(eventName string, amount int, user string
 	}, nil
 }
 func (session *Session) AdjustTo(amount int) *common.Error {
+	session.limit.mu.Lock()
+	defer session.limit.mu.Unlock()
 	if amount == session.Amount {
 		return nil
 	}
-	session.limit.mu.Lock()
-	defer session.limit.mu.Unlock()
 
 	diff := amount - session.Amount
 	globalCounter := session.limit.globalCounter.refresh(session.limiter.App.Clock.Now(), session.limit.resetDuration)
