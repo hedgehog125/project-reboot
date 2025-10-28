@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
@@ -38,9 +37,9 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		salt := core.GenerateSalt()
-		encryptionKey := core.HashPassword(body.Password, salt, hashSettings)
-		encrypted, nonce, commErr := core.Encrypt(contentBytes, encryptionKey)
+		salt := app.Core.GenerateSalt()
+		encryptionKey := app.Core.HashPassword(body.Password, salt, hashSettings)
+		encrypted, nonce, commErr := app.Core.Encrypt(contentBytes, encryptionKey)
 		if commErr != nil {
 			return commErr
 		}

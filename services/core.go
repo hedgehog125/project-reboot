@@ -32,6 +32,9 @@ func (service *Core) CheckAdminCode(givenCode string) bool {
 	defer service.mu.RUnlock()
 	return core.CheckAdminCode(givenCode, service.AdminCode, service.App.Logger)
 }
+func (service *Core) RandomAuthCode() []byte {
+	return core.RandomAuthCode()
+}
 func (service *Core) SendActiveSessionReminders(ctx context.Context) *common.Error {
 	return core.SendActiveSessionReminders(
 		ctx, service.App.Clock, service.App.Messengers,

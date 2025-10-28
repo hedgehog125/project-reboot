@@ -174,6 +174,7 @@ type ServerService interface {
 type CoreService interface {
 	RotateAdminCode()
 	CheckAdminCode(givenCode string) bool
+	RandomAuthCode() []byte
 	SendActiveSessionReminders(ctx context.Context) *Error
 	DeleteExpiredSessions(ctx context.Context) *Error
 

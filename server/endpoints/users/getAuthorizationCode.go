@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
@@ -51,7 +50,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			return stdErr
 		}
 
-		encryptionKey := core.HashPassword(
+		encryptionKey := app.Core.HashPassword(
 			body.Password,
 			userOb.KeySalt,
 			&common.PasswordHashSettings{
@@ -60,7 +59,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				Threads: userOb.HashThreads,
 			},
 		)
-		_, commErr := core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
+		_, commErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
 		if commErr != nil {
 			return servercommon.NewUnauthorizedError()
 		}
@@ -79,7 +78,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				return commErr
 			}
 
-			authCode := core.RandomAuthCode()
+			authCode := app.Core.RandomAuthCode()
 			validUntil := clock.Now().Add(app.Env.AUTH_CODE_VALID_FOR)
 
 			_, stdErr = tx.Session.Create().

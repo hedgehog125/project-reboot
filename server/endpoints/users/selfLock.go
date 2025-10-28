@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	userjobs "github.com/hedgehog125/project-reboot/jobs/definitions/users"
@@ -60,7 +59,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 		// TODO: check the user isn't locked
 
-		encryptionKey := core.HashPassword(
+		encryptionKey := app.Core.HashPassword(
 			body.Password,
 			userOb.KeySalt,
 			&common.PasswordHashSettings{
@@ -69,7 +68,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 				Threads: userOb.HashThreads,
 			},
 		)
-		_, commErr := core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
+		_, commErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
 		if commErr != nil {
 			return servercommon.NewUnauthorizedError()
 		}

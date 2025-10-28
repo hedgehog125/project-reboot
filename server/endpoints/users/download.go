@@ -88,7 +88,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		userOb := sessionOb.Edges.User
-		encryptionKey := core.HashPassword(
+		encryptionKey := app.Core.HashPassword(
 			body.Password,
 			userOb.KeySalt,
 			&common.PasswordHashSettings{
@@ -97,7 +97,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				Threads: userOb.HashThreads,
 			},
 		)
-		decrypted, commErr := core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
+		decrypted, commErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
 		if commErr != nil {
 			return servercommon.ExpectError(
 				commErr, core.ErrIncorrectPassword,
