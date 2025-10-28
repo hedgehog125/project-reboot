@@ -43,6 +43,25 @@ var (
 			},
 		},
 	}
+	// KeyValuesColumns holds the columns for the "key_values" table.
+	KeyValuesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "key", Type: field.TypeString, Size: 128},
+		{Name: "value", Type: field.TypeJSON},
+	}
+	// KeyValuesTable holds the schema information for the "key_values" table.
+	KeyValuesTable = &schema.Table{
+		Name:       "key_values",
+		Columns:    KeyValuesColumns,
+		PrimaryKey: []*schema.Column{KeyValuesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "keyvalue_key",
+				Unique:  true,
+				Columns: []*schema.Column{KeyValuesColumns[1]},
+			},
+		},
+	}
 	// LogEntriesColumns holds the columns for the "log_entries" table.
 	LogEntriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -163,6 +182,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		JobsTable,
+		KeyValuesTable,
 		LogEntriesTable,
 		PeriodicTasksTable,
 		SessionsTable,

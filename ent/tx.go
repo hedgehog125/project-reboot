@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Job is the client for interacting with the Job builders.
 	Job *JobClient
+	// KeyValue is the client for interacting with the KeyValue builders.
+	KeyValue *KeyValueClient
 	// LogEntry is the client for interacting with the LogEntry builders.
 	LogEntry *LogEntryClient
 	// PeriodicTask is the client for interacting with the PeriodicTask builders.
@@ -156,6 +158,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Job = NewJobClient(tx.config)
+	tx.KeyValue = NewKeyValueClient(tx.config)
 	tx.LogEntry = NewLogEntryClient(tx.config)
 	tx.PeriodicTask = NewPeriodicTaskClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)

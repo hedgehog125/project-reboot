@@ -1,7 +1,5 @@
 # TODO
 
--   Use app.Core instead of directly using core package
--   Create servicescommon so things can be split up better?
 -   Create key/value storage service
 -   -   Key should be a string and value is json.RawMessage
 -   -   Should have definitions system to enforce types and ensure the key is known
@@ -52,6 +50,7 @@
 -   -   Admin endpoints don't need this security, as long as they fail early if unauthorised
 -   When the admin is locked, whether temporarily or permanently, errors should make the server enter some kind of lockdown state? Need to weigh up pros and cons
 
+-   Create servicescommon so things can be split up better?
 -   Job engine should support rate limiting for each API by each definition having an optional function to modify the database object.
     There could be a function to increase the due time based on the internal rate limit for the API. Probably not needed though
 -   Refactor the logger

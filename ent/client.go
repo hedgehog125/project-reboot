@@ -17,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/hedgehog125/project-reboot/ent/job"
+	"github.com/hedgehog125/project-reboot/ent/keyvalue"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
 	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/session"
@@ -31,6 +32,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Job is the client for interacting with the Job builders.
 	Job *JobClient
+	// KeyValue is the client for interacting with the KeyValue builders.
+	KeyValue *KeyValueClient
 	// LogEntry is the client for interacting with the LogEntry builders.
 	LogEntry *LogEntryClient
 	// PeriodicTask is the client for interacting with the PeriodicTask builders.
@@ -53,6 +56,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Job = NewJobClient(c.config)
+	c.KeyValue = NewKeyValueClient(c.config)
 	c.LogEntry = NewLogEntryClient(c.config)
 	c.PeriodicTask = NewPeriodicTaskClient(c.config)
 	c.Session = NewSessionClient(c.config)
@@ -151,6 +155,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:             ctx,
 		config:          cfg,
 		Job:             NewJobClient(cfg),
+		KeyValue:        NewKeyValueClient(cfg),
 		LogEntry:        NewLogEntryClient(cfg),
 		PeriodicTask:    NewPeriodicTaskClient(cfg),
 		Session:         NewSessionClient(cfg),
@@ -176,6 +181,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:             ctx,
 		config:          cfg,
 		Job:             NewJobClient(cfg),
+		KeyValue:        NewKeyValueClient(cfg),
 		LogEntry:        NewLogEntryClient(cfg),
 		PeriodicTask:    NewPeriodicTaskClient(cfg),
 		Session:         NewSessionClient(cfg),
@@ -210,7 +216,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Job, c.LogEntry, c.PeriodicTask, c.Session, c.TwoFactorAction, c.User,
+		c.Job, c.KeyValue, c.LogEntry, c.PeriodicTask, c.Session, c.TwoFactorAction,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -220,7 +227,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Job, c.LogEntry, c.PeriodicTask, c.Session, c.TwoFactorAction, c.User,
+		c.Job, c.KeyValue, c.LogEntry, c.PeriodicTask, c.Session, c.TwoFactorAction,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -231,6 +239,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *JobMutation:
 		return c.Job.mutate(ctx, m)
+	case *KeyValueMutation:
+		return c.KeyValue.mutate(ctx, m)
 	case *LogEntryMutation:
 		return c.LogEntry.mutate(ctx, m)
 	case *PeriodicTaskMutation:
@@ -376,6 +386,139 @@ func (c *JobClient) mutate(ctx context.Context, m *JobMutation) (Value, error) {
 		return (&JobDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Job mutation op: %q", m.Op())
+	}
+}
+
+// KeyValueClient is a client for the KeyValue schema.
+type KeyValueClient struct {
+	config
+}
+
+// NewKeyValueClient returns a client for the KeyValue from the given config.
+func NewKeyValueClient(c config) *KeyValueClient {
+	return &KeyValueClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `keyvalue.Hooks(f(g(h())))`.
+func (c *KeyValueClient) Use(hooks ...Hook) {
+	c.hooks.KeyValue = append(c.hooks.KeyValue, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `keyvalue.Intercept(f(g(h())))`.
+func (c *KeyValueClient) Intercept(interceptors ...Interceptor) {
+	c.inters.KeyValue = append(c.inters.KeyValue, interceptors...)
+}
+
+// Create returns a builder for creating a KeyValue entity.
+func (c *KeyValueClient) Create() *KeyValueCreate {
+	mutation := newKeyValueMutation(c.config, OpCreate)
+	return &KeyValueCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of KeyValue entities.
+func (c *KeyValueClient) CreateBulk(builders ...*KeyValueCreate) *KeyValueCreateBulk {
+	return &KeyValueCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *KeyValueClient) MapCreateBulk(slice any, setFunc func(*KeyValueCreate, int)) *KeyValueCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &KeyValueCreateBulk{err: fmt.Errorf("calling to KeyValueClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*KeyValueCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &KeyValueCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for KeyValue.
+func (c *KeyValueClient) Update() *KeyValueUpdate {
+	mutation := newKeyValueMutation(c.config, OpUpdate)
+	return &KeyValueUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *KeyValueClient) UpdateOne(_m *KeyValue) *KeyValueUpdateOne {
+	mutation := newKeyValueMutation(c.config, OpUpdateOne, withKeyValue(_m))
+	return &KeyValueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *KeyValueClient) UpdateOneID(id int) *KeyValueUpdateOne {
+	mutation := newKeyValueMutation(c.config, OpUpdateOne, withKeyValueID(id))
+	return &KeyValueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for KeyValue.
+func (c *KeyValueClient) Delete() *KeyValueDelete {
+	mutation := newKeyValueMutation(c.config, OpDelete)
+	return &KeyValueDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *KeyValueClient) DeleteOne(_m *KeyValue) *KeyValueDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *KeyValueClient) DeleteOneID(id int) *KeyValueDeleteOne {
+	builder := c.Delete().Where(keyvalue.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &KeyValueDeleteOne{builder}
+}
+
+// Query returns a query builder for KeyValue.
+func (c *KeyValueClient) Query() *KeyValueQuery {
+	return &KeyValueQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeKeyValue},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a KeyValue entity by its id.
+func (c *KeyValueClient) Get(ctx context.Context, id int) (*KeyValue, error) {
+	return c.Query().Where(keyvalue.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *KeyValueClient) GetX(ctx context.Context, id int) *KeyValue {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *KeyValueClient) Hooks() []Hook {
+	return c.hooks.KeyValue
+}
+
+// Interceptors returns the client interceptors.
+func (c *KeyValueClient) Interceptors() []Interceptor {
+	return c.inters.KeyValue
+}
+
+func (c *KeyValueClient) mutate(ctx context.Context, m *KeyValueMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&KeyValueCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&KeyValueUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&KeyValueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&KeyValueDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown KeyValue mutation op: %q", m.Op())
 	}
 }
 
@@ -1111,9 +1254,10 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Job, LogEntry, PeriodicTask, Session, TwoFactorAction, User []ent.Hook
+		Job, KeyValue, LogEntry, PeriodicTask, Session, TwoFactorAction, User []ent.Hook
 	}
 	inters struct {
-		Job, LogEntry, PeriodicTask, Session, TwoFactorAction, User []ent.Interceptor
+		Job, KeyValue, LogEntry, PeriodicTask, Session, TwoFactorAction,
+		User []ent.Interceptor
 	}
 )

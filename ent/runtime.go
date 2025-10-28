@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
+	"github.com/hedgehog125/project-reboot/ent/keyvalue"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
 	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/schema"
@@ -67,6 +68,26 @@ func init() {
 	jobDescID := jobFields[0].Descriptor()
 	// job.DefaultID holds the default value on creation for the id field.
 	job.DefaultID = jobDescID.Default.(func() uuid.UUID)
+	keyvalueFields := schema.KeyValue{}.Fields()
+	_ = keyvalueFields
+	// keyvalueDescKey is the schema descriptor for key field.
+	keyvalueDescKey := keyvalueFields[0].Descriptor()
+	// keyvalue.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	keyvalue.KeyValidator = func() func(string) error {
+		validators := keyvalueDescKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(key string) error {
+			for _, fn := range fns {
+				if err := fn(key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	logentryFields := schema.LogEntry{}.Fields()
 	_ = logentryFields
 	// logentryDescID is the schema descriptor for id field.

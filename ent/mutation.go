@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
+	"github.com/hedgehog125/project-reboot/ent/keyvalue"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
 	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
@@ -32,6 +33,7 @@ const (
 
 	// Node types.
 	TypeJob             = "Job"
+	TypeKeyValue        = "KeyValue"
 	TypeLogEntry        = "LogEntry"
 	TypePeriodicTask    = "PeriodicTask"
 	TypeSession         = "Session"
@@ -1223,6 +1225,402 @@ func (m *JobMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *JobMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Job edge %s", name)
+}
+
+// KeyValueMutation represents an operation that mutates the KeyValue nodes in the graph.
+type KeyValueMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	key           *string
+	value         *json.RawMessage
+	appendvalue   json.RawMessage
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*KeyValue, error)
+	predicates    []predicate.KeyValue
+}
+
+var _ ent.Mutation = (*KeyValueMutation)(nil)
+
+// keyvalueOption allows management of the mutation configuration using functional options.
+type keyvalueOption func(*KeyValueMutation)
+
+// newKeyValueMutation creates new mutation for the KeyValue entity.
+func newKeyValueMutation(c config, op Op, opts ...keyvalueOption) *KeyValueMutation {
+	m := &KeyValueMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeKeyValue,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withKeyValueID sets the ID field of the mutation.
+func withKeyValueID(id int) keyvalueOption {
+	return func(m *KeyValueMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *KeyValue
+		)
+		m.oldValue = func(ctx context.Context) (*KeyValue, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().KeyValue.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withKeyValue sets the old KeyValue of the mutation.
+func withKeyValue(node *KeyValue) keyvalueOption {
+	return func(m *KeyValueMutation) {
+		m.oldValue = func(context.Context) (*KeyValue, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m KeyValueMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m KeyValueMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *KeyValueMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *KeyValueMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().KeyValue.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetKey sets the "key" field.
+func (m *KeyValueMutation) SetKey(s string) {
+	m.key = &s
+}
+
+// Key returns the value of the "key" field in the mutation.
+func (m *KeyValueMutation) Key() (r string, exists bool) {
+	v := m.key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKey returns the old "key" field's value of the KeyValue entity.
+// If the KeyValue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *KeyValueMutation) OldKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKey: %w", err)
+	}
+	return oldValue.Key, nil
+}
+
+// ResetKey resets all changes to the "key" field.
+func (m *KeyValueMutation) ResetKey() {
+	m.key = nil
+}
+
+// SetValue sets the "value" field.
+func (m *KeyValueMutation) SetValue(jm json.RawMessage) {
+	m.value = &jm
+	m.appendvalue = nil
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *KeyValueMutation) Value() (r json.RawMessage, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the KeyValue entity.
+// If the KeyValue object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *KeyValueMutation) OldValue(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// AppendValue adds jm to the "value" field.
+func (m *KeyValueMutation) AppendValue(jm json.RawMessage) {
+	m.appendvalue = append(m.appendvalue, jm...)
+}
+
+// AppendedValue returns the list of values that were appended to the "value" field in this mutation.
+func (m *KeyValueMutation) AppendedValue() (json.RawMessage, bool) {
+	if len(m.appendvalue) == 0 {
+		return nil, false
+	}
+	return m.appendvalue, true
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *KeyValueMutation) ResetValue() {
+	m.value = nil
+	m.appendvalue = nil
+}
+
+// Where appends a list predicates to the KeyValueMutation builder.
+func (m *KeyValueMutation) Where(ps ...predicate.KeyValue) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the KeyValueMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *KeyValueMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.KeyValue, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *KeyValueMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *KeyValueMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (KeyValue).
+func (m *KeyValueMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *KeyValueMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.key != nil {
+		fields = append(fields, keyvalue.FieldKey)
+	}
+	if m.value != nil {
+		fields = append(fields, keyvalue.FieldValue)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *KeyValueMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case keyvalue.FieldKey:
+		return m.Key()
+	case keyvalue.FieldValue:
+		return m.Value()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *KeyValueMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case keyvalue.FieldKey:
+		return m.OldKey(ctx)
+	case keyvalue.FieldValue:
+		return m.OldValue(ctx)
+	}
+	return nil, fmt.Errorf("unknown KeyValue field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *KeyValueMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case keyvalue.FieldKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKey(v)
+		return nil
+	case keyvalue.FieldValue:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
+		return nil
+	}
+	return fmt.Errorf("unknown KeyValue field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *KeyValueMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *KeyValueMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *KeyValueMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown KeyValue numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *KeyValueMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *KeyValueMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *KeyValueMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown KeyValue nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *KeyValueMutation) ResetField(name string) error {
+	switch name {
+	case keyvalue.FieldKey:
+		m.ResetKey()
+		return nil
+	case keyvalue.FieldValue:
+		m.ResetValue()
+		return nil
+	}
+	return fmt.Errorf("unknown KeyValue field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *KeyValueMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *KeyValueMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *KeyValueMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *KeyValueMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *KeyValueMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *KeyValueMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *KeyValueMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown KeyValue unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *KeyValueMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown KeyValue edge %s", name)
 }
 
 // LogEntryMutation represents an operation that mutates the LogEntry nodes in the graph.

@@ -9,6 +9,9 @@ import (
 // Job is the predicate function for job builders.
 type Job func(*sql.Selector)
 
+// KeyValue is the predicate function for keyvalue builders.
+type KeyValue func(*sql.Selector)
+
 // LogEntry is the predicate function for logentry builders.
 type LogEntry func(*sql.Selector)
 
