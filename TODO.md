@@ -1,6 +1,7 @@
 # TODO
 
 -   Use app.Core instead of directly using core package
+-   Create servicescommon so things can be split up better?
 -   Create key/value storage service
 -   -   Key should be a string and value is json.RawMessage
 -   -   Should have definitions system to enforce types and ensure the key is known

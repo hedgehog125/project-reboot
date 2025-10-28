@@ -176,6 +176,11 @@ type CoreService interface {
 	CheckAdminCode(givenCode string) bool
 	SendActiveSessionReminders(ctx context.Context) *Error
 	DeleteExpiredSessions(ctx context.Context) *Error
+
+	Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, *Error)
+	Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, *Error)
+	GenerateSalt() []byte
+	HashPassword(password string, salt []byte, settings *PasswordHashSettings) []byte
 }
 
 type JobService interface {

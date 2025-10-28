@@ -32,8 +32,8 @@ func CheckAdminCode(givenCode string, expected AdminCode, logger common.Logger) 
 		)
 		return false
 	}
-	givenBytes, err := base64.StdEncoding.DecodeString(givenCode)
-	if err != nil {
+	givenBytes, stdErr := base64.StdEncoding.DecodeString(givenCode)
+	if stdErr != nil {
 		return false
 	}
 	return subtle.ConstantTimeCompare(givenBytes, expected) == 1
