@@ -12,7 +12,6 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/jobs"
-	"github.com/hedgehog125/project-reboot/jobs/jobscommon"
 )
 
 const JobNamePrefix = "messengers"
@@ -103,7 +102,7 @@ func (registry *Registry) Register(definition *Definition) {
 	registry.messengers[versionedType] = definition
 }
 func (registry *Registry) RegisterJobs(group *jobs.RegistryGroup) {
-	registry.jobNamePrefix = jobscommon.JoinPaths(group.Path, JobNamePrefix)
+	registry.jobNamePrefix = common.JoinPaths(group.Path, JobNamePrefix)
 	prefixedGroup := group.Group(JobNamePrefix)
 	for _, messenger := range registry.messengers {
 		prefixedGroup.Register(messenger.jobDefinition)
@@ -145,7 +144,7 @@ func (registry *Registry) Send(
 	}
 
 	_, commErr := registry.App.Jobs.EnqueueWithModifier(
-		jobscommon.JoinPaths(registry.jobNamePrefix, versionedType),
+		common.JoinPaths(registry.jobNamePrefix, versionedType),
 		&bodyWrapperType{
 			MessageType: message.Type,
 			Inner:       string(encoded),

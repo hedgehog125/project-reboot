@@ -1,6 +1,8 @@
-package jobs
+package keyvalue
 
-import "github.com/hedgehog125/project-reboot/common"
+import (
+	"github.com/hedgehog125/project-reboot/common"
+)
 
 type RegistryGroup struct {
 	Registry *Registry
@@ -21,6 +23,6 @@ func (group *RegistryGroup) Group(relativePath string) *RegistryGroup {
 }
 
 func (group *RegistryGroup) Register(definition *Definition) {
-	definition.ID = common.JoinPaths(group.Path, definition.ID)
+	definition.Name = common.JoinPaths(group.Path, definition.Name)
 	group.Registry.Register(definition)
 }

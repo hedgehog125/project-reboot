@@ -62,7 +62,7 @@ func (registry *Registry) Get(name string, ptr any, ctx context.Context) *common
 		return ErrWrapperGetValue.Wrap(ErrWrongPointerType)
 	}
 
-	tx := ent.FromContext(ctx)
+	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return ErrWrapperGetValue.Wrap(common.ErrNoTxInContext)
 	}
@@ -107,7 +107,7 @@ func (registry *Registry) Set(name string, value any, ctx context.Context) *comm
 		return ErrWrapperSetValue.Wrap(ErrWrongPointerType)
 	}
 
-	tx := ent.FromContext(ctx)
+	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return ErrWrapperSetValue.Wrap(common.ErrNoTxInContext)
 	}
@@ -128,7 +128,7 @@ func (registry *Registry) Set(name string, value any, ctx context.Context) *comm
 	return nil
 }
 func (registry *Registry) InitAll(ctx context.Context) *common.Error {
-	tx := ent.FromContext(ctx)
+	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return ErrWrapperInitAll.Wrap(common.ErrNoTxInContext)
 	}

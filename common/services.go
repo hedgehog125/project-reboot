@@ -61,6 +61,7 @@ type App struct {
 	RateLimiter      LimiterService
 	ShutdownService  ShutdownService
 	Database         DatabaseService
+	KeyValue         KeyValueService
 	TwoFactorActions TwoFactorActionService
 	Messengers       MessengerService
 	Server           ServerService
@@ -165,6 +166,11 @@ type DatabaseService interface {
 	Client() *ent.Client
 	ReadTx(ctx context.Context) (*ent.Tx, error)
 	WriteTx(ctx context.Context) (*ent.Tx, error)
+}
+type KeyValueService interface {
+	Init()
+	Get(name string, ptr any, ctx context.Context) *Error
+	Set(name string, value any, ctx context.Context) *Error
 }
 
 type ServerService interface {

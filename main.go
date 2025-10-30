@@ -52,7 +52,9 @@ func main() {
 	app.RateLimiter = services.NewRateLimiter(app)
 	app.Core = services.NewCore(app)
 	app.Database = services.NewDatabase(app)
+	app.KeyValue = services.NewKeyValue(app)
 	app.Database.Start()
+	app.KeyValue.Init()
 	app.Logger.Start()
 	app.TwoFactorActions = services.NewTwoFactorActions(app)
 	{
