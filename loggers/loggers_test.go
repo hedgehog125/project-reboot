@@ -10,10 +10,12 @@ import (
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/common/testcommon"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
 	"github.com/hedgehog125/project-reboot/loggers"
+	"github.com/hedgehog125/project-reboot/services"
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -456,4 +458,57 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 	})
 	// Should do a bulk create that fails, retry that with 2 individual creates and then do another bulk create to store the warning
 	require.Equal(t, int64(3), successfulCreateCounter.Load())
+}
+
+func TestLogger_NoAdminUser_UsesCrashSignal(t *testing.T) {
+	t.Parallel()
+
+	clock := clockwork.NewFakeClock()
+	runProgram := func(expectedToCrashSignal bool, expectedLastSignal time.Time) {
+		db := testcommon.CreateDB()
+		defer db.Shutdown()
+		shutdownService := testcommon.NewMockShutdownService()
+
+		app := &common.App{
+			Database:        db,
+			Env:             testcommon.DefaultEnv(),
+			Clock:           clock,
+			ShutdownService: shutdownService,
+		}
+		app.KeyValue = services.NewKeyValue(app)
+		logger := NewLogger(app)
+		app.Logger = logger
+		logger.Start()
+		logger.Error("an error occurred!")
+		logger.Shutdown()
+
+		logger.AssertWritten(t, []ExpectedEntry{
+			{
+				Message: "an error occurred!",
+				Level:   int(slog.LevelError),
+			},
+		})
+
+		if expectedToCrashSignal {
+			shutdownService.AssertCalled(t, "crashing to notify admin because messengers failed")
+			shutdownService.Reset()
+		} else {
+			shutdownService.AssertNotCalled(t)
+		}
+		lastCrashSignal := time.Time{}
+		_, stdErr := dbcommon.WithReadTx(
+			t.Context(), app.Database,
+			func(tx *ent.Tx, ctx context.Context) (struct{}, error) {
+				return struct{}{}, app.KeyValue.Get("LAST_CRASH_SIGNAL", &lastCrashSignal, ctx).StandardError()
+			},
+		)
+		require.NoError(t, stdErr)
+		require.Equal(t, expectedLastSignal, lastCrashSignal)
+	}
+	startTime := clock.Now()
+	runProgram(true, startTime)
+	clock.Advance(time.Second)
+	runProgram(false, startTime)
+	clock.Advance(testcommon.DefaultEnv().MIN_CRASH_SIGNAL_GAP - time.Second)
+	runProgram(true, clock.Now())
 }

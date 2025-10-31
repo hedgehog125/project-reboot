@@ -335,15 +335,13 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 	selfLogged := false
 
 	shouldNotifyAdmin := false
-	useFallback := false
-	if handler.App.Env.ADMIN_USERNAME != "" {
-		for _, entry := range entries {
-			if entry.level >= int(slog.LevelError) {
-				shouldNotifyAdmin = true
-			}
-			if entry.useAdminNotificationFallback {
-				useFallback = true
-			}
+	useFallback := handler.App.Env.ADMIN_USERNAME == ""
+	for _, entry := range entries {
+		if entry.level >= int(slog.LevelError) {
+			shouldNotifyAdmin = true
+		}
+		if entry.useAdminNotificationFallback {
+			useFallback = true
 		}
 	}
 	if shouldNotifyAdmin {

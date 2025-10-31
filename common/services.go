@@ -43,6 +43,7 @@ type Env struct {
 	ADMIN_MESSAGE_TIMEOUT time.Duration
 	// If it's been less than this amount of time since the last admin message, other errors won't send a message to avoid spamming the admin
 	MIN_ADMIN_MESSAGE_GAP time.Duration
+	MIN_CRASH_SIGNAL_GAP  time.Duration
 
 	DISCORD_TOKEN  string
 	SENDGRID_TOKEN string // TODO: implement

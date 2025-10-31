@@ -12,12 +12,15 @@ func DefaultEnv() *common.Env {
 		PORT:                          -1,
 		MOUNT_PATH:                    "temp-test-storage",
 		PROXY_ORIGINAL_IP_HEADER_NAME: "test-proxy-original-ip",
+		CLEAN_UP_INTERVAL:             time.Hour,
 
 		JOB_POLL_INTERVAL:    time.Hour * 999,
 		MAX_TOTAL_JOB_WEIGHT: 100,
 
-		UNLOCK_TIME:         time.Hour * 24 * 7,
-		AUTH_CODE_VALID_FOR: time.Hour * 24 * 3,
+		UNLOCK_TIME:                      time.Hour * 24 * 7,
+		AUTH_CODE_VALID_FOR:              time.Hour * 24 * 3,
+		USED_AUTH_CODE_VALID_FOR:         time.Hour,
+		ACTIVE_SESSION_REMINDER_INTERVAL: time.Hour * 24,
 
 		PASSWORD_HASH_SETTINGS: &common.PasswordHashSettings{
 			Time:    1,
@@ -25,7 +28,11 @@ func DefaultEnv() *common.Env {
 			Threads: 1,
 		},
 
-		LOG_STORE_INTERVAL: time.Hour * 999,
+		LOG_STORE_INTERVAL:    time.Hour * 999,
+		ADMIN_USERNAME:        "", // The test will need to set this up if required
+		ADMIN_MESSAGE_TIMEOUT: time.Minute,
+		MIN_ADMIN_MESSAGE_GAP: time.Minute * 5,
+		MIN_CRASH_SIGNAL_GAP:  time.Hour * 24,
 
 		DISCORD_TOKEN:  "",
 		SENDGRID_TOKEN: "",
