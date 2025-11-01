@@ -145,6 +145,9 @@ type Logger interface {
 // When in a context passed to a logger.Error call, the server will deliberately crash to notify the admin as opposed to sending a message
 type AdminNotificationFallbackKey struct{}
 
+// When in a context passed to a logger.Error call, the server won't attempt to notify the admin, neither by crashing or sending a message
+type DisableAdminNotificationKey struct{}
+
 // Used to store a logger override in a context
 type LoggerKey struct{}
 type LoggerService interface {

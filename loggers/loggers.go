@@ -62,6 +62,7 @@ type entry struct {
 	userID                       int
 	disableErrorLogging          bool
 	useAdminNotificationFallback bool
+	disableAdminNotification     bool
 }
 
 func NewHandler(
@@ -337,7 +338,7 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 	shouldNotifyAdmin := false
 	useFallback := handler.App.Env.ADMIN_USERNAME == ""
 	for _, entry := range entries {
-		if entry.level >= int(slog.LevelError) {
+		if entry.level >= int(slog.LevelError) && !entry.disableAdminNotification {
 			shouldNotifyAdmin = true
 		}
 		if entry.useAdminNotificationFallback {
@@ -347,7 +348,51 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 	if shouldNotifyAdmin {
 		// TODO: rate limiting!
 		if useFallback {
-			handler.App.Shutdown("crashing to notify admin because messengers failed")
+			baseCtx := context.Background()
+			if handler.shutdownCtx != nil {
+				baseCtx = handler.shutdownCtx
+			}
+			ctx, cancel := context.WithTimeout(baseCtx, 2*time.Second)
+			defer cancel()
+			shouldCrash, stdErr := dbcommon.WithReadWriteTx(
+				ctx, handler.App.Database,
+				func(tx *ent.Tx, ctx context.Context) (bool, error) {
+					lastCrashSignal := time.Time{}
+					commErr := handler.App.KeyValue.Get("LAST_CRASH_SIGNAL", &lastCrashSignal, ctx)
+					if commErr != nil {
+						return false, commErr
+					}
+					now := handler.App.Clock.Now()
+					if now.Before(lastCrashSignal.Add(handler.App.Env.MIN_CRASH_SIGNAL_GAP)) {
+						return false, nil
+					}
+
+					commErr = handler.App.KeyValue.Set("LAST_CRASH_SIGNAL", now, ctx)
+					if commErr != nil {
+						return false, commErr
+					}
+					return true, nil
+				},
+			)
+			if stdErr != nil {
+				pc, _, _, _ := runtime.Caller(0)
+				record := slog.NewRecord(
+					handler.App.Clock.Now(),
+					slog.LevelError,
+					"failed to check LAST_CRASH_SIGNAL in key/value storage. in order to be cautious, the server won't crash",
+					pc,
+				)
+				record.AddAttrs(slog.Any("error", stdErr))
+				handler.Handle(
+					context.WithValue(context.Background(), common.DisableAdminNotificationKey{}, true),
+					record,
+				)
+				return true
+			}
+
+			if shouldCrash {
+				handler.App.Shutdown("crashing to notify admin because messengers failed")
+			}
 			// Set here rather than at the fallback error logs to ensure the logger loops back around to here
 			*loggedAdminNotificationErrorPtr = true
 			return selfLogged
@@ -470,11 +515,13 @@ func (handler Handler) Enabled(_ context.Context, level slog.Level) bool {
 func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 	disableErrLogging, _ := ctx.Value(disableErrorLoggingKey{}).(bool)
 	useAdminNotificationFallback, _ := ctx.Value(common.AdminNotificationFallbackKey{}).(bool)
+	disableAdminNotification, _ := ctx.Value(common.DisableAdminNotificationKey{}).(bool)
 	entry := &entry{
 		level:                        int(record.Level),
 		message:                      record.Message,
 		disableErrorLogging:          disableErrLogging,
 		useAdminNotificationFallback: useAdminNotificationFallback,
+		disableAdminNotification:     disableAdminNotification,
 	}
 	if !record.Time.IsZero() {
 		entry.time = record.Time

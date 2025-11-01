@@ -75,16 +75,23 @@ func (service *Logger) AssertWritten(t *testing.T, expectedEntries []ExpectedEnt
 		testcommon.AssertJSONEqual(t, expected.Attributes, entry.Attributes, fmt.Sprintf("%v \"Attributes\" properties", prefix))
 	}
 }
+func (service *Logger) DeleteWrittenLogs(t *testing.T) {
+	client := service.Handler.App.Database.Client()
+	_, stdErr := client.LogEntry.Delete().Exec(t.Context())
+	require.NoError(t, stdErr)
+}
 
 func TestLogger_SavesToDatabase(t *testing.T) {
 	t.Parallel()
 	db := testcommon.CreateDB()
 	defer db.Shutdown()
 	app := &common.App{
-		Database: db,
-		Env:      testcommon.DefaultEnv(),
-		Clock:    clockwork.NewRealClock(),
+		Database:        db,
+		Env:             testcommon.DefaultEnv(),
+		Clock:           clockwork.NewRealClock(),
+		ShutdownService: testcommon.NewMockShutdownService(),
 	}
+	app.KeyValue = services.NewKeyValue(app)
 	logger := NewLogger(app)
 	app.Logger = logger
 	logger.Start()
@@ -463,12 +470,12 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 func TestLogger_NoAdminUser_UsesCrashSignal(t *testing.T) {
 	t.Parallel()
 
+	db := testcommon.CreateDB()
+	defer db.Shutdown()
 	clock := clockwork.NewFakeClock()
-	runProgram := func(expectedToCrashSignal bool, expectedLastSignal time.Time) {
-		db := testcommon.CreateDB()
-		defer db.Shutdown()
-		shutdownService := testcommon.NewMockShutdownService()
 
+	runProgram := func(expectedToCrashSignal bool, expectedLastSignal time.Time) {
+		shutdownService := testcommon.NewMockShutdownService()
 		app := &common.App{
 			Database:        db,
 			Env:             testcommon.DefaultEnv(),
@@ -478,7 +485,9 @@ func TestLogger_NoAdminUser_UsesCrashSignal(t *testing.T) {
 		app.KeyValue = services.NewKeyValue(app)
 		logger := NewLogger(app)
 		app.Logger = logger
+		logger.DeleteWrittenLogs(t) // The database is preserved between program runs, so the logs will be too
 		logger.Start()
+
 		logger.Error("an error occurred!")
 		logger.Shutdown()
 
@@ -491,7 +500,6 @@ func TestLogger_NoAdminUser_UsesCrashSignal(t *testing.T) {
 
 		if expectedToCrashSignal {
 			shutdownService.AssertCalled(t, "crashing to notify admin because messengers failed")
-			shutdownService.Reset()
 		} else {
 			shutdownService.AssertNotCalled(t)
 		}
@@ -505,10 +513,12 @@ func TestLogger_NoAdminUser_UsesCrashSignal(t *testing.T) {
 		require.NoError(t, stdErr)
 		require.Equal(t, expectedLastSignal, lastCrashSignal)
 	}
-	startTime := clock.Now()
+	startTime := clock.Now().UTC()
 	runProgram(true, startTime)
+
 	clock.Advance(time.Second)
 	runProgram(false, startTime)
+
 	clock.Advance(testcommon.DefaultEnv().MIN_CRASH_SIGNAL_GAP - time.Second)
-	runProgram(true, clock.Now())
+	runProgram(true, clock.Now().UTC())
 }
