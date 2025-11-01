@@ -116,7 +116,9 @@ const (
 	MessageDownload              MessageType = "download"
 	MessageUserUpdate            MessageType = "userUpdate"
 	MessageLock                  MessageType = "lock"
+	MessageUnlock                MessageType = "unlock"
 	MessageSelfLock              MessageType = "selfLock"
+	MessageSelfUnlock            MessageType = "selfUnlock" // When the self-lock expires
 	Message2FA                   MessageType = "2FA"
 )
 
