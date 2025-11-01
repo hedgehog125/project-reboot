@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
@@ -12,19 +11,17 @@ import (
 	"github.com/hedgehog125/project-reboot/jobs"
 )
 
-type TempSelfLock1Body struct {
-	Username string    `binding:"required" json:"username"`
-	Until    time.Time `binding:"required" json:"until"`
+type TempSelfUnlock1Body struct {
+	Username string `binding:"required" json:"username"`
 }
 
-func TempSelfLock1(app *common.App) *jobs.Definition {
+func TempSelfUnlock1(app *common.App) *jobs.Definition {
 	return &jobs.Definition{
-		ID:            "TEMP_SELF_LOCK",
+		ID:            "TEMP_SELF_UNLOCK",
 		Version:       1,
-		Priority:      jobs.HighPriority,
 		Weight:        1,
 		NoParallelize: true,
-		BodyType:      &TempSelfLock1Body{},
+		BodyType:      &TempSelfUnlock1Body{},
 		Handler: func(jobCtx *jobs.Context) error {
 			body := &TempSelfLock1Body{}
 			jobErr := jobCtx.Decode(body)
@@ -41,7 +38,15 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 					if stdErr != nil {
 						return stdErr
 					}
-					userOb, stdErr = userOb.Update().SetLockedUntil(body.Until).
+					if userOb.LockedUntil == nil {
+						jobCtx.Logger.Info(
+							"didn't need to unlock the user because they are already unlocked",
+							"userID", userOb.ID,
+						)
+						return nil
+					}
+					userOb, stdErr = userOb.Update().
+						ClearLockedUntil().
 						Save(ctx)
 					if stdErr != nil {
 						return stdErr
@@ -55,7 +60,7 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 
 					_, _, commErr := app.Messengers.SendUsingAll(
 						&common.Message{
-							Type: common.MessageSelfLock,
+							Type: common.MessageSelfUnlock,
 							User: userOb,
 							Time: body.Until,
 						},
@@ -64,27 +69,10 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 					if commErr != nil {
 						return commErr
 					}
-
-					jobOb, commErr := app.Jobs.EnqueueWithModifier(
-						"users/TEMP_SELF_UNLOCK_1",
-						//exhaustruct:enforce
-						&TempSelfUnlock1Body{
-							Username: body.Username,
-						},
-						func(jobCreate *ent.JobCreate) {
-							jobCreate.SetDue(body.Until)
-						},
-						ctx,
-					)
-					if commErr != nil {
-						return commErr
-					}
-
 					jobCtx.Logger.Info(
-						"user has successfully self-locked",
+						"user was unlocked because the self-lock expired",
 						"userID", userOb.ID,
-						"lockedUntil", body.Until,
-						"unlockJobID", jobOb.ID,
+						"isLocked", userOb.Locked,
 					)
 					return nil
 				},

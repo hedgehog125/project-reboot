@@ -43,6 +43,9 @@ var defaultMessageMap = map[common.MessageType]func(message *common.Message) str
 	common.MessageSelfLock: func(message *common.Message) string {
 		return fmt.Sprintf("You have locked your account until %s", message.Time.Format("2006-01-02 15:04:05"))
 	},
+	common.MessageSelfUnlock: func(message *common.Message) string {
+		return "Warning: your self-lock has expired, you (or anyone else) can now try to log in again."
+	},
 	common.MessageAdminError: func(message *common.Message) string {
 		return "[Admin] An error has occurred! Please investigate the logs and possibly create an issue at https://github.com/hedgehog125/project-reboot/issues as this might be reducing security"
 	},
