@@ -1,6 +1,6 @@
 # TODO
 
--   Delete sessions on self lock, user update or admin lock
+-   When user self locks, schedule job for after it expires to unlock and notify them if they are still self-locked
 -   Endpoints don't seem to 404 correctly if wrong method?
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download
 -   -   n = max(ceil(configured_messengers / 2), 1)

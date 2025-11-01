@@ -67,6 +67,13 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			if stdErr != nil {
 				return stdErr
 			}
+			_, stdErr = tx.Session.Delete().
+				Where(session.UserID(userOb.ID)).
+				Exec(ctx)
+			if stdErr != nil {
+				return stdErr
+			}
+
 			_, _, commErr := app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.MessageUserUpdate,
