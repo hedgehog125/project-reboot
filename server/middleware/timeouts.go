@@ -11,14 +11,11 @@ import (
 
 func NewTimeout() gin.HandlerFunc {
 	return timeout.New(
-		timeout.WithTimeout(30*time.Second),
-		// timeout.WithHandler(func(ginCtx *gin.Context) {
-		// ginCtx.Next()
-		// }),
+		timeout.WithTimeout(20*time.Second),
 		timeout.WithResponse(func(ginCtx *gin.Context) {
 			if ginCtx.Writer.Written() {
-				conn, _, err := ginCtx.Writer.Hijack()
-				if err != nil {
+				conn, _, stdErr := ginCtx.Writer.Hijack()
+				if stdErr != nil {
 					_ = conn.Close()
 				}
 				return

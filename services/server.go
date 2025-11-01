@@ -31,12 +31,17 @@ func NewServer(app *common.App) *Server {
 	router.Use(middleware.NewLogger(app.Logger))
 	router.Use(gin.Logger()) // TODO: make the custom logger log completed requests so this isn't needed
 	// TODO: ^ this is logging "Error #01: ..."
-
+	router.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"errors": []string{},
+		})
+	})
+	router.Use(middleware.NewTimeout())
 	router.LoadHTMLGlob("./server/templates/*.html")
 	router.Use(middleware.NewRateLimiting("api", app.RateLimiter))
 	router.Static("/static", "./public") // Has to go before otherwise files are sent but with a 404 status
-	router.Use(middleware.NewTimeout())  // TODO: why does the error middleware have to go after? This middleware seems to write otherwise
 	router.Use(middleware.NewError())
+
 	adminMiddleware := middleware.NewAdminProtected(app.Core)
 	serverApp := &servercommon.ServerApp{
 		App:             app,
