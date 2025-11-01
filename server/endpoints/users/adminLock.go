@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/user"
@@ -29,16 +30,32 @@ func AdminLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		return dbcommon.WithWriteTx(
 			ginCtx, app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
-				stdErr := tx.User.Update().
+				userOb, stdErr := tx.User.Query().
 					Where(user.Username(body.Username)).
+					Only(ctx)
+				if stdErr != nil {
+					return servercommon.Send404IfNotFound(stdErr)
+				}
+				userOb, stdErr = userOb.Update().
 					SetLocked(true).
 					ClearLockedUntil().
-					Exec(ctx)
+					Save(ctx)
 				if stdErr != nil {
 					return servercommon.Send404IfNotFound(stdErr)
 				}
 
-				ginCtx.JSON(http.StatusCreated, AdminLockResponse{
+				_, _, commErr := app.Messengers.SendUsingAll(
+					&common.Message{
+						Type: common.MessageLock,
+						User: userOb,
+					},
+					ctx,
+				)
+				if commErr != nil {
+					return commErr
+				}
+
+				ginCtx.JSON(http.StatusOK, AdminLockResponse{
 					Errors: []servercommon.ErrorDetail{},
 				})
 				return nil

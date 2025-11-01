@@ -34,6 +34,9 @@ var defaultMessageMap = map[common.MessageType]func(message *common.Message) str
 	common.Message2FA: func(message *common.Message) string {
 		return fmt.Sprintf("2FA code: %s", message.Code)
 	},
+	common.MessageLock: func(message *common.Message) string {
+		return "Your account has been locked by your admin, this will replace your self lock if you have one. The lock will remain until your admin removes it."
+	},
 	common.MessageSelfLock: func(message *common.Message) string {
 		return fmt.Sprintf("You have locked your account until %s", message.Time.Format("2006-01-02 15:04:05"))
 	},

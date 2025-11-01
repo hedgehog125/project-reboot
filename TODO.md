@@ -1,6 +1,7 @@
 # TODO
 
 -   Delete sessions on self lock, user update or admin lock
+-   Endpoints don't seem to 404 correctly if wrong method?
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download
 -   -   n = max(ceil(configured_messengers / 2), 1)
 -   -   If 1 is configured, can only require one. Configuring 2 allows one to fail so it's a bit more resilient. 3 still means only 1 can fail, so you get a good balance. And then after 4, neither way is likely to be an issue

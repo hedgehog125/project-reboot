@@ -108,16 +108,16 @@ type MessengerService interface {
 type MessageType string
 
 const (
-	MessageTest                  = "test"
-	MessageAdminError            = "adminError"
-	MessageRegular               = "regular"
-	MessageLogin                 = "login"
-	MessageActiveSessionReminder = "activeSessionReminder"
-	MessageDownload              = "download"
-	MessageUserUpdate            = "userUpdate"
-	MessageLock                  = "lock"
-	MessageSelfLock              = "selfLock"
-	Message2FA                   = "2FA"
+	MessageTest                  MessageType = "test"
+	MessageAdminError            MessageType = "adminError"
+	MessageRegular               MessageType = "regular"
+	MessageLogin                 MessageType = "login"
+	MessageActiveSessionReminder MessageType = "activeSessionReminder"
+	MessageDownload              MessageType = "download"
+	MessageUserUpdate            MessageType = "userUpdate"
+	MessageLock                  MessageType = "lock"
+	MessageSelfLock              MessageType = "selfLock"
+	Message2FA                   MessageType = "2FA"
 )
 
 type Message struct {
