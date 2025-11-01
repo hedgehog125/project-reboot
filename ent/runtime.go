@@ -9,6 +9,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/keyvalue"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
+	"github.com/hedgehog125/project-reboot/ent/loginalerts"
 	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/session"
@@ -94,6 +95,26 @@ func init() {
 	logentryDescID := logentryFields[0].Descriptor()
 	// logentry.DefaultID holds the default value on creation for the id field.
 	logentry.DefaultID = logentryDescID.Default.(func() uuid.UUID)
+	loginalertsFields := schema.LoginAlerts{}.Fields()
+	_ = loginalertsFields
+	// loginalertsDescMessengerType is the schema descriptor for messengerType field.
+	loginalertsDescMessengerType := loginalertsFields[1].Descriptor()
+	// loginalerts.MessengerTypeValidator is a validator for the "messengerType" field. It is called by the builders before save.
+	loginalerts.MessengerTypeValidator = func() func(string) error {
+		validators := loginalertsDescMessengerType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(messengerType string) error {
+			for _, fn := range fns {
+				if err := fn(messengerType); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	periodictaskFields := schema.PeriodicTask{}.Fields()
 	_ = periodictaskFields
 	// periodictaskDescName is the schema descriptor for name field.

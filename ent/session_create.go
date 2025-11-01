@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/hedgehog125/project-reboot/ent/loginalerts"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 )
@@ -76,6 +77,21 @@ func (_c *SessionCreate) SetUserID(v int) *SessionCreate {
 // SetUser sets the "user" edge to the User entity.
 func (_c *SessionCreate) SetUser(v *User) *SessionCreate {
 	return _c.SetUserID(v.ID)
+}
+
+// AddLoginAlertIDs adds the "loginAlerts" edge to the LoginAlerts entity by IDs.
+func (_c *SessionCreate) AddLoginAlertIDs(ids ...int) *SessionCreate {
+	_c.mutation.AddLoginAlertIDs(ids...)
+	return _c
+}
+
+// AddLoginAlerts adds the "loginAlerts" edges to the LoginAlerts entity.
+func (_c *SessionCreate) AddLoginAlerts(v ...*LoginAlerts) *SessionCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddLoginAlertIDs(ids...)
 }
 
 // Mutation returns the SessionMutation object of the builder.
@@ -216,6 +232,22 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.UserID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LoginAlertsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.LoginAlertsTable,
+			Columns: []string{session.LoginAlertsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

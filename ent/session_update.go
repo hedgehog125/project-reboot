@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/hedgehog125/project-reboot/ent/loginalerts"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
@@ -124,6 +125,21 @@ func (_u *SessionUpdate) SetUser(v *User) *SessionUpdate {
 	return _u.SetUserID(v.ID)
 }
 
+// AddLoginAlertIDs adds the "loginAlerts" edge to the LoginAlerts entity by IDs.
+func (_u *SessionUpdate) AddLoginAlertIDs(ids ...int) *SessionUpdate {
+	_u.mutation.AddLoginAlertIDs(ids...)
+	return _u
+}
+
+// AddLoginAlerts adds the "loginAlerts" edges to the LoginAlerts entity.
+func (_u *SessionUpdate) AddLoginAlerts(v ...*LoginAlerts) *SessionUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLoginAlertIDs(ids...)
+}
+
 // Mutation returns the SessionMutation object of the builder.
 func (_u *SessionUpdate) Mutation() *SessionMutation {
 	return _u.mutation
@@ -133,6 +149,27 @@ func (_u *SessionUpdate) Mutation() *SessionMutation {
 func (_u *SessionUpdate) ClearUser() *SessionUpdate {
 	_u.mutation.ClearUser()
 	return _u
+}
+
+// ClearLoginAlerts clears all "loginAlerts" edges to the LoginAlerts entity.
+func (_u *SessionUpdate) ClearLoginAlerts() *SessionUpdate {
+	_u.mutation.ClearLoginAlerts()
+	return _u
+}
+
+// RemoveLoginAlertIDs removes the "loginAlerts" edge to LoginAlerts entities by IDs.
+func (_u *SessionUpdate) RemoveLoginAlertIDs(ids ...int) *SessionUpdate {
+	_u.mutation.RemoveLoginAlertIDs(ids...)
+	return _u
+}
+
+// RemoveLoginAlerts removes "loginAlerts" edges to LoginAlerts entities.
+func (_u *SessionUpdate) RemoveLoginAlerts(v ...*LoginAlerts) *SessionUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLoginAlertIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -227,6 +264,51 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LoginAlertsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.LoginAlertsTable,
+			Columns: []string{session.LoginAlertsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLoginAlertsIDs(); len(nodes) > 0 && !_u.mutation.LoginAlertsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.LoginAlertsTable,
+			Columns: []string{session.LoginAlertsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LoginAlertsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.LoginAlertsTable,
+			Columns: []string{session.LoginAlertsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -349,6 +431,21 @@ func (_u *SessionUpdateOne) SetUser(v *User) *SessionUpdateOne {
 	return _u.SetUserID(v.ID)
 }
 
+// AddLoginAlertIDs adds the "loginAlerts" edge to the LoginAlerts entity by IDs.
+func (_u *SessionUpdateOne) AddLoginAlertIDs(ids ...int) *SessionUpdateOne {
+	_u.mutation.AddLoginAlertIDs(ids...)
+	return _u
+}
+
+// AddLoginAlerts adds the "loginAlerts" edges to the LoginAlerts entity.
+func (_u *SessionUpdateOne) AddLoginAlerts(v ...*LoginAlerts) *SessionUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLoginAlertIDs(ids...)
+}
+
 // Mutation returns the SessionMutation object of the builder.
 func (_u *SessionUpdateOne) Mutation() *SessionMutation {
 	return _u.mutation
@@ -358,6 +455,27 @@ func (_u *SessionUpdateOne) Mutation() *SessionMutation {
 func (_u *SessionUpdateOne) ClearUser() *SessionUpdateOne {
 	_u.mutation.ClearUser()
 	return _u
+}
+
+// ClearLoginAlerts clears all "loginAlerts" edges to the LoginAlerts entity.
+func (_u *SessionUpdateOne) ClearLoginAlerts() *SessionUpdateOne {
+	_u.mutation.ClearLoginAlerts()
+	return _u
+}
+
+// RemoveLoginAlertIDs removes the "loginAlerts" edge to LoginAlerts entities by IDs.
+func (_u *SessionUpdateOne) RemoveLoginAlertIDs(ids ...int) *SessionUpdateOne {
+	_u.mutation.RemoveLoginAlertIDs(ids...)
+	return _u
+}
+
+// RemoveLoginAlerts removes "loginAlerts" edges to LoginAlerts entities.
+func (_u *SessionUpdateOne) RemoveLoginAlerts(v ...*LoginAlerts) *SessionUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLoginAlertIDs(ids...)
 }
 
 // Where appends a list predicates to the SessionUpdate builder.
@@ -482,6 +600,51 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LoginAlertsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.LoginAlertsTable,
+			Columns: []string{session.LoginAlertsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLoginAlertsIDs(); len(nodes) > 0 && !_u.mutation.LoginAlertsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.LoginAlertsTable,
+			Columns: []string{session.LoginAlertsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LoginAlertsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   session.LoginAlertsTable,
+			Columns: []string{session.LoginAlertsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

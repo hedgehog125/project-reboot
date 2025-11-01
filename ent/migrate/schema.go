@@ -97,6 +97,28 @@ var (
 			},
 		},
 	}
+	// LoginAlertsColumns holds the columns for the "login_alerts" table.
+	LoginAlertsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "time", Type: field.TypeTime},
+		{Name: "messenger_type", Type: field.TypeString, Size: 128},
+		{Name: "confirmed", Type: field.TypeBool},
+		{Name: "session_id", Type: field.TypeInt},
+	}
+	// LoginAlertsTable holds the schema information for the "login_alerts" table.
+	LoginAlertsTable = &schema.Table{
+		Name:       "login_alerts",
+		Columns:    LoginAlertsColumns,
+		PrimaryKey: []*schema.Column{LoginAlertsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "login_alerts_sessions_loginAlerts",
+				Columns:    []*schema.Column{LoginAlertsColumns[4]},
+				RefColumns: []*schema.Column{SessionsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// PeriodicTasksColumns holds the columns for the "periodic_tasks" table.
 	PeriodicTasksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -184,6 +206,7 @@ var (
 		JobsTable,
 		KeyValuesTable,
 		LogEntriesTable,
+		LoginAlertsTable,
 		PeriodicTasksTable,
 		SessionsTable,
 		TwoFactorActionsTable,
@@ -193,5 +216,6 @@ var (
 
 func init() {
 	LogEntriesTable.ForeignKeys[0].RefTable = UsersTable
+	LoginAlertsTable.ForeignKeys[0].RefTable = SessionsTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 }

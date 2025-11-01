@@ -42,9 +42,11 @@ type Session struct {
 type SessionEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
+	// LoginAlerts holds the value of the loginAlerts edge.
+	LoginAlerts []*LoginAlerts `json:"loginAlerts,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -56,6 +58,15 @@ func (e SessionEdges) UserOrErr() (*User, error) {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "user"}
+}
+
+// LoginAlertsOrErr returns the LoginAlerts value or an error if the edge
+// was not loaded in eager-loading.
+func (e SessionEdges) LoginAlertsOrErr() ([]*LoginAlerts, error) {
+	if e.loadedTypes[1] {
+		return e.LoginAlerts, nil
+	}
+	return nil, &NotLoadedError{edge: "loginAlerts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -150,6 +161,11 @@ func (_m *Session) Value(name string) (ent.Value, error) {
 // QueryUser queries the "user" edge of the Session entity.
 func (_m *Session) QueryUser() *UserQuery {
 	return NewSessionClient(_m.config).QueryUser(_m)
+}
+
+// QueryLoginAlerts queries the "loginAlerts" edge of the Session entity.
+func (_m *Session) QueryLoginAlerts() *LoginAlertsQuery {
+	return NewSessionClient(_m.config).QueryLoginAlerts(_m)
 }
 
 // Update returns a builder for updating this Session.

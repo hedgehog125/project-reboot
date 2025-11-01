@@ -45,6 +45,18 @@ func (f LogEntryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LogEntryMutation", m)
 }
 
+// The LoginAlertsFunc type is an adapter to allow the use of ordinary
+// function as LoginAlerts mutator.
+type LoginAlertsFunc func(context.Context, *ent.LoginAlertsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LoginAlertsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LoginAlertsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LoginAlertsMutation", m)
+}
+
 // The PeriodicTaskFunc type is an adapter to allow the use of ordinary
 // function as PeriodicTask mutator.
 type PeriodicTaskFunc func(context.Context, *ent.PeriodicTaskMutation) (ent.Value, error)

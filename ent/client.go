@@ -19,6 +19,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/keyvalue"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
+	"github.com/hedgehog125/project-reboot/ent/loginalerts"
 	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -36,6 +37,8 @@ type Client struct {
 	KeyValue *KeyValueClient
 	// LogEntry is the client for interacting with the LogEntry builders.
 	LogEntry *LogEntryClient
+	// LoginAlerts is the client for interacting with the LoginAlerts builders.
+	LoginAlerts *LoginAlertsClient
 	// PeriodicTask is the client for interacting with the PeriodicTask builders.
 	PeriodicTask *PeriodicTaskClient
 	// Session is the client for interacting with the Session builders.
@@ -58,6 +61,7 @@ func (c *Client) init() {
 	c.Job = NewJobClient(c.config)
 	c.KeyValue = NewKeyValueClient(c.config)
 	c.LogEntry = NewLogEntryClient(c.config)
+	c.LoginAlerts = NewLoginAlertsClient(c.config)
 	c.PeriodicTask = NewPeriodicTaskClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.TwoFactorAction = NewTwoFactorActionClient(c.config)
@@ -157,6 +161,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Job:             NewJobClient(cfg),
 		KeyValue:        NewKeyValueClient(cfg),
 		LogEntry:        NewLogEntryClient(cfg),
+		LoginAlerts:     NewLoginAlertsClient(cfg),
 		PeriodicTask:    NewPeriodicTaskClient(cfg),
 		Session:         NewSessionClient(cfg),
 		TwoFactorAction: NewTwoFactorActionClient(cfg),
@@ -183,6 +188,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Job:             NewJobClient(cfg),
 		KeyValue:        NewKeyValueClient(cfg),
 		LogEntry:        NewLogEntryClient(cfg),
+		LoginAlerts:     NewLoginAlertsClient(cfg),
 		PeriodicTask:    NewPeriodicTaskClient(cfg),
 		Session:         NewSessionClient(cfg),
 		TwoFactorAction: NewTwoFactorActionClient(cfg),
@@ -216,8 +222,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Job, c.KeyValue, c.LogEntry, c.PeriodicTask, c.Session, c.TwoFactorAction,
-		c.User,
+		c.Job, c.KeyValue, c.LogEntry, c.LoginAlerts, c.PeriodicTask, c.Session,
+		c.TwoFactorAction, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -227,8 +233,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Job, c.KeyValue, c.LogEntry, c.PeriodicTask, c.Session, c.TwoFactorAction,
-		c.User,
+		c.Job, c.KeyValue, c.LogEntry, c.LoginAlerts, c.PeriodicTask, c.Session,
+		c.TwoFactorAction, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -243,6 +249,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.KeyValue.mutate(ctx, m)
 	case *LogEntryMutation:
 		return c.LogEntry.mutate(ctx, m)
+	case *LoginAlertsMutation:
+		return c.LoginAlerts.mutate(ctx, m)
 	case *PeriodicTaskMutation:
 		return c.PeriodicTask.mutate(ctx, m)
 	case *SessionMutation:
@@ -671,6 +679,155 @@ func (c *LogEntryClient) mutate(ctx context.Context, m *LogEntryMutation) (Value
 	}
 }
 
+// LoginAlertsClient is a client for the LoginAlerts schema.
+type LoginAlertsClient struct {
+	config
+}
+
+// NewLoginAlertsClient returns a client for the LoginAlerts from the given config.
+func NewLoginAlertsClient(c config) *LoginAlertsClient {
+	return &LoginAlertsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `loginalerts.Hooks(f(g(h())))`.
+func (c *LoginAlertsClient) Use(hooks ...Hook) {
+	c.hooks.LoginAlerts = append(c.hooks.LoginAlerts, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `loginalerts.Intercept(f(g(h())))`.
+func (c *LoginAlertsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LoginAlerts = append(c.inters.LoginAlerts, interceptors...)
+}
+
+// Create returns a builder for creating a LoginAlerts entity.
+func (c *LoginAlertsClient) Create() *LoginAlertsCreate {
+	mutation := newLoginAlertsMutation(c.config, OpCreate)
+	return &LoginAlertsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LoginAlerts entities.
+func (c *LoginAlertsClient) CreateBulk(builders ...*LoginAlertsCreate) *LoginAlertsCreateBulk {
+	return &LoginAlertsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LoginAlertsClient) MapCreateBulk(slice any, setFunc func(*LoginAlertsCreate, int)) *LoginAlertsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LoginAlertsCreateBulk{err: fmt.Errorf("calling to LoginAlertsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LoginAlertsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LoginAlertsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LoginAlerts.
+func (c *LoginAlertsClient) Update() *LoginAlertsUpdate {
+	mutation := newLoginAlertsMutation(c.config, OpUpdate)
+	return &LoginAlertsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LoginAlertsClient) UpdateOne(_m *LoginAlerts) *LoginAlertsUpdateOne {
+	mutation := newLoginAlertsMutation(c.config, OpUpdateOne, withLoginAlerts(_m))
+	return &LoginAlertsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LoginAlertsClient) UpdateOneID(id int) *LoginAlertsUpdateOne {
+	mutation := newLoginAlertsMutation(c.config, OpUpdateOne, withLoginAlertsID(id))
+	return &LoginAlertsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LoginAlerts.
+func (c *LoginAlertsClient) Delete() *LoginAlertsDelete {
+	mutation := newLoginAlertsMutation(c.config, OpDelete)
+	return &LoginAlertsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LoginAlertsClient) DeleteOne(_m *LoginAlerts) *LoginAlertsDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LoginAlertsClient) DeleteOneID(id int) *LoginAlertsDeleteOne {
+	builder := c.Delete().Where(loginalerts.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LoginAlertsDeleteOne{builder}
+}
+
+// Query returns a query builder for LoginAlerts.
+func (c *LoginAlertsClient) Query() *LoginAlertsQuery {
+	return &LoginAlertsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLoginAlerts},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LoginAlerts entity by its id.
+func (c *LoginAlertsClient) Get(ctx context.Context, id int) (*LoginAlerts, error) {
+	return c.Query().Where(loginalerts.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LoginAlertsClient) GetX(ctx context.Context, id int) *LoginAlerts {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySession queries the session edge of a LoginAlerts.
+func (c *LoginAlertsClient) QuerySession(_m *LoginAlerts) *SessionQuery {
+	query := (&SessionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(loginalerts.Table, loginalerts.FieldID, id),
+			sqlgraph.To(session.Table, session.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, loginalerts.SessionTable, loginalerts.SessionColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LoginAlertsClient) Hooks() []Hook {
+	return c.hooks.LoginAlerts
+}
+
+// Interceptors returns the client interceptors.
+func (c *LoginAlertsClient) Interceptors() []Interceptor {
+	return c.inters.LoginAlerts
+}
+
+func (c *LoginAlertsClient) mutate(ctx context.Context, m *LoginAlertsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LoginAlertsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LoginAlertsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LoginAlertsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LoginAlertsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LoginAlerts mutation op: %q", m.Op())
+	}
+}
+
 // PeriodicTaskClient is a client for the PeriodicTask schema.
 type PeriodicTaskClient struct {
 	config
@@ -921,6 +1078,22 @@ func (c *SessionClient) QueryUser(_m *Session) *UserQuery {
 			sqlgraph.From(session.Table, session.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, session.UserTable, session.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLoginAlerts queries the loginAlerts edge of a Session.
+func (c *SessionClient) QueryLoginAlerts(_m *Session) *LoginAlertsQuery {
+	query := (&LoginAlertsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(session.Table, session.FieldID, id),
+			sqlgraph.To(loginalerts.Table, loginalerts.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, session.LoginAlertsTable, session.LoginAlertsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1254,10 +1427,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Job, KeyValue, LogEntry, PeriodicTask, Session, TwoFactorAction, User []ent.Hook
+		Job, KeyValue, LogEntry, LoginAlerts, PeriodicTask, Session, TwoFactorAction,
+		User []ent.Hook
 	}
 	inters struct {
-		Job, KeyValue, LogEntry, PeriodicTask, Session, TwoFactorAction,
+		Job, KeyValue, LogEntry, LoginAlerts, PeriodicTask, Session, TwoFactorAction,
 		User []ent.Interceptor
 	}
 )

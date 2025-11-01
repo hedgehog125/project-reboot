@@ -16,6 +16,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/keyvalue"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
+	"github.com/hedgehog125/project-reboot/ent/loginalerts"
 	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/session"
@@ -35,6 +36,7 @@ const (
 	TypeJob             = "Job"
 	TypeKeyValue        = "KeyValue"
 	TypeLogEntry        = "LogEntry"
+	TypeLoginAlerts     = "LoginAlerts"
 	TypePeriodicTask    = "PeriodicTask"
 	TypeSession         = "Session"
 	TypeTwoFactorAction = "TwoFactorAction"
@@ -2586,6 +2588,551 @@ func (m *LogEntryMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown LogEntry edge %s", name)
 }
 
+// LoginAlertsMutation represents an operation that mutates the LoginAlerts nodes in the graph.
+type LoginAlertsMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	time           *time.Time
+	messengerType  *string
+	confirmed      *bool
+	clearedFields  map[string]struct{}
+	session        *int
+	clearedsession bool
+	done           bool
+	oldValue       func(context.Context) (*LoginAlerts, error)
+	predicates     []predicate.LoginAlerts
+}
+
+var _ ent.Mutation = (*LoginAlertsMutation)(nil)
+
+// loginalertsOption allows management of the mutation configuration using functional options.
+type loginalertsOption func(*LoginAlertsMutation)
+
+// newLoginAlertsMutation creates new mutation for the LoginAlerts entity.
+func newLoginAlertsMutation(c config, op Op, opts ...loginalertsOption) *LoginAlertsMutation {
+	m := &LoginAlertsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLoginAlerts,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLoginAlertsID sets the ID field of the mutation.
+func withLoginAlertsID(id int) loginalertsOption {
+	return func(m *LoginAlertsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LoginAlerts
+		)
+		m.oldValue = func(ctx context.Context) (*LoginAlerts, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LoginAlerts.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLoginAlerts sets the old LoginAlerts of the mutation.
+func withLoginAlerts(node *LoginAlerts) loginalertsOption {
+	return func(m *LoginAlertsMutation) {
+		m.oldValue = func(context.Context) (*LoginAlerts, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LoginAlertsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LoginAlertsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LoginAlertsMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LoginAlertsMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LoginAlerts.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTime sets the "time" field.
+func (m *LoginAlertsMutation) SetTime(t time.Time) {
+	m.time = &t
+}
+
+// Time returns the value of the "time" field in the mutation.
+func (m *LoginAlertsMutation) Time() (r time.Time, exists bool) {
+	v := m.time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTime returns the old "time" field's value of the LoginAlerts entity.
+// If the LoginAlerts object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginAlertsMutation) OldTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTime: %w", err)
+	}
+	return oldValue.Time, nil
+}
+
+// ResetTime resets all changes to the "time" field.
+func (m *LoginAlertsMutation) ResetTime() {
+	m.time = nil
+}
+
+// SetMessengerType sets the "messengerType" field.
+func (m *LoginAlertsMutation) SetMessengerType(s string) {
+	m.messengerType = &s
+}
+
+// MessengerType returns the value of the "messengerType" field in the mutation.
+func (m *LoginAlertsMutation) MessengerType() (r string, exists bool) {
+	v := m.messengerType
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessengerType returns the old "messengerType" field's value of the LoginAlerts entity.
+// If the LoginAlerts object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginAlertsMutation) OldMessengerType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMessengerType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMessengerType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessengerType: %w", err)
+	}
+	return oldValue.MessengerType, nil
+}
+
+// ResetMessengerType resets all changes to the "messengerType" field.
+func (m *LoginAlertsMutation) ResetMessengerType() {
+	m.messengerType = nil
+}
+
+// SetConfirmed sets the "confirmed" field.
+func (m *LoginAlertsMutation) SetConfirmed(b bool) {
+	m.confirmed = &b
+}
+
+// Confirmed returns the value of the "confirmed" field in the mutation.
+func (m *LoginAlertsMutation) Confirmed() (r bool, exists bool) {
+	v := m.confirmed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfirmed returns the old "confirmed" field's value of the LoginAlerts entity.
+// If the LoginAlerts object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginAlertsMutation) OldConfirmed(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfirmed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfirmed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfirmed: %w", err)
+	}
+	return oldValue.Confirmed, nil
+}
+
+// ResetConfirmed resets all changes to the "confirmed" field.
+func (m *LoginAlertsMutation) ResetConfirmed() {
+	m.confirmed = nil
+}
+
+// SetSessionID sets the "sessionID" field.
+func (m *LoginAlertsMutation) SetSessionID(i int) {
+	m.session = &i
+}
+
+// SessionID returns the value of the "sessionID" field in the mutation.
+func (m *LoginAlertsMutation) SessionID() (r int, exists bool) {
+	v := m.session
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSessionID returns the old "sessionID" field's value of the LoginAlerts entity.
+// If the LoginAlerts object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LoginAlertsMutation) OldSessionID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSessionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSessionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSessionID: %w", err)
+	}
+	return oldValue.SessionID, nil
+}
+
+// ResetSessionID resets all changes to the "sessionID" field.
+func (m *LoginAlertsMutation) ResetSessionID() {
+	m.session = nil
+}
+
+// ClearSession clears the "session" edge to the Session entity.
+func (m *LoginAlertsMutation) ClearSession() {
+	m.clearedsession = true
+	m.clearedFields[loginalerts.FieldSessionID] = struct{}{}
+}
+
+// SessionCleared reports if the "session" edge to the Session entity was cleared.
+func (m *LoginAlertsMutation) SessionCleared() bool {
+	return m.clearedsession
+}
+
+// SessionIDs returns the "session" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SessionID instead. It exists only for internal usage by the builders.
+func (m *LoginAlertsMutation) SessionIDs() (ids []int) {
+	if id := m.session; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSession resets all changes to the "session" edge.
+func (m *LoginAlertsMutation) ResetSession() {
+	m.session = nil
+	m.clearedsession = false
+}
+
+// Where appends a list predicates to the LoginAlertsMutation builder.
+func (m *LoginAlertsMutation) Where(ps ...predicate.LoginAlerts) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LoginAlertsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LoginAlertsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LoginAlerts, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LoginAlertsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LoginAlertsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LoginAlerts).
+func (m *LoginAlertsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LoginAlertsMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.time != nil {
+		fields = append(fields, loginalerts.FieldTime)
+	}
+	if m.messengerType != nil {
+		fields = append(fields, loginalerts.FieldMessengerType)
+	}
+	if m.confirmed != nil {
+		fields = append(fields, loginalerts.FieldConfirmed)
+	}
+	if m.session != nil {
+		fields = append(fields, loginalerts.FieldSessionID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LoginAlertsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case loginalerts.FieldTime:
+		return m.Time()
+	case loginalerts.FieldMessengerType:
+		return m.MessengerType()
+	case loginalerts.FieldConfirmed:
+		return m.Confirmed()
+	case loginalerts.FieldSessionID:
+		return m.SessionID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LoginAlertsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case loginalerts.FieldTime:
+		return m.OldTime(ctx)
+	case loginalerts.FieldMessengerType:
+		return m.OldMessengerType(ctx)
+	case loginalerts.FieldConfirmed:
+		return m.OldConfirmed(ctx)
+	case loginalerts.FieldSessionID:
+		return m.OldSessionID(ctx)
+	}
+	return nil, fmt.Errorf("unknown LoginAlerts field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LoginAlertsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case loginalerts.FieldTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTime(v)
+		return nil
+	case loginalerts.FieldMessengerType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessengerType(v)
+		return nil
+	case loginalerts.FieldConfirmed:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfirmed(v)
+		return nil
+	case loginalerts.FieldSessionID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSessionID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LoginAlerts field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LoginAlertsMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LoginAlertsMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LoginAlertsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LoginAlerts numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LoginAlertsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LoginAlertsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LoginAlertsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LoginAlerts nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LoginAlertsMutation) ResetField(name string) error {
+	switch name {
+	case loginalerts.FieldTime:
+		m.ResetTime()
+		return nil
+	case loginalerts.FieldMessengerType:
+		m.ResetMessengerType()
+		return nil
+	case loginalerts.FieldConfirmed:
+		m.ResetConfirmed()
+		return nil
+	case loginalerts.FieldSessionID:
+		m.ResetSessionID()
+		return nil
+	}
+	return fmt.Errorf("unknown LoginAlerts field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LoginAlertsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.session != nil {
+		edges = append(edges, loginalerts.EdgeSession)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LoginAlertsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case loginalerts.EdgeSession:
+		if id := m.session; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LoginAlertsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LoginAlertsMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LoginAlertsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedsession {
+		edges = append(edges, loginalerts.EdgeSession)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LoginAlertsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case loginalerts.EdgeSession:
+		return m.clearedsession
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LoginAlertsMutation) ClearEdge(name string) error {
+	switch name {
+	case loginalerts.EdgeSession:
+		m.ClearSession()
+		return nil
+	}
+	return fmt.Errorf("unknown LoginAlerts unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LoginAlertsMutation) ResetEdge(name string) error {
+	switch name {
+	case loginalerts.EdgeSession:
+		m.ResetSession()
+		return nil
+	}
+	return fmt.Errorf("unknown LoginAlerts edge %s", name)
+}
+
 // PeriodicTaskMutation represents an operation that mutates the PeriodicTask nodes in the graph.
 type PeriodicTaskMutation struct {
 	config
@@ -2991,21 +3538,24 @@ func (m *PeriodicTaskMutation) ResetEdge(name string) error {
 // SessionMutation represents an operation that mutates the Session nodes in the graph.
 type SessionMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	time          *time.Time
-	code          *[]byte
-	validFrom     *time.Time
-	validUntil    *time.Time
-	userAgent     *string
-	ip            *string
-	clearedFields map[string]struct{}
-	user          *int
-	cleareduser   bool
-	done          bool
-	oldValue      func(context.Context) (*Session, error)
-	predicates    []predicate.Session
+	op                 Op
+	typ                string
+	id                 *int
+	time               *time.Time
+	code               *[]byte
+	validFrom          *time.Time
+	validUntil         *time.Time
+	userAgent          *string
+	ip                 *string
+	clearedFields      map[string]struct{}
+	user               *int
+	cleareduser        bool
+	loginAlerts        map[int]struct{}
+	removedloginAlerts map[int]struct{}
+	clearedloginAlerts bool
+	done               bool
+	oldValue           func(context.Context) (*Session, error)
+	predicates         []predicate.Session
 }
 
 var _ ent.Mutation = (*SessionMutation)(nil)
@@ -3385,6 +3935,60 @@ func (m *SessionMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// AddLoginAlertIDs adds the "loginAlerts" edge to the LoginAlerts entity by ids.
+func (m *SessionMutation) AddLoginAlertIDs(ids ...int) {
+	if m.loginAlerts == nil {
+		m.loginAlerts = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.loginAlerts[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLoginAlerts clears the "loginAlerts" edge to the LoginAlerts entity.
+func (m *SessionMutation) ClearLoginAlerts() {
+	m.clearedloginAlerts = true
+}
+
+// LoginAlertsCleared reports if the "loginAlerts" edge to the LoginAlerts entity was cleared.
+func (m *SessionMutation) LoginAlertsCleared() bool {
+	return m.clearedloginAlerts
+}
+
+// RemoveLoginAlertIDs removes the "loginAlerts" edge to the LoginAlerts entity by IDs.
+func (m *SessionMutation) RemoveLoginAlertIDs(ids ...int) {
+	if m.removedloginAlerts == nil {
+		m.removedloginAlerts = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.loginAlerts, ids[i])
+		m.removedloginAlerts[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLoginAlerts returns the removed IDs of the "loginAlerts" edge to the LoginAlerts entity.
+func (m *SessionMutation) RemovedLoginAlertsIDs() (ids []int) {
+	for id := range m.removedloginAlerts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LoginAlertsIDs returns the "loginAlerts" edge IDs in the mutation.
+func (m *SessionMutation) LoginAlertsIDs() (ids []int) {
+	for id := range m.loginAlerts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLoginAlerts resets all changes to the "loginAlerts" edge.
+func (m *SessionMutation) ResetLoginAlerts() {
+	m.loginAlerts = nil
+	m.clearedloginAlerts = false
+	m.removedloginAlerts = nil
+}
+
 // Where appends a list predicates to the SessionMutation builder.
 func (m *SessionMutation) Where(ps ...predicate.Session) {
 	m.predicates = append(m.predicates, ps...)
@@ -3623,9 +4227,12 @@ func (m *SessionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SessionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, session.EdgeUser)
+	}
+	if m.loginAlerts != nil {
+		edges = append(edges, session.EdgeLoginAlerts)
 	}
 	return edges
 }
@@ -3638,27 +4245,47 @@ func (m *SessionMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case session.EdgeLoginAlerts:
+		ids := make([]ent.Value, 0, len(m.loginAlerts))
+		for id := range m.loginAlerts {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SessionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedloginAlerts != nil {
+		edges = append(edges, session.EdgeLoginAlerts)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SessionMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case session.EdgeLoginAlerts:
+		ids := make([]ent.Value, 0, len(m.removedloginAlerts))
+		for id := range m.removedloginAlerts {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SessionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, session.EdgeUser)
+	}
+	if m.clearedloginAlerts {
+		edges = append(edges, session.EdgeLoginAlerts)
 	}
 	return edges
 }
@@ -3669,6 +4296,8 @@ func (m *SessionMutation) EdgeCleared(name string) bool {
 	switch name {
 	case session.EdgeUser:
 		return m.cleareduser
+	case session.EdgeLoginAlerts:
+		return m.clearedloginAlerts
 	}
 	return false
 }
@@ -3690,6 +4319,9 @@ func (m *SessionMutation) ResetEdge(name string) error {
 	switch name {
 	case session.EdgeUser:
 		m.ResetUser()
+		return nil
+	case session.EdgeLoginAlerts:
+		m.ResetLoginAlerts()
 		return nil
 	}
 	return fmt.Errorf("unknown Session edge %s", name)
