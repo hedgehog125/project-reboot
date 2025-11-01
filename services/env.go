@@ -25,6 +25,7 @@ func LoadEnvironmentVariables() *common.Env {
 		MOUNT_PATH:                    common.RequireEnv("MOUNT_PATH"),
 		PROXY_ORIGINAL_IP_HEADER_NAME: common.RequireEnv("PROXY_ORIGINAL_IP_HEADER_NAME"),
 		CLEAN_UP_INTERVAL:             common.RequireSecondsEnv("CLEAN_UP_INTERVAL"),
+		FULL_GC_INTERVAL:              common.RequireSecondsEnv("FULL_GC_INTERVAL"),
 
 		JOB_POLL_INTERVAL:    common.RequireSecondsEnv("JOB_POLL_INTERVAL"),
 		MAX_TOTAL_JOB_WEIGHT: common.RequireIntEnv("MAX_TOTAL_JOB_WEIGHT"),

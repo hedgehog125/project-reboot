@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"runtime"
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
@@ -69,6 +70,15 @@ func NewScheduler(app *common.App) *Scheduler {
 		},
 		schedulers.SimpleFixedInterval(app.Env.CLEAN_UP_INTERVAL),
 	)
+	if app.Env.FULL_GC_INTERVAL > 0 {
+		engine.Register(
+			func(taskContext *schedulers.TaskContext) {
+				app.Logger.Info("running full garbage collection...")
+				runtime.GC()
+			},
+			schedulers.SimpleFixedInterval(app.Env.FULL_GC_INTERVAL),
+		)
+	}
 
 	return &Scheduler{
 		Engine: engine,

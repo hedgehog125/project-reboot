@@ -1,11 +1,5 @@
 # TODO
 
--   Create key/value storage service
--   -   Key should be a string and value is json.RawMessage
--   -   Should have definitions system to enforce types and ensure the key is known
--   -   Use to track when the last crash signal was sent, since the rate limiting service is volatile
--   Monitoring service that's called by a server middleware
--   -   Has a Tick function that's called once an hour by the scheduler. If no events have happened runtime.GC is called
 -   Delete sessions on self lock, user update or admin lock
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download
 -   -   n = max(ceil(configured_messengers / 2), 1)

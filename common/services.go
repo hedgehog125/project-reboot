@@ -24,6 +24,7 @@ type Env struct {
 	PROXY_ORIGINAL_IP_HEADER_NAME string
 	// Things like deleting expired login sessions
 	CLEAN_UP_INTERVAL time.Duration
+	FULL_GC_INTERVAL  time.Duration
 
 	JOB_POLL_INTERVAL    time.Duration
 	MAX_TOTAL_JOB_WEIGHT int
