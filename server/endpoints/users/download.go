@@ -52,9 +52,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 					WithUser().
 					First(ctx)
 				if stdErr != nil {
-					return nil, servercommon.SendUnauthorizedIfNotFound(
-						common.ErrWrapperDatabase.Wrap(stdErr),
-					)
+					return nil, servercommon.SendUnauthorizedIfNotFound(stdErr)
 				}
 				if clock.Now().After(sessionOb.ValidUntil) {
 					stdErr := tx.Session.DeleteOneID(sessionOb.ID).Exec(ctx)

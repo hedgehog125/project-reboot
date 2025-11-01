@@ -40,9 +40,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				Where(user.Username(body.Username)).
 				Only(ctx)
 			if stdErr != nil {
-				return nil, servercommon.SendUnauthorizedIfNotFound(
-					common.ErrWrapperDatabase.Wrap(stdErr),
-				)
+				return nil, servercommon.SendUnauthorizedIfNotFound(stdErr)
 			}
 			return userOb, nil
 		})
@@ -90,7 +88,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				SetIP(ginCtx.ClientIP()).
 				Save(ctx)
 			if stdErr != nil {
-				return common.ErrWrapperDatabase.Wrap(stdErr)
+				return stdErr
 			}
 
 			ginCtx.JSON(http.StatusOK, GetAuthorizationCodeResponse{

@@ -1,7 +1,13 @@
 package users
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
+	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
@@ -14,16 +20,29 @@ type AdminLockResponse struct {
 
 // Admin route
 func AdminLock(app *servercommon.ServerApp) gin.HandlerFunc {
-	// dbClient := app.Database.Client()
-	// messenger := app.Messenger
-
-	return func(ginCtx *gin.Context) {
+	return servercommon.NewHandler(func(ginCtx *gin.Context) error {
 		body := AdminLockPayload{}
 		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
-			ginCtx.Error(ctxErr)
-			return
+			return ctxErr
 		}
 
-		// TODO: implement
-	}
+		return dbcommon.WithWriteTx(
+			ginCtx, app.Database,
+			func(tx *ent.Tx, ctx context.Context) error {
+				stdErr := tx.User.Update().
+					Where(user.Username(body.Username)).
+					SetLocked(true).
+					ClearLockedUntil().
+					Exec(ctx)
+				if stdErr != nil {
+					return servercommon.Send404IfNotFound(stdErr)
+				}
+
+				ginCtx.JSON(http.StatusCreated, AdminLockResponse{
+					Errors: []servercommon.ErrorDetail{},
+				})
+				return nil
+			},
+		)
+	})
 }

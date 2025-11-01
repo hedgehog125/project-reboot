@@ -36,12 +36,12 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 					Where(user.Username(body.Username)).
 					Only(ctx)
 				if stdErr != nil {
-					return common.ErrWrapperDatabase.Wrap(stdErr)
+					return stdErr
 				}
 				userOb, stdErr = userOb.Update().SetLockedUntil(body.Until).
 					Save(ctx)
 				if stdErr != nil {
-					return common.ErrWrapperDatabase.Wrap(stdErr)
+					return stdErr
 				}
 
 				_, _, commErr := app.Messengers.SendUsingAll(

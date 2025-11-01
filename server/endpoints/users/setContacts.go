@@ -33,18 +33,14 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 				Where(user.Username(body.Username)).
 				Only(ctx)
 			if stdErr != nil {
-				return servercommon.Send404IfNotFound(
-					common.ErrWrapperDatabase.Wrap(stdErr),
-				)
+				return servercommon.Send404IfNotFound(stdErr)
 			}
 			userOb, stdErr = userOb.Update().
 				SetAlertDiscordId(body.DiscordUserId).
 				SetAlertEmail(body.Email).
 				Save(ctx)
 			if stdErr != nil {
-				return servercommon.Send404IfNotFound(
-					common.ErrWrapperDatabase.Wrap(stdErr),
-				)
+				return servercommon.Send404IfNotFound(stdErr)
 			}
 
 			_, _, commErr := app.Messengers.SendUsingAll(

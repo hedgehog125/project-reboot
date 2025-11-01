@@ -42,18 +42,19 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			),
 		)
 
-		userOb, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
-			userOb, stdErr := tx.User.Query().
-				Where(user.Username(body.Username)).
-				Only(ctx)
-			if stdErr != nil {
-				return nil, servercommon.SendUnauthorizedIfNotFound(
-					common.ErrWrapperDatabase.Wrap(stdErr),
-				)
-			}
+		userOb, stdErr := dbcommon.WithReadTx(
+			ginCtx, app.Database,
+			func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
+				userOb, stdErr := tx.User.Query().
+					Where(user.Username(body.Username)).
+					Only(ctx)
+				if stdErr != nil {
+					return nil, servercommon.SendUnauthorizedIfNotFound(stdErr)
+				}
 
-			return userOb, nil
-		})
+				return userOb, nil
+			},
+		)
 		if stdErr != nil {
 			return stdErr
 		}
@@ -73,39 +74,42 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 			return servercommon.NewUnauthorizedError()
 		}
 
-		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			action, code, commErr := app.TwoFactorActions.Create(
-				"users/TEMP_SELF_LOCK_1",
-				clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
-				//exhaustruct:enforce
-				&userjobs.TempSelfLock1Body{
-					Username: body.Username,
-					Until:    until,
-				},
-				ctx,
-			)
-			if commErr != nil {
-				return commErr
-			}
+		return dbcommon.WithWriteTx(
+			ginCtx, app.Database,
+			func(tx *ent.Tx, ctx context.Context) error {
+				action, code, commErr := app.TwoFactorActions.Create(
+					"users/TEMP_SELF_LOCK_1",
+					clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
+					//exhaustruct:enforce
+					&userjobs.TempSelfLock1Body{
+						Username: body.Username,
+						Until:    until,
+					},
+					ctx,
+				)
+				if commErr != nil {
+					return commErr
+				}
 
-			_, _, commErr = app.Messengers.SendUsingAll(
-				&common.Message{
-					Type: common.Message2FA,
-					User: userOb,
-					Code: code,
-				},
-				ctx,
-			)
-			if commErr != nil {
-				return commErr
-			}
+				_, _, commErr = app.Messengers.SendUsingAll(
+					&common.Message{
+						Type: common.Message2FA,
+						User: userOb,
+						Code: code,
+					},
+					ctx,
+				)
+				if commErr != nil {
+					return commErr
+				}
 
-			// TODO: wait for job to run and return error if it fails?
-			ginCtx.JSON(http.StatusCreated, SelfLockResponse{
-				Errors:            []servercommon.ErrorDetail{},
-				TwoFactorActionID: action.ID.String(),
-			})
-			return nil
-		})
+				// TODO: wait for job to run and return error if it fails?
+				ginCtx.JSON(http.StatusCreated, SelfLockResponse{
+					Errors:            []servercommon.ErrorDetail{},
+					TwoFactorActionID: action.ID.String(),
+				})
+				return nil
+			},
+		)
 	})
 }
