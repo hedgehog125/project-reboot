@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/jobs"
 )
@@ -31,12 +32,23 @@ type Definition struct {
 	Prepare PrepareFunc
 	// The return type of Prepare
 	BodyType          any
-	Handler           jobs.HandlerFunc
+	Handler           HandlerFunc
 	jobDefinition     *jobs.Definition
 	reflectedBodyType reflect.Type
 }
 
 type PrepareFunc = func(message *common.Message) (any, error)
+type HandlerFunc func(messengerCtx *Context) error
+
+type JobContext = jobs.Context
+type Context struct {
+	*JobContext
+	confirmedSent bool
+}
+
+func (ctx *Context) ConfirmSent() {
+	ctx.confirmedSent = true
+}
 
 func NewRegistry(app *common.App) *Registry {
 	return &Registry{
@@ -46,8 +58,9 @@ func NewRegistry(app *common.App) *Registry {
 }
 
 type bodyWrapperType struct {
-	MessageType common.MessageType `json:"messageType"`
-	Inner       string             `json:"inner"`
+	MessageType common.MessageType
+	SessionIDs  []int
+	Inner       string
 }
 
 func (registry *Registry) Register(definition *Definition) {
@@ -70,13 +83,17 @@ func (registry *Registry) Register(definition *Definition) {
 
 			newJobCtx := *jobCtx
 			newJobCtx.Body = json.RawMessage(body.Inner)
-			stdErr := definition.Handler(&newJobCtx)
+			messengerCtx := &Context{
+				JobContext:    &newJobCtx,
+				confirmedSent: false,
+			}
+			stdErr := definition.Handler(messengerCtx)
 			if stdErr != nil {
 				if body.MessageType == common.MessageAdminError {
 					commErr := common.WrapErrorWithCategories(stdErr)
 					if commErr.MaxRetries > 0 || commErr.MaxRetries == -1 {
 						if registry.App.Clock.Since(jobCtx.OriginallyDue) >= registry.App.Env.ADMIN_MESSAGE_TIMEOUT {
-							registry.App.Logger.ErrorContext(
+							jobCtx.Logger.ErrorContext(
 								context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
 								"failed to notify admin about an error before ADMIN_MESSAGE_TIMEOUT, crashing to notify them earlier",
 								"jobID",
@@ -84,7 +101,7 @@ func (registry *Registry) Register(definition *Definition) {
 							)
 						}
 					} else {
-						registry.App.Logger.ErrorContext(
+						jobCtx.Logger.ErrorContext(
 							context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
 							"failed to notify admin about an error! crashing to notify them earlier",
 							"jobID",
@@ -93,6 +110,36 @@ func (registry *Registry) Register(definition *Definition) {
 					}
 				}
 				return stdErr
+			}
+
+			if body.MessageType == common.MessageLogin ||
+				body.MessageType == common.MessageActiveSessionReminder {
+				// This is in a separate transaction, so we could successfully commit the messenger's transaction but roll back this one, but that's ok since it's best to undercount the successful login alerts sent
+				stdErr := dbcommon.WithWriteTx(
+					jobCtx.Context, registry.App.Database,
+					func(tx *ent.Tx, ctx context.Context) error {
+						return tx.LoginAlerts.MapCreateBulk(
+							body.SessionIDs,
+							func(alertCreate *ent.LoginAlertsCreate, i int) {
+								alertCreate.
+									SetTime(registry.App.Clock.Now()).
+									SetMessengerType(string(body.MessageType)).
+									SetConfirmed(messengerCtx.confirmedSent).
+									SetSessionID(body.SessionIDs[i])
+							},
+						).Exec(ctx)
+					},
+				)
+				if stdErr != nil {
+					// TODO: handle missing session IDs, stop this being atomic
+					jobCtx.Logger.Error(
+						"failed to create LoginAlert objects for successfully sent message, if not enough objects are created, the user won't be able to download their data once their session becomes valid",
+						"error",
+						stdErr,
+						"sessionIDs",
+						body.SessionIDs,
+					)
+				}
 			}
 			return nil
 		},

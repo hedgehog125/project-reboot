@@ -35,15 +35,18 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		userOb, stdErr := dbcommon.WithReadTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
-			userOb, stdErr := tx.User.Query().
-				Where(user.Username(body.Username)).
-				Only(ctx)
-			if stdErr != nil {
-				return nil, servercommon.SendUnauthorizedIfNotFound(stdErr)
-			}
-			return userOb, nil
-		})
+		userOb, stdErr := dbcommon.WithReadTx(
+			ginCtx, app.Database,
+			func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
+				userOb, stdErr := tx.User.Query().
+					Where(user.Username(body.Username)).
+					Only(ctx)
+				if stdErr != nil {
+					return nil, servercommon.SendUnauthorizedIfNotFound(stdErr)
+				}
+				return userOb, nil
+			},
+		)
 		if stdErr != nil {
 			return stdErr
 		}
@@ -62,42 +65,46 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			return servercommon.NewUnauthorizedError()
 		}
 
-		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			validFrom := clock.Now().Add(app.Env.UNLOCK_TIME)
-			_, _, commErr := app.Messengers.SendUsingAll(
-				&common.Message{
-					Type: common.MessageLogin,
-					User: userOb,
-					Time: validFrom,
-				},
-				ctx,
-			)
-			if commErr != nil {
-				return commErr
-			}
+		return dbcommon.WithWriteTx(
+			ginCtx, app.Database,
+			func(tx *ent.Tx, ctx context.Context) error {
+				authCode := app.Core.RandomAuthCode()
+				validFrom := clock.Now().Add(app.Env.UNLOCK_TIME)
+				validUntil := clock.Now().Add(app.Env.AUTH_CODE_VALID_FOR)
 
-			authCode := app.Core.RandomAuthCode()
-			validUntil := clock.Now().Add(app.Env.AUTH_CODE_VALID_FOR)
+				sessionOb, stdErr := tx.Session.Create().
+					SetUser(userOb).
+					SetCode(authCode).
+					SetValidFrom(validFrom).
+					SetValidUntil(validUntil).
+					SetUserAgent(ginCtx.Request.UserAgent()).
+					SetIP(ginCtx.ClientIP()).
+					Save(ctx)
+				if stdErr != nil {
+					return stdErr
+				}
 
-			_, stdErr = tx.Session.Create().
-				SetUser(userOb).
-				SetCode(authCode).
-				SetValidFrom(validFrom).
-				SetValidUntil(validUntil).
-				SetUserAgent(ginCtx.Request.UserAgent()).
-				SetIP(ginCtx.ClientIP()).
-				Save(ctx)
-			if stdErr != nil {
-				return stdErr
-			}
+				_, _, commErr := app.Messengers.SendUsingAll(
+					&common.Message{
+						Type:       common.MessageLogin,
+						User:       userOb,
+						Time:       validFrom,
+						SessionIDs: []int{sessionOb.ID},
+					},
+					ctx,
+				)
+				if commErr != nil {
+					return commErr
+				}
 
-			ginCtx.JSON(http.StatusOK, GetAuthorizationCodeResponse{
-				Errors:            []servercommon.ErrorDetail{},
-				AuthorizationCode: base64.StdEncoding.EncodeToString(authCode),
-				ValidFrom:         validFrom,
-				ValidUntil:        validUntil,
-			})
-			return nil
-		})
+				ginCtx.JSON(http.StatusOK, GetAuthorizationCodeResponse{
+					Errors:            []servercommon.ErrorDetail{},
+					AuthorizationCode: base64.StdEncoding.EncodeToString(authCode),
+					ValidFrom:         validFrom,
+					ValidUntil:        validUntil,
+				})
+				return nil
+			},
+		)
 	})
 }

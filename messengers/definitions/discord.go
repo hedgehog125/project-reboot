@@ -9,7 +9,6 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/jobs"
 	"github.com/hedgehog125/project-reboot/messengers"
 )
 
@@ -82,9 +81,9 @@ func Discord1(app *common.App) *messengers.Definition {
 			}, nil
 		},
 		BodyType: &Discord1Body{},
-		Handler: func(jobCtx *jobs.Context) error {
+		Handler: func(messengerCtx *messengers.Context) error {
 			body := &Discord1Body{}
-			commErr := jobCtx.Decode(body)
+			commErr := messengerCtx.Decode(body)
 			if commErr != nil {
 				return commErr
 			}
@@ -104,7 +103,7 @@ func Discord1(app *common.App) *messengers.Definition {
 			defer func() {
 				stdErr := session.Close()
 				if stdErr != nil {
-					jobCtx.Logger.Warn("error closing Discord session", "error", stdErr)
+					messengerCtx.Logger.Warn("error closing Discord session", "error", stdErr)
 				}
 			}()
 
@@ -118,6 +117,7 @@ func Discord1(app *common.App) *messengers.Definition {
 				return ErrWrapperDiscord.Wrap(stdErr)
 			}
 
+			messengerCtx.ConfirmSent()
 			return nil
 		},
 	}

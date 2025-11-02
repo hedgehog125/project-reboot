@@ -123,10 +123,11 @@ const (
 )
 
 type Message struct {
-	Type MessageType
-	User *ent.User
-	Code string
-	Time time.Time
+	Type       MessageType
+	User       *ent.User
+	Code       string
+	Time       time.Time
+	SessionIDs []int
 }
 
 type Logger interface {

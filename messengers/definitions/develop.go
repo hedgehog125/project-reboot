@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/jobs"
 	"github.com/hedgehog125/project-reboot/messengers"
 )
 
@@ -30,14 +29,15 @@ func Develop1() *messengers.Definition {
 			}, nil
 		},
 		BodyType: &Develop1Body{},
-		Handler: func(jobCtx *jobs.Context) error {
+		Handler: func(messengerCtx *messengers.Context) error {
 			body := Develop1Body{}
-			commErr := jobCtx.Decode(&body)
+			commErr := messengerCtx.Decode(&body)
 			if commErr != nil {
 				return commErr
 			}
 
 			fmt.Fprintln(os.Stdout, body.FullMessage)
+			messengerCtx.ConfirmSent()
 			return nil
 		},
 	}

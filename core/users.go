@@ -43,11 +43,16 @@ func SendActiveSessionReminders(ctx context.Context, clock clockwork.Clock, mess
 			continue
 		}
 		sessionOb := sessionObs[0]
+		sessionIDs := make([]int, 0, len(sessionObs))
+		for _, sessionOb := range sessionObs {
+			sessionIDs = append(sessionIDs, sessionOb.ID)
+		}
 
 		messages = append(messages, &common.Message{
-			Type: common.MessageActiveSessionReminder,
-			User: userOb,
-			Time: sessionOb.ValidFrom,
+			Type:       common.MessageActiveSessionReminder,
+			User:       userOb,
+			Time:       sessionOb.ValidFrom,
+			SessionIDs: sessionIDs,
 		})
 	}
 	commErr := messengers.SendBulk(messages, ctx)
