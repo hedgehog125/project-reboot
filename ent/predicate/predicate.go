@@ -15,8 +15,8 @@ type KeyValue func(*sql.Selector)
 // LogEntry is the predicate function for logentry builders.
 type LogEntry func(*sql.Selector)
 
-// LoginAlerts is the predicate function for loginalerts builders.
-type LoginAlerts func(*sql.Selector)
+// LoginAlert is the predicate function for loginalert builders.
+type LoginAlert func(*sql.Selector)
 
 // PeriodicTask is the predicate function for periodictask builders.
 type PeriodicTask func(*sql.Selector)

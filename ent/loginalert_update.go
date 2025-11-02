@@ -11,32 +11,32 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/loginalerts"
+	"github.com/hedgehog125/project-reboot/ent/loginalert"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/session"
 )
 
-// LoginAlertsUpdate is the builder for updating LoginAlerts entities.
-type LoginAlertsUpdate struct {
+// LoginAlertUpdate is the builder for updating LoginAlert entities.
+type LoginAlertUpdate struct {
 	config
 	hooks    []Hook
-	mutation *LoginAlertsMutation
+	mutation *LoginAlertMutation
 }
 
-// Where appends a list predicates to the LoginAlertsUpdate builder.
-func (_u *LoginAlertsUpdate) Where(ps ...predicate.LoginAlerts) *LoginAlertsUpdate {
+// Where appends a list predicates to the LoginAlertUpdate builder.
+func (_u *LoginAlertUpdate) Where(ps ...predicate.LoginAlert) *LoginAlertUpdate {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
 // SetTime sets the "time" field.
-func (_u *LoginAlertsUpdate) SetTime(v time.Time) *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) SetTime(v time.Time) *LoginAlertUpdate {
 	_u.mutation.SetTime(v)
 	return _u
 }
 
 // SetNillableTime sets the "time" field if the given value is not nil.
-func (_u *LoginAlertsUpdate) SetNillableTime(v *time.Time) *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) SetNillableTime(v *time.Time) *LoginAlertUpdate {
 	if v != nil {
 		_u.SetTime(*v)
 	}
@@ -44,13 +44,13 @@ func (_u *LoginAlertsUpdate) SetNillableTime(v *time.Time) *LoginAlertsUpdate {
 }
 
 // SetMessengerType sets the "messengerType" field.
-func (_u *LoginAlertsUpdate) SetMessengerType(v string) *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) SetMessengerType(v string) *LoginAlertUpdate {
 	_u.mutation.SetMessengerType(v)
 	return _u
 }
 
 // SetNillableMessengerType sets the "messengerType" field if the given value is not nil.
-func (_u *LoginAlertsUpdate) SetNillableMessengerType(v *string) *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) SetNillableMessengerType(v *string) *LoginAlertUpdate {
 	if v != nil {
 		_u.SetMessengerType(*v)
 	}
@@ -58,13 +58,13 @@ func (_u *LoginAlertsUpdate) SetNillableMessengerType(v *string) *LoginAlertsUpd
 }
 
 // SetConfirmed sets the "confirmed" field.
-func (_u *LoginAlertsUpdate) SetConfirmed(v bool) *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) SetConfirmed(v bool) *LoginAlertUpdate {
 	_u.mutation.SetConfirmed(v)
 	return _u
 }
 
 // SetNillableConfirmed sets the "confirmed" field if the given value is not nil.
-func (_u *LoginAlertsUpdate) SetNillableConfirmed(v *bool) *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) SetNillableConfirmed(v *bool) *LoginAlertUpdate {
 	if v != nil {
 		_u.SetConfirmed(*v)
 	}
@@ -72,13 +72,13 @@ func (_u *LoginAlertsUpdate) SetNillableConfirmed(v *bool) *LoginAlertsUpdate {
 }
 
 // SetSessionID sets the "sessionID" field.
-func (_u *LoginAlertsUpdate) SetSessionID(v int) *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) SetSessionID(v int) *LoginAlertUpdate {
 	_u.mutation.SetSessionID(v)
 	return _u
 }
 
 // SetNillableSessionID sets the "sessionID" field if the given value is not nil.
-func (_u *LoginAlertsUpdate) SetNillableSessionID(v *int) *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) SetNillableSessionID(v *int) *LoginAlertUpdate {
 	if v != nil {
 		_u.SetSessionID(*v)
 	}
@@ -86,28 +86,28 @@ func (_u *LoginAlertsUpdate) SetNillableSessionID(v *int) *LoginAlertsUpdate {
 }
 
 // SetSession sets the "session" edge to the Session entity.
-func (_u *LoginAlertsUpdate) SetSession(v *Session) *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) SetSession(v *Session) *LoginAlertUpdate {
 	return _u.SetSessionID(v.ID)
 }
 
-// Mutation returns the LoginAlertsMutation object of the builder.
-func (_u *LoginAlertsUpdate) Mutation() *LoginAlertsMutation {
+// Mutation returns the LoginAlertMutation object of the builder.
+func (_u *LoginAlertUpdate) Mutation() *LoginAlertMutation {
 	return _u.mutation
 }
 
 // ClearSession clears the "session" edge to the Session entity.
-func (_u *LoginAlertsUpdate) ClearSession() *LoginAlertsUpdate {
+func (_u *LoginAlertUpdate) ClearSession() *LoginAlertUpdate {
 	_u.mutation.ClearSession()
 	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
-func (_u *LoginAlertsUpdate) Save(ctx context.Context) (int, error) {
+func (_u *LoginAlertUpdate) Save(ctx context.Context) (int, error) {
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *LoginAlertsUpdate) SaveX(ctx context.Context) int {
+func (_u *LoginAlertUpdate) SaveX(ctx context.Context) int {
 	affected, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -116,36 +116,36 @@ func (_u *LoginAlertsUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (_u *LoginAlertsUpdate) Exec(ctx context.Context) error {
+func (_u *LoginAlertUpdate) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *LoginAlertsUpdate) ExecX(ctx context.Context) {
+func (_u *LoginAlertUpdate) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_u *LoginAlertsUpdate) check() error {
+func (_u *LoginAlertUpdate) check() error {
 	if v, ok := _u.mutation.MessengerType(); ok {
-		if err := loginalerts.MessengerTypeValidator(v); err != nil {
-			return &ValidationError{Name: "messengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlerts.messengerType": %w`, err)}
+		if err := loginalert.MessengerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "messengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlert.messengerType": %w`, err)}
 		}
 	}
 	if _u.mutation.SessionCleared() && len(_u.mutation.SessionIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "LoginAlerts.session"`)
+		return errors.New(`ent: clearing a required unique edge "LoginAlert.session"`)
 	}
 	return nil
 }
 
-func (_u *LoginAlertsUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+func (_u *LoginAlertUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(loginalerts.Table, loginalerts.Columns, sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(loginalert.Table, loginalert.Columns, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -154,20 +154,20 @@ func (_u *LoginAlertsUpdate) sqlSave(ctx context.Context) (_node int, err error)
 		}
 	}
 	if value, ok := _u.mutation.Time(); ok {
-		_spec.SetField(loginalerts.FieldTime, field.TypeTime, value)
+		_spec.SetField(loginalert.FieldTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.MessengerType(); ok {
-		_spec.SetField(loginalerts.FieldMessengerType, field.TypeString, value)
+		_spec.SetField(loginalert.FieldMessengerType, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Confirmed(); ok {
-		_spec.SetField(loginalerts.FieldConfirmed, field.TypeBool, value)
+		_spec.SetField(loginalert.FieldConfirmed, field.TypeBool, value)
 	}
 	if _u.mutation.SessionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   loginalerts.SessionTable,
-			Columns: []string{loginalerts.SessionColumn},
+			Table:   loginalert.SessionTable,
+			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
@@ -179,8 +179,8 @@ func (_u *LoginAlertsUpdate) sqlSave(ctx context.Context) (_node int, err error)
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   loginalerts.SessionTable,
-			Columns: []string{loginalerts.SessionColumn},
+			Table:   loginalert.SessionTable,
+			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
@@ -193,7 +193,7 @@ func (_u *LoginAlertsUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{loginalerts.Label}
+			err = &NotFoundError{loginalert.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -203,22 +203,22 @@ func (_u *LoginAlertsUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	return _node, nil
 }
 
-// LoginAlertsUpdateOne is the builder for updating a single LoginAlerts entity.
-type LoginAlertsUpdateOne struct {
+// LoginAlertUpdateOne is the builder for updating a single LoginAlert entity.
+type LoginAlertUpdateOne struct {
 	config
 	fields   []string
 	hooks    []Hook
-	mutation *LoginAlertsMutation
+	mutation *LoginAlertMutation
 }
 
 // SetTime sets the "time" field.
-func (_u *LoginAlertsUpdateOne) SetTime(v time.Time) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) SetTime(v time.Time) *LoginAlertUpdateOne {
 	_u.mutation.SetTime(v)
 	return _u
 }
 
 // SetNillableTime sets the "time" field if the given value is not nil.
-func (_u *LoginAlertsUpdateOne) SetNillableTime(v *time.Time) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) SetNillableTime(v *time.Time) *LoginAlertUpdateOne {
 	if v != nil {
 		_u.SetTime(*v)
 	}
@@ -226,13 +226,13 @@ func (_u *LoginAlertsUpdateOne) SetNillableTime(v *time.Time) *LoginAlertsUpdate
 }
 
 // SetMessengerType sets the "messengerType" field.
-func (_u *LoginAlertsUpdateOne) SetMessengerType(v string) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) SetMessengerType(v string) *LoginAlertUpdateOne {
 	_u.mutation.SetMessengerType(v)
 	return _u
 }
 
 // SetNillableMessengerType sets the "messengerType" field if the given value is not nil.
-func (_u *LoginAlertsUpdateOne) SetNillableMessengerType(v *string) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) SetNillableMessengerType(v *string) *LoginAlertUpdateOne {
 	if v != nil {
 		_u.SetMessengerType(*v)
 	}
@@ -240,13 +240,13 @@ func (_u *LoginAlertsUpdateOne) SetNillableMessengerType(v *string) *LoginAlerts
 }
 
 // SetConfirmed sets the "confirmed" field.
-func (_u *LoginAlertsUpdateOne) SetConfirmed(v bool) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) SetConfirmed(v bool) *LoginAlertUpdateOne {
 	_u.mutation.SetConfirmed(v)
 	return _u
 }
 
 // SetNillableConfirmed sets the "confirmed" field if the given value is not nil.
-func (_u *LoginAlertsUpdateOne) SetNillableConfirmed(v *bool) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) SetNillableConfirmed(v *bool) *LoginAlertUpdateOne {
 	if v != nil {
 		_u.SetConfirmed(*v)
 	}
@@ -254,13 +254,13 @@ func (_u *LoginAlertsUpdateOne) SetNillableConfirmed(v *bool) *LoginAlertsUpdate
 }
 
 // SetSessionID sets the "sessionID" field.
-func (_u *LoginAlertsUpdateOne) SetSessionID(v int) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) SetSessionID(v int) *LoginAlertUpdateOne {
 	_u.mutation.SetSessionID(v)
 	return _u
 }
 
 // SetNillableSessionID sets the "sessionID" field if the given value is not nil.
-func (_u *LoginAlertsUpdateOne) SetNillableSessionID(v *int) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) SetNillableSessionID(v *int) *LoginAlertUpdateOne {
 	if v != nil {
 		_u.SetSessionID(*v)
 	}
@@ -268,41 +268,41 @@ func (_u *LoginAlertsUpdateOne) SetNillableSessionID(v *int) *LoginAlertsUpdateO
 }
 
 // SetSession sets the "session" edge to the Session entity.
-func (_u *LoginAlertsUpdateOne) SetSession(v *Session) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) SetSession(v *Session) *LoginAlertUpdateOne {
 	return _u.SetSessionID(v.ID)
 }
 
-// Mutation returns the LoginAlertsMutation object of the builder.
-func (_u *LoginAlertsUpdateOne) Mutation() *LoginAlertsMutation {
+// Mutation returns the LoginAlertMutation object of the builder.
+func (_u *LoginAlertUpdateOne) Mutation() *LoginAlertMutation {
 	return _u.mutation
 }
 
 // ClearSession clears the "session" edge to the Session entity.
-func (_u *LoginAlertsUpdateOne) ClearSession() *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) ClearSession() *LoginAlertUpdateOne {
 	_u.mutation.ClearSession()
 	return _u
 }
 
-// Where appends a list predicates to the LoginAlertsUpdate builder.
-func (_u *LoginAlertsUpdateOne) Where(ps ...predicate.LoginAlerts) *LoginAlertsUpdateOne {
+// Where appends a list predicates to the LoginAlertUpdate builder.
+func (_u *LoginAlertUpdateOne) Where(ps ...predicate.LoginAlert) *LoginAlertUpdateOne {
 	_u.mutation.Where(ps...)
 	return _u
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
-func (_u *LoginAlertsUpdateOne) Select(field string, fields ...string) *LoginAlertsUpdateOne {
+func (_u *LoginAlertUpdateOne) Select(field string, fields ...string) *LoginAlertUpdateOne {
 	_u.fields = append([]string{field}, fields...)
 	return _u
 }
 
-// Save executes the query and returns the updated LoginAlerts entity.
-func (_u *LoginAlertsUpdateOne) Save(ctx context.Context) (*LoginAlerts, error) {
+// Save executes the query and returns the updated LoginAlert entity.
+func (_u *LoginAlertUpdateOne) Save(ctx context.Context) (*LoginAlert, error) {
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_u *LoginAlertsUpdateOne) SaveX(ctx context.Context) *LoginAlerts {
+func (_u *LoginAlertUpdateOne) SaveX(ctx context.Context) *LoginAlert {
 	node, err := _u.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -311,49 +311,49 @@ func (_u *LoginAlertsUpdateOne) SaveX(ctx context.Context) *LoginAlerts {
 }
 
 // Exec executes the query on the entity.
-func (_u *LoginAlertsUpdateOne) Exec(ctx context.Context) error {
+func (_u *LoginAlertUpdateOne) Exec(ctx context.Context) error {
 	_, err := _u.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_u *LoginAlertsUpdateOne) ExecX(ctx context.Context) {
+func (_u *LoginAlertUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_u *LoginAlertsUpdateOne) check() error {
+func (_u *LoginAlertUpdateOne) check() error {
 	if v, ok := _u.mutation.MessengerType(); ok {
-		if err := loginalerts.MessengerTypeValidator(v); err != nil {
-			return &ValidationError{Name: "messengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlerts.messengerType": %w`, err)}
+		if err := loginalert.MessengerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "messengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlert.messengerType": %w`, err)}
 		}
 	}
 	if _u.mutation.SessionCleared() && len(_u.mutation.SessionIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "LoginAlerts.session"`)
+		return errors.New(`ent: clearing a required unique edge "LoginAlert.session"`)
 	}
 	return nil
 }
 
-func (_u *LoginAlertsUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlerts, err error) {
+func (_u *LoginAlertUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlert, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(loginalerts.Table, loginalerts.Columns, sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(loginalert.Table, loginalert.Columns, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
 	id, ok := _u.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LoginAlerts.id" for update`)}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LoginAlert.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, loginalerts.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, loginalert.FieldID)
 		for _, f := range fields {
-			if !loginalerts.ValidColumn(f) {
+			if !loginalert.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 			}
-			if f != loginalerts.FieldID {
+			if f != loginalert.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, f)
 			}
 		}
@@ -366,20 +366,20 @@ func (_u *LoginAlertsUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlerts
 		}
 	}
 	if value, ok := _u.mutation.Time(); ok {
-		_spec.SetField(loginalerts.FieldTime, field.TypeTime, value)
+		_spec.SetField(loginalert.FieldTime, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.MessengerType(); ok {
-		_spec.SetField(loginalerts.FieldMessengerType, field.TypeString, value)
+		_spec.SetField(loginalert.FieldMessengerType, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Confirmed(); ok {
-		_spec.SetField(loginalerts.FieldConfirmed, field.TypeBool, value)
+		_spec.SetField(loginalert.FieldConfirmed, field.TypeBool, value)
 	}
 	if _u.mutation.SessionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   loginalerts.SessionTable,
-			Columns: []string{loginalerts.SessionColumn},
+			Table:   loginalert.SessionTable,
+			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
@@ -391,8 +391,8 @@ func (_u *LoginAlertsUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlerts
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   loginalerts.SessionTable,
-			Columns: []string{loginalerts.SessionColumn},
+			Table:   loginalert.SessionTable,
+			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
@@ -403,12 +403,12 @@ func (_u *LoginAlertsUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlerts
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	_node = &LoginAlerts{config: _u.config}
+	_node = &LoginAlert{config: _u.config}
 	_spec.Assign = _node.assignValues
 	_spec.ScanValues = _node.scanValues
 	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{loginalerts.Label}
+			err = &NotFoundError{loginalert.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}

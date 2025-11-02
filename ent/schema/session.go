@@ -32,7 +32,7 @@ func (Session) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).Ref("sessions").
 			Field("userID").Unique().Required(),
-		edge.To("loginAlerts", LoginAlerts.Type).
+		edge.To("loginAlerts", LoginAlert.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

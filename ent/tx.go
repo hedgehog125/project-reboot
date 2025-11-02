@@ -18,8 +18,8 @@ type Tx struct {
 	KeyValue *KeyValueClient
 	// LogEntry is the client for interacting with the LogEntry builders.
 	LogEntry *LogEntryClient
-	// LoginAlerts is the client for interacting with the LoginAlerts builders.
-	LoginAlerts *LoginAlertsClient
+	// LoginAlert is the client for interacting with the LoginAlert builders.
+	LoginAlert *LoginAlertClient
 	// PeriodicTask is the client for interacting with the PeriodicTask builders.
 	PeriodicTask *PeriodicTaskClient
 	// Session is the client for interacting with the Session builders.
@@ -162,7 +162,7 @@ func (tx *Tx) init() {
 	tx.Job = NewJobClient(tx.config)
 	tx.KeyValue = NewKeyValueClient(tx.config)
 	tx.LogEntry = NewLogEntryClient(tx.config)
-	tx.LoginAlerts = NewLoginAlertsClient(tx.config)
+	tx.LoginAlert = NewLoginAlertClient(tx.config)
 	tx.PeriodicTask = NewPeriodicTaskClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.TwoFactorAction = NewTwoFactorActionClient(tx.config)

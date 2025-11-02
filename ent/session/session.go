@@ -43,8 +43,8 @@ const (
 	UserColumn = "user_id"
 	// LoginAlertsTable is the table that holds the loginAlerts relation/edge.
 	LoginAlertsTable = "login_alerts"
-	// LoginAlertsInverseTable is the table name for the LoginAlerts entity.
-	// It exists in this package in order to avoid circular dependency with the "loginalerts" package.
+	// LoginAlertsInverseTable is the table name for the LoginAlert entity.
+	// It exists in this package in order to avoid circular dependency with the "loginalert" package.
 	LoginAlertsInverseTable = "login_alerts"
 	// LoginAlertsColumn is the table column denoting the loginAlerts relation/edge.
 	LoginAlertsColumn = "session_id"

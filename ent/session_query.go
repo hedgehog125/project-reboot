@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/loginalerts"
+	"github.com/hedgehog125/project-reboot/ent/loginalert"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
@@ -26,7 +26,7 @@ type SessionQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.Session
 	withUser        *UserQuery
-	withLoginAlerts *LoginAlertsQuery
+	withLoginAlerts *LoginAlertQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -86,8 +86,8 @@ func (_q *SessionQuery) QueryUser() *UserQuery {
 }
 
 // QueryLoginAlerts chains the current query on the "loginAlerts" edge.
-func (_q *SessionQuery) QueryLoginAlerts() *LoginAlertsQuery {
-	query := (&LoginAlertsClient{config: _q.config}).Query()
+func (_q *SessionQuery) QueryLoginAlerts() *LoginAlertQuery {
+	query := (&LoginAlertClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -98,7 +98,7 @@ func (_q *SessionQuery) QueryLoginAlerts() *LoginAlertsQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(session.Table, session.FieldID, selector),
-			sqlgraph.To(loginalerts.Table, loginalerts.FieldID),
+			sqlgraph.To(loginalert.Table, loginalert.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, session.LoginAlertsTable, session.LoginAlertsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
@@ -320,8 +320,8 @@ func (_q *SessionQuery) WithUser(opts ...func(*UserQuery)) *SessionQuery {
 
 // WithLoginAlerts tells the query-builder to eager-load the nodes that are connected to
 // the "loginAlerts" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SessionQuery) WithLoginAlerts(opts ...func(*LoginAlertsQuery)) *SessionQuery {
-	query := (&LoginAlertsClient{config: _q.config}).Query()
+func (_q *SessionQuery) WithLoginAlerts(opts ...func(*LoginAlertQuery)) *SessionQuery {
+	query := (&LoginAlertClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -438,8 +438,8 @@ func (_q *SessionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sess
 	}
 	if query := _q.withLoginAlerts; query != nil {
 		if err := _q.loadLoginAlerts(ctx, query, nodes,
-			func(n *Session) { n.Edges.LoginAlerts = []*LoginAlerts{} },
-			func(n *Session, e *LoginAlerts) { n.Edges.LoginAlerts = append(n.Edges.LoginAlerts, e) }); err != nil {
+			func(n *Session) { n.Edges.LoginAlerts = []*LoginAlert{} },
+			func(n *Session, e *LoginAlert) { n.Edges.LoginAlerts = append(n.Edges.LoginAlerts, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -475,7 +475,7 @@ func (_q *SessionQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 	}
 	return nil
 }
-func (_q *SessionQuery) loadLoginAlerts(ctx context.Context, query *LoginAlertsQuery, nodes []*Session, init func(*Session), assign func(*Session, *LoginAlerts)) error {
+func (_q *SessionQuery) loadLoginAlerts(ctx context.Context, query *LoginAlertQuery, nodes []*Session, init func(*Session), assign func(*Session, *LoginAlert)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*Session)
 	for i := range nodes {
@@ -486,9 +486,9 @@ func (_q *SessionQuery) loadLoginAlerts(ctx context.Context, query *LoginAlertsQ
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(loginalerts.FieldSessionID)
+		query.ctx.AppendFieldOnce(loginalert.FieldSessionID)
 	}
-	query.Where(predicate.LoginAlerts(func(s *sql.Selector) {
+	query.Where(predicate.LoginAlert(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(session.LoginAlertsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)

@@ -9,12 +9,12 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/hedgehog125/project-reboot/ent/loginalerts"
+	"github.com/hedgehog125/project-reboot/ent/loginalert"
 	"github.com/hedgehog125/project-reboot/ent/session"
 )
 
-// LoginAlerts is the model entity for the LoginAlerts schema.
-type LoginAlerts struct {
+// LoginAlert is the model entity for the LoginAlert schema.
+type LoginAlert struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
@@ -27,13 +27,13 @@ type LoginAlerts struct {
 	// SessionID holds the value of the "sessionID" field.
 	SessionID int `json:"sessionID,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the LoginAlertsQuery when eager-loading is set.
-	Edges        LoginAlertsEdges `json:"edges"`
+	// The values are being populated by the LoginAlertQuery when eager-loading is set.
+	Edges        LoginAlertEdges `json:"edges"`
 	selectValues sql.SelectValues
 }
 
-// LoginAlertsEdges holds the relations/edges for other nodes in the graph.
-type LoginAlertsEdges struct {
+// LoginAlertEdges holds the relations/edges for other nodes in the graph.
+type LoginAlertEdges struct {
 	// Session holds the value of the session edge.
 	Session *Session `json:"session,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -43,7 +43,7 @@ type LoginAlertsEdges struct {
 
 // SessionOrErr returns the Session value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e LoginAlertsEdges) SessionOrErr() (*Session, error) {
+func (e LoginAlertEdges) SessionOrErr() (*Session, error) {
 	if e.Session != nil {
 		return e.Session, nil
 	} else if e.loadedTypes[0] {
@@ -53,17 +53,17 @@ func (e LoginAlertsEdges) SessionOrErr() (*Session, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*LoginAlerts) scanValues(columns []string) ([]any, error) {
+func (*LoginAlert) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case loginalerts.FieldConfirmed:
+		case loginalert.FieldConfirmed:
 			values[i] = new(sql.NullBool)
-		case loginalerts.FieldID, loginalerts.FieldSessionID:
+		case loginalert.FieldID, loginalert.FieldSessionID:
 			values[i] = new(sql.NullInt64)
-		case loginalerts.FieldMessengerType:
+		case loginalert.FieldMessengerType:
 			values[i] = new(sql.NullString)
-		case loginalerts.FieldTime:
+		case loginalert.FieldTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -73,38 +73,38 @@ func (*LoginAlerts) scanValues(columns []string) ([]any, error) {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the LoginAlerts fields.
-func (_m *LoginAlerts) assignValues(columns []string, values []any) error {
+// to the LoginAlert fields.
+func (_m *LoginAlert) assignValues(columns []string, values []any) error {
 	if m, n := len(values), len(columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	for i := range columns {
 		switch columns[i] {
-		case loginalerts.FieldID:
+		case loginalert.FieldID:
 			value, ok := values[i].(*sql.NullInt64)
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case loginalerts.FieldTime:
+		case loginalert.FieldTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field time", values[i])
 			} else if value.Valid {
 				_m.Time = value.Time
 			}
-		case loginalerts.FieldMessengerType:
+		case loginalert.FieldMessengerType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field messengerType", values[i])
 			} else if value.Valid {
 				_m.MessengerType = value.String
 			}
-		case loginalerts.FieldConfirmed:
+		case loginalert.FieldConfirmed:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field confirmed", values[i])
 			} else if value.Valid {
 				_m.Confirmed = value.Bool
 			}
-		case loginalerts.FieldSessionID:
+		case loginalert.FieldSessionID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field sessionID", values[i])
 			} else if value.Valid {
@@ -117,39 +117,39 @@ func (_m *LoginAlerts) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// Value returns the ent.Value that was dynamically selected and assigned to the LoginAlerts.
+// Value returns the ent.Value that was dynamically selected and assigned to the LoginAlert.
 // This includes values selected through modifiers, order, etc.
-func (_m *LoginAlerts) Value(name string) (ent.Value, error) {
+func (_m *LoginAlert) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QuerySession queries the "session" edge of the LoginAlerts entity.
-func (_m *LoginAlerts) QuerySession() *SessionQuery {
-	return NewLoginAlertsClient(_m.config).QuerySession(_m)
+// QuerySession queries the "session" edge of the LoginAlert entity.
+func (_m *LoginAlert) QuerySession() *SessionQuery {
+	return NewLoginAlertClient(_m.config).QuerySession(_m)
 }
 
-// Update returns a builder for updating this LoginAlerts.
-// Note that you need to call LoginAlerts.Unwrap() before calling this method if this LoginAlerts
+// Update returns a builder for updating this LoginAlert.
+// Note that you need to call LoginAlert.Unwrap() before calling this method if this LoginAlert
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (_m *LoginAlerts) Update() *LoginAlertsUpdateOne {
-	return NewLoginAlertsClient(_m.config).UpdateOne(_m)
+func (_m *LoginAlert) Update() *LoginAlertUpdateOne {
+	return NewLoginAlertClient(_m.config).UpdateOne(_m)
 }
 
-// Unwrap unwraps the LoginAlerts entity that was returned from a transaction after it was closed,
+// Unwrap unwraps the LoginAlert entity that was returned from a transaction after it was closed,
 // so that all future queries will be executed through the driver which created the transaction.
-func (_m *LoginAlerts) Unwrap() *LoginAlerts {
+func (_m *LoginAlert) Unwrap() *LoginAlert {
 	_tx, ok := _m.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: LoginAlerts is not a transactional entity")
+		panic("ent: LoginAlert is not a transactional entity")
 	}
 	_m.config.driver = _tx.drv
 	return _m
 }
 
 // String implements the fmt.Stringer.
-func (_m *LoginAlerts) String() string {
+func (_m *LoginAlert) String() string {
 	var builder strings.Builder
-	builder.WriteString("LoginAlerts(")
+	builder.WriteString("LoginAlert(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("time=")
 	builder.WriteString(_m.Time.Format(time.ANSIC))
@@ -166,5 +166,5 @@ func (_m *LoginAlerts) String() string {
 	return builder.String()
 }
 
-// LoginAlertsSlice is a parsable slice of LoginAlerts.
-type LoginAlertsSlice []*LoginAlerts
+// LoginAlerts is a parsable slice of LoginAlert.
+type LoginAlerts []*LoginAlert

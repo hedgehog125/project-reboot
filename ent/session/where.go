@@ -435,7 +435,7 @@ func HasLoginAlerts() predicate.Session {
 }
 
 // HasLoginAlertsWith applies the HasEdge predicate on the "loginAlerts" edge with a given conditions (other predicates).
-func HasLoginAlertsWith(preds ...predicate.LoginAlerts) predicate.Session {
+func HasLoginAlertsWith(preds ...predicate.LoginAlert) predicate.Session {
 	return predicate.Session(func(s *sql.Selector) {
 		step := newLoginAlertsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

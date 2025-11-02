@@ -8,30 +8,30 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/loginalerts"
+	"github.com/hedgehog125/project-reboot/ent/loginalert"
 	"github.com/hedgehog125/project-reboot/ent/predicate"
 )
 
-// LoginAlertsDelete is the builder for deleting a LoginAlerts entity.
-type LoginAlertsDelete struct {
+// LoginAlertDelete is the builder for deleting a LoginAlert entity.
+type LoginAlertDelete struct {
 	config
 	hooks    []Hook
-	mutation *LoginAlertsMutation
+	mutation *LoginAlertMutation
 }
 
-// Where appends a list predicates to the LoginAlertsDelete builder.
-func (_d *LoginAlertsDelete) Where(ps ...predicate.LoginAlerts) *LoginAlertsDelete {
+// Where appends a list predicates to the LoginAlertDelete builder.
+func (_d *LoginAlertDelete) Where(ps ...predicate.LoginAlert) *LoginAlertDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *LoginAlertsDelete) Exec(ctx context.Context) (int, error) {
+func (_d *LoginAlertDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *LoginAlertsDelete) ExecX(ctx context.Context) int {
+func (_d *LoginAlertDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (_d *LoginAlertsDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *LoginAlertsDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(loginalerts.Table, sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt))
+func (_d *LoginAlertDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(loginalert.Table, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (_d *LoginAlertsDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// LoginAlertsDeleteOne is the builder for deleting a single LoginAlerts entity.
-type LoginAlertsDeleteOne struct {
-	_d *LoginAlertsDelete
+// LoginAlertDeleteOne is the builder for deleting a single LoginAlert entity.
+type LoginAlertDeleteOne struct {
+	_d *LoginAlertDelete
 }
 
-// Where appends a list predicates to the LoginAlertsDelete builder.
-func (_d *LoginAlertsDeleteOne) Where(ps ...predicate.LoginAlerts) *LoginAlertsDeleteOne {
+// Where appends a list predicates to the LoginAlertDelete builder.
+func (_d *LoginAlertDeleteOne) Where(ps ...predicate.LoginAlert) *LoginAlertDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *LoginAlertsDeleteOne) Exec(ctx context.Context) error {
+func (_d *LoginAlertDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{loginalerts.Label}
+		return &NotFoundError{loginalert.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *LoginAlertsDeleteOne) ExecX(ctx context.Context) {
+func (_d *LoginAlertDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

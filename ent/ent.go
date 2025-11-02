@@ -15,7 +15,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/keyvalue"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
-	"github.com/hedgehog125/project-reboot/ent/loginalerts"
+	"github.com/hedgehog125/project-reboot/ent/loginalert"
 	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
@@ -83,7 +83,7 @@ func checkColumn(t, c string) error {
 			job.Table:             job.ValidColumn,
 			keyvalue.Table:        keyvalue.ValidColumn,
 			logentry.Table:        logentry.ValidColumn,
-			loginalerts.Table:     loginalerts.ValidColumn,
+			loginalert.Table:      loginalert.ValidColumn,
 			periodictask.Table:    periodictask.ValidColumn,
 			session.Table:         session.ValidColumn,
 			twofactoraction.Table: twofactoraction.ValidColumn,

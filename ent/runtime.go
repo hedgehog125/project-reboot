@@ -9,7 +9,7 @@ import (
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/keyvalue"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
-	"github.com/hedgehog125/project-reboot/ent/loginalerts"
+	"github.com/hedgehog125/project-reboot/ent/loginalert"
 	"github.com/hedgehog125/project-reboot/ent/periodictask"
 	"github.com/hedgehog125/project-reboot/ent/schema"
 	"github.com/hedgehog125/project-reboot/ent/session"
@@ -95,13 +95,13 @@ func init() {
 	logentryDescID := logentryFields[0].Descriptor()
 	// logentry.DefaultID holds the default value on creation for the id field.
 	logentry.DefaultID = logentryDescID.Default.(func() uuid.UUID)
-	loginalertsFields := schema.LoginAlerts{}.Fields()
-	_ = loginalertsFields
-	// loginalertsDescMessengerType is the schema descriptor for messengerType field.
-	loginalertsDescMessengerType := loginalertsFields[1].Descriptor()
-	// loginalerts.MessengerTypeValidator is a validator for the "messengerType" field. It is called by the builders before save.
-	loginalerts.MessengerTypeValidator = func() func(string) error {
-		validators := loginalertsDescMessengerType.Validators
+	loginalertFields := schema.LoginAlert{}.Fields()
+	_ = loginalertFields
+	// loginalertDescMessengerType is the schema descriptor for messengerType field.
+	loginalertDescMessengerType := loginalertFields[1].Descriptor()
+	// loginalert.MessengerTypeValidator is a validator for the "messengerType" field. It is called by the builders before save.
+	loginalert.MessengerTypeValidator = func() func(string) error {
+		validators := loginalertDescMessengerType.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),

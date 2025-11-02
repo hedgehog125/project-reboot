@@ -6,13 +6,13 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// LoginAlerts holds the schema definition for the LoginAlerts entity.
-type LoginAlerts struct {
+// LoginAlert holds the schema definition for the LoginAlert entity.
+type LoginAlert struct {
 	ent.Schema
 }
 
 // Fields of the SuccessfulLoginAlerts.
-func (LoginAlerts) Fields() []ent.Field {
+func (LoginAlert) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("time"),
 		field.String("messengerType").MinLen(1).MaxLen(128),
@@ -22,7 +22,7 @@ func (LoginAlerts) Fields() []ent.Field {
 }
 
 // Edges of the SuccessfulLoginAlerts.
-func (LoginAlerts) Edges() []ent.Edge {
+func (LoginAlert) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("session", Session.Type).Ref("loginAlerts").
 			Field("sessionID").Unique().Required(),

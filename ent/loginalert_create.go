@@ -11,59 +11,59 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/loginalerts"
+	"github.com/hedgehog125/project-reboot/ent/loginalert"
 	"github.com/hedgehog125/project-reboot/ent/session"
 )
 
-// LoginAlertsCreate is the builder for creating a LoginAlerts entity.
-type LoginAlertsCreate struct {
+// LoginAlertCreate is the builder for creating a LoginAlert entity.
+type LoginAlertCreate struct {
 	config
-	mutation *LoginAlertsMutation
+	mutation *LoginAlertMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
 }
 
 // SetTime sets the "time" field.
-func (_c *LoginAlertsCreate) SetTime(v time.Time) *LoginAlertsCreate {
+func (_c *LoginAlertCreate) SetTime(v time.Time) *LoginAlertCreate {
 	_c.mutation.SetTime(v)
 	return _c
 }
 
 // SetMessengerType sets the "messengerType" field.
-func (_c *LoginAlertsCreate) SetMessengerType(v string) *LoginAlertsCreate {
+func (_c *LoginAlertCreate) SetMessengerType(v string) *LoginAlertCreate {
 	_c.mutation.SetMessengerType(v)
 	return _c
 }
 
 // SetConfirmed sets the "confirmed" field.
-func (_c *LoginAlertsCreate) SetConfirmed(v bool) *LoginAlertsCreate {
+func (_c *LoginAlertCreate) SetConfirmed(v bool) *LoginAlertCreate {
 	_c.mutation.SetConfirmed(v)
 	return _c
 }
 
 // SetSessionID sets the "sessionID" field.
-func (_c *LoginAlertsCreate) SetSessionID(v int) *LoginAlertsCreate {
+func (_c *LoginAlertCreate) SetSessionID(v int) *LoginAlertCreate {
 	_c.mutation.SetSessionID(v)
 	return _c
 }
 
 // SetSession sets the "session" edge to the Session entity.
-func (_c *LoginAlertsCreate) SetSession(v *Session) *LoginAlertsCreate {
+func (_c *LoginAlertCreate) SetSession(v *Session) *LoginAlertCreate {
 	return _c.SetSessionID(v.ID)
 }
 
-// Mutation returns the LoginAlertsMutation object of the builder.
-func (_c *LoginAlertsCreate) Mutation() *LoginAlertsMutation {
+// Mutation returns the LoginAlertMutation object of the builder.
+func (_c *LoginAlertCreate) Mutation() *LoginAlertMutation {
 	return _c.mutation
 }
 
-// Save creates the LoginAlerts in the database.
-func (_c *LoginAlertsCreate) Save(ctx context.Context) (*LoginAlerts, error) {
+// Save creates the LoginAlert in the database.
+func (_c *LoginAlertCreate) Save(ctx context.Context) (*LoginAlert, error) {
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (_c *LoginAlertsCreate) SaveX(ctx context.Context) *LoginAlerts {
+func (_c *LoginAlertCreate) SaveX(ctx context.Context) *LoginAlert {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -72,44 +72,44 @@ func (_c *LoginAlertsCreate) SaveX(ctx context.Context) *LoginAlerts {
 }
 
 // Exec executes the query.
-func (_c *LoginAlertsCreate) Exec(ctx context.Context) error {
+func (_c *LoginAlertCreate) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *LoginAlertsCreate) ExecX(ctx context.Context) {
+func (_c *LoginAlertCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
-func (_c *LoginAlertsCreate) check() error {
+func (_c *LoginAlertCreate) check() error {
 	if _, ok := _c.mutation.Time(); !ok {
-		return &ValidationError{Name: "time", err: errors.New(`ent: missing required field "LoginAlerts.time"`)}
+		return &ValidationError{Name: "time", err: errors.New(`ent: missing required field "LoginAlert.time"`)}
 	}
 	if _, ok := _c.mutation.MessengerType(); !ok {
-		return &ValidationError{Name: "messengerType", err: errors.New(`ent: missing required field "LoginAlerts.messengerType"`)}
+		return &ValidationError{Name: "messengerType", err: errors.New(`ent: missing required field "LoginAlert.messengerType"`)}
 	}
 	if v, ok := _c.mutation.MessengerType(); ok {
-		if err := loginalerts.MessengerTypeValidator(v); err != nil {
-			return &ValidationError{Name: "messengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlerts.messengerType": %w`, err)}
+		if err := loginalert.MessengerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "messengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlert.messengerType": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Confirmed(); !ok {
-		return &ValidationError{Name: "confirmed", err: errors.New(`ent: missing required field "LoginAlerts.confirmed"`)}
+		return &ValidationError{Name: "confirmed", err: errors.New(`ent: missing required field "LoginAlert.confirmed"`)}
 	}
 	if _, ok := _c.mutation.SessionID(); !ok {
-		return &ValidationError{Name: "sessionID", err: errors.New(`ent: missing required field "LoginAlerts.sessionID"`)}
+		return &ValidationError{Name: "sessionID", err: errors.New(`ent: missing required field "LoginAlert.sessionID"`)}
 	}
 	if len(_c.mutation.SessionIDs()) == 0 {
-		return &ValidationError{Name: "session", err: errors.New(`ent: missing required edge "LoginAlerts.session"`)}
+		return &ValidationError{Name: "session", err: errors.New(`ent: missing required edge "LoginAlert.session"`)}
 	}
 	return nil
 }
 
-func (_c *LoginAlertsCreate) sqlSave(ctx context.Context) (*LoginAlerts, error) {
+func (_c *LoginAlertCreate) sqlSave(ctx context.Context) (*LoginAlert, error) {
 	if err := _c.check(); err != nil {
 		return nil, err
 	}
@@ -127,30 +127,30 @@ func (_c *LoginAlertsCreate) sqlSave(ctx context.Context) (*LoginAlerts, error) 
 	return _node, nil
 }
 
-func (_c *LoginAlertsCreate) createSpec() (*LoginAlerts, *sqlgraph.CreateSpec) {
+func (_c *LoginAlertCreate) createSpec() (*LoginAlert, *sqlgraph.CreateSpec) {
 	var (
-		_node = &LoginAlerts{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(loginalerts.Table, sqlgraph.NewFieldSpec(loginalerts.FieldID, field.TypeInt))
+		_node = &LoginAlert{config: _c.config}
+		_spec = sqlgraph.NewCreateSpec(loginalert.Table, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = _c.conflict
 	if value, ok := _c.mutation.Time(); ok {
-		_spec.SetField(loginalerts.FieldTime, field.TypeTime, value)
+		_spec.SetField(loginalert.FieldTime, field.TypeTime, value)
 		_node.Time = value
 	}
 	if value, ok := _c.mutation.MessengerType(); ok {
-		_spec.SetField(loginalerts.FieldMessengerType, field.TypeString, value)
+		_spec.SetField(loginalert.FieldMessengerType, field.TypeString, value)
 		_node.MessengerType = value
 	}
 	if value, ok := _c.mutation.Confirmed(); ok {
-		_spec.SetField(loginalerts.FieldConfirmed, field.TypeBool, value)
+		_spec.SetField(loginalert.FieldConfirmed, field.TypeBool, value)
 		_node.Confirmed = value
 	}
 	if nodes := _c.mutation.SessionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   loginalerts.SessionTable,
-			Columns: []string{loginalerts.SessionColumn},
+			Table:   loginalert.SessionTable,
+			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
@@ -168,7 +168,7 @@ func (_c *LoginAlertsCreate) createSpec() (*LoginAlerts, *sqlgraph.CreateSpec) {
 // OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
 // of the `INSERT` statement. For example:
 //
-//	client.LoginAlerts.Create().
+//	client.LoginAlert.Create().
 //		SetTime(v).
 //		OnConflict(
 //			// Update the row with the new values
@@ -177,13 +177,13 @@ func (_c *LoginAlertsCreate) createSpec() (*LoginAlerts, *sqlgraph.CreateSpec) {
 //		).
 //		// Override some of the fields with custom
 //		// update values.
-//		Update(func(u *ent.LoginAlertsUpsert) {
+//		Update(func(u *ent.LoginAlertUpsert) {
 //			SetTime(v+v).
 //		}).
 //		Exec(ctx)
-func (_c *LoginAlertsCreate) OnConflict(opts ...sql.ConflictOption) *LoginAlertsUpsertOne {
+func (_c *LoginAlertCreate) OnConflict(opts ...sql.ConflictOption) *LoginAlertUpsertOne {
 	_c.conflict = opts
-	return &LoginAlertsUpsertOne{
+	return &LoginAlertUpsertOne{
 		create: _c,
 	}
 }
@@ -191,86 +191,86 @@ func (_c *LoginAlertsCreate) OnConflict(opts ...sql.ConflictOption) *LoginAlerts
 // OnConflictColumns calls `OnConflict` and configures the columns
 // as conflict target. Using this option is equivalent to using:
 //
-//	client.LoginAlerts.Create().
+//	client.LoginAlert.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (_c *LoginAlertsCreate) OnConflictColumns(columns ...string) *LoginAlertsUpsertOne {
+func (_c *LoginAlertCreate) OnConflictColumns(columns ...string) *LoginAlertUpsertOne {
 	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
-	return &LoginAlertsUpsertOne{
+	return &LoginAlertUpsertOne{
 		create: _c,
 	}
 }
 
 type (
-	// LoginAlertsUpsertOne is the builder for "upsert"-ing
-	//  one LoginAlerts node.
-	LoginAlertsUpsertOne struct {
-		create *LoginAlertsCreate
+	// LoginAlertUpsertOne is the builder for "upsert"-ing
+	//  one LoginAlert node.
+	LoginAlertUpsertOne struct {
+		create *LoginAlertCreate
 	}
 
-	// LoginAlertsUpsert is the "OnConflict" setter.
-	LoginAlertsUpsert struct {
+	// LoginAlertUpsert is the "OnConflict" setter.
+	LoginAlertUpsert struct {
 		*sql.UpdateSet
 	}
 )
 
 // SetTime sets the "time" field.
-func (u *LoginAlertsUpsert) SetTime(v time.Time) *LoginAlertsUpsert {
-	u.Set(loginalerts.FieldTime, v)
+func (u *LoginAlertUpsert) SetTime(v time.Time) *LoginAlertUpsert {
+	u.Set(loginalert.FieldTime, v)
 	return u
 }
 
 // UpdateTime sets the "time" field to the value that was provided on create.
-func (u *LoginAlertsUpsert) UpdateTime() *LoginAlertsUpsert {
-	u.SetExcluded(loginalerts.FieldTime)
+func (u *LoginAlertUpsert) UpdateTime() *LoginAlertUpsert {
+	u.SetExcluded(loginalert.FieldTime)
 	return u
 }
 
 // SetMessengerType sets the "messengerType" field.
-func (u *LoginAlertsUpsert) SetMessengerType(v string) *LoginAlertsUpsert {
-	u.Set(loginalerts.FieldMessengerType, v)
+func (u *LoginAlertUpsert) SetMessengerType(v string) *LoginAlertUpsert {
+	u.Set(loginalert.FieldMessengerType, v)
 	return u
 }
 
 // UpdateMessengerType sets the "messengerType" field to the value that was provided on create.
-func (u *LoginAlertsUpsert) UpdateMessengerType() *LoginAlertsUpsert {
-	u.SetExcluded(loginalerts.FieldMessengerType)
+func (u *LoginAlertUpsert) UpdateMessengerType() *LoginAlertUpsert {
+	u.SetExcluded(loginalert.FieldMessengerType)
 	return u
 }
 
 // SetConfirmed sets the "confirmed" field.
-func (u *LoginAlertsUpsert) SetConfirmed(v bool) *LoginAlertsUpsert {
-	u.Set(loginalerts.FieldConfirmed, v)
+func (u *LoginAlertUpsert) SetConfirmed(v bool) *LoginAlertUpsert {
+	u.Set(loginalert.FieldConfirmed, v)
 	return u
 }
 
 // UpdateConfirmed sets the "confirmed" field to the value that was provided on create.
-func (u *LoginAlertsUpsert) UpdateConfirmed() *LoginAlertsUpsert {
-	u.SetExcluded(loginalerts.FieldConfirmed)
+func (u *LoginAlertUpsert) UpdateConfirmed() *LoginAlertUpsert {
+	u.SetExcluded(loginalert.FieldConfirmed)
 	return u
 }
 
 // SetSessionID sets the "sessionID" field.
-func (u *LoginAlertsUpsert) SetSessionID(v int) *LoginAlertsUpsert {
-	u.Set(loginalerts.FieldSessionID, v)
+func (u *LoginAlertUpsert) SetSessionID(v int) *LoginAlertUpsert {
+	u.Set(loginalert.FieldSessionID, v)
 	return u
 }
 
 // UpdateSessionID sets the "sessionID" field to the value that was provided on create.
-func (u *LoginAlertsUpsert) UpdateSessionID() *LoginAlertsUpsert {
-	u.SetExcluded(loginalerts.FieldSessionID)
+func (u *LoginAlertUpsert) UpdateSessionID() *LoginAlertUpsert {
+	u.SetExcluded(loginalert.FieldSessionID)
 	return u
 }
 
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
-//	client.LoginAlerts.Create().
+//	client.LoginAlert.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-func (u *LoginAlertsUpsertOne) UpdateNewValues() *LoginAlertsUpsertOne {
+func (u *LoginAlertUpsertOne) UpdateNewValues() *LoginAlertUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
 }
@@ -278,103 +278,103 @@ func (u *LoginAlertsUpsertOne) UpdateNewValues() *LoginAlertsUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//	client.LoginAlerts.Create().
+//	client.LoginAlert.Create().
 //	    OnConflict(sql.ResolveWithIgnore()).
 //	    Exec(ctx)
-func (u *LoginAlertsUpsertOne) Ignore() *LoginAlertsUpsertOne {
+func (u *LoginAlertUpsertOne) Ignore() *LoginAlertUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
 }
 
 // DoNothing configures the conflict_action to `DO NOTHING`.
 // Supported only by SQLite and PostgreSQL.
-func (u *LoginAlertsUpsertOne) DoNothing() *LoginAlertsUpsertOne {
+func (u *LoginAlertUpsertOne) DoNothing() *LoginAlertUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.DoNothing())
 	return u
 }
 
-// Update allows overriding fields `UPDATE` values. See the LoginAlertsCreate.OnConflict
+// Update allows overriding fields `UPDATE` values. See the LoginAlertCreate.OnConflict
 // documentation for more info.
-func (u *LoginAlertsUpsertOne) Update(set func(*LoginAlertsUpsert)) *LoginAlertsUpsertOne {
+func (u *LoginAlertUpsertOne) Update(set func(*LoginAlertUpsert)) *LoginAlertUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&LoginAlertsUpsert{UpdateSet: update})
+		set(&LoginAlertUpsert{UpdateSet: update})
 	}))
 	return u
 }
 
 // SetTime sets the "time" field.
-func (u *LoginAlertsUpsertOne) SetTime(v time.Time) *LoginAlertsUpsertOne {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertOne) SetTime(v time.Time) *LoginAlertUpsertOne {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetTime(v)
 	})
 }
 
 // UpdateTime sets the "time" field to the value that was provided on create.
-func (u *LoginAlertsUpsertOne) UpdateTime() *LoginAlertsUpsertOne {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertOne) UpdateTime() *LoginAlertUpsertOne {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.UpdateTime()
 	})
 }
 
 // SetMessengerType sets the "messengerType" field.
-func (u *LoginAlertsUpsertOne) SetMessengerType(v string) *LoginAlertsUpsertOne {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertOne) SetMessengerType(v string) *LoginAlertUpsertOne {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetMessengerType(v)
 	})
 }
 
 // UpdateMessengerType sets the "messengerType" field to the value that was provided on create.
-func (u *LoginAlertsUpsertOne) UpdateMessengerType() *LoginAlertsUpsertOne {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertOne) UpdateMessengerType() *LoginAlertUpsertOne {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.UpdateMessengerType()
 	})
 }
 
 // SetConfirmed sets the "confirmed" field.
-func (u *LoginAlertsUpsertOne) SetConfirmed(v bool) *LoginAlertsUpsertOne {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertOne) SetConfirmed(v bool) *LoginAlertUpsertOne {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetConfirmed(v)
 	})
 }
 
 // UpdateConfirmed sets the "confirmed" field to the value that was provided on create.
-func (u *LoginAlertsUpsertOne) UpdateConfirmed() *LoginAlertsUpsertOne {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertOne) UpdateConfirmed() *LoginAlertUpsertOne {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.UpdateConfirmed()
 	})
 }
 
 // SetSessionID sets the "sessionID" field.
-func (u *LoginAlertsUpsertOne) SetSessionID(v int) *LoginAlertsUpsertOne {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertOne) SetSessionID(v int) *LoginAlertUpsertOne {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetSessionID(v)
 	})
 }
 
 // UpdateSessionID sets the "sessionID" field to the value that was provided on create.
-func (u *LoginAlertsUpsertOne) UpdateSessionID() *LoginAlertsUpsertOne {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertOne) UpdateSessionID() *LoginAlertUpsertOne {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.UpdateSessionID()
 	})
 }
 
 // Exec executes the query.
-func (u *LoginAlertsUpsertOne) Exec(ctx context.Context) error {
+func (u *LoginAlertUpsertOne) Exec(ctx context.Context) error {
 	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for LoginAlertsCreate.OnConflict")
+		return errors.New("ent: missing options for LoginAlertCreate.OnConflict")
 	}
 	return u.create.Exec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (u *LoginAlertsUpsertOne) ExecX(ctx context.Context) {
+func (u *LoginAlertUpsertOne) ExecX(ctx context.Context) {
 	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *LoginAlertsUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *LoginAlertUpsertOne) ID(ctx context.Context) (id int, err error) {
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -383,7 +383,7 @@ func (u *LoginAlertsUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *LoginAlertsUpsertOne) IDX(ctx context.Context) int {
+func (u *LoginAlertUpsertOne) IDX(ctx context.Context) int {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -391,27 +391,27 @@ func (u *LoginAlertsUpsertOne) IDX(ctx context.Context) int {
 	return id
 }
 
-// LoginAlertsCreateBulk is the builder for creating many LoginAlerts entities in bulk.
-type LoginAlertsCreateBulk struct {
+// LoginAlertCreateBulk is the builder for creating many LoginAlert entities in bulk.
+type LoginAlertCreateBulk struct {
 	config
 	err      error
-	builders []*LoginAlertsCreate
+	builders []*LoginAlertCreate
 	conflict []sql.ConflictOption
 }
 
-// Save creates the LoginAlerts entities in the database.
-func (_c *LoginAlertsCreateBulk) Save(ctx context.Context) ([]*LoginAlerts, error) {
+// Save creates the LoginAlert entities in the database.
+func (_c *LoginAlertCreateBulk) Save(ctx context.Context) ([]*LoginAlert, error) {
 	if _c.err != nil {
 		return nil, _c.err
 	}
 	specs := make([]*sqlgraph.CreateSpec, len(_c.builders))
-	nodes := make([]*LoginAlerts, len(_c.builders))
+	nodes := make([]*LoginAlert, len(_c.builders))
 	mutators := make([]Mutator, len(_c.builders))
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-				mutation, ok := m.(*LoginAlertsMutation)
+				mutation, ok := m.(*LoginAlertMutation)
 				if !ok {
 					return nil, fmt.Errorf("unexpected mutation type %T", m)
 				}
@@ -459,7 +459,7 @@ func (_c *LoginAlertsCreateBulk) Save(ctx context.Context) ([]*LoginAlerts, erro
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (_c *LoginAlertsCreateBulk) SaveX(ctx context.Context) []*LoginAlerts {
+func (_c *LoginAlertCreateBulk) SaveX(ctx context.Context) []*LoginAlert {
 	v, err := _c.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -468,13 +468,13 @@ func (_c *LoginAlertsCreateBulk) SaveX(ctx context.Context) []*LoginAlerts {
 }
 
 // Exec executes the query.
-func (_c *LoginAlertsCreateBulk) Exec(ctx context.Context) error {
+func (_c *LoginAlertCreateBulk) Exec(ctx context.Context) error {
 	_, err := _c.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_c *LoginAlertsCreateBulk) ExecX(ctx context.Context) {
+func (_c *LoginAlertCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
 	}
@@ -483,7 +483,7 @@ func (_c *LoginAlertsCreateBulk) ExecX(ctx context.Context) {
 // OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
 // of the `INSERT` statement. For example:
 //
-//	client.LoginAlerts.CreateBulk(builders...).
+//	client.LoginAlert.CreateBulk(builders...).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -491,13 +491,13 @@ func (_c *LoginAlertsCreateBulk) ExecX(ctx context.Context) {
 //		).
 //		// Override some of the fields with custom
 //		// update values.
-//		Update(func(u *ent.LoginAlertsUpsert) {
+//		Update(func(u *ent.LoginAlertUpsert) {
 //			SetTime(v+v).
 //		}).
 //		Exec(ctx)
-func (_c *LoginAlertsCreateBulk) OnConflict(opts ...sql.ConflictOption) *LoginAlertsUpsertBulk {
+func (_c *LoginAlertCreateBulk) OnConflict(opts ...sql.ConflictOption) *LoginAlertUpsertBulk {
 	_c.conflict = opts
-	return &LoginAlertsUpsertBulk{
+	return &LoginAlertUpsertBulk{
 		create: _c,
 	}
 }
@@ -505,31 +505,31 @@ func (_c *LoginAlertsCreateBulk) OnConflict(opts ...sql.ConflictOption) *LoginAl
 // OnConflictColumns calls `OnConflict` and configures the columns
 // as conflict target. Using this option is equivalent to using:
 //
-//	client.LoginAlerts.Create().
+//	client.LoginAlert.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-func (_c *LoginAlertsCreateBulk) OnConflictColumns(columns ...string) *LoginAlertsUpsertBulk {
+func (_c *LoginAlertCreateBulk) OnConflictColumns(columns ...string) *LoginAlertUpsertBulk {
 	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
-	return &LoginAlertsUpsertBulk{
+	return &LoginAlertUpsertBulk{
 		create: _c,
 	}
 }
 
-// LoginAlertsUpsertBulk is the builder for "upsert"-ing
-// a bulk of LoginAlerts nodes.
-type LoginAlertsUpsertBulk struct {
-	create *LoginAlertsCreateBulk
+// LoginAlertUpsertBulk is the builder for "upsert"-ing
+// a bulk of LoginAlert nodes.
+type LoginAlertUpsertBulk struct {
+	create *LoginAlertCreateBulk
 }
 
 // UpdateNewValues updates the mutable fields using the new values that
 // were set on create. Using this option is equivalent to using:
 //
-//	client.LoginAlerts.Create().
+//	client.LoginAlert.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-func (u *LoginAlertsUpsertBulk) UpdateNewValues() *LoginAlertsUpsertBulk {
+func (u *LoginAlertUpsertBulk) UpdateNewValues() *LoginAlertUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
 }
@@ -537,104 +537,104 @@ func (u *LoginAlertsUpsertBulk) UpdateNewValues() *LoginAlertsUpsertBulk {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//	client.LoginAlerts.Create().
+//	client.LoginAlert.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-func (u *LoginAlertsUpsertBulk) Ignore() *LoginAlertsUpsertBulk {
+func (u *LoginAlertUpsertBulk) Ignore() *LoginAlertUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
 }
 
 // DoNothing configures the conflict_action to `DO NOTHING`.
 // Supported only by SQLite and PostgreSQL.
-func (u *LoginAlertsUpsertBulk) DoNothing() *LoginAlertsUpsertBulk {
+func (u *LoginAlertUpsertBulk) DoNothing() *LoginAlertUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.DoNothing())
 	return u
 }
 
-// Update allows overriding fields `UPDATE` values. See the LoginAlertsCreateBulk.OnConflict
+// Update allows overriding fields `UPDATE` values. See the LoginAlertCreateBulk.OnConflict
 // documentation for more info.
-func (u *LoginAlertsUpsertBulk) Update(set func(*LoginAlertsUpsert)) *LoginAlertsUpsertBulk {
+func (u *LoginAlertUpsertBulk) Update(set func(*LoginAlertUpsert)) *LoginAlertUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
-		set(&LoginAlertsUpsert{UpdateSet: update})
+		set(&LoginAlertUpsert{UpdateSet: update})
 	}))
 	return u
 }
 
 // SetTime sets the "time" field.
-func (u *LoginAlertsUpsertBulk) SetTime(v time.Time) *LoginAlertsUpsertBulk {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertBulk) SetTime(v time.Time) *LoginAlertUpsertBulk {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetTime(v)
 	})
 }
 
 // UpdateTime sets the "time" field to the value that was provided on create.
-func (u *LoginAlertsUpsertBulk) UpdateTime() *LoginAlertsUpsertBulk {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertBulk) UpdateTime() *LoginAlertUpsertBulk {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.UpdateTime()
 	})
 }
 
 // SetMessengerType sets the "messengerType" field.
-func (u *LoginAlertsUpsertBulk) SetMessengerType(v string) *LoginAlertsUpsertBulk {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertBulk) SetMessengerType(v string) *LoginAlertUpsertBulk {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetMessengerType(v)
 	})
 }
 
 // UpdateMessengerType sets the "messengerType" field to the value that was provided on create.
-func (u *LoginAlertsUpsertBulk) UpdateMessengerType() *LoginAlertsUpsertBulk {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertBulk) UpdateMessengerType() *LoginAlertUpsertBulk {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.UpdateMessengerType()
 	})
 }
 
 // SetConfirmed sets the "confirmed" field.
-func (u *LoginAlertsUpsertBulk) SetConfirmed(v bool) *LoginAlertsUpsertBulk {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertBulk) SetConfirmed(v bool) *LoginAlertUpsertBulk {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetConfirmed(v)
 	})
 }
 
 // UpdateConfirmed sets the "confirmed" field to the value that was provided on create.
-func (u *LoginAlertsUpsertBulk) UpdateConfirmed() *LoginAlertsUpsertBulk {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertBulk) UpdateConfirmed() *LoginAlertUpsertBulk {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.UpdateConfirmed()
 	})
 }
 
 // SetSessionID sets the "sessionID" field.
-func (u *LoginAlertsUpsertBulk) SetSessionID(v int) *LoginAlertsUpsertBulk {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertBulk) SetSessionID(v int) *LoginAlertUpsertBulk {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetSessionID(v)
 	})
 }
 
 // UpdateSessionID sets the "sessionID" field to the value that was provided on create.
-func (u *LoginAlertsUpsertBulk) UpdateSessionID() *LoginAlertsUpsertBulk {
-	return u.Update(func(s *LoginAlertsUpsert) {
+func (u *LoginAlertUpsertBulk) UpdateSessionID() *LoginAlertUpsertBulk {
+	return u.Update(func(s *LoginAlertUpsert) {
 		s.UpdateSessionID()
 	})
 }
 
 // Exec executes the query.
-func (u *LoginAlertsUpsertBulk) Exec(ctx context.Context) error {
+func (u *LoginAlertUpsertBulk) Exec(ctx context.Context) error {
 	if u.create.err != nil {
 		return u.create.err
 	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
-			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the LoginAlertsCreateBulk instead", i)
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the LoginAlertCreateBulk instead", i)
 		}
 	}
 	if len(u.create.conflict) == 0 {
-		return errors.New("ent: missing options for LoginAlertsCreateBulk.OnConflict")
+		return errors.New("ent: missing options for LoginAlertCreateBulk.OnConflict")
 	}
 	return u.create.Exec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (u *LoginAlertsUpsertBulk) ExecX(ctx context.Context) {
+func (u *LoginAlertUpsertBulk) ExecX(ctx context.Context) {
 	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
