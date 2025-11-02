@@ -101,7 +101,7 @@ var (
 	LoginAlertsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "time", Type: field.TypeTime},
-		{Name: "messenger_type", Type: field.TypeString, Size: 128},
+		{Name: "versioned_messenger_type", Type: field.TypeString, Size: 128},
 		{Name: "confirmed", Type: field.TypeBool},
 		{Name: "session_id", Type: field.TypeInt},
 	}

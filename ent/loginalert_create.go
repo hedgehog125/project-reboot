@@ -29,9 +29,9 @@ func (_c *LoginAlertCreate) SetTime(v time.Time) *LoginAlertCreate {
 	return _c
 }
 
-// SetMessengerType sets the "messengerType" field.
-func (_c *LoginAlertCreate) SetMessengerType(v string) *LoginAlertCreate {
-	_c.mutation.SetMessengerType(v)
+// SetVersionedMessengerType sets the "versionedMessengerType" field.
+func (_c *LoginAlertCreate) SetVersionedMessengerType(v string) *LoginAlertCreate {
+	_c.mutation.SetVersionedMessengerType(v)
 	return _c
 }
 
@@ -89,12 +89,12 @@ func (_c *LoginAlertCreate) check() error {
 	if _, ok := _c.mutation.Time(); !ok {
 		return &ValidationError{Name: "time", err: errors.New(`ent: missing required field "LoginAlert.time"`)}
 	}
-	if _, ok := _c.mutation.MessengerType(); !ok {
-		return &ValidationError{Name: "messengerType", err: errors.New(`ent: missing required field "LoginAlert.messengerType"`)}
+	if _, ok := _c.mutation.VersionedMessengerType(); !ok {
+		return &ValidationError{Name: "versionedMessengerType", err: errors.New(`ent: missing required field "LoginAlert.versionedMessengerType"`)}
 	}
-	if v, ok := _c.mutation.MessengerType(); ok {
-		if err := loginalert.MessengerTypeValidator(v); err != nil {
-			return &ValidationError{Name: "messengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlert.messengerType": %w`, err)}
+	if v, ok := _c.mutation.VersionedMessengerType(); ok {
+		if err := loginalert.VersionedMessengerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "versionedMessengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlert.versionedMessengerType": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Confirmed(); !ok {
@@ -137,9 +137,9 @@ func (_c *LoginAlertCreate) createSpec() (*LoginAlert, *sqlgraph.CreateSpec) {
 		_spec.SetField(loginalert.FieldTime, field.TypeTime, value)
 		_node.Time = value
 	}
-	if value, ok := _c.mutation.MessengerType(); ok {
-		_spec.SetField(loginalert.FieldMessengerType, field.TypeString, value)
-		_node.MessengerType = value
+	if value, ok := _c.mutation.VersionedMessengerType(); ok {
+		_spec.SetField(loginalert.FieldVersionedMessengerType, field.TypeString, value)
+		_node.VersionedMessengerType = value
 	}
 	if value, ok := _c.mutation.Confirmed(); ok {
 		_spec.SetField(loginalert.FieldConfirmed, field.TypeBool, value)
@@ -226,15 +226,15 @@ func (u *LoginAlertUpsert) UpdateTime() *LoginAlertUpsert {
 	return u
 }
 
-// SetMessengerType sets the "messengerType" field.
-func (u *LoginAlertUpsert) SetMessengerType(v string) *LoginAlertUpsert {
-	u.Set(loginalert.FieldMessengerType, v)
+// SetVersionedMessengerType sets the "versionedMessengerType" field.
+func (u *LoginAlertUpsert) SetVersionedMessengerType(v string) *LoginAlertUpsert {
+	u.Set(loginalert.FieldVersionedMessengerType, v)
 	return u
 }
 
-// UpdateMessengerType sets the "messengerType" field to the value that was provided on create.
-func (u *LoginAlertUpsert) UpdateMessengerType() *LoginAlertUpsert {
-	u.SetExcluded(loginalert.FieldMessengerType)
+// UpdateVersionedMessengerType sets the "versionedMessengerType" field to the value that was provided on create.
+func (u *LoginAlertUpsert) UpdateVersionedMessengerType() *LoginAlertUpsert {
+	u.SetExcluded(loginalert.FieldVersionedMessengerType)
 	return u
 }
 
@@ -316,17 +316,17 @@ func (u *LoginAlertUpsertOne) UpdateTime() *LoginAlertUpsertOne {
 	})
 }
 
-// SetMessengerType sets the "messengerType" field.
-func (u *LoginAlertUpsertOne) SetMessengerType(v string) *LoginAlertUpsertOne {
+// SetVersionedMessengerType sets the "versionedMessengerType" field.
+func (u *LoginAlertUpsertOne) SetVersionedMessengerType(v string) *LoginAlertUpsertOne {
 	return u.Update(func(s *LoginAlertUpsert) {
-		s.SetMessengerType(v)
+		s.SetVersionedMessengerType(v)
 	})
 }
 
-// UpdateMessengerType sets the "messengerType" field to the value that was provided on create.
-func (u *LoginAlertUpsertOne) UpdateMessengerType() *LoginAlertUpsertOne {
+// UpdateVersionedMessengerType sets the "versionedMessengerType" field to the value that was provided on create.
+func (u *LoginAlertUpsertOne) UpdateVersionedMessengerType() *LoginAlertUpsertOne {
 	return u.Update(func(s *LoginAlertUpsert) {
-		s.UpdateMessengerType()
+		s.UpdateVersionedMessengerType()
 	})
 }
 
@@ -575,17 +575,17 @@ func (u *LoginAlertUpsertBulk) UpdateTime() *LoginAlertUpsertBulk {
 	})
 }
 
-// SetMessengerType sets the "messengerType" field.
-func (u *LoginAlertUpsertBulk) SetMessengerType(v string) *LoginAlertUpsertBulk {
+// SetVersionedMessengerType sets the "versionedMessengerType" field.
+func (u *LoginAlertUpsertBulk) SetVersionedMessengerType(v string) *LoginAlertUpsertBulk {
 	return u.Update(func(s *LoginAlertUpsert) {
-		s.SetMessengerType(v)
+		s.SetVersionedMessengerType(v)
 	})
 }
 
-// UpdateMessengerType sets the "messengerType" field to the value that was provided on create.
-func (u *LoginAlertUpsertBulk) UpdateMessengerType() *LoginAlertUpsertBulk {
+// UpdateVersionedMessengerType sets the "versionedMessengerType" field to the value that was provided on create.
+func (u *LoginAlertUpsertBulk) UpdateVersionedMessengerType() *LoginAlertUpsertBulk {
 	return u.Update(func(s *LoginAlertUpsert) {
-		s.UpdateMessengerType()
+		s.UpdateVersionedMessengerType()
 	})
 }
 

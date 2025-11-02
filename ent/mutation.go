@@ -2591,18 +2591,18 @@ func (m *LogEntryMutation) ResetEdge(name string) error {
 // LoginAlertMutation represents an operation that mutates the LoginAlert nodes in the graph.
 type LoginAlertMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	time           *time.Time
-	messengerType  *string
-	confirmed      *bool
-	clearedFields  map[string]struct{}
-	session        *int
-	clearedsession bool
-	done           bool
-	oldValue       func(context.Context) (*LoginAlert, error)
-	predicates     []predicate.LoginAlert
+	op                     Op
+	typ                    string
+	id                     *int
+	time                   *time.Time
+	versionedMessengerType *string
+	confirmed              *bool
+	clearedFields          map[string]struct{}
+	session                *int
+	clearedsession         bool
+	done                   bool
+	oldValue               func(context.Context) (*LoginAlert, error)
+	predicates             []predicate.LoginAlert
 }
 
 var _ ent.Mutation = (*LoginAlertMutation)(nil)
@@ -2739,40 +2739,40 @@ func (m *LoginAlertMutation) ResetTime() {
 	m.time = nil
 }
 
-// SetMessengerType sets the "messengerType" field.
-func (m *LoginAlertMutation) SetMessengerType(s string) {
-	m.messengerType = &s
+// SetVersionedMessengerType sets the "versionedMessengerType" field.
+func (m *LoginAlertMutation) SetVersionedMessengerType(s string) {
+	m.versionedMessengerType = &s
 }
 
-// MessengerType returns the value of the "messengerType" field in the mutation.
-func (m *LoginAlertMutation) MessengerType() (r string, exists bool) {
-	v := m.messengerType
+// VersionedMessengerType returns the value of the "versionedMessengerType" field in the mutation.
+func (m *LoginAlertMutation) VersionedMessengerType() (r string, exists bool) {
+	v := m.versionedMessengerType
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldMessengerType returns the old "messengerType" field's value of the LoginAlert entity.
+// OldVersionedMessengerType returns the old "versionedMessengerType" field's value of the LoginAlert entity.
 // If the LoginAlert object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LoginAlertMutation) OldMessengerType(ctx context.Context) (v string, err error) {
+func (m *LoginAlertMutation) OldVersionedMessengerType(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMessengerType is only allowed on UpdateOne operations")
+		return v, errors.New("OldVersionedMessengerType is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMessengerType requires an ID field in the mutation")
+		return v, errors.New("OldVersionedMessengerType requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMessengerType: %w", err)
+		return v, fmt.Errorf("querying old value for OldVersionedMessengerType: %w", err)
 	}
-	return oldValue.MessengerType, nil
+	return oldValue.VersionedMessengerType, nil
 }
 
-// ResetMessengerType resets all changes to the "messengerType" field.
-func (m *LoginAlertMutation) ResetMessengerType() {
-	m.messengerType = nil
+// ResetVersionedMessengerType resets all changes to the "versionedMessengerType" field.
+func (m *LoginAlertMutation) ResetVersionedMessengerType() {
+	m.versionedMessengerType = nil
 }
 
 // SetConfirmed sets the "confirmed" field.
@@ -2912,8 +2912,8 @@ func (m *LoginAlertMutation) Fields() []string {
 	if m.time != nil {
 		fields = append(fields, loginalert.FieldTime)
 	}
-	if m.messengerType != nil {
-		fields = append(fields, loginalert.FieldMessengerType)
+	if m.versionedMessengerType != nil {
+		fields = append(fields, loginalert.FieldVersionedMessengerType)
 	}
 	if m.confirmed != nil {
 		fields = append(fields, loginalert.FieldConfirmed)
@@ -2931,8 +2931,8 @@ func (m *LoginAlertMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case loginalert.FieldTime:
 		return m.Time()
-	case loginalert.FieldMessengerType:
-		return m.MessengerType()
+	case loginalert.FieldVersionedMessengerType:
+		return m.VersionedMessengerType()
 	case loginalert.FieldConfirmed:
 		return m.Confirmed()
 	case loginalert.FieldSessionID:
@@ -2948,8 +2948,8 @@ func (m *LoginAlertMutation) OldField(ctx context.Context, name string) (ent.Val
 	switch name {
 	case loginalert.FieldTime:
 		return m.OldTime(ctx)
-	case loginalert.FieldMessengerType:
-		return m.OldMessengerType(ctx)
+	case loginalert.FieldVersionedMessengerType:
+		return m.OldVersionedMessengerType(ctx)
 	case loginalert.FieldConfirmed:
 		return m.OldConfirmed(ctx)
 	case loginalert.FieldSessionID:
@@ -2970,12 +2970,12 @@ func (m *LoginAlertMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTime(v)
 		return nil
-	case loginalert.FieldMessengerType:
+	case loginalert.FieldVersionedMessengerType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetMessengerType(v)
+		m.SetVersionedMessengerType(v)
 		return nil
 	case loginalert.FieldConfirmed:
 		v, ok := value.(bool)
@@ -3046,8 +3046,8 @@ func (m *LoginAlertMutation) ResetField(name string) error {
 	case loginalert.FieldTime:
 		m.ResetTime()
 		return nil
-	case loginalert.FieldMessengerType:
-		m.ResetMessengerType()
+	case loginalert.FieldVersionedMessengerType:
+		m.ResetVersionedMessengerType()
 		return nil
 	case loginalert.FieldConfirmed:
 		m.ResetConfirmed()

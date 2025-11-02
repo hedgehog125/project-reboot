@@ -58,9 +58,10 @@ func NewRegistry(app *common.App) *Registry {
 }
 
 type bodyWrapperType struct {
-	MessageType common.MessageType
-	SessionIDs  []int
-	Inner       string
+	MessageType            common.MessageType
+	VersionedMessengerType string
+	SessionIDs             []int
+	Inner                  string
 }
 
 func (registry *Registry) Register(definition *Definition) {
@@ -118,12 +119,12 @@ func (registry *Registry) Register(definition *Definition) {
 				stdErr := dbcommon.WithWriteTx(
 					jobCtx.Context, registry.App.Database,
 					func(tx *ent.Tx, ctx context.Context) error {
-						return tx.LoginAlerts.MapCreateBulk(
+						return tx.LoginAlert.MapCreateBulk(
 							body.SessionIDs,
-							func(alertCreate *ent.LoginAlertsCreate, i int) {
+							func(alertCreate *ent.LoginAlertCreate, i int) {
 								alertCreate.
 									SetTime(registry.App.Clock.Now()).
-									SetMessengerType(string(body.MessageType)).
+									SetVersionedMessengerType(body.VersionedMessengerType).
 									SetConfirmed(messengerCtx.confirmedSent).
 									SetSessionID(body.SessionIDs[i])
 							},
@@ -193,8 +194,10 @@ func (registry *Registry) Send(
 	_, commErr := registry.App.Jobs.EnqueueWithModifier(
 		common.JoinPaths(registry.jobNamePrefix, versionedType),
 		&bodyWrapperType{
-			MessageType: message.Type,
-			Inner:       string(encoded),
+			MessageType:            message.Type,
+			VersionedMessengerType: versionedType,
+			SessionIDs:             message.SessionIDs,
+			Inner:                  string(encoded),
 		},
 		func(jobCreate *ent.JobCreate) {
 			jobCreate.SetDue(sendTime)

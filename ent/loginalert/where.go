@@ -60,9 +60,9 @@ func Time(v time.Time) predicate.LoginAlert {
 	return predicate.LoginAlert(sql.FieldEQ(FieldTime, v))
 }
 
-// MessengerType applies equality check predicate on the "messengerType" field. It's identical to MessengerTypeEQ.
-func MessengerType(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldEQ(FieldMessengerType, v))
+// VersionedMessengerType applies equality check predicate on the "versionedMessengerType" field. It's identical to VersionedMessengerTypeEQ.
+func VersionedMessengerType(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldEQ(FieldVersionedMessengerType, v))
 }
 
 // Confirmed applies equality check predicate on the "confirmed" field. It's identical to ConfirmedEQ.
@@ -115,69 +115,69 @@ func TimeLTE(v time.Time) predicate.LoginAlert {
 	return predicate.LoginAlert(sql.FieldLTE(FieldTime, v))
 }
 
-// MessengerTypeEQ applies the EQ predicate on the "messengerType" field.
-func MessengerTypeEQ(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldEQ(FieldMessengerType, v))
+// VersionedMessengerTypeEQ applies the EQ predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeEQ(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldEQ(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeNEQ applies the NEQ predicate on the "messengerType" field.
-func MessengerTypeNEQ(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldNEQ(FieldMessengerType, v))
+// VersionedMessengerTypeNEQ applies the NEQ predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeNEQ(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldNEQ(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeIn applies the In predicate on the "messengerType" field.
-func MessengerTypeIn(vs ...string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldIn(FieldMessengerType, vs...))
+// VersionedMessengerTypeIn applies the In predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeIn(vs ...string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldIn(FieldVersionedMessengerType, vs...))
 }
 
-// MessengerTypeNotIn applies the NotIn predicate on the "messengerType" field.
-func MessengerTypeNotIn(vs ...string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldNotIn(FieldMessengerType, vs...))
+// VersionedMessengerTypeNotIn applies the NotIn predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeNotIn(vs ...string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldNotIn(FieldVersionedMessengerType, vs...))
 }
 
-// MessengerTypeGT applies the GT predicate on the "messengerType" field.
-func MessengerTypeGT(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldGT(FieldMessengerType, v))
+// VersionedMessengerTypeGT applies the GT predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeGT(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldGT(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeGTE applies the GTE predicate on the "messengerType" field.
-func MessengerTypeGTE(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldGTE(FieldMessengerType, v))
+// VersionedMessengerTypeGTE applies the GTE predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeGTE(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldGTE(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeLT applies the LT predicate on the "messengerType" field.
-func MessengerTypeLT(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldLT(FieldMessengerType, v))
+// VersionedMessengerTypeLT applies the LT predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeLT(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldLT(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeLTE applies the LTE predicate on the "messengerType" field.
-func MessengerTypeLTE(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldLTE(FieldMessengerType, v))
+// VersionedMessengerTypeLTE applies the LTE predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeLTE(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldLTE(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeContains applies the Contains predicate on the "messengerType" field.
-func MessengerTypeContains(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldContains(FieldMessengerType, v))
+// VersionedMessengerTypeContains applies the Contains predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeContains(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldContains(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeHasPrefix applies the HasPrefix predicate on the "messengerType" field.
-func MessengerTypeHasPrefix(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldHasPrefix(FieldMessengerType, v))
+// VersionedMessengerTypeHasPrefix applies the HasPrefix predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeHasPrefix(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldHasPrefix(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeHasSuffix applies the HasSuffix predicate on the "messengerType" field.
-func MessengerTypeHasSuffix(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldHasSuffix(FieldMessengerType, v))
+// VersionedMessengerTypeHasSuffix applies the HasSuffix predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeHasSuffix(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldHasSuffix(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeEqualFold applies the EqualFold predicate on the "messengerType" field.
-func MessengerTypeEqualFold(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldEqualFold(FieldMessengerType, v))
+// VersionedMessengerTypeEqualFold applies the EqualFold predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeEqualFold(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldEqualFold(FieldVersionedMessengerType, v))
 }
 
-// MessengerTypeContainsFold applies the ContainsFold predicate on the "messengerType" field.
-func MessengerTypeContainsFold(v string) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldContainsFold(FieldMessengerType, v))
+// VersionedMessengerTypeContainsFold applies the ContainsFold predicate on the "versionedMessengerType" field.
+func VersionedMessengerTypeContainsFold(v string) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldContainsFold(FieldVersionedMessengerType, v))
 }
 
 // ConfirmedEQ applies the EQ predicate on the "confirmed" field.

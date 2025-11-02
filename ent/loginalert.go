@@ -20,8 +20,8 @@ type LoginAlert struct {
 	ID int `json:"id,omitempty"`
 	// Time holds the value of the "time" field.
 	Time time.Time `json:"time,omitempty"`
-	// MessengerType holds the value of the "messengerType" field.
-	MessengerType string `json:"messengerType,omitempty"`
+	// VersionedMessengerType holds the value of the "versionedMessengerType" field.
+	VersionedMessengerType string `json:"versionedMessengerType,omitempty"`
 	// Confirmed holds the value of the "confirmed" field.
 	Confirmed bool `json:"confirmed,omitempty"`
 	// SessionID holds the value of the "sessionID" field.
@@ -61,7 +61,7 @@ func (*LoginAlert) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case loginalert.FieldID, loginalert.FieldSessionID:
 			values[i] = new(sql.NullInt64)
-		case loginalert.FieldMessengerType:
+		case loginalert.FieldVersionedMessengerType:
 			values[i] = new(sql.NullString)
 		case loginalert.FieldTime:
 			values[i] = new(sql.NullTime)
@@ -92,11 +92,11 @@ func (_m *LoginAlert) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Time = value.Time
 			}
-		case loginalert.FieldMessengerType:
+		case loginalert.FieldVersionedMessengerType:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field messengerType", values[i])
+				return fmt.Errorf("unexpected type %T for field versionedMessengerType", values[i])
 			} else if value.Valid {
-				_m.MessengerType = value.String
+				_m.VersionedMessengerType = value.String
 			}
 		case loginalert.FieldConfirmed:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -154,8 +154,8 @@ func (_m *LoginAlert) String() string {
 	builder.WriteString("time=")
 	builder.WriteString(_m.Time.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("messengerType=")
-	builder.WriteString(_m.MessengerType)
+	builder.WriteString("versionedMessengerType=")
+	builder.WriteString(_m.VersionedMessengerType)
 	builder.WriteString(", ")
 	builder.WriteString("confirmed=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Confirmed))

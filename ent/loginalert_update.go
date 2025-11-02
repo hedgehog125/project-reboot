@@ -43,16 +43,16 @@ func (_u *LoginAlertUpdate) SetNillableTime(v *time.Time) *LoginAlertUpdate {
 	return _u
 }
 
-// SetMessengerType sets the "messengerType" field.
-func (_u *LoginAlertUpdate) SetMessengerType(v string) *LoginAlertUpdate {
-	_u.mutation.SetMessengerType(v)
+// SetVersionedMessengerType sets the "versionedMessengerType" field.
+func (_u *LoginAlertUpdate) SetVersionedMessengerType(v string) *LoginAlertUpdate {
+	_u.mutation.SetVersionedMessengerType(v)
 	return _u
 }
 
-// SetNillableMessengerType sets the "messengerType" field if the given value is not nil.
-func (_u *LoginAlertUpdate) SetNillableMessengerType(v *string) *LoginAlertUpdate {
+// SetNillableVersionedMessengerType sets the "versionedMessengerType" field if the given value is not nil.
+func (_u *LoginAlertUpdate) SetNillableVersionedMessengerType(v *string) *LoginAlertUpdate {
 	if v != nil {
-		_u.SetMessengerType(*v)
+		_u.SetVersionedMessengerType(*v)
 	}
 	return _u
 }
@@ -130,9 +130,9 @@ func (_u *LoginAlertUpdate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *LoginAlertUpdate) check() error {
-	if v, ok := _u.mutation.MessengerType(); ok {
-		if err := loginalert.MessengerTypeValidator(v); err != nil {
-			return &ValidationError{Name: "messengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlert.messengerType": %w`, err)}
+	if v, ok := _u.mutation.VersionedMessengerType(); ok {
+		if err := loginalert.VersionedMessengerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "versionedMessengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlert.versionedMessengerType": %w`, err)}
 		}
 	}
 	if _u.mutation.SessionCleared() && len(_u.mutation.SessionIDs()) > 0 {
@@ -156,8 +156,8 @@ func (_u *LoginAlertUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.Time(); ok {
 		_spec.SetField(loginalert.FieldTime, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.MessengerType(); ok {
-		_spec.SetField(loginalert.FieldMessengerType, field.TypeString, value)
+	if value, ok := _u.mutation.VersionedMessengerType(); ok {
+		_spec.SetField(loginalert.FieldVersionedMessengerType, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Confirmed(); ok {
 		_spec.SetField(loginalert.FieldConfirmed, field.TypeBool, value)
@@ -225,16 +225,16 @@ func (_u *LoginAlertUpdateOne) SetNillableTime(v *time.Time) *LoginAlertUpdateOn
 	return _u
 }
 
-// SetMessengerType sets the "messengerType" field.
-func (_u *LoginAlertUpdateOne) SetMessengerType(v string) *LoginAlertUpdateOne {
-	_u.mutation.SetMessengerType(v)
+// SetVersionedMessengerType sets the "versionedMessengerType" field.
+func (_u *LoginAlertUpdateOne) SetVersionedMessengerType(v string) *LoginAlertUpdateOne {
+	_u.mutation.SetVersionedMessengerType(v)
 	return _u
 }
 
-// SetNillableMessengerType sets the "messengerType" field if the given value is not nil.
-func (_u *LoginAlertUpdateOne) SetNillableMessengerType(v *string) *LoginAlertUpdateOne {
+// SetNillableVersionedMessengerType sets the "versionedMessengerType" field if the given value is not nil.
+func (_u *LoginAlertUpdateOne) SetNillableVersionedMessengerType(v *string) *LoginAlertUpdateOne {
 	if v != nil {
-		_u.SetMessengerType(*v)
+		_u.SetVersionedMessengerType(*v)
 	}
 	return _u
 }
@@ -325,9 +325,9 @@ func (_u *LoginAlertUpdateOne) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *LoginAlertUpdateOne) check() error {
-	if v, ok := _u.mutation.MessengerType(); ok {
-		if err := loginalert.MessengerTypeValidator(v); err != nil {
-			return &ValidationError{Name: "messengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlert.messengerType": %w`, err)}
+	if v, ok := _u.mutation.VersionedMessengerType(); ok {
+		if err := loginalert.VersionedMessengerTypeValidator(v); err != nil {
+			return &ValidationError{Name: "versionedMessengerType", err: fmt.Errorf(`ent: validator failed for field "LoginAlert.versionedMessengerType": %w`, err)}
 		}
 	}
 	if _u.mutation.SessionCleared() && len(_u.mutation.SessionIDs()) > 0 {
@@ -368,8 +368,8 @@ func (_u *LoginAlertUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlert, 
 	if value, ok := _u.mutation.Time(); ok {
 		_spec.SetField(loginalert.FieldTime, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.MessengerType(); ok {
-		_spec.SetField(loginalert.FieldMessengerType, field.TypeString, value)
+	if value, ok := _u.mutation.VersionedMessengerType(); ok {
+		_spec.SetField(loginalert.FieldVersionedMessengerType, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Confirmed(); ok {
 		_spec.SetField(loginalert.FieldConfirmed, field.TypeBool, value)

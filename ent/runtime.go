@@ -97,18 +97,18 @@ func init() {
 	logentry.DefaultID = logentryDescID.Default.(func() uuid.UUID)
 	loginalertFields := schema.LoginAlert{}.Fields()
 	_ = loginalertFields
-	// loginalertDescMessengerType is the schema descriptor for messengerType field.
-	loginalertDescMessengerType := loginalertFields[1].Descriptor()
-	// loginalert.MessengerTypeValidator is a validator for the "messengerType" field. It is called by the builders before save.
-	loginalert.MessengerTypeValidator = func() func(string) error {
-		validators := loginalertDescMessengerType.Validators
+	// loginalertDescVersionedMessengerType is the schema descriptor for versionedMessengerType field.
+	loginalertDescVersionedMessengerType := loginalertFields[1].Descriptor()
+	// loginalert.VersionedMessengerTypeValidator is a validator for the "versionedMessengerType" field. It is called by the builders before save.
+	loginalert.VersionedMessengerTypeValidator = func() func(string) error {
+		validators := loginalertDescVersionedMessengerType.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
 		}
-		return func(messengerType string) error {
+		return func(versionedMessengerType string) error {
 			for _, fn := range fns {
-				if err := fn(messengerType); err != nil {
+				if err := fn(versionedMessengerType); err != nil {
 					return err
 				}
 			}

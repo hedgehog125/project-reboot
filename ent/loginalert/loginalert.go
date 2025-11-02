@@ -14,8 +14,8 @@ const (
 	FieldID = "id"
 	// FieldTime holds the string denoting the time field in the database.
 	FieldTime = "time"
-	// FieldMessengerType holds the string denoting the messengertype field in the database.
-	FieldMessengerType = "messenger_type"
+	// FieldVersionedMessengerType holds the string denoting the versionedmessengertype field in the database.
+	FieldVersionedMessengerType = "versioned_messenger_type"
 	// FieldConfirmed holds the string denoting the confirmed field in the database.
 	FieldConfirmed = "confirmed"
 	// FieldSessionID holds the string denoting the sessionid field in the database.
@@ -37,7 +37,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldTime,
-	FieldMessengerType,
+	FieldVersionedMessengerType,
 	FieldConfirmed,
 	FieldSessionID,
 }
@@ -53,8 +53,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// MessengerTypeValidator is a validator for the "messengerType" field. It is called by the builders before save.
-	MessengerTypeValidator func(string) error
+	// VersionedMessengerTypeValidator is a validator for the "versionedMessengerType" field. It is called by the builders before save.
+	VersionedMessengerTypeValidator func(string) error
 )
 
 // OrderOption defines the ordering options for the LoginAlert queries.
@@ -70,9 +70,9 @@ func ByTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTime, opts...).ToFunc()
 }
 
-// ByMessengerType orders the results by the messengerType field.
-func ByMessengerType(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldMessengerType, opts...).ToFunc()
+// ByVersionedMessengerType orders the results by the versionedMessengerType field.
+func ByVersionedMessengerType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldVersionedMessengerType, opts...).ToFunc()
 }
 
 // ByConfirmed orders the results by the confirmed field.

@@ -15,7 +15,7 @@ type LoginAlert struct {
 func (LoginAlert) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("time"),
-		field.String("messengerType").MinLen(1).MaxLen(128),
+		field.String("versionedMessengerType").MinLen(1).MaxLen(128),
 		field.Bool("confirmed"),
 		field.Int("sessionID"),
 	}
