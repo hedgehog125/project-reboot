@@ -111,6 +111,12 @@ type Error struct {
 	RetryBackoffBase       time.Duration
 	RetryBackoffMultiplier float64
 	DebugValues            []DebugValue
+	// Should be set by structs that embed common.Error like servercommon.Error.
+	// Errors can often be unwrapped from an error interface to a concrete common.Error type (since it's easier to work with).
+	// However, if you later only need an error interface, you can rewrap the error with this and restore the details.
+	//
+	// Note: You should call .StandardError instead of this in case it's nil.
+	Rewrap func() error
 }
 type DebugValue struct {
 	Name    string `json:"name"`
@@ -137,9 +143,15 @@ func (err *Error) Error() string {
 // Use when you need to cast to an error interface and the *Error might be nil
 //
 // Otherwise you'll get a non-nil error interface that panics when you try to use it
+//
+// You should also use this method if you might have unwrapped something like servercommon.Error into common.Error
+// as this will restore the extra details in that type
 func (err *Error) StandardError() error {
 	if err == nil {
 		return nil
+	}
+	if err.Rewrap != nil {
+		return err.Rewrap()
 	}
 	return err
 }

@@ -24,22 +24,28 @@ var ErrWrapperParseBodyJson = common.NewErrorWrapper(
 
 type Error struct {
 	// Not embedded because the promoted methods unwrap to common.Error, so they need to be manually wrapped
-	CommonError *common.Error `json:"commonError"`
-	Status      int           `json:"status"` // Set to -1 to keep the current code
-	Details     []ErrorDetail `json:"details"`
-	ShouldLog   bool          `json:"shouldLog"`
+	CommonError  *common.Error `json:"commonError"`
+	Status       int           `json:"status"` // Set to -1 to keep the current code
+	Details      []ErrorDetail `json:"details"`
+	ShouldLog    bool          `json:"shouldLog"`
+	parentRewrap func() error
 }
 type ErrorDetail struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
-func NewError(err error) *Error {
-	if err == nil {
+func NewError(stdErr error) *Error {
+	if stdErr == nil {
 		return nil
 	}
+	commErr := &common.Error{}
 	serverErr := &Error{}
-	if errors.As(err, &serverErr) {
+	// servercommon.Errors can get unwrapped into common.Errors, so attempt to re-wrap it
+	if errors.As(stdErr, &commErr) {
+		stdErr = commErr.StandardError()
+	}
+	if errors.As(stdErr, &serverErr) {
 		return serverErr.Clone()
 	}
 
@@ -47,11 +53,17 @@ func NewError(err error) *Error {
 	if commErr == nil {
 		return nil
 	}
-	return &Error{
-		CommonError: commErr,
-		Status:      -1,
-		Details:     []ErrorDetail{},
-		ShouldLog:   true,
+
+	serverErr = &Error{
+		Status:    -1,
+		Details:   []ErrorDetail{},
+		ShouldLog: true,
+	}
+	serverErr.parentRewrap = commErr.Rewrap
+	commErr.Rewrap = func() error {
+		serverErr := serverErr.Clone()
+		// TODO: I'm not sure this approach is a good idea <==========
+	}
 	if errors.Is(stdErr, context.DeadlineExceeded) {
 		serverErr.Status = 408
 	}
