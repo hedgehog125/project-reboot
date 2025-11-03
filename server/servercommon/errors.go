@@ -39,17 +39,12 @@ func NewError(stdErr error) *Error {
 	if stdErr == nil {
 		return nil
 	}
-	commErr := &common.Error{}
 	serverErr := &Error{}
-	// servercommon.Errors can get unwrapped into common.Errors, so attempt to re-wrap it
-	if errors.As(stdErr, &commErr) {
-		stdErr = commErr.StandardError()
-	}
 	if errors.As(stdErr, &serverErr) {
 		return serverErr.Clone()
 	}
 
-	commErr = common.AutoWrapError(stdErr)
+	commErr := common.AutoWrapError(stdErr)
 	if commErr == nil {
 		return nil
 	}
@@ -58,11 +53,6 @@ func NewError(stdErr error) *Error {
 		Status:    -1,
 		Details:   []ErrorDetail{},
 		ShouldLog: true,
-	}
-	serverErr.parentRewrap = commErr.Rewrap
-	commErr.Rewrap = func() error {
-		serverErr := serverErr.Clone()
-		// TODO: I'm not sure this approach is a good idea <==========
 	}
 	if errors.Is(stdErr, context.DeadlineExceeded) {
 		serverErr.Status = 408

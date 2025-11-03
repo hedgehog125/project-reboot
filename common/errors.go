@@ -100,36 +100,60 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 }
 
 type Error struct {
-	Err                   error
-	Categories            []string
-	ErrDuplicatesCategory bool
-	// Note: this number might not be reached if there are other errors with less or no retries in the WithRetries call. And the context
-	// could always time out before this number is reached.
-	//
-	// -1 means no limit
-	MaxRetries             int
-	RetryBackoffBase       time.Duration
-	RetryBackoffMultiplier float64
-	DebugValues            []DebugValue
-	// Should be set by structs that embed common.Error like servercommon.Error.
-	// Errors can often be unwrapped from an error interface to a concrete common.Error type (since it's easier to work with).
-	// However, if you later only need an error interface, you can rewrap the error with this and restore the details.
-	//
-	// Note: You should call .StandardError instead of this in case it's nil.
-	Rewrap func() error
+	err                    error
+	categories             []string
+	errDuplicatesCategory  bool
+	maxRetries             int
+	retryBackoffBase       time.Duration
+	retryBackoffMultiplier float64
+	debugValues            []DebugValue
 }
 type DebugValue struct {
 	Name    string `json:"name"`
 	Message string `json:"message"`
 	Value   any
 }
+type WrappedError interface {
+	error
+	json.Marshaler
+	Unwrap() error
+	Is(target error) bool
 
-func (err *Error) Error() string {
+	StandardError() error
+	CommonError() *Error
+	CloneAsWrappedError() WrappedError
+
+	Categories() []string
+	ErrDuplicatesCategory() bool
+	GeneralCategory() string
+	HighestCategory() string
+	LowestCategory() string
+	HasCategories(requiredCategories ...string) bool
+
+	AddCategoriesMut(categories ...string)
+	RemoveHighestCategoryMut()
+	RemoveLowestCategoryMut()
+
+	MaxRetries() int
+	RetryBackoffBase() time.Duration
+	RetryBackoffMultiplier() float64
+	ConfigureRetriesMut(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64)
+	DisableRetriesMut()
+	SetMaxRetriesMut(value int)
+	SetRetryBackoffBaseMut(value time.Duration)
+	SetRetryBackoffMultiplierMut(value float64)
+
+	Dump() string
+	DebugValues() []DebugValue
+	AddDebugValuesMut(values ...DebugValue)
+}
+
+func (commErr *Error) Error() string {
 	message := ""
 
-	reversedCategories := slices.Clone(err.Categories)
+	reversedCategories := slices.Clone(commErr.categories)
 	slices.Reverse(reversedCategories) // Highest to lowest level
-	if err.ErrDuplicatesCategory {
+	if commErr.errDuplicatesCategory {
 		reversedCategories = DeleteSliceIndex(reversedCategories, -1) // Ignore the lowest (last) category since it duplicates the error
 	}
 
@@ -137,44 +161,41 @@ func (err *Error) Error() string {
 		message += fmt.Sprintf("%v error: ", category)
 	}
 
-	return message + err.Err.Error()
+	return message + commErr.err.Error()
 }
 
 // Use when you need to cast to an error interface and the *Error might be nil
 //
 // Otherwise you'll get a non-nil error interface that panics when you try to use it
-//
-// You should also use this method if you might have unwrapped something like servercommon.Error into common.Error
-// as this will restore the extra details in that type
-func (err *Error) StandardError() error {
-	if err == nil {
+func (commErr *Error) StandardError() error {
+	if commErr == nil {
 		return nil
 	}
-	if err.Rewrap != nil {
-		return err.Rewrap()
-	}
-	return err
+	return commErr
 }
-func (err *Error) Unwrap() error {
-	if err == nil {
+func (commErr *Error) CommonError() *Error {
+	return commErr
+}
+func (commErr *Error) Unwrap() error {
+	if commErr == nil {
 		return nil
 	}
-	return err.Err
+	return commErr.err
 }
-func (err *Error) Is(target error) bool {
+func (commErr *Error) Is(target error) bool {
 	// Needed so that errors.Is(err.AddCategory("extra category"), err) == true
 	// We don't really care if the properties on this struct are different, only that the underlying error is the same
 
 	if target == nil {
 		return false
 	}
-	targetStruct, ok := target.(*Error)
+	targetCommErr, ok := target.(*Error)
 	if !ok {
 		return false
 	}
-	return err.Err == targetStruct.Err
+	return commErr.err == targetCommErr.err
 }
-func (err *Error) MarshalJSON() ([]byte, error) {
+func (commErr *Error) MarshalJSON() ([]byte, error) {
 	type jsonError struct {
 		Error                  string        `json:"error"`
 		InnerError             string        `json:"innerError"`
@@ -186,130 +207,154 @@ func (err *Error) MarshalJSON() ([]byte, error) {
 		DebugValues            []DebugValue  `json:"debugValues"`
 	}
 	return json.Marshal(&jsonError{
-		Error:                  err.Error(),
-		InnerError:             err.Err.Error(),
-		Categories:             err.Categories,
-		ErrDuplicatesCategory:  err.ErrDuplicatesCategory,
-		MaxRetries:             err.MaxRetries,
-		RetryBackoffBase:       err.RetryBackoffBase,
-		RetryBackoffMultiplier: err.RetryBackoffMultiplier,
-		DebugValues:            err.DebugValues,
+		Error:                  commErr.Error(),
+		InnerError:             commErr.err.Error(),
+		Categories:             commErr.categories,
+		ErrDuplicatesCategory:  commErr.errDuplicatesCategory,
+		MaxRetries:             commErr.maxRetries,
+		RetryBackoffBase:       commErr.retryBackoffBase,
+		RetryBackoffMultiplier: commErr.retryBackoffMultiplier,
+		DebugValues:            commErr.debugValues,
 	})
 }
-func (err *Error) Dump() string {
-	message, stdErr := json.MarshalIndent(err, "", "  ")
+func (commErr *Error) Dump() string {
+	message, stdErr := json.MarshalIndent(commErr, "", "  ")
 	if stdErr != nil {
 		return fmt.Sprintf("Error.Dump marshall error:\n%v", stdErr)
 	}
 	return fmt.Sprintf("Error.Dump successful:\n%v", string(message))
 }
 
-func (err *Error) GeneralCategory() string {
-	category, _ := GetLastCategoryWithTag(err.Categories, CategoryTagGeneral)
+func (commErr *Error) Categories() []string {
+	return slices.Clone(commErr.categories)
+}
+func (commErr *Error) ErrDuplicatesCategory() bool {
+	return commErr.errDuplicatesCategory
+}
+
+// Note: this number might not be reached if there are other errors with less or no retries in the WithRetries call. And the context
+// could always time out before this number is reached.
+//
+// -1 means no limit
+func (commErr *Error) MaxRetries() int {
+	return commErr.maxRetries
+}
+func (commErr *Error) RetryBackoffBase() time.Duration {
+	return commErr.retryBackoffBase
+}
+func (commErr *Error) RetryBackoffMultiplier() float64 {
+	return commErr.retryBackoffMultiplier
+}
+func (commErr *Error) DebugValues() []DebugValue {
+	return slices.Clone(commErr.debugValues)
+}
+
+func (commErr *Error) GeneralCategory() string {
+	category, _ := GetLastCategoryWithTag(commErr.categories, CategoryTagGeneral)
 	return category
 }
 
 // requiredCategories is highest to lowest level e.g "auth [package]", "create user", common.ErrTypeDatabase
-func (err *Error) HasCategories(requiredCategories ...string) bool {
-	reversedCategories := slices.Clone(err.Categories)
+func (commErr *Error) HasCategories(requiredCategories ...string) bool {
+	reversedCategories := slices.Clone(commErr.categories)
 	slices.Reverse(reversedCategories) // Highest to lowest level
 	return CheckPathPattern(reversedCategories, slices.Concat(requiredCategories, []string{"***"}))
 }
-func (err *Error) HighestCategory() string {
-	return err.Categories[len(err.Categories)-1]
+func (commErr *Error) HighestCategory() string {
+	return commErr.categories[len(commErr.categories)-1]
 }
-func (err *Error) LowestCategory() string {
-	return err.Categories[0]
+func (commErr *Error) LowestCategory() string {
+	return commErr.categories[0]
 }
-func (err *Error) AddCategories(categories ...string) *Error {
-	copiedErr := err.Clone()
+func (commErr *Error) AddCategories(categories ...string) *Error {
+	copiedErr := commErr.Clone()
 	for _, category := range categories {
 		hasPackageTag := slices.Contains(ParseCategoryTags(category), CategoryTagPackage)
 		insertIndex := -1
 		if !hasPackageTag {
-			_, insertIndex = GetLastCategoryWithTag(copiedErr.Categories, CategoryTagPackage)
+			_, insertIndex = GetLastCategoryWithTag(copiedErr.categories, CategoryTagPackage)
 		}
 
 		if insertIndex < 0 {
-			if len(copiedErr.Categories) == 0 || copiedErr.Categories[len(copiedErr.Categories)-1] != category {
-				copiedErr.Categories = append(copiedErr.Categories, category)
+			if len(copiedErr.categories) == 0 || copiedErr.categories[len(copiedErr.categories)-1] != category {
+				copiedErr.categories = append(copiedErr.categories, category)
 			}
 		} else {
-			if copiedErr.Categories[insertIndex] != category {
-				copiedErr.Categories = slices.Insert(copiedErr.Categories, insertIndex, category)
+			if copiedErr.categories[insertIndex] != category {
+				copiedErr.categories = slices.Insert(copiedErr.categories, insertIndex, category)
 			}
 		}
 	}
 	return copiedErr
 }
-func (err *Error) AddCategory(category string) *Error {
-	return err.AddCategories(category)
+func (commErr *Error) AddCategory(category string) *Error {
+	return commErr.AddCategories(category)
 }
-func (err *Error) RemoveHighestCategory() *Error {
+func (commErr *Error) RemoveHighestCategory() *Error {
 	// TODO: should highest category include packages for this and HighestCategory()?
-	copiedErr := err.Clone()
-	catCount := len(copiedErr.Categories)
+	copiedErr := commErr.Clone()
+	catCount := len(copiedErr.categories)
 	if catCount != 0 {
-		copiedErr.Categories = slices.Delete(copiedErr.Categories, catCount-1, catCount)
+		copiedErr.categories = slices.Delete(copiedErr.categories, catCount-1, catCount)
 	}
 
 	return copiedErr
 }
-func (err *Error) RemoveLowestCategory() *Error {
-	copiedErr := err.Clone()
-	if len(copiedErr.Categories) != 0 {
-		copiedErr.Categories = slices.Delete(copiedErr.Categories, 0, 1)
+func (commErr *Error) RemoveLowestCategory() *Error {
+	copiedErr := commErr.Clone()
+	if len(copiedErr.categories) != 0 {
+		copiedErr.categories = slices.Delete(copiedErr.categories, 0, 1)
 	}
 
 	return copiedErr
 }
 
-func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) *Error {
-	copiedErr := err.Clone()
-	copiedErr.MaxRetries = maxRetries
-	copiedErr.RetryBackoffBase = baseBackoff
-	copiedErr.RetryBackoffMultiplier = backoffMultiplier
+func (commErr *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) *Error {
+	copiedErr := commErr.Clone()
+	copiedErr.maxRetries = maxRetries
+	copiedErr.retryBackoffBase = baseBackoff
+	copiedErr.retryBackoffMultiplier = backoffMultiplier
 
 	return copiedErr
 }
-func (err *Error) DisableRetries() *Error {
-	return err.ConfigureRetries(0, 0, 0)
+func (commErr *Error) DisableRetries() *Error {
+	return commErr.ConfigureRetries(0, 0, 0)
 }
-func (err *Error) SetMaxRetries(value int) *Error {
-	copiedErr := err.Clone()
-	copiedErr.MaxRetries = value
+func (commErr *Error) SetMaxRetries(value int) *Error {
+	copiedErr := commErr.Clone()
+	copiedErr.maxRetries = value
 
 	return copiedErr
 }
-func (err *Error) SetRetryBackoffBase(value time.Duration) *Error {
-	copiedErr := err.Clone()
-	copiedErr.RetryBackoffBase = value
+func (commErr *Error) SetRetryBackoffBase(value time.Duration) *Error {
+	copiedErr := commErr.Clone()
+	copiedErr.retryBackoffBase = value
 
 	return copiedErr
 }
-func (err *Error) SetRetryBackoffMultiplier(value float64) *Error {
-	copiedErr := err.Clone()
-	copiedErr.RetryBackoffMultiplier = value
+func (commErr *Error) SetRetryBackoffMultiplier(value float64) *Error {
+	copiedErr := commErr.Clone()
+	copiedErr.retryBackoffMultiplier = value
 
 	return copiedErr
 }
 
-func (err *Error) AddDebugValue(value DebugValue) *Error {
-	return err.AddDebugValues(value)
+func (commErr *Error) AddDebugValue(value DebugValue) *Error {
+	return commErr.AddDebugValues(value)
 }
-func (err *Error) AddDebugValues(values ...DebugValue) *Error {
-	copiedErr := err.Clone()
-	copiedErr.DebugValues = append(copiedErr.DebugValues, values...)
+func (commErr *Error) AddDebugValues(values ...DebugValue) *Error {
+	copiedErr := commErr.Clone()
+	copiedErr.debugValues = append(copiedErr.debugValues, values...)
 
 	return copiedErr
 }
-func (err *Error) Clone() *Error {
-	if err == nil {
+func (commErr *Error) Clone() *Error {
+	if commErr == nil {
 		return nil
 	}
-	copiedErr := *err
-	copiedErr.Categories = slices.Clone(err.Categories)
-	copiedErr.DebugValues = slices.Clone(copiedErr.DebugValues)
+	copiedErr := *commErr
+	copiedErr.categories = slices.Clone(commErr.categories)
+	copiedErr.debugValues = slices.Clone(copiedErr.debugValues)
 
 	return &copiedErr
 }
@@ -317,28 +362,30 @@ func (err *Error) Clone() *Error {
 // categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
 func NewErrorWithCategories(message string, categories ...string) *Error {
 	return &Error{
-		Err:                   errors.New(message),
-		Categories:            slices.Concat([]string{message}, categories),
-		ErrDuplicatesCategory: true,
+		err:                   errors.New(message),
+		categories:            slices.Concat([]string{message}, categories),
+		errDuplicatesCategory: true,
 	}
 }
 
 // categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
-func WrapErrorWithCategories(err error, categories ...string) *Error {
-	// TODO: log warning if the error had to be unwrapped? e.g servercommon.Error converted to common.Error
+func WrapErrorWithCategories(err error, categories ...string) WrappedError {
 	// Also use errors.As?
 	if err == nil {
 		return nil
 	}
-	commErr, ok := err.(*Error)
-	if !ok {
-		commErr = &Error{
-			Err:        err,
-			Categories: []string{},
+	wrappedErr, ok := err.(WrappedError)
+	if ok {
+		wrappedErr = wrappedErr.CloneAsWrappedError()
+	} else {
+		wrappedErr = &Error{
+			err:        err,
+			categories: []string{},
 		}
 	}
 
-	return commErr.AddCategories(categories...)
+	wrappedErr.AddCategoriesMut(categories...)
+	return wrappedErr
 }
 
 const (
@@ -384,16 +431,16 @@ func GetLastCategoryWithTag(categories []string, requiredTag string) (string, in
 	return "", -1
 }
 
-func AutoWrapError(err error) *Error {
-	var commErr *Error
-	if errors.As(err, &commErr) {
-		// TODO: log warning if the error had to be unwrapped? e.g servercommon.Error converted to common.Error
-		return commErr.Clone()
+func AutoWrapError(err error) WrappedError {
+	var wrappedErr WrappedError
+	if errors.As(err, &wrappedErr) {
+		wrappedErr = wrappedErr.CloneAsWrappedError()
+		return wrappedErr
 	}
 
-	commErr = WrapErrorWithCategories(err, ErrTypeCommon, "auto wrapped")
+	wrappedErr = WrapErrorWithCategories(err, ErrTypeCommon, "auto wrapped")
 	if errors.As(err, &sqlite3.Error{}) {
-		return ErrWrapperDatabase.Wrap(commErr)
+		return ErrWrapperDatabase.Wrap(wrappedErr)
 	}
 	if ent.IsConstraintError(err) ||
 		ent.IsNotFound(err) ||
@@ -401,10 +448,10 @@ func AutoWrapError(err error) *Error {
 		ent.IsNotSingular(err) ||
 		ent.IsValidationError(err) ||
 		errors.Is(err, ent.ErrTxStarted) {
-		return ErrWrapperDatabase.Wrap(commErr)
+		return ErrWrapperDatabase.Wrap(wrappedErr)
 	}
 
-	return commErr
+	return wrappedErr
 }
 
 type ErrorWrapper interface {
@@ -421,11 +468,13 @@ func NewErrorWrapper(categories ...string) *ConstantErrorWrapper {
 	}
 }
 
-func (errWrapper *ConstantErrorWrapper) Wrap(err error) *Error {
+func (errWrapper *ConstantErrorWrapper) Wrap(stdErr error) WrappedError {
 	if errWrapper.Child != nil {
-		return errWrapper.Child.Wrap(err).AddCategories(errWrapper.Categories...)
+		wrappedErr := errWrapper.Child.Wrap(stdErr)
+		errWrapper.Child.Wrap(stdErr).AddCategoriesMut(errWrapper.Categories...)
+		return wrappedErr
 	} else {
-		return WrapErrorWithCategories(err, errWrapper.Categories...)
+		return WrapErrorWithCategories(stdErr, errWrapper.Categories...)
 	}
 }
 func (errWrapper *ConstantErrorWrapper) HasWrapped(err error) bool {
@@ -433,15 +482,19 @@ func (errWrapper *ConstantErrorWrapper) HasWrapped(err error) bool {
 		return false
 	}
 
-	var commErr *Error
-	if !errors.As(err, &commErr) {
-		return false
+	var errCategories []string
+	{
+		var wrappedErr WrappedError
+		if !errors.As(err, &wrappedErr) {
+			return false
+		}
+		errCategories = wrappedErr.Categories()
 	}
 
 	// Ensure the [package] categories are in the right order
-	requiredCategories := errWrapper.Wrap(errors.New("")).Categories // TODO: cache this?
+	requiredCategories := errWrapper.Wrap(errors.New("")).Categories() // TODO: cache this?
 	requiredIndex := 0
-	for _, category := range commErr.Categories {
+	for _, category := range errCategories {
 		requiredCategory := requiredCategories[requiredIndex]
 		requiredCategoryHasPackageTag := slices.Contains(ParseCategoryTags(requiredCategory), CategoryTagPackage)
 		if category == requiredCategory ||
