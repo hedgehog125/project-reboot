@@ -39,7 +39,7 @@ func NewServer(app *common.App) *Server {
 	router.Use(middleware.NewTimeout())
 	router.LoadHTMLGlob("./server/templates/*.html")
 	router.Use(middleware.NewRateLimiting("api", app.RateLimiter))
-	router.Static("/static", "./public") // Has to go before otherwise files are sent but with a 404 status
+	router.Static("/static", "./public")
 	router.Use(middleware.NewError())
 
 	adminMiddleware := middleware.NewAdminProtected(app.Core)

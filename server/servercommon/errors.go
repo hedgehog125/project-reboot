@@ -1,6 +1,7 @@
 package servercommon
 
 import (
+	"context"
 	"errors"
 	"slices"
 	"time"
@@ -42,7 +43,7 @@ func NewError(err error) *Error {
 		return serverErr.Clone()
 	}
 
-	commErr := common.AutoWrapError(err)
+	commErr = common.AutoWrapError(stdErr)
 	if commErr == nil {
 		return nil
 	}
@@ -51,7 +52,10 @@ func NewError(err error) *Error {
 		Status:      -1,
 		Details:     []ErrorDetail{},
 		ShouldLog:   true,
+	if errors.Is(stdErr, context.DeadlineExceeded) {
+		serverErr.Status = 408
 	}
+	return serverErr
 }
 
 func (err *Error) Error() string {
