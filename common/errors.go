@@ -38,7 +38,7 @@ const (
 	// Similar idea here if it's unknown
 )
 
-var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
+var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) WrappedError {
 	wrappedErr := WrapErrorWithCategories(err)
 	if wrappedErr == nil {
 		return nil
@@ -46,7 +46,8 @@ var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
 
 	sqliteErr := sqlite3.Error{}
 	if errors.Is(err, context.DeadlineExceeded) {
-		return wrappedErr.AddCategories(ErrTypeTimeout, ErrTypeDatabase)
+		wrappedErr.AddCategoriesMut(ErrTypeTimeout, ErrTypeDatabase)
+		return wrappedErr
 	}
 	if errors.As(err, &sqliteErr) {
 		if slices.Index([]sqlite3.ErrNo{
@@ -60,16 +61,18 @@ var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) *Error {
 			sqlite3.ErrLocked,
 			sqlite3.ErrNomem,
 		}, sqliteErr.Code) != -1 {
-			wrappedErr = wrappedErr.ConfigureRetries(10, 50*time.Millisecond, 2)
+			wrappedErr.ConfigureRetriesMut(10, 50*time.Millisecond, 2)
 			if sqliteErr.Code == sqlite3.ErrNomem {
-				return wrappedErr.AddCategories(ErrTypeMemory, ErrTypeDatabase)
+				wrappedErr.AddCategoriesMut(ErrTypeMemory, ErrTypeDatabase)
 			} else {
-				return wrappedErr.AddCategories(ErrTypeDisk, ErrTypeDatabase)
+				wrappedErr.AddCategoriesMut(ErrTypeDisk, ErrTypeDatabase)
 			}
+			return wrappedErr
 		}
 	}
 
-	return wrappedErr.AddCategories(ErrTypeOther, ErrTypeDatabase)
+	wrappedErr.AddCategoriesMut(ErrTypeOther, ErrTypeDatabase)
+	return wrappedErr
 })
 var ErrWrapperAPI = NewErrorWrapper(ErrTypeAPI)
 
@@ -358,6 +361,50 @@ func (commErr *Error) Clone() *Error {
 
 	return &copiedErr
 }
+func (commErr *Error) CloneAsWrappedError() WrappedError {
+	return commErr.Clone()
+}
+
+func (commErr *Error) AddCategoriesMut(categories ...string) {
+	newErr := commErr.AddCategories(categories...)
+	commErr.categories = newErr.categories
+}
+func (commErr *Error) ConfigureRetriesMut(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) {
+	newErr := commErr.ConfigureRetries(maxRetries, baseBackoff, backoffMultiplier)
+	commErr.maxRetries = newErr.maxRetries
+	commErr.retryBackoffBase = newErr.retryBackoffBase
+	commErr.retryBackoffMultiplier = newErr.retryBackoffMultiplier
+}
+func (commErr *Error) DisableRetriesMut() {
+	newErr := commErr.DisableRetries()
+	commErr.maxRetries = newErr.maxRetries
+	commErr.retryBackoffBase = newErr.retryBackoffBase
+	commErr.retryBackoffMultiplier = newErr.retryBackoffMultiplier
+}
+func (commErr *Error) SetMaxRetriesMut(value int) {
+	newErr := commErr.SetMaxRetries(value)
+	commErr.maxRetries = newErr.maxRetries
+}
+func (commErr *Error) SetRetryBackoffBaseMut(value time.Duration) {
+	newErr := commErr.SetRetryBackoffBase(value)
+	commErr.retryBackoffBase = newErr.retryBackoffBase
+}
+func (commErr *Error) SetRetryBackoffMultiplierMut(value float64) {
+	newErr := commErr.SetRetryBackoffMultiplier(value)
+	commErr.retryBackoffMultiplier = newErr.retryBackoffMultiplier
+}
+func (commErr *Error) AddDebugValuesMut(values ...DebugValue) {
+	newErr := commErr.AddDebugValues(values...)
+	commErr.debugValues = newErr.debugValues
+}
+func (commErr *Error) RemoveHighestCategoryMut() {
+	newErr := commErr.RemoveHighestCategory()
+	commErr.categories = newErr.categories
+}
+func (commErr *Error) RemoveLowestCategoryMut() {
+	newErr := commErr.RemoveLowestCategory()
+	commErr.categories = newErr.categories
+}
 
 // categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
 func NewErrorWithCategories(message string, categories ...string) *Error {
@@ -455,7 +502,7 @@ func AutoWrapError(err error) WrappedError {
 }
 
 type ErrorWrapper interface {
-	Wrap(err error) *Error
+	Wrap(err error) WrappedError
 }
 type ConstantErrorWrapper struct {
 	Categories []string
@@ -524,15 +571,15 @@ func (errWrapper ConstantErrorWrapper) Clone() *ConstantErrorWrapper {
 }
 
 type DynamicErrorWrapper struct {
-	callback func(err error) *Error // Mostly just private so IDEs autocomplete to Wrap instead
+	callback func(err error) WrappedError // Mostly just private so IDEs autocomplete to Wrap instead
 }
 
-func NewDynamicErrorWrapper(callback func(err error) *Error) *DynamicErrorWrapper {
+func NewDynamicErrorWrapper(callback func(err error) WrappedError) *DynamicErrorWrapper {
 	return &DynamicErrorWrapper{
 		callback: callback,
 	}
 }
-func (errWrapper *DynamicErrorWrapper) Wrap(err error) *Error {
+func (errWrapper *DynamicErrorWrapper) Wrap(err error) WrappedError {
 	return errWrapper.callback(err)
 }
 
