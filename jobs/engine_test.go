@@ -42,8 +42,8 @@ func TestEngine_runsJob(t *testing.T) {
 	stdErr := dbcommon.WithWriteTx(
 		t.Context(), db,
 		func(tx *ent.Tx, ctx context.Context) error {
-			_, commErr := engine.Enqueue("test_job_1", &body{}, ctx)
-			return commErr.StandardError()
+			_, wrappedErr := engine.Enqueue("test_job_1", &body{}, ctx)
+			return wrappedErr
 		},
 	)
 	require.NoError(t, stdErr)
@@ -91,8 +91,8 @@ func TestEngine_retriesJob(t *testing.T) {
 	stdErr := dbcommon.WithWriteTx(
 		t.Context(), db,
 		func(tx *ent.Tx, ctx context.Context) error {
-			_, commErr := engine.Enqueue("test_job_1", &body{}, ctx)
-			return commErr.StandardError()
+			_, wrappedErr := engine.Enqueue("test_job_1", &body{}, ctx)
+			return wrappedErr
 		},
 	)
 	require.NoError(t, stdErr)

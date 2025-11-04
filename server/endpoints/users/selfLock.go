@@ -69,15 +69,15 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 				Threads: userOb.HashThreads,
 			},
 		)
-		_, commErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
-		if commErr != nil {
+		_, wrappedErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
+		if wrappedErr != nil {
 			return servercommon.NewUnauthorizedError()
 		}
 
 		return dbcommon.WithWriteTx(
 			ginCtx, app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
-				action, code, commErr := app.TwoFactorActions.Create(
+				action, code, wrappedErr := app.TwoFactorActions.Create(
 					"users/TEMP_SELF_LOCK_1",
 					clock.Now().Add(twofactoractions.DEFAULT_CODE_LIFETIME),
 					//exhaustruct:enforce
@@ -87,11 +87,11 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 					},
 					ctx,
 				)
-				if commErr != nil {
-					return commErr
+				if wrappedErr != nil {
+					return wrappedErr
 				}
 
-				_, _, commErr = app.Messengers.SendUsingAll(
+				_, _, wrappedErr = app.Messengers.SendUsingAll(
 					&common.Message{
 						Type: common.Message2FA,
 						User: userOb,
@@ -99,8 +99,8 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 					},
 					ctx,
 				)
-				if commErr != nil {
-					return commErr
+				if wrappedErr != nil {
+					return wrappedErr
 				}
 
 				// TODO: wait for job to run and return error if it fails?

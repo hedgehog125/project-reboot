@@ -43,15 +43,15 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 				return servercommon.Send404IfNotFound(stdErr)
 			}
 
-			_, _, commErr := app.Messengers.SendUsingAll(
+			_, _, wrappedErr := app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.MessageTest,
 					User: userOb,
 				},
 				ctx,
 			)
-			if commErr != nil {
-				return commErr
+			if wrappedErr != nil {
+				return wrappedErr
 			}
 
 			ginCtx.JSON(http.StatusOK, SetContactsResponse{

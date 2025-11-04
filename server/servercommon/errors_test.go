@@ -10,8 +10,8 @@ import (
 
 func TestErrorUnwrap(t *testing.T) {
 	stdErr := errors.New("test error")
-	commErr := common.WrapErrorWithCategories(stdErr)
-	serverErr := NewError(commErr)
-	require.Equal(t, commErr, errors.Unwrap(serverErr))
+	wrappedErr := common.WrapErrorWithCategories(stdErr)
+	serverErr := NewError(wrappedErr)
+	require.Equal(t, wrappedErr, errors.Unwrap(serverErr))
 	require.Equal(t, stdErr, errors.Unwrap(errors.Unwrap(serverErr)))
 }

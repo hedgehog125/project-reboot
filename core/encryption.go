@@ -8,7 +8,7 @@ import (
 )
 
 // Adapted from: https://tutorialedge.net/golang/go-encrypt-decrypt-aes-tutorial/
-func Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, *common.Error) {
+func Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, common.WrappedError) {
 	passwordCipher, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return nil, nil, ErrWrapperEncrypt.Wrap(err)
@@ -23,7 +23,7 @@ func Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, *common.Error) 
 	return encrypted, nonce, nil
 }
 
-func Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, *common.Error) {
+func Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, common.WrappedError) {
 	passwordCipher, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return nil, ErrWrapperDecrypt.Wrap(err)

@@ -35,14 +35,14 @@ func withRetryingTx[T any](
 	fn func(tx *ent.Tx, ctx context.Context) (T, error),
 ) (T, error) {
 	var returnValue T
-	commErr := common.WithRetries(ctx, common.GetLogger(ctx, db), func() error {
+	wrappedErr := common.WithRetries(ctx, common.GetLogger(ctx, db), func() error {
 		return withTx(ctx, db, txCallback, func(tx *ent.Tx, ctx context.Context) error {
 			var stdErr error
 			returnValue, stdErr = fn(tx, ctx)
 			return stdErr
 		})
 	})
-	return returnValue, commErr.StandardError()
+	return returnValue, wrappedErr
 }
 func withTx(
 	ctx context.Context, db common.DatabaseService,

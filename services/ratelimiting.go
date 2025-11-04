@@ -22,12 +22,12 @@ func NewRateLimiter(app *common.App) *RateLimiter {
 
 func (service *RateLimiter) RequestSession(
 	eventName string, amount int, userID string,
-) (common.LimiterSession, *common.Error) {
-	session, commErr := service.Limiter.RequestSession(eventName, amount, userID)
+) (common.LimiterSession, common.WrappedError) {
+	session, wrappedErr := service.Limiter.RequestSession(eventName, amount, userID)
 	if session == nil { // Avoid wrapping nil sessions in a non-nil interface
-		return nil, commErr
+		return nil, wrappedErr
 	}
-	return session, commErr
+	return session, wrappedErr
 }
 func (service *RateLimiter) DeleteInactiveUsers() {
 	service.Limiter.DeleteInactiveUsers()

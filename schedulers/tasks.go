@@ -77,15 +77,15 @@ func NewTask(callback TaskCallback, delayFunc DelayFunc) Task {
 // Note: if you need more advanced behaviour, like scheduling multiple jobs or providing bodies, use NewTask instead
 func NewJobTask(versionedType string, delayFunc DelayFunc) Task {
 	return NewTask(func(taskContext *TaskContext) {
-		_, commErr := taskContext.App.Jobs.Enqueue(
+		_, wrappedErr := taskContext.App.Jobs.Enqueue(
 			versionedType,
 			struct{}{},
 			taskContext.Context,
 		)
-		if commErr != nil {
+		if wrappedErr != nil {
 			taskContext.App.Logger.Error(
 				"failed to enqueue periodic job",
-				"error", commErr,
+				"error", wrappedErr,
 				"jobType", versionedType,
 			)
 		}

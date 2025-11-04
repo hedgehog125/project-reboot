@@ -507,7 +507,7 @@ func TestLogger_NoAdminUser_UsesCrashSignal(t *testing.T) {
 		_, stdErr := dbcommon.WithReadTx(
 			t.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) (struct{}, error) {
-				return struct{}{}, app.KeyValue.Get("LAST_CRASH_SIGNAL", &lastCrashSignal, ctx).StandardError()
+				return struct{}{}, app.KeyValue.Get("LAST_CRASH_SIGNAL", &lastCrashSignal, ctx)
 			},
 		)
 		require.NoError(t, stdErr)

@@ -51,15 +51,15 @@ func AdminLock(app *servercommon.ServerApp) gin.HandlerFunc {
 					return stdErr
 				}
 
-				_, _, commErr := app.Messengers.SendUsingAll(
+				_, _, wrappedErr := app.Messengers.SendUsingAll(
 					&common.Message{
 						Type: common.MessageLock,
 						User: userOb,
 					},
 					ctx,
 				)
-				if commErr != nil {
-					return commErr
+				if wrappedErr != nil {
+					return wrappedErr
 				}
 
 				ginCtx.JSON(http.StatusOK, AdminLockResponse{

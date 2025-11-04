@@ -41,7 +41,7 @@ func NewEngine(registry *Registry) *Engine {
 type completedJob struct {
 	Object    *ent.Job
 	StartTime time.Time
-	Err       *common.Error
+	Err       common.WrappedError
 }
 
 func (engine *Engine) Listen() {
@@ -81,30 +81,30 @@ func (engine *Engine) Listen() {
 				"runDuration", engine.App.Clock.Since(completedJob.StartTime),
 			)
 		} else {
-			if completedJob.Err.MaxRetries < 0 {
-				if completedJob.Err.MaxRetries == -1 {
+			if completedJob.Err.MaxRetries() < 0 {
+				if completedJob.Err.MaxRetries() == -1 {
 					logger.Warn("error returned by job has unlimited retries (-1). Setting to UnlimitedRetriesLimit")
-					completedJob.Err.MaxRetries = UnlimitedRetriesLimit
+					completedJob.Err.SetMaxRetriesMut(UnlimitedRetriesLimit)
 				}
-				completedJob.Err.MaxRetries = 0
+				completedJob.Err.SetMaxRetriesMut(0)
 			}
-			if completedJob.Err.MaxRetries > 0 {
-				if completedJob.Err.RetryBackoffBase < time.Second {
+			if completedJob.Err.MaxRetries() > 0 {
+				if completedJob.Err.RetryBackoffBase() < time.Second {
 					logger.Warn(
 						"error returned by job has a low base retry backoff. Did you forget to wrap it in WithRetries?",
-						"retryBackoffBase", completedJob.Err.RetryBackoffBase,
+						"retryBackoffBase", completedJob.Err.RetryBackoffBase(),
 					)
 				}
 			}
 			retriedFraction := completedJob.Object.RetriedFraction
-			if completedJob.Err.MaxRetries > 0 {
-				retriedFraction += 1 / float64(completedJob.Err.MaxRetries+1)
+			if completedJob.Err.MaxRetries() > 0 {
+				retriedFraction += 1 / float64(completedJob.Err.MaxRetries()+1)
 			}
-			shouldRetry := retriedFraction >= 1-common.BackoffMaxRetriesEpsilon || completedJob.Err.MaxRetries < 1
+			shouldRetry := retriedFraction >= 1-common.BackoffMaxRetriesEpsilon || completedJob.Err.MaxRetries() < 1
 			backoff := common.CalculateBackoff(
 				completedJob.Object.Retries,
-				completedJob.Err.RetryBackoffBase,
-				completedJob.Err.RetryBackoffMultiplier,
+				completedJob.Err.RetryBackoffBase(),
+				completedJob.Err.RetryBackoffMultiplier(),
 			)
 			sendJobSignal := false
 			stdErr := dbcommon.WithWriteTx(context.TODO(), engine.App.Database,
@@ -320,14 +320,14 @@ func (engine *Engine) Enqueue(
 	versionedType string,
 	body any,
 	ctx context.Context,
-) (*ent.Job, *common.Error) {
+) (*ent.Job, common.WrappedError) {
 	return engine.EnqueueWithModifier(versionedType, body, nil, ctx)
 }
 func (engine *Engine) EnqueueEncoded(
 	versionedType string,
 	encodedBody json.RawMessage,
 	ctx context.Context,
-) (*ent.Job, *common.Error) {
+) (*ent.Job, common.WrappedError) {
 	return engine.EnqueueEncodedWithModifier(versionedType, encodedBody, nil, ctx)
 }
 
@@ -336,17 +336,17 @@ func (engine *Engine) EnqueueWithModifier(
 	body any,
 	modifier func(jobCreate *ent.JobCreate),
 	ctx context.Context,
-) (*ent.Job, *common.Error) {
+) (*ent.Job, common.WrappedError) {
 	_, ok := engine.Registry.jobs[versionedType]
 	if !ok {
 		return nil, ErrWrapperEnqueue.Wrap(ErrUnknownJobType)
 	}
-	encoded, commErr := engine.Registry.Encode(
+	encoded, wrappedErr := engine.Registry.Encode(
 		versionedType,
 		body,
 	)
-	if commErr != nil {
-		return nil, ErrWrapperEnqueue.Wrap(commErr)
+	if wrappedErr != nil {
+		return nil, ErrWrapperEnqueue.Wrap(wrappedErr)
 	}
 
 	return engine.EnqueueEncodedWithModifier(versionedType, encoded, modifier, ctx)
@@ -356,15 +356,15 @@ func (engine *Engine) EnqueueEncodedWithModifier(
 	encodedBody json.RawMessage,
 	modifier func(jobCreate *ent.JobCreate),
 	ctx context.Context,
-) (*ent.Job, *common.Error) {
+) (*ent.Job, common.WrappedError) {
 	jobDefinition, ok := engine.Registry.jobs[versionedType]
 	if !ok {
 		return nil, ErrWrapperEnqueue.Wrap(ErrUnknownJobType)
 	}
 
-	jobType, version, commErr := common.ParseVersionedType(versionedType)
-	if commErr != nil { // This shouldn't happen because of the Encode call but just in case
-		return nil, ErrWrapperEnqueue.Wrap(commErr)
+	jobType, version, wrappedErr := common.ParseVersionedType(versionedType)
+	if wrappedErr != nil { // This shouldn't happen because of the Encode call but just in case
+		return nil, ErrWrapperEnqueue.Wrap(wrappedErr)
 	}
 
 	tx := ent.TxFromContext(ctx)

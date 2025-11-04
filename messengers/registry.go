@@ -77,9 +77,9 @@ func (registry *Registry) Register(definition *Definition) {
 		Version: definition.Version,
 		Handler: func(jobCtx *jobs.Context) error {
 			body := &bodyWrapperType{}
-			commErr := jobCtx.Decode(body)
-			if commErr != nil {
-				return ErrWrapperHandlerWrapper.Wrap(commErr)
+			wrappedErr := jobCtx.Decode(body)
+			if wrappedErr != nil {
+				return ErrWrapperHandlerWrapper.Wrap(wrappedErr)
 			}
 
 			newJobCtx := *jobCtx
@@ -91,8 +91,8 @@ func (registry *Registry) Register(definition *Definition) {
 			stdErr := definition.Handler(messengerCtx)
 			if stdErr != nil {
 				if body.MessageType == common.MessageAdminError {
-					commErr := common.WrapErrorWithCategories(stdErr)
-					if commErr.MaxRetries > 0 || commErr.MaxRetries == -1 {
+					wrappedErr := common.WrapErrorWithCategories(stdErr)
+					if wrappedErr.MaxRetries() > 0 || wrappedErr.MaxRetries() == -1 {
 						if registry.App.Clock.Since(jobCtx.OriginallyDue) >= registry.App.Env.ADMIN_MESSAGE_TIMEOUT {
 							jobCtx.Logger.ErrorContext(
 								context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
@@ -161,7 +161,7 @@ func (registry *Registry) Send(
 	versionedType string, message *common.Message,
 	sendTime time.Time,
 	ctx context.Context,
-) *common.Error {
+) common.WrappedError {
 	messengerDef, ok := registry.messengers[versionedType]
 	if !ok {
 		return ErrWrapperSend.Wrap(ErrUnknownMessengerType)
@@ -191,7 +191,7 @@ func (registry *Registry) Send(
 		))
 	}
 
-	_, commErr := registry.App.Jobs.EnqueueWithModifier(
+	_, wrappedErr := registry.App.Jobs.EnqueueWithModifier(
 		common.JoinPaths(registry.jobNamePrefix, versionedType),
 		&bodyWrapperType{
 			MessageType:            message.Type,
@@ -204,16 +204,16 @@ func (registry *Registry) Send(
 		},
 		ctx,
 	)
-	if commErr != nil {
-		return ErrWrapperSend.Wrap(ErrWrapperEnqueueJob.Wrap(commErr))
+	if wrappedErr != nil {
+		return ErrWrapperSend.Wrap(ErrWrapperEnqueueJob.Wrap(wrappedErr))
 	}
 
-	logMessage, commErr := FormatDefaultMessage(message)
+	logMessage, wrappedErr := FormatDefaultMessage(message)
 	logger := registry.App.Logger.With(
 		"userID", message.User.ID,
 		"messageType", versionedType,
 	)
-	if commErr == nil {
+	if wrappedErr == nil {
 		logger.Info(
 			"sending message to user",
 			"message", logMessage,
@@ -221,7 +221,7 @@ func (registry *Registry) Send(
 	} else {
 		logger.Warn(
 			"sending a message that FormatDefaultMessage couldn't format",
-			"error", commErr,
+			"error", wrappedErr,
 		)
 	}
 
@@ -231,24 +231,24 @@ func (registry *Registry) SendUsingAll(
 	message *common.Message,
 	sendTime time.Time,
 	ctx context.Context,
-) (int, map[string]*common.Error, *common.Error) {
-	errs := make(map[string]*common.Error)
+) (int, map[string]common.WrappedError, common.WrappedError) {
+	errs := make(map[string]common.WrappedError)
 	messagesQueued := 0
 	for versionedType := range registry.messengers {
-		commErr := registry.Send(versionedType, message, sendTime, ctx)
-		if commErr == nil {
+		wrappedErr := registry.Send(versionedType, message, sendTime, ctx)
+		if wrappedErr == nil {
 			messagesQueued++
 		} else {
-			errs[versionedType] = commErr
-			if !ErrWrapperPrepare.HasWrapped(commErr) {
-				return messagesQueued, errs, ErrWrapperSendUsingAll.Wrap(commErr)
+			errs[versionedType] = wrappedErr
+			if !ErrWrapperPrepare.HasWrapped(wrappedErr) {
+				return messagesQueued, errs, ErrWrapperSendUsingAll.Wrap(wrappedErr)
 			}
-			if !errors.Is(commErr, ErrNoContactForUser) {
+			if !errors.Is(wrappedErr, ErrNoContactForUser) {
 				// Just log an error and let the admin deal with this, there's not much the user can do
 				registry.App.Logger.Error(
 					"failed to prepare message",
 					"messengerType", versionedType,
-					"error", commErr,
+					"error", wrappedErr,
 				)
 			}
 		}
@@ -259,17 +259,17 @@ func (registry *Registry) SendUsingAll(
 // Note: lastSendTime will be zero for the first call
 func (registry *Registry) SendBulk(
 	messages []*common.Message, sendTimeFunc func(lastSendTime time.Time, index int) time.Time, ctx context.Context,
-) *common.Error {
+) common.WrappedError {
 	if len(messages) == 0 {
 		return nil
 	}
 	sendTime := sendTimeFunc(time.Time{}, 0)
 	for index, message := range messages {
-		_, _, commErr := registry.SendUsingAll(
+		_, _, wrappedErr := registry.SendUsingAll(
 			message, sendTime, ctx,
 		)
-		if commErr != nil {
-			return ErrWrapperSendBulk.Wrap(commErr)
+		if wrappedErr != nil {
+			return ErrWrapperSendBulk.Wrap(wrappedErr)
 		}
 		sendTime = sendTimeFunc(sendTime, index+1)
 	}

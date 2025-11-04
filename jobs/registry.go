@@ -46,7 +46,7 @@ type Context struct {
 	Logger     common.Logger
 }
 
-func (ctx *Context) Decode(pointer any) *common.Error {
+func (ctx *Context) Decode(pointer any) common.WrappedError {
 	err := json.Unmarshal(ctx.Body, pointer)
 	if err != nil {
 		return ErrWrapperDecode.Wrap(err)

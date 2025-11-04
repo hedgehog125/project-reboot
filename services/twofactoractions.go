@@ -27,17 +27,17 @@ func (service *TwoFactorActions) Create(
 	expiresAt time.Time,
 	body any,
 	ctx context.Context,
-) (*ent.TwoFactorAction, string, *common.Error) {
-	encoded, commErr := service.app.Jobs.Encode(
+) (*ent.TwoFactorAction, string, common.WrappedError) {
+	encoded, wrappedErr := service.app.Jobs.Encode(
 		versionedType,
 		body,
 	)
-	if commErr != nil {
-		return nil, "", twofactoractions.ErrWrapperCreate.Wrap(commErr)
+	if wrappedErr != nil {
+		return nil, "", twofactoractions.ErrWrapperCreate.Wrap(wrappedErr)
 	}
-	jobType, version, commErr := common.ParseVersionedType(versionedType)
-	if commErr != nil { // This shouldn't happen because of the Encode call but just in case
-		return nil, "", twofactoractions.ErrWrapperCreate.Wrap(commErr)
+	jobType, version, wrappedErr := common.ParseVersionedType(versionedType)
+	if wrappedErr != nil { // This shouldn't happen because of the Encode call but just in case
+		return nil, "", twofactoractions.ErrWrapperCreate.Wrap(wrappedErr)
 	}
 
 	tx := ent.TxFromContext(ctx)
@@ -64,7 +64,7 @@ func (service *TwoFactorActions) Create(
 func (service *TwoFactorActions) Confirm(
 	actionID uuid.UUID, code string,
 	ctx context.Context,
-) (*ent.Job, *common.Error) {
+) (*ent.Job, common.WrappedError) {
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return nil, twofactoractions.ErrWrapperConfirm.Wrap(
@@ -96,17 +96,17 @@ func (service *TwoFactorActions) Confirm(
 		)
 	}
 
-	job, commErr := service.app.Jobs.EnqueueEncoded(
+	job, wrappedErr := service.app.Jobs.EnqueueEncoded(
 		common.GetVersionedType(action.Type, action.Version),
 		action.Body,
 		ctx,
 	)
-	if commErr != nil {
-		return nil, twofactoractions.ErrWrapperConfirm.Wrap(commErr)
+	if wrappedErr != nil {
+		return nil, twofactoractions.ErrWrapperConfirm.Wrap(wrappedErr)
 	}
 	return job, nil
 }
-func (service *TwoFactorActions) DeleteExpiredActions(ctx context.Context) *common.Error {
+func (service *TwoFactorActions) DeleteExpiredActions(ctx context.Context) common.WrappedError {
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return twofactoractions.ErrWrapperDeleteExpiredActions.Wrap(

@@ -51,7 +51,7 @@ func prepareDefinition(definition *Definition) {
 	definition.reflectedType = reflect.TypeOf(definition.Type)
 }
 
-func (registry *Registry) Get(name string, ptr any, ctx context.Context) *common.Error {
+func (registry *Registry) Get(name string, ptr any, ctx context.Context) common.WrappedError {
 	definition, exists := registry.definitions[name]
 	if !exists {
 		return ErrWrapperGetValue.Wrap(ErrUnknownName)
@@ -98,7 +98,7 @@ func (registry *Registry) Get(name string, ptr any, ctx context.Context) *common
 	}
 	return nil
 }
-func (registry *Registry) Set(name string, value any, ctx context.Context) *common.Error {
+func (registry *Registry) Set(name string, value any, ctx context.Context) common.WrappedError {
 	definition, exists := registry.definitions[name]
 	if !exists {
 		return ErrWrapperSetValue.Wrap(ErrUnknownName)
@@ -127,7 +127,7 @@ func (registry *Registry) Set(name string, value any, ctx context.Context) *comm
 	}
 	return nil
 }
-func (registry *Registry) InitAll(ctx context.Context) *common.Error {
+func (registry *Registry) InitAll(ctx context.Context) common.WrappedError {
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return ErrWrapperInitAll.Wrap(common.ErrNoTxInContext)

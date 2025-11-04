@@ -52,7 +52,7 @@ var defaultMessageMap = map[common.MessageType]func(message *common.Message) str
 }
 
 // For messengers like SMS where the messages should be as short as possible with no formatting
-func FormatDefaultMessage(message *common.Message) (string, *common.Error) {
+func FormatDefaultMessage(message *common.Message) (string, common.WrappedError) {
 	formatter, ok := defaultMessageMap[message.Type]
 	if !ok {
 		return "", ErrWrapperFormat.Wrap(

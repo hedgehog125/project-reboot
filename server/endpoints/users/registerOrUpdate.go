@@ -39,9 +39,9 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 
 		salt := app.Core.GenerateSalt()
 		encryptionKey := app.Core.HashPassword(body.Password, salt, hashSettings)
-		encrypted, nonce, commErr := app.Core.Encrypt(contentBytes, encryptionKey)
-		if commErr != nil {
-			return commErr
+		encrypted, nonce, wrappedErr := app.Core.Encrypt(contentBytes, encryptionKey)
+		if wrappedErr != nil {
+			return wrappedErr
 		}
 
 		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
@@ -74,15 +74,15 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 				return stdErr
 			}
 
-			_, _, commErr := app.Messengers.SendUsingAll(
+			_, _, wrappedErr := app.Messengers.SendUsingAll(
 				&common.Message{
 					Type: common.MessageUserUpdate,
 					User: userOb,
 				},
 				ctx,
 			)
-			if commErr != nil {
-				return commErr
+			if wrappedErr != nil {
+				return wrappedErr
 			}
 
 			_, stdErr = tx.Session.Delete().Where(

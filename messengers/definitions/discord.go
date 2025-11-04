@@ -17,35 +17,35 @@ type Discord1Body struct {
 	FormattedMessage string `json:"formattedMessage"`
 }
 
-var ErrWrapperDiscord = common.NewDynamicErrorWrapper(func(err error) *common.Error {
-	commErr := common.ErrWrapperAPI.Wrap(err)
-	if commErr == nil {
+var ErrWrapperDiscord = common.NewDynamicErrorWrapper(func(err error) common.WrappedError {
+	wrappedErr := common.ErrWrapperAPI.Wrap(err)
+	if wrappedErr == nil {
 		return nil
 	}
 
 	var urlErr *url.Error
 	if errors.As(err, &urlErr) {
-		return commErr.
-			ConfigureRetries(10, time.Second*5, 1.5).
-			AddDebugValue(common.DebugValue{
-				Name: "retried url.Error",
-			})
+		wrappedErr.ConfigureRetriesMut(10, time.Second*5, 1.5)
+		wrappedErr.AddDebugValuesMut(common.DebugValue{
+			Name: "retried url.Error",
+		})
+		return wrappedErr
 	}
 	var rateLimitErr *discordgo.RateLimitError
 	if errors.As(err, &rateLimitErr) {
-		return commErr.
-			ConfigureRetries(3, max(rateLimitErr.RetryAfter, 5*time.Second), 1).
-			AddDebugValue(common.DebugValue{
-				Name:    "retried discordgo.RateLimitError",
-				Message: fmt.Sprintf("RetryAfter: %v", rateLimitErr.RetryAfter),
-			})
+		wrappedErr.ConfigureRetriesMut(3, max(rateLimitErr.RetryAfter, 5*time.Second), 1)
+		wrappedErr.AddDebugValuesMut(common.DebugValue{
+			Name:    "retried discordgo.RateLimitError",
+			Message: fmt.Sprintf("RetryAfter: %v", rateLimitErr.RetryAfter),
+		})
+		return wrappedErr
 	}
 
-	return commErr
+	return wrappedErr
 })
 
 func Discord1(app *common.App) *messengers.Definition {
-	getSession := func() (*discordgo.Session, *common.Error) {
+	getSession := func() (*discordgo.Session, common.WrappedError) {
 		session, err := discordgo.New("Bot " + app.Env.DISCORD_TOKEN)
 		if err != nil {
 			return nil, ErrWrapperDiscord.Wrap(err)
@@ -54,9 +54,9 @@ func Discord1(app *common.App) *messengers.Definition {
 		session.ShouldRetryOnRateLimit = false
 		return session, nil
 	}
-	session, commErr := getSession()
-	if commErr != nil {
-		log.Fatalf("error creating startup test Discord session:\n%v", commErr)
+	session, wrappedErr := getSession()
+	if wrappedErr != nil {
+		log.Fatalf("error creating startup test Discord session:\n%v", wrappedErr)
 	}
 	stdErr := session.Close()
 	if stdErr != nil {
@@ -70,9 +70,9 @@ func Discord1(app *common.App) *messengers.Definition {
 			if message.User.AlertDiscordId == "" {
 				return nil, messengers.ErrNoContactForUser.Clone()
 			}
-			formattedMessage, commErr := messengers.FormatDefaultMessage(message)
-			if commErr != nil {
-				return nil, commErr
+			formattedMessage, wrappedErr := messengers.FormatDefaultMessage(message)
+			if wrappedErr != nil {
+				return nil, wrappedErr
 			}
 
 			return &Discord1Body{
@@ -83,14 +83,14 @@ func Discord1(app *common.App) *messengers.Definition {
 		BodyType: &Discord1Body{},
 		Handler: func(messengerCtx *messengers.Context) error {
 			body := &Discord1Body{}
-			commErr := messengerCtx.Decode(body)
-			if commErr != nil {
-				return commErr
+			wrappedErr := messengerCtx.Decode(body)
+			if wrappedErr != nil {
+				return wrappedErr
 			}
 
-			session, commErr := getSession()
-			if commErr != nil {
-				return commErr
+			session, wrappedErr := getSession()
+			if wrappedErr != nil {
+				return wrappedErr
 			}
 			stdErr := session.Open()
 			if stdErr != nil {

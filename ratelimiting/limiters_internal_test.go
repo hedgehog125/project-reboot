@@ -16,8 +16,8 @@ func TestDeleteInactiveUsers(t *testing.T) {
 		Clock: clock,
 	})
 	limiter.Register("api", -1, 50, 15*time.Minute)
-	_, commErr := limiter.RequestSession("api", 1, "user1")
-	require.NoError(t, commErr.StandardError())
+	_, wrappedErr := limiter.RequestSession("api", 1, "user1")
+	require.NoError(t, wrappedErr)
 	_, ok := limiter.limits["api"].userCounters["user1"]
 	require.True(t, ok)
 

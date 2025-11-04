@@ -95,10 +95,10 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				Threads: userOb.HashThreads,
 			},
 		)
-		decrypted, commErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
-		if commErr != nil {
+		decrypted, wrappedErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
+		if wrappedErr != nil {
 			return servercommon.ExpectError(
-				commErr, core.ErrIncorrectPassword,
+				wrappedErr, core.ErrIncorrectPassword,
 				http.StatusUnauthorized, nil,
 			)
 		}
@@ -112,14 +112,14 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				if stdErr != nil {
 					return stdErr
 				}
-				_, _, commErr := app.Messengers.SendUsingAll(
+				_, _, wrappedErr := app.Messengers.SendUsingAll(
 					&common.Message{
 						Type: common.MessageDownload,
 						User: userOb,
 					},
 					ctx,
 				)
-				return commErr.StandardError()
+				return wrappedErr
 			},
 		)
 		if stdErr != nil {

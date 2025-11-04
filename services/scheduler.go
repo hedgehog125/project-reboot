@@ -27,7 +27,7 @@ func NewScheduler(app *common.App) *Scheduler {
 			stdErr := dbcommon.WithWriteTx(
 				taskContext.Context, taskContext.App.Database,
 				func(tx *ent.Tx, ctx context.Context) error {
-					return app.Core.SendActiveSessionReminders(ctx).StandardError()
+					return app.Core.SendActiveSessionReminders(ctx)
 				},
 			)
 			if stdErr != nil {
@@ -48,12 +48,12 @@ func NewScheduler(app *common.App) *Scheduler {
 			stdErr := dbcommon.WithWriteTx(
 				taskContext.Context, taskContext.App.Database,
 				func(tx *ent.Tx, ctx context.Context) error {
-					commErr := app.Core.DeleteExpiredSessions(ctx)
-					if commErr != nil {
-						return commErr
+					wrappedErr := app.Core.DeleteExpiredSessions(ctx)
+					if wrappedErr != nil {
+						return wrappedErr
 					}
-					commErr = app.TwoFactorActions.DeleteExpiredActions(ctx)
-					if commErr != nil {
+					wrappedErr = app.TwoFactorActions.DeleteExpiredActions(ctx)
+					if wrappedErr != nil {
 						return nil
 					}
 

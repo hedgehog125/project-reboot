@@ -46,12 +46,12 @@ func main() {
 	if stdErr != nil {
 		panic(fmt.Sprintf("couldn't read user. error:\n%v", stdErr.Error()))
 	}
-	_, _, commErr := app.Messengers.SendUsingAll(&common.Message{
+	_, _, wrappedErr := app.Messengers.SendUsingAll(&common.Message{
 		Type: common.MessageTest,
 		User: userOb,
 	}, context.Background())
-	if commErr != nil {
-		panic(fmt.Sprintf("couldn't send queue message. error:\n%v", commErr.Error()))
+	if wrappedErr != nil {
+		panic(fmt.Sprintf("couldn't send queue message. error:\n%v", wrappedErr.Error()))
 	}
 	fmt.Fprintln(os.Stdout, "waiting for message jobs to run...")
 	app.Jobs.WaitForJobs()

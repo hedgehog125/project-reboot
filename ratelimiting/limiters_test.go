@@ -20,19 +20,19 @@ func TestRequestSession(t *testing.T) {
 	limiter.Register("api", -1, 50, 15*time.Minute)
 	limiter.Register("hash-password", 51, 25, 15*time.Minute)
 
-	makeGeneralRequest := func(user string) *common.Error {
-		_, commErr := limiter.RequestSession("api", 1, user)
-		return commErr
+	makeGeneralRequest := func(user string) common.WrappedError {
+		_, wrappedErr := limiter.RequestSession("api", 1, user)
+		return wrappedErr
 	}
-	makeHashRequest := func(user string, shouldHashingSucceed bool) *common.Error {
-		generalSession, commErr := limiter.RequestSession("api", 1, user)
-		if commErr != nil {
-			return commErr
+	makeHashRequest := func(user string, shouldHashingSucceed bool) common.WrappedError {
+		generalSession, wrappedErr := limiter.RequestSession("api", 1, user)
+		if wrappedErr != nil {
+			return wrappedErr
 		}
-		hashSession, commErr := limiter.RequestSession("hash-password", 1, user)
-		if commErr != nil {
+		hashSession, wrappedErr := limiter.RequestSession("hash-password", 1, user)
+		if wrappedErr != nil {
 			generalSession.Cancel()
-			return commErr
+			return wrappedErr
 		}
 		if !shouldHashingSucceed {
 			// Probably shouldn't refund in this situation, but useful for testing
@@ -46,31 +46,31 @@ func TestRequestSession(t *testing.T) {
 		var wg sync.WaitGroup
 		for range 25 {
 			wg.Go(func() {
-				require.NoError(t, makeHashRequest("user1", true).StandardError())
+				require.NoError(t, makeHashRequest("user1", true))
 			})
 		}
 		wg.Wait()
 		require.ErrorIs(t, makeHashRequest("user1", true), ratelimiting.ErrUserRateLimitExceeded)
-		session, commErr := limiter.RequestSession("api", 1, "user1")
-		require.NoError(t, commErr.StandardError())
+		session, wrappedErr := limiter.RequestSession("api", 1, "user1")
+		require.NoError(t, wrappedErr)
 		session.Cancel()
 
-		require.NoError(t, makeHashRequest("user2", true).StandardError())
+		require.NoError(t, makeHashRequest("user2", true))
 
 		for range 25 {
 			wg.Go(func() {
-				require.NoError(t, makeGeneralRequest("user1").StandardError())
+				require.NoError(t, makeGeneralRequest("user1"))
 			})
 		}
 		for range 24 {
 			wg.Go(func() {
-				require.NoError(t, makeHashRequest("user2", true).StandardError())
+				require.NoError(t, makeHashRequest("user2", true))
 			})
 		}
 		wg.Wait()
 		require.ErrorIs(t, makeHashRequest("user1", true), ratelimiting.ErrUserRateLimitExceeded)
 		require.ErrorIs(t, makeHashRequest("user2", true), ratelimiting.ErrUserRateLimitExceeded)
-		require.NoError(t, makeHashRequest("user3", true).StandardError())                        // Reach the global limit for hash-password
+		require.NoError(t, makeHashRequest("user3", true))                                        // Reach the global limit for hash-password
 		require.ErrorIs(t, makeHashRequest("user1", true), ratelimiting.ErrUserRateLimitExceeded) // There's no global limit for api
 		require.ErrorIs(t, makeHashRequest("user2", true), ratelimiting.ErrGlobalRateLimitExceeded)
 	}

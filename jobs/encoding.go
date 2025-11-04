@@ -8,7 +8,7 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 )
 
-func (registry *Registry) Encode(versionedType string, body any) (json.RawMessage, *common.Error) {
+func (registry *Registry) Encode(versionedType string, body any) (json.RawMessage, common.WrappedError) {
 	actionDef, ok := registry.jobs[versionedType]
 	if !ok {
 		return nil, ErrWrapperEncode.Wrap(ErrUnknownJobType)

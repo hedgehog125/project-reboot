@@ -11,10 +11,10 @@ import (
 
 func NewRateLimiting(eventName string, limiter common.LimiterService) gin.HandlerFunc {
 	return func(ginCtx *gin.Context) {
-		_, commErr := limiter.RequestSession(eventName, 1, ginCtx.ClientIP())
-		if commErr != nil {
-			if errors.Is(commErr, ratelimiting.ErrGlobalRateLimitExceeded) ||
-				errors.Is(commErr, ratelimiting.ErrUserRateLimitExceeded) {
+		_, wrappedErr := limiter.RequestSession(eventName, 1, ginCtx.ClientIP())
+		if wrappedErr != nil {
+			if errors.Is(wrappedErr, ratelimiting.ErrGlobalRateLimitExceeded) ||
+				errors.Is(wrappedErr, ratelimiting.ErrUserRateLimitExceeded) {
 				// TODO: add retry-after header
 				ginCtx.Negotiate(http.StatusTooManyRequests, gin.Negotiate{
 					Offered: []string{gin.MIMEJSON, gin.MIMEHTML},

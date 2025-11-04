@@ -61,8 +61,8 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			},
 		)
 		time.Sleep(10 * time.Second)
-		_, commErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
-		if commErr != nil {
+		_, wrappedErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
+		if wrappedErr != nil {
 			return servercommon.NewUnauthorizedError()
 		}
 
@@ -85,7 +85,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 					return stdErr
 				}
 
-				_, _, commErr := app.Messengers.SendUsingAll(
+				_, _, wrappedErr := app.Messengers.SendUsingAll(
 					&common.Message{
 						Type:       common.MessageLogin,
 						User:       userOb,
@@ -94,8 +94,8 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 					},
 					ctx,
 				)
-				if commErr != nil {
-					return commErr
+				if wrappedErr != nil {
+					return wrappedErr
 				}
 
 				ginCtx.JSON(http.StatusOK, GetAuthorizationCodeResponse{

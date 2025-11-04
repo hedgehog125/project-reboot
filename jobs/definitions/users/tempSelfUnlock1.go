@@ -58,7 +58,7 @@ func TempSelfUnlock1(app *common.App) *jobs.Definition {
 						return stdErr
 					}
 
-					_, _, commErr := app.Messengers.SendUsingAll(
+					_, _, wrappedErr := app.Messengers.SendUsingAll(
 						&common.Message{
 							Type: common.MessageSelfUnlock,
 							User: userOb,
@@ -66,8 +66,8 @@ func TempSelfUnlock1(app *common.App) *jobs.Definition {
 						},
 						ctx,
 					)
-					if commErr != nil {
-						return commErr
+					if wrappedErr != nil {
+						return wrappedErr
 					}
 					jobCtx.Logger.Info(
 						"user was unlocked because the self-lock expired",

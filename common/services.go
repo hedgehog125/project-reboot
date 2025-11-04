@@ -85,25 +85,25 @@ type MessengerService interface {
 	Send(
 		versionedType string, message *Message,
 		ctx context.Context,
-	) *Error
+	) WrappedError
 	ScheduleSend(
 		versionedType string, message *Message,
 		sendTime time.Time,
 		ctx context.Context,
-	) *Error
+	) WrappedError
 
 	// The error map is more like warnings about why specific messengers failed to prepare, they are logged already so you might just want to ignore them
 	//
-	// But check the second *Error value first because you should fail the transaction if it's not nil
+	// But check the second WrappedError value first because you should fail the transaction if it's not nil
 	//
 	// Note: the number of successfully queued messages (the int return value) might not be 0 if some messages were queued before a non-messenger specific error occurred
-	SendUsingAll(message *Message, ctx context.Context) (int, map[string]*Error, *Error)
+	SendUsingAll(message *Message, ctx context.Context) (int, map[string]WrappedError, WrappedError)
 	ScheduleSendUsingAll(
 		message *Message,
 		sendTime time.Time,
 		ctx context.Context,
-	) (int, map[string]*Error, *Error)
-	SendBulk(messages []*Message, ctx context.Context) *Error
+	) (int, map[string]WrappedError, WrappedError)
+	SendBulk(messages []*Message, ctx context.Context) WrappedError
 }
 type MessageType string
 
@@ -177,8 +177,8 @@ type DatabaseService interface {
 }
 type KeyValueService interface {
 	Init()
-	Get(name string, ptr any, ctx context.Context) *Error
-	Set(name string, value any, ctx context.Context) *Error
+	Get(name string, ptr any, ctx context.Context) WrappedError
+	Set(name string, value any, ctx context.Context) WrappedError
 }
 
 type ServerService interface {
@@ -189,11 +189,11 @@ type CoreService interface {
 	RotateAdminCode()
 	CheckAdminCode(givenCode string) bool
 	RandomAuthCode() []byte
-	SendActiveSessionReminders(ctx context.Context) *Error
-	DeleteExpiredSessions(ctx context.Context) *Error
+	SendActiveSessionReminders(ctx context.Context) WrappedError
+	DeleteExpiredSessions(ctx context.Context) WrappedError
 
-	Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, *Error)
-	Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, *Error)
+	Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, WrappedError)
+	Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, WrappedError)
 	GenerateSalt() []byte
 	HashPassword(password string, salt []byte, settings *PasswordHashSettings) []byte
 }
@@ -205,26 +205,26 @@ type JobService interface {
 		versionedType string,
 		body any,
 		ctx context.Context,
-	) (*ent.Job, *Error)
+	) (*ent.Job, WrappedError)
 	EnqueueEncoded(
 		versionedType string,
 		encodedBody json.RawMessage,
 		ctx context.Context,
-	) (*ent.Job, *Error)
+	) (*ent.Job, WrappedError)
 	EnqueueWithModifier(
 		versionedType string,
 		body any,
 		modifications func(jobCreate *ent.JobCreate),
 		ctx context.Context,
-	) (*ent.Job, *Error)
+	) (*ent.Job, WrappedError)
 	EnqueueEncodedWithModifier(
 		versionedType string,
 		encodedBody json.RawMessage,
 		modifications func(jobCreate *ent.JobCreate),
 		ctx context.Context,
-	) (*ent.Job, *Error)
+	) (*ent.Job, WrappedError)
 	WaitForJobs()
-	Encode(versionedType string, body any) (json.RawMessage, *Error)
+	Encode(versionedType string, body any) (json.RawMessage, WrappedError)
 }
 type TwoFactorActionService interface {
 	Create(
@@ -232,9 +232,9 @@ type TwoFactorActionService interface {
 		expiresAt time.Time,
 		body any,
 		ctx context.Context,
-	) (*ent.TwoFactorAction, string, *Error)
-	Confirm(actionID uuid.UUID, code string, ctx context.Context) (*ent.Job, *Error)
-	DeleteExpiredActions(ctx context.Context) *Error
+	) (*ent.TwoFactorAction, string, WrappedError)
+	Confirm(actionID uuid.UUID, code string, ctx context.Context) (*ent.Job, WrappedError)
+	DeleteExpiredActions(ctx context.Context) WrappedError
 }
 
 type SchedulerService interface {
@@ -243,10 +243,10 @@ type SchedulerService interface {
 }
 
 type LimiterService interface {
-	RequestSession(eventName string, amount int, user string) (LimiterSession, *Error)
+	RequestSession(eventName string, amount int, user string) (LimiterSession, WrappedError)
 	DeleteInactiveUsers()
 }
 type LimiterSession interface {
-	AdjustTo(amount int) *Error
+	AdjustTo(amount int) WrappedError
 	Cancel()
 }

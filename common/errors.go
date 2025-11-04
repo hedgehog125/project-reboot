@@ -122,7 +122,8 @@ type WrappedError interface {
 	Unwrap() error
 	Is(target error) bool
 
-	StandardError() error
+	// StandardError isn't needed because you can't accidentally wrap a nil in an interface once it's already one
+	// common.Error still has this though since it's a concrete type
 	CommonError() *Error
 	CloneAsWrappedError() WrappedError
 
@@ -171,6 +172,12 @@ func (commErr *Error) Error() string {
 //
 // Otherwise you'll get a non-nil error interface that panics when you try to use it
 func (commErr *Error) StandardError() error {
+	if commErr == nil {
+		return nil
+	}
+	return commErr
+}
+func (commErr *Error) WrappedError() WrappedError {
 	if commErr == nil {
 		return nil
 	}
@@ -518,7 +525,7 @@ func NewErrorWrapper(categories ...string) *ConstantErrorWrapper {
 func (errWrapper *ConstantErrorWrapper) Wrap(stdErr error) WrappedError {
 	if errWrapper.Child != nil {
 		wrappedErr := errWrapper.Child.Wrap(stdErr)
-		errWrapper.Child.Wrap(stdErr).AddCategoriesMut(errWrapper.Categories...)
+		wrappedErr.AddCategoriesMut(errWrapper.Categories...)
 		return wrappedErr
 	} else {
 		return WrapErrorWithCategories(stdErr, errWrapper.Categories...)

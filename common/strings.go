@@ -31,7 +31,7 @@ func GetStringBetween(str string, start string, end string) string {
 func GetVersionedType(id string, version int) string {
 	return fmt.Sprintf("%v_%v", id, version)
 }
-func ParseVersionedType(versionedType string) (string, int, *Error) {
+func ParseVersionedType(versionedType string) (string, int, WrappedError) {
 	separatorIndex := strings.LastIndex(versionedType, "_")
 	if separatorIndex == -1 {
 		return "", 0, ErrWrapperParseVersionedType.Wrap(ErrMalformedVersionedType)

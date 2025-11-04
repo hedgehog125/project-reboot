@@ -358,18 +358,18 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 				ctx, handler.App.Database,
 				func(tx *ent.Tx, ctx context.Context) (bool, error) {
 					lastCrashSignal := time.Time{}
-					commErr := handler.App.KeyValue.Get("LAST_CRASH_SIGNAL", &lastCrashSignal, ctx)
-					if commErr != nil {
-						return false, commErr
+					wrappedErr := handler.App.KeyValue.Get("LAST_CRASH_SIGNAL", &lastCrashSignal, ctx)
+					if wrappedErr != nil {
+						return false, wrappedErr
 					}
 					now := handler.App.Clock.Now()
 					if now.Before(lastCrashSignal.Add(handler.App.Env.MIN_CRASH_SIGNAL_GAP)) {
 						return false, nil
 					}
 
-					commErr = handler.App.KeyValue.Set("LAST_CRASH_SIGNAL", now, ctx)
-					if commErr != nil {
-						return false, commErr
+					wrappedErr = handler.App.KeyValue.Set("LAST_CRASH_SIGNAL", now, ctx)
+					if wrappedErr != nil {
+						return false, wrappedErr
 					}
 					return true, nil
 				},
@@ -398,11 +398,11 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 			return selfLogged
 		}
 
-		session, commErr := handler.App.RateLimiter.RequestSession(
+		session, wrappedErr := handler.App.RateLimiter.RequestSession(
 			"admin-error-message", 1, "",
 		)
-		if commErr != nil {
-			if errors.Is(commErr, ratelimiting.ErrGlobalRateLimitExceeded) {
+		if wrappedErr != nil {
+			if errors.Is(wrappedErr, ratelimiting.ErrGlobalRateLimitExceeded) {
 				return selfLogged
 			}
 			pc, _, _, _ := runtime.Caller(0)
@@ -412,7 +412,7 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 				"failed to check admin-error-message rate limit",
 				pc,
 			)
-			record.AddAttrs(slog.Any("error", commErr))
+			record.AddAttrs(slog.Any("error", wrappedErr))
 			handler.Handle(
 				context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
 				record,
@@ -428,7 +428,7 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 		ctx, cancel := context.WithTimeout(baseCtx, 2*time.Second)
 		defer cancel()
 		var queuedCount int
-		var errs map[string]*common.Error
+		var errs map[string]common.WrappedError
 		stdErr := dbcommon.WithWriteTx(
 			ctx, handler.App.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
@@ -436,16 +436,15 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 				if stdErr != nil {
 					return stdErr
 				}
-				var commErr *common.Error
-				queuedCount, errs, commErr = handler.App.Messengers.SendUsingAll(
+				var wrappedErr common.WrappedError
+				queuedCount, errs, wrappedErr = handler.App.Messengers.SendUsingAll(
 					&common.Message{
 						Type: common.MessageAdminError,
 						User: userOb,
 					},
 					ctx,
 				)
-
-				return commErr.StandardError()
+				return wrappedErr
 			},
 		)
 		cancel()
@@ -473,9 +472,9 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 		if queuedCount == 0 { // TODO: apply the same logic as what's used to check if a user was sufficiently notified of a login
 			session.Cancel()
 			message := "admin user has no contacts so couldn't notify them about an error"
-			for _, commErr := range errs {
+			for _, wrappedErr := range errs {
 				// TODO: this error should be moved to common (or common/errors?) to avoid circular imports in the future
-				if !errors.Is(commErr, messengers.ErrNoContactForUser) {
+				if !errors.Is(wrappedErr, messengers.ErrNoContactForUser) {
 					message = "unable to prepare messages to notify admin about an error, see the errors before"
 				}
 			}

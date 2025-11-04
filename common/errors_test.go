@@ -87,12 +87,12 @@ func TestError_Error_returnsCorrectMessage(t *testing.T) {
 	t.Parallel()
 	sentinelErr := NewErrorWithCategories(
 		"test error",
-	)
+	).CommonError()
 	wrappedSentinelErr := sentinelErr.AddCategory("test function")
 	databaseErr := WrapErrorWithCategories(
 		errors.New("database connection failed. details: ..."),
 		ErrTypeDatabase,
-	)
+	).CommonError()
 	wrappedDatabaseErr := databaseErr.AddCategory("create user")
 	packagedDatabaseErr := databaseErr.AddCategory("auth [package]")
 
@@ -132,23 +132,23 @@ func TestError_worksWithIs(t *testing.T) {
 	sentinelErr := NewErrorWithCategories(
 		"test error, no details",
 		errTypeTest,
-	)
+	).CommonError()
 	wrappedSentinelErr := sentinelErr.AddCategory("test function")
 	databaseErr := WrapErrorWithCategories(
 		errors.New("database connection failed. details: ..."),
 		ErrTypeDatabase,
-	)
+	).CommonError()
 
 	require.ErrorIs(t, sentinelErr, sentinelErr)
 	require.NotErrorIs(t, sentinelErr, databaseErr)
-	require.ErrorIs(t, sentinelErr, sentinelErr.Err)
-	require.NotErrorIs(t, sentinelErr.Err, sentinelErr) // Target is more specific than err
+	require.ErrorIs(t, sentinelErr, sentinelErr.err)
+	require.NotErrorIs(t, sentinelErr.err, sentinelErr) // Target is more specific than err
 
 	require.NotSame(t, sentinelErr, wrappedSentinelErr)
 	require.ErrorIs(t, wrappedSentinelErr, sentinelErr)
 	require.NotErrorIs(t, wrappedSentinelErr, databaseErr)
-	require.ErrorIs(t, wrappedSentinelErr, wrappedSentinelErr.Err)
-	require.NotErrorIs(t, wrappedSentinelErr.Err, wrappedSentinelErr) // Target is more specific than err
+	require.ErrorIs(t, wrappedSentinelErr, wrappedSentinelErr.err)
+	require.NotErrorIs(t, wrappedSentinelErr.err, wrappedSentinelErr) // Target is more specific than err
 }
 
 func TestError_HasCategories(t *testing.T) {
@@ -156,16 +156,16 @@ func TestError_HasCategories(t *testing.T) {
 	sentinelErr := NewErrorWithCategories(
 		"test error, no details",
 		errTypeTest,
-	)
+	).CommonError()
 	flatDatabaseErr := WrapErrorWithCategories(
 		errors.New("database connection failed. details: ..."),
 		ErrTypeDatabase,
-	)
+	).CommonError()
 	detailedDatabaseErr := WrapErrorWithCategories(
 		errors.New("duplicate key error. details: ..."),
 		ErrTypeDatabase,
 		"create user",
-	)
+	).CommonError()
 
 	require.True(t, sentinelErr.HasCategories(errTypeTest))
 	require.True(t, sentinelErr.HasCategories("*"))
@@ -301,7 +301,7 @@ func TestErrorWrapper_canAddPackageToPackagelessError(t *testing.T) {
 	)
 
 	rootError := errors.New("duplicate key error. details: ...")
-	wrappedError := commonErrWrapper.Wrap(rootError).AddCategory("users [package]")
+	wrappedError := commonErrWrapper.Wrap(rootError).CommonError().AddCategory("users [package]")
 	require.Equal(
 		t,
 		[]string{ErrTypeDatabase, "users [package]"},
@@ -342,10 +342,10 @@ func TestErrorWrapper_HasWrapped(t *testing.T) {
 	)
 
 	rootError := errors.New("duplicate key error. details: ...")
-	wrappedCommonDatabaseErr := commonDatabaseErrWrapper.Wrap(rootError)
-	wrappedAuthDatabaseErr := authDatabaseErrWrapper.Wrap(rootError)
-	wrappedCreateUserErr := createUserErrWrapper.Wrap(rootError)
-	wrappedCreateUserAbstractionErr := createUserAbstractionErrWrapper.Wrap(rootError)
+	wrappedCommonDatabaseErr := commonDatabaseErrWrapper.Wrap(rootError).CommonError()
+	wrappedAuthDatabaseErr := authDatabaseErrWrapper.Wrap(rootError).CommonError()
+	wrappedCreateUserErr := createUserErrWrapper.Wrap(rootError).CommonError()
+	wrappedCreateUserAbstractionErr := createUserAbstractionErrWrapper.Wrap(rootError).CommonError()
 
 	require.False(t, createUserErrWrapper.HasWrapped(errors.New("generic error")))
 	require.True(t, commonDatabaseErrWrapper.HasWrapped(wrappedCommonDatabaseErr))

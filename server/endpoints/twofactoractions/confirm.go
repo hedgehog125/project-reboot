@@ -31,10 +31,10 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			_, commErr := app.TwoFactorActions.Confirm(parsedID, body.Code, ctx)
-			if commErr != nil {
+			_, wrappedErr := app.TwoFactorActions.Confirm(parsedID, body.Code, ctx)
+			if wrappedErr != nil {
 				return servercommon.ExpectAnyOfErrors(
-					commErr,
+					wrappedErr,
 					[]error{
 						twofactoractions.ErrNotFound,
 						twofactoractions.ErrExpired,

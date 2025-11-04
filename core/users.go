@@ -16,7 +16,7 @@ func RandomAuthCode() []byte {
 	return common.CryptoRandomBytes(AuthCodeByteLength)
 }
 
-func SendActiveSessionReminders(ctx context.Context, clock clockwork.Clock, messengers common.MessengerService) *common.Error {
+func SendActiveSessionReminders(ctx context.Context, clock clockwork.Clock, messengers common.MessengerService) common.WrappedError {
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return ErrWrapperSendActiveSessionReminders.Wrap(common.ErrNoTxInContext)
@@ -55,15 +55,15 @@ func SendActiveSessionReminders(ctx context.Context, clock clockwork.Clock, mess
 			SessionIDs: sessionIDs,
 		})
 	}
-	commErr := messengers.SendBulk(messages, ctx)
-	if commErr != nil {
-		return ErrWrapperSendActiveSessionReminders.Wrap(commErr)
+	wrappedErr := messengers.SendBulk(messages, ctx)
+	if wrappedErr != nil {
+		return ErrWrapperSendActiveSessionReminders.Wrap(wrappedErr)
 	}
 
 	return nil
 }
 
-func DeleteExpiredSessions(ctx context.Context, clock clockwork.Clock) *common.Error {
+func DeleteExpiredSessions(ctx context.Context, clock clockwork.Clock) common.WrappedError {
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return ErrWrapperDeleteExpiredSessions.Wrap(common.ErrNoTxInContext)

@@ -29,6 +29,6 @@ func (service *Jobs) Start() {
 }
 
 // TODO: is this the best approach?
-func (service *Jobs) Encode(versionedType string, body any) (json.RawMessage, *common.Error) {
+func (service *Jobs) Encode(versionedType string, body any) (json.RawMessage, common.WrappedError) {
 	return service.Engine.Registry.Encode(versionedType, body)
 }

@@ -23,7 +23,8 @@ var ErrWrapperParseBodyJson = common.NewErrorWrapper(
 )
 
 type Error struct {
-	// Not embedded because the promoted methods unwrap to common.Error, so they need to be manually wrapped
+	// Not embedded because the promoted methods unwrap to common.Error, so we need to add wrapper methods for this struct specifically
+	// TODO: use common.WrappedError instead?
 	CommonError  *common.Error `json:"commonError"`
 	Status       int           `json:"status"` // Set to -1 to keep the current code
 	Details      []ErrorDetail `json:"details"`
@@ -44,8 +45,8 @@ func NewError(stdErr error) *Error {
 		return serverErr.Clone()
 	}
 
-	commErr := common.AutoWrapError(stdErr)
-	if commErr == nil {
+	wrappedErr := common.AutoWrapError(stdErr)
+	if wrappedErr == nil {
 		return nil
 	}
 
@@ -153,7 +154,7 @@ func (err *Error) sendStatusIfNotFound(
 	statusCode int, detail *ErrorDetail,
 	preventLog bool,
 ) *Error {
-	return err.sendStatusAndDetailIfCondition(ent.IsNotFound(err.CommonError.Err), statusCode, detail, preventLog)
+	return err.sendStatusAndDetailIfCondition(ent.IsNotFound(err.CommonError.Unwrap()), statusCode, detail, preventLog)
 }
 
 func (err *Error) sendStatusAndDetailIfCondition(

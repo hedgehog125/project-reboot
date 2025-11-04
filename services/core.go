@@ -35,20 +35,20 @@ func (service *Core) CheckAdminCode(givenCode string) bool {
 func (service *Core) RandomAuthCode() []byte {
 	return core.RandomAuthCode()
 }
-func (service *Core) SendActiveSessionReminders(ctx context.Context) *common.Error {
+func (service *Core) SendActiveSessionReminders(ctx context.Context) common.WrappedError {
 	return core.SendActiveSessionReminders(
 		ctx, service.App.Clock, service.App.Messengers,
 	)
 }
-func (service *Core) DeleteExpiredSessions(ctx context.Context) *common.Error {
+func (service *Core) DeleteExpiredSessions(ctx context.Context) common.WrappedError {
 	return core.DeleteExpiredSessions(ctx, service.App.Clock)
 }
 
-func (service *Core) Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, *common.Error) {
+func (service *Core) Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, common.WrappedError) {
 	return core.Encrypt(data, encryptionKey)
 }
 
-func (service *Core) Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, *common.Error) {
+func (service *Core) Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, common.WrappedError) {
 	return core.Decrypt(encrypted, encryptionKey, nonce)
 }
 

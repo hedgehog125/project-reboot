@@ -53,7 +53,7 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 						return stdErr
 					}
 
-					_, _, commErr := app.Messengers.SendUsingAll(
+					_, _, wrappedErr := app.Messengers.SendUsingAll(
 						&common.Message{
 							Type: common.MessageSelfLock,
 							User: userOb,
@@ -61,11 +61,11 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 						},
 						ctx,
 					)
-					if commErr != nil {
-						return commErr
+					if wrappedErr != nil {
+						return wrappedErr
 					}
 
-					jobOb, commErr := app.Jobs.EnqueueWithModifier(
+					jobOb, wrappedErr := app.Jobs.EnqueueWithModifier(
 						"users/TEMP_SELF_UNLOCK_1",
 						//exhaustruct:enforce
 						&TempSelfUnlock1Body{
@@ -76,8 +76,8 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 						},
 						ctx,
 					)
-					if commErr != nil {
-						return commErr
+					if wrappedErr != nil {
+						return wrappedErr
 					}
 
 					jobCtx.Logger.Info(

@@ -70,7 +70,7 @@ type Session struct {
 	limiter *Limiter
 }
 
-func (limiter *Limiter) RequestSession(eventName string, amount int, user string) (*Session, *common.Error) {
+func (limiter *Limiter) RequestSession(eventName string, amount int, user string) (*Session, common.WrappedError) {
 	limiter.mu.RLock()
 	defer limiter.mu.RUnlock()
 	limit, ok := limiter.limits[eventName]
@@ -99,7 +99,7 @@ func (limiter *Limiter) RequestSession(eventName string, amount int, user string
 		limiter: limiter,
 	}, nil
 }
-func (session *Session) AdjustTo(amount int) *common.Error {
+func (session *Session) AdjustTo(amount int) common.WrappedError {
 	session.limit.mu.Lock()
 	defer session.limit.mu.Unlock()
 	if amount == session.Amount {
@@ -124,11 +124,11 @@ func (session *Session) AdjustTo(amount int) *common.Error {
 	return nil
 }
 func (session *Session) Cancel() {
-	commErr := session.AdjustTo(0)
-	if commErr != nil {
+	wrappedErr := session.AdjustTo(0)
+	if wrappedErr != nil {
 		panic(fmt.Sprintf(
 			"ratelimiting.Session.Cancel: session.AdjustTo(0) returned an error. this should not happen! error:\n%v",
-			commErr.Dump(),
+			wrappedErr.Dump(),
 		))
 	}
 }
