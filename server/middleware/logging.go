@@ -30,22 +30,22 @@ func NewError() gin.HandlerFunc {
 		mergedDetails := []servercommon.ErrorDetail{}
 		for _, ginError := range ginCtx.Errors {
 			serverErr := servercommon.NewError(ginError.Err)
-			if serverErr.Status != -1 {
+			if serverErr.Status() != -1 {
 				if statusCode == -1 {
-					statusCode = serverErr.Status
+					statusCode = serverErr.Status()
 				} else {
 					logger.Warn(
 						"server errors have different status codes",
 						"previousStatusCode", statusCode,
-						"newStatusCode", serverErr.Status,
+						"newStatusCode", serverErr.Status(),
 						"errors", ginCtx.Errors,
 					)
 					statusCode = http.StatusInternalServerError
 				}
 			}
-			mergedDetails = append(mergedDetails, serverErr.Details...)
+			mergedDetails = append(mergedDetails, serverErr.Details()...)
 
-			if serverErr.ShouldLog {
+			if serverErr.ShouldLog() {
 				if statusCode >= 500 {
 					logger.Error("an internal server error occurred", "error", serverErr)
 				} else {

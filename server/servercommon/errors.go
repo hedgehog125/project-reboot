@@ -23,13 +23,10 @@ var ErrWrapperParseBodyJson = common.NewErrorWrapper(
 )
 
 type Error struct {
-	// Not embedded because the promoted methods unwrap to common.Error, so we need to add wrapper methods for this struct specifically
-	// TODO: use common.WrappedError instead?
-	CommonError  *common.Error `json:"commonError"`
-	Status       int           `json:"status"` // Set to -1 to keep the current code
-	Details      []ErrorDetail `json:"details"`
-	ShouldLog    bool          `json:"shouldLog"`
-	parentRewrap func() error
+	child     common.WrappedError
+	status    int // Set to -1 to keep the current code. TODO: change to 0?
+	details   []ErrorDetail
+	shouldLog bool
 }
 type ErrorDetail struct {
 	Code    string `json:"code"`
@@ -51,18 +48,19 @@ func NewError(stdErr error) *Error {
 	}
 
 	serverErr = &Error{
-		Status:    -1,
-		Details:   []ErrorDetail{},
-		ShouldLog: true,
+		child:     wrappedErr,
+		status:    -1,
+		details:   []ErrorDetail{},
+		shouldLog: true,
 	}
 	if errors.Is(stdErr, context.DeadlineExceeded) {
-		serverErr.Status = 408
+		serverErr.status = 408
 	}
 	return serverErr
 }
 
 func (err *Error) Error() string {
-	return err.CommonError.Error()
+	return err.child.Error()
 }
 func (err *Error) StandardError() error {
 	if err == nil {
@@ -71,7 +69,7 @@ func (err *Error) StandardError() error {
 	return err
 }
 func (err *Error) Unwrap() error {
-	return err.CommonError
+	return err.child
 }
 
 func (err *Error) Clone() *Error {
@@ -79,30 +77,30 @@ func (err *Error) Clone() *Error {
 		return nil
 	}
 	return &Error{
-		CommonError: err.CommonError.Clone(),
-		Status:      err.Status,
-		Details:     slices.Clone(err.Details),
-		ShouldLog:   err.ShouldLog,
+		child:     err.child.CloneAsWrappedError(),
+		status:    err.status,
+		details:   slices.Clone(err.details),
+		shouldLog: err.shouldLog,
 	}
 }
-func (err *Error) SetCommonError(commErr *common.Error) *Error {
-	if commErr == nil {
+func (err *Error) SetChild(wrappedErr common.WrappedError) *Error {
+	if wrappedErr == nil {
 		return nil
 	}
 	copiedErr := err.Clone()
-	copiedErr.CommonError = commErr
+	copiedErr.child = wrappedErr
 	return copiedErr
 }
 
 func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) *Error {
-	return err.SetCommonError(err.CommonError.ConfigureRetries(
-		maxRetries, baseBackoff, backoffMultiplier,
-	))
+	newChild := err.child.CloneAsWrappedError()
+	newChild.ConfigureRetriesMut(maxRetries, baseBackoff, backoffMultiplier)
+	return err.SetChild(newChild)
 }
 
 func (err *Error) AddDetails(details ...ErrorDetail) *Error {
 	copiedErr := err.Clone()
-	copiedErr.Details = append(copiedErr.Details, details...)
+	copiedErr.details = append(copiedErr.details, details...)
 	return copiedErr
 }
 func (err *Error) AddDetail(detail ErrorDetail) *Error {
@@ -110,12 +108,12 @@ func (err *Error) AddDetail(detail ErrorDetail) *Error {
 }
 func (err *Error) SetStatus(code int) *Error {
 	copiedErr := err.Clone()
-	copiedErr.Status = code
+	copiedErr.status = code
 	return copiedErr
 }
 func (err *Error) SetShouldLog(shouldLog bool) *Error {
 	copiedErr := err.Clone()
-	copiedErr.ShouldLog = shouldLog
+	copiedErr.shouldLog = shouldLog
 	return copiedErr
 }
 func (err *Error) DisableLogging() *Error {
@@ -154,7 +152,7 @@ func (err *Error) sendStatusIfNotFound(
 	statusCode int, detail *ErrorDetail,
 	preventLog bool,
 ) *Error {
-	return err.sendStatusAndDetailIfCondition(ent.IsNotFound(err.CommonError.Unwrap()), statusCode, detail, preventLog)
+	return err.sendStatusAndDetailIfCondition(ent.IsNotFound(err.child.Unwrap()), statusCode, detail, preventLog)
 }
 
 func (err *Error) sendStatusAndDetailIfCondition(
@@ -165,14 +163,24 @@ func (err *Error) sendStatusAndDetailIfCondition(
 	if condition {
 		copiedErr = copiedErr.ConfigureRetries(0, 0, 0)
 		if statusCode != -1 {
-			copiedErr.Status = statusCode
+			copiedErr.status = statusCode
 		}
 		if detail != nil {
-			copiedErr.Details = append(copiedErr.Details, *detail)
+			copiedErr.details = append(copiedErr.details, *detail)
 		}
 		if preventLog {
-			copiedErr.ShouldLog = false
+			copiedErr.shouldLog = false
 		}
 	}
 	return copiedErr
+}
+
+func (err *Error) Status() int {
+	return err.status
+}
+func (err *Error) Details() []ErrorDetail {
+	return err.details
+}
+func (err *Error) ShouldLog() bool {
+	return err.shouldLog
 }

@@ -305,7 +305,7 @@ func TestErrorWrapper_canAddPackageToPackagelessError(t *testing.T) {
 	require.Equal(
 		t,
 		[]string{ErrTypeDatabase, "users [package]"},
-		wrappedError.Categories,
+		wrappedError.Categories(),
 	)
 	require.Equal(
 		t,

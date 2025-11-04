@@ -1,5 +1,6 @@
 # TODO
 
+-   Fix JSON marshalling for servercommon.Error
 -   I think I need to convert most code to work with WrappedError? In which case, only having mutating methods will be annoying
 -   Static files are being served with 404 status
 -   Returning a servercommon.Error from a withtx method causes it to be unwrapped
