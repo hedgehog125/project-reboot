@@ -46,7 +46,7 @@ func NewError() gin.HandlerFunc {
 			mergedDetails = append(mergedDetails, serverErr.Details()...)
 
 			if serverErr.ShouldLog() {
-				if statusCode >= 500 {
+				if statusCode >= 500 || statusCode == -1 {
 					logger.Error("an internal server error occurred", "error", serverErr)
 				} else {
 					logger.Info("a HTTP 4xx was returned to a client", "error", serverErr)
@@ -54,11 +54,17 @@ func NewError() gin.HandlerFunc {
 			}
 		}
 
-		if len(ginCtx.Errors) != 0 {
+		if len(ginCtx.Errors) > 0 {
 			if statusCode == -1 {
 				statusCode = http.StatusInternalServerError
 			}
-			if !ginCtx.Writer.Written() {
+			if ginCtx.Writer.Written() {
+				logger.Warn(
+					"couldn't write status from serverErr to response because the response has already been written",
+					"statusCode", statusCode,
+					"existingStatusCode", ginCtx.Writer.Status(),
+				)
+			} else {
 				ginCtx.JSON(statusCode, gin.H{
 					"errors": mergedDetails,
 				})
