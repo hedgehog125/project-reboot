@@ -2,7 +2,9 @@ package servercommon
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"slices"
 	"time"
 
@@ -68,8 +70,32 @@ func (err *Error) StandardError() error {
 	}
 	return err
 }
+func (err *Error) CommonError() *common.Error {
+	return err.child.CommonError()
+}
 func (err *Error) Unwrap() error {
 	return err.child
+}
+func (err *Error) MarshalJSON() ([]byte, error) {
+	type jsonError struct {
+		Child     common.WrappedError
+		Status    int
+		Details   []ErrorDetail
+		ShouldLog bool
+	}
+	return json.Marshal(&jsonError{
+		Child:     err.child,
+		Status:    err.status,
+		Details:   err.details,
+		ShouldLog: err.shouldLog,
+	})
+}
+func (serverErr *Error) Dump() string {
+	message, stdErr := json.MarshalIndent(serverErr, "", "  ")
+	if stdErr != nil {
+		return fmt.Sprintf("servercommon.Error.Dump marshall error:\n%v", stdErr)
+	}
+	return fmt.Sprintf("servercommon.Error.Dump successful:\n%v", string(message))
 }
 
 func (err *Error) Clone() *Error {
@@ -82,6 +108,9 @@ func (err *Error) Clone() *Error {
 		details:   slices.Clone(err.details),
 		shouldLog: err.shouldLog,
 	}
+}
+func (err *Error) CloneAsWrappedError() common.WrappedError {
+	return err.Clone()
 }
 func (err *Error) SetChild(wrappedErr common.WrappedError) *Error {
 	if wrappedErr == nil {
@@ -183,4 +212,64 @@ func (err *Error) Details() []ErrorDetail {
 }
 func (err *Error) ShouldLog() bool {
 	return err.shouldLog
+}
+
+func (err *Error) Categories() []string {
+	return err.child.Categories()
+}
+func (err *Error) ErrDuplicatesCategory() bool {
+	return err.child.ErrDuplicatesCategory()
+}
+func (err *Error) GeneralCategory() string {
+	return err.child.GeneralCategory()
+}
+func (err *Error) HighestCategory() string {
+	return err.child.HighestCategory()
+}
+func (err *Error) LowestCategory() string {
+	return err.child.LowestCategory()
+}
+
+func (err *Error) HasCategories(requiredCategories ...string) bool {
+	return err.child.HasCategories(requiredCategories...)
+}
+func (err *Error) MaxRetries() int {
+	return err.child.MaxRetries()
+}
+func (err *Error) RetryBackoffBase() time.Duration {
+	return err.child.RetryBackoffBase()
+}
+func (err *Error) RetryBackoffMultiplier() float64 {
+	return err.child.RetryBackoffMultiplier()
+}
+func (err *Error) DebugValues() []common.DebugValue {
+	return err.child.DebugValues()
+}
+
+func (err *Error) AddCategoriesMut(categories ...string) {
+	err.child.AddCategoriesMut(categories...)
+}
+func (err *Error) RemoveHighestCategoryMut() {
+	err.child.RemoveHighestCategoryMut()
+}
+func (err *Error) RemoveLowestCategoryMut() {
+	err.child.RemoveLowestCategoryMut()
+}
+func (err *Error) ConfigureRetriesMut(maxRetries int, baseBackoff time.Duration, backoffMultiplier float64) {
+	err.child.ConfigureRetriesMut(maxRetries, baseBackoff, backoffMultiplier)
+}
+func (err *Error) DisableRetriesMut() {
+	err.child.DisableRetriesMut()
+}
+func (err *Error) SetMaxRetriesMut(value int) {
+	err.child.SetMaxRetriesMut(value)
+}
+func (err *Error) SetRetryBackoffBaseMut(value time.Duration) {
+	err.child.SetRetryBackoffBaseMut(value)
+}
+func (err *Error) SetRetryBackoffMultiplierMut(value float64) {
+	err.child.SetRetryBackoffMultiplierMut(value)
+}
+func (err *Error) AddDebugValuesMut(values ...common.DebugValue) {
+	err.child.AddDebugValuesMut(values...)
 }

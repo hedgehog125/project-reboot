@@ -1,8 +1,7 @@
 # TODO
 
+-   Why are 404 errors still being converted to 500s?
 -   Fix JSON marshalling for servercommon.Error
--   I think I need to convert most code to work with WrappedError? In which case, only having mutating methods will be annoying
--   Static files are being served with 404 status
 -   Returning a servercommon.Error from a withtx method causes it to be unwrapped
 -   -   Maybe make a WrappedError interface? Might not need everything that common.Error has, just the ability to add more categories? The methods will probably have to be called something different to AddCategory etc since they'll need to return an instance of the interface, rather than the concrete type, and it's useful not to have to keep casting it back
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download

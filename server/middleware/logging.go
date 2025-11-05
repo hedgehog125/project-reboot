@@ -46,10 +46,11 @@ func NewError() gin.HandlerFunc {
 			mergedDetails = append(mergedDetails, serverErr.Details()...)
 
 			if serverErr.ShouldLog() {
+				logger := logger.With("error", serverErr, "statusCode", statusCode)
 				if statusCode >= 500 || statusCode == -1 {
-					logger.Error("an internal server error occurred", "error", serverErr)
+					logger.Error("an internal server error occurred")
 				} else {
-					logger.Info("a HTTP 4xx was returned to a client", "error", serverErr)
+					logger.Info("a HTTP 4xx was returned to a client")
 				}
 			}
 		}

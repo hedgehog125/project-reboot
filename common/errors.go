@@ -120,10 +120,11 @@ type WrappedError interface {
 	error
 	json.Marshaler
 	Unwrap() error
-	Is(target error) bool
+	// No `Is` method because we just want to compare the unwrapped errors, it doesn't really matter if the categories are different
 
 	// StandardError isn't needed because you can't accidentally wrap a nil in an interface once it's already one
 	// common.Error still has this though since it's a concrete type
+
 	CommonError() *Error
 	CloneAsWrappedError() WrappedError
 
@@ -193,6 +194,7 @@ func (commErr *Error) Unwrap() error {
 	return commErr.err
 }
 func (commErr *Error) Is(target error) bool {
+	// TODO: is this needed?
 	// Needed so that errors.Is(err.AddCategory("extra category"), err) == true
 	// We don't really care if the properties on this struct are different, only that the underlying error is the same
 
@@ -230,9 +232,9 @@ func (commErr *Error) MarshalJSON() ([]byte, error) {
 func (commErr *Error) Dump() string {
 	message, stdErr := json.MarshalIndent(commErr, "", "  ")
 	if stdErr != nil {
-		return fmt.Sprintf("Error.Dump marshall error:\n%v", stdErr)
+		return fmt.Sprintf("common.Error.Dump marshall error:\n%v", stdErr)
 	}
-	return fmt.Sprintf("Error.Dump successful:\n%v", string(message))
+	return fmt.Sprintf("common.Error.Dump successful:\n%v", string(message))
 }
 
 func (commErr *Error) Categories() []string {
