@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Session holds the schema definition for the Session entity.
@@ -34,5 +35,11 @@ func (Session) Edges() []ent.Edge {
 			Field("userID").Unique().Required(),
 		edge.To("loginAlerts", LoginAlert.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
+	}
+}
+
+func (Session) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("code", "userID"),
 	}
 }

@@ -162,6 +162,13 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "session_code_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{SessionsColumns[2], SessionsColumns[7]},
+			},
+		},
 	}
 	// TwoFactorActionsColumns holds the columns for the "two_factor_actions" table.
 	TwoFactorActionsColumns = []*schema.Column{
@@ -177,6 +184,13 @@ var (
 		Name:       "two_factor_actions",
 		Columns:    TwoFactorActionsColumns,
 		PrimaryKey: []*schema.Column{TwoFactorActionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "twofactoraction_code",
+				Unique:  false,
+				Columns: []*schema.Column{TwoFactorActionsColumns[5]},
+			},
+		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
