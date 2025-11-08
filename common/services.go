@@ -191,7 +191,6 @@ type CoreService interface {
 	RandomAuthCode() []byte
 	SendActiveSessionReminders(ctx context.Context) WrappedError
 	DeleteExpiredSessions(ctx context.Context) WrappedError
-	Download(username)
 
 	Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, WrappedError)
 	Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, WrappedError)
