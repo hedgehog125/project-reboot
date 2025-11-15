@@ -50,6 +50,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				sessionOb, stdErr := tx.Session.Query().
 					Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
 					WithUser().
+					WithLoginAlerts().
 					First(ctx)
 				if stdErr != nil {
 					return nil, servercommon.SendUnauthorizedIfNotFound(stdErr)
@@ -102,6 +103,8 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				http.StatusUnauthorized, nil,
 			)
 		}
+
+		// TODO: check if user has been sufficiently notified <======
 
 		stdErr = dbcommon.WithWriteTx(
 			ginCtx, app.Database,

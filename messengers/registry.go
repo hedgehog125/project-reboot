@@ -27,6 +27,9 @@ type Registry struct {
 type Definition struct {
 	ID      string
 	Version int
+	// Supplemental messengers often can't tell if a message was successfully sent. So they increase the chance the user is notified but are ignored when assessing if the user was sufficiently notified.
+	// This also means that the user needs to have at least one non-supplemental messenger configured, otherwise they'll never be considered sufficiently notified.
+	IsSupplemental bool
 	// Returns the data the Handler needs, typically a struct containing the formatted message and some sort of contact (e.g a username)
 	// If the user doesn't have the right contacts for this messenger, return messengers.ErrNoContactForUser.Clone()
 	Prepare PrepareFunc
@@ -239,6 +242,7 @@ func (registry *Registry) SendUsingAll(
 		if wrappedErr == nil {
 			messagesQueued++
 		} else {
+			// TODO: remove this ErrNoContactForUser sentinel error and have a separate hook to check if the messenger has the right contacts?
 			errs[versionedType] = wrappedErr
 			if !ErrWrapperPrepare.HasWrapped(wrappedErr) {
 				return messagesQueued, errs, ErrWrapperSendUsingAll.Wrap(wrappedErr)
@@ -274,4 +278,30 @@ func (registry *Registry) SendBulk(
 		sendTime = sendTimeFunc(sendTime, index+1)
 	}
 	return nil
+}
+
+func (registry *Registry) GetConfiguredMessengerTypes(user *ent.User) []string {
+	configuredTypes := []string{}
+	for versionedType, messengerDef := range registry.messengers {
+		_, wrappedErr := messengerDef.Prepare(&common.Message{
+			Type: common.MessageTest,
+			User: user,
+		})
+		if wrappedErr != nil {
+			continue
+		}
+		configuredTypes = append(configuredTypes, versionedType)
+	}
+	return configuredTypes
+}
+func (registry *Registry) GetPublicDefinition(versionedType string) (*common.MessengerDefinition, bool) {
+	messengerDef, ok := registry.messengers[versionedType]
+	if !ok {
+		return nil, false
+	}
+	return &common.MessengerDefinition{
+		ID:             messengerDef.ID,
+		Version:        messengerDef.Version,
+		IsSupplemental: messengerDef.IsSupplemental,
+	}, true
 }

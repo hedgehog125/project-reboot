@@ -2,6 +2,9 @@ package core
 
 import (
 	"context"
+	"fmt"
+	"math"
+	"slices"
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
@@ -78,4 +81,96 @@ func DeleteExpiredSessions(ctx context.Context, clock clockwork.Clock) common.Wr
 		)
 	}
 	return nil
+}
+
+func IsUserSufficientlyNotified(
+	sessionOb *ent.Session,
+	messengers common.MessengerService,
+	logger common.Logger,
+	clock clockwork.Clock, env *common.Env,
+) bool {
+	logger = logger.With(
+		"sessionID", sessionOb.ID,
+		"userID", sessionOb.Edges.User.ID,
+	)
+
+	allLoginAlerts := slices.Clone(sessionOb.Edges.LoginAlerts)
+	groupedLoginAlerts := make(map[string][]*ent.LoginAlert)
+	for _, loginAlert := range allLoginAlerts {
+		groupedLoginAlerts[loginAlert.VersionedMessengerType] = append(
+			groupedLoginAlerts[loginAlert.VersionedMessengerType],
+			loginAlert,
+		)
+	}
+	messengerTypes := messengers.GetConfiguredMessengerTypes(sessionOb.Edges.User)
+	earliestValidTime := clock.Now().Add(-env.ACTIVE_SESSION_REMINDER_INTERVAL)
+	successfulMessengerTypes := []string{}
+	// Ignore the supplemental messengers when assessing this
+	coreMessengerTypeCount := 0
+	for _, messengerType := range messengerTypes {
+		messengerDef, ok := messengers.GetPublicDefinition(messengerType)
+		if !ok {
+			panic(fmt.Sprintf("IsUserSufficientlyNotified: no messenger definition for %s", messengerType))
+		}
+		if messengerDef.IsSupplemental {
+			continue
+		}
+		coreMessengerTypeCount++
+
+		loginAlerts := groupedLoginAlerts[messengerType]
+		confirmedLoginAlerts := []*ent.LoginAlert{}
+		for _, alert := range loginAlerts {
+			if alert.Confirmed {
+				confirmedLoginAlerts = append(confirmedLoginAlerts, alert)
+			}
+		}
+
+		if len(confirmedLoginAlerts) < env.MIN_SUCCESSFUL_MESSAGE_COUNT {
+			logger.Warn(
+				"user was not sufficiently notified by one of their configured messengers because it didn't successfully send and confirm enough login alerts",
+				"messengerType", messengerType,
+				"loginAlertCount", len(loginAlerts),
+				"confirmedLoginAlertCount", len(confirmedLoginAlerts),
+			)
+			continue
+		}
+		mostRecentConfirmedAlert := &ent.LoginAlert{}
+		for _, alert := range confirmedLoginAlerts {
+			if alert.Time.After(mostRecentConfirmedAlert.Time) {
+				mostRecentConfirmedAlert = alert
+			}
+		}
+		if mostRecentConfirmedAlert.Time.Before(earliestValidTime) {
+			logger.Warn(
+				"user was not sufficiently notified by one of their configured messengers because its most recent confirmed alert was too old. are jobs still running? are some messengers failing?",
+				"messengerType", messengerType,
+				"mostRecentAlertTime", mostRecentConfirmedAlert.Time,
+				"earliestValidTime", earliestValidTime,
+			)
+			continue
+		}
+
+		successfulMessengerTypes = append(successfulMessengerTypes, messengerType)
+	}
+
+	minSuccessfulMessengers := max(int(
+		math.Ceil(float64(coreMessengerTypeCount)/float64(2)),
+	), 1)
+	if len(successfulMessengerTypes) < minSuccessfulMessengers {
+		logger.Warn(
+			"user was not sufficiently notified because not enough of their core configured messengers successfully sent login alerts",
+			"configuredMessengerTypes", messengerTypes,
+			"successfulMessengerTypes", successfulMessengerTypes,
+			"minSuccessfulMessengers", minSuccessfulMessengers,
+		)
+		return false
+	}
+
+	logger.Info(
+		"user was sufficiently notified",
+		"configuredMessengerTypes", messengerTypes,
+		"successfulMessengerTypes", successfulMessengerTypes,
+		"minSuccessfulMessengers", minSuccessfulMessengers,
+	)
+	return true
 }

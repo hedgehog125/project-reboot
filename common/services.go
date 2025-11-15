@@ -34,6 +34,7 @@ type Env struct {
 	// Once used, how much longer the auth code remains valid for
 	USED_AUTH_CODE_VALID_FOR         time.Duration
 	ACTIVE_SESSION_REMINDER_INTERVAL time.Duration
+	MIN_SUCCESSFUL_MESSAGE_COUNT     int
 	PASSWORD_HASH_SETTINGS           *PasswordHashSettings
 
 	LOG_STORE_INTERVAL time.Duration
@@ -104,6 +105,9 @@ type MessengerService interface {
 		ctx context.Context,
 	) (int, map[string]WrappedError, WrappedError)
 	SendBulk(messages []*Message, ctx context.Context) WrappedError
+
+	GetConfiguredMessengerTypes(user *ent.User) []string
+	GetPublicDefinition(versionedType string) (*MessengerDefinition, bool)
 }
 type MessageType string
 
@@ -128,6 +132,13 @@ type Message struct {
 	Code       string
 	Time       time.Time
 	SessionIDs []int
+}
+
+// The public version of *messengers.Definition
+type MessengerDefinition struct {
+	ID             string
+	Version        int
+	IsSupplemental bool
 }
 
 type Logger interface {
@@ -191,6 +202,7 @@ type CoreService interface {
 	RandomAuthCode() []byte
 	SendActiveSessionReminders(ctx context.Context) WrappedError
 	DeleteExpiredSessions(ctx context.Context) WrappedError
+	IsUserSufficientlyNotified(sessionOb *ent.Session) bool
 
 	Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, WrappedError)
 	Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, WrappedError)

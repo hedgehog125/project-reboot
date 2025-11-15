@@ -6,6 +6,7 @@ import (
 
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/core"
+	"github.com/hedgehog125/project-reboot/ent"
 )
 
 type Core struct {
@@ -42,6 +43,14 @@ func (service *Core) SendActiveSessionReminders(ctx context.Context) common.Wrap
 }
 func (service *Core) DeleteExpiredSessions(ctx context.Context) common.WrappedError {
 	return core.DeleteExpiredSessions(ctx, service.App.Clock)
+}
+func (service *Core) IsUserSufficientlyNotified(sessionOb *ent.Session) bool {
+	return core.IsUserSufficientlyNotified(
+		sessionOb,
+		service.App.Messengers,
+		service.App.Logger,
+		service.App.Clock, service.App.Env,
+	)
 }
 
 func (service *Core) Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, common.WrappedError) {

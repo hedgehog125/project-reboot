@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/jobs"
 	"github.com/hedgehog125/project-reboot/messengers"
 	"github.com/hedgehog125/project-reboot/messengers/definitions"
@@ -68,6 +69,14 @@ func (service *Messengers) SendBulk(
 		},
 		ctx,
 	)
+}
+
+func (service *Messengers) GetConfiguredMessengerTypes(user *ent.User) []string {
+	return service.Registry.GetConfiguredMessengerTypes(user)
+
+}
+func (service *Messengers) GetPublicDefinition(versionedType string) (*common.MessengerDefinition, bool) {
+	return service.Registry.GetPublicDefinition(versionedType)
 }
 
 // Not in service interface
