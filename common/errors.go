@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
 	"strings"
 	"time"
@@ -103,7 +104,9 @@ func GetSuccessfulActionIDs(actionIDs []string, errs []*ErrWithStrId) []string {
 }
 
 type Error struct {
-	err                    error
+	err error
+	// Shouldn't be used by the program, this is only to improve the logs
+	errType                reflect.Type
 	categories             []string
 	errDuplicatesCategory  bool
 	maxRetries             int
@@ -211,6 +214,7 @@ func (commErr *Error) MarshalJSON() ([]byte, error) {
 	type jsonError struct {
 		Error                  string        `json:"error"`
 		InnerError             string        `json:"innerError"`
+		InnerErrorType         string        `json:"innerErrorType"`
 		Categories             []string      `json:"categories"`
 		ErrDuplicatesCategory  bool          `json:"errDuplicatesCategory"`
 		MaxRetries             int           `json:"maxRetries"`
@@ -221,6 +225,7 @@ func (commErr *Error) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&jsonError{
 		Error:                  commErr.Error(),
 		InnerError:             commErr.err.Error(),
+		InnerErrorType:         commErr.errType.String(),
 		Categories:             commErr.categories,
 		ErrDuplicatesCategory:  commErr.errDuplicatesCategory,
 		MaxRetries:             commErr.maxRetries,
@@ -417,25 +422,28 @@ func (commErr *Error) RemoveLowestCategoryMut() {
 
 // categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
 func NewErrorWithCategories(message string, categories ...string) *Error {
+	stdErr := errors.New(message)
 	return &Error{
-		err:                   errors.New(message),
+		err:                   stdErr,
+		errType:               reflect.TypeOf(stdErr),
 		categories:            slices.Concat([]string{message}, categories),
 		errDuplicatesCategory: true,
 	}
 }
 
 // categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
-func WrapErrorWithCategories(err error, categories ...string) WrappedError {
+func WrapErrorWithCategories(stdErr error, categories ...string) WrappedError {
 	// Also use errors.As?
-	if err == nil {
+	if stdErr == nil {
 		return nil
 	}
-	wrappedErr, ok := err.(WrappedError)
+	wrappedErr, ok := stdErr.(WrappedError)
 	if ok {
 		wrappedErr = wrappedErr.CloneAsWrappedError()
 	} else {
 		wrappedErr = &Error{
-			err:        err,
+			err:        stdErr,
+			errType:    reflect.TypeOf(stdErr),
 			categories: []string{},
 		}
 	}

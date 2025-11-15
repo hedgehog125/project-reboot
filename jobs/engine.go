@@ -114,6 +114,7 @@ func (engine *Engine) Listen() {
 							"job failed",
 							"error", completedJob.Err,
 							"totalRetries", completedJob.Object.Retries,
+							"runDuration", engine.App.Clock.Since(completedJob.StartTime),
 						)
 						return tx.Job.UpdateOneID(completedJob.Object.ID).
 							SetStatus("failed").

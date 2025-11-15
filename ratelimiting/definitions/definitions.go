@@ -7,5 +7,5 @@ import (
 
 func Register(group *ratelimiting.Group) {
 	api.Register(group.Group("api"))
-	group.Register("admin-error-message", 1, 1, group.Limiter.App.Env.MIN_ADMIN_MESSAGE_GAP)
+	group.Register("admin-error-message", 1, -1, group.Limiter.App.Env.MIN_ADMIN_MESSAGE_GAP)
 }

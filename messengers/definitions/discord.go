@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/gorilla/websocket"
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/messengers"
 )
@@ -23,14 +24,32 @@ var ErrWrapperDiscord = common.NewDynamicErrorWrapper(func(err error) common.Wra
 		return nil
 	}
 
-	var urlErr *url.Error
-	if errors.As(err, &urlErr) {
+	isUrlErr := common.IsErrorType(err, &url.Error{})
+	isWebsocketErr := common.IsErrorType(err, &websocket.CloseError{})
+	if isUrlErr || isWebsocketErr {
 		wrappedErr.ConfigureRetriesMut(10, time.Second*5, 1.5)
-		wrappedErr.AddDebugValuesMut(common.DebugValue{
-			Name: "retried url.Error",
-		})
+		if isUrlErr {
+			wrappedErr.AddDebugValuesMut(common.DebugValue{
+				Name: "retried url.Error",
+			})
+		} else if isWebsocketErr {
+			wrappedErr.AddDebugValuesMut(common.DebugValue{
+				Name: "retried websocket.CloseError",
+			})
+		}
 		return wrappedErr
 	}
+	var restErr *discordgo.RESTError
+	if errors.As(err, &restErr) && restErr.Message != nil {
+		if restErr.Message.Code == discordgo.ErrCodeOpeningDirectMessagesTooFast {
+			wrappedErr.ConfigureRetriesMut(10, time.Second*5, 2)
+			wrappedErr.AddDebugValuesMut(common.DebugValue{
+				Name: "retried discordgo.ErrCodeOpeningDirectMessagesTooFast",
+			})
+			return wrappedErr
+		}
+	}
+
 	var rateLimitErr *discordgo.RateLimitError
 	if errors.As(err, &rateLimitErr) {
 		wrappedErr.ConfigureRetriesMut(3, max(rateLimitErr.RetryAfter, 5*time.Second), 1)
