@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"time"
-
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
@@ -18,7 +16,7 @@ type Session struct {
 // Fields of the Session.
 func (Session) Fields() []ent.Field {
 	return []ent.Field{
-		field.Time("time").Default(time.Now),     // TODO: will this be an issue with testing?
+		field.Time("createdAt"),
 		field.Bytes("code").Unique().MinLen(128), // The randomly generated authorisation code that will become valid after enough time
 		field.Time("validFrom"),
 		field.Time("validUntil"),

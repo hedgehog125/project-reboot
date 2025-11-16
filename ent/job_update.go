@@ -30,65 +30,65 @@ func (_u *JobUpdate) Where(ps ...predicate.Job) *JobUpdate {
 	return _u
 }
 
-// SetCreated sets the "created" field.
-func (_u *JobUpdate) SetCreated(v time.Time) *JobUpdate {
-	_u.mutation.SetCreated(v)
+// SetCreatedAt sets the "createdAt" field.
+func (_u *JobUpdate) SetCreatedAt(v time.Time) *JobUpdate {
+	_u.mutation.SetCreatedAt(v)
 	return _u
 }
 
-// SetNillableCreated sets the "created" field if the given value is not nil.
-func (_u *JobUpdate) SetNillableCreated(v *time.Time) *JobUpdate {
+// SetNillableCreatedAt sets the "createdAt" field if the given value is not nil.
+func (_u *JobUpdate) SetNillableCreatedAt(v *time.Time) *JobUpdate {
 	if v != nil {
-		_u.SetCreated(*v)
+		_u.SetCreatedAt(*v)
 	}
 	return _u
 }
 
-// SetDue sets the "due" field.
-func (_u *JobUpdate) SetDue(v time.Time) *JobUpdate {
-	_u.mutation.SetDue(v)
+// SetDueAt sets the "dueAt" field.
+func (_u *JobUpdate) SetDueAt(v time.Time) *JobUpdate {
+	_u.mutation.SetDueAt(v)
 	return _u
 }
 
-// SetNillableDue sets the "due" field if the given value is not nil.
-func (_u *JobUpdate) SetNillableDue(v *time.Time) *JobUpdate {
+// SetNillableDueAt sets the "dueAt" field if the given value is not nil.
+func (_u *JobUpdate) SetNillableDueAt(v *time.Time) *JobUpdate {
 	if v != nil {
-		_u.SetDue(*v)
+		_u.SetDueAt(*v)
 	}
 	return _u
 }
 
-// SetOriginallyDue sets the "originallyDue" field.
-func (_u *JobUpdate) SetOriginallyDue(v time.Time) *JobUpdate {
-	_u.mutation.SetOriginallyDue(v)
+// SetOriginallyDueAt sets the "originallyDueAt" field.
+func (_u *JobUpdate) SetOriginallyDueAt(v time.Time) *JobUpdate {
+	_u.mutation.SetOriginallyDueAt(v)
 	return _u
 }
 
-// SetNillableOriginallyDue sets the "originallyDue" field if the given value is not nil.
-func (_u *JobUpdate) SetNillableOriginallyDue(v *time.Time) *JobUpdate {
+// SetNillableOriginallyDueAt sets the "originallyDueAt" field if the given value is not nil.
+func (_u *JobUpdate) SetNillableOriginallyDueAt(v *time.Time) *JobUpdate {
 	if v != nil {
-		_u.SetOriginallyDue(*v)
+		_u.SetOriginallyDueAt(*v)
 	}
 	return _u
 }
 
-// SetStarted sets the "started" field.
-func (_u *JobUpdate) SetStarted(v time.Time) *JobUpdate {
-	_u.mutation.SetStarted(v)
+// SetStartedAt sets the "startedAt" field.
+func (_u *JobUpdate) SetStartedAt(v time.Time) *JobUpdate {
+	_u.mutation.SetStartedAt(v)
 	return _u
 }
 
-// SetNillableStarted sets the "started" field if the given value is not nil.
-func (_u *JobUpdate) SetNillableStarted(v *time.Time) *JobUpdate {
+// SetNillableStartedAt sets the "startedAt" field if the given value is not nil.
+func (_u *JobUpdate) SetNillableStartedAt(v *time.Time) *JobUpdate {
 	if v != nil {
-		_u.SetStarted(*v)
+		_u.SetStartedAt(*v)
 	}
 	return _u
 }
 
-// ClearStarted clears the value of the "started" field.
-func (_u *JobUpdate) ClearStarted() *JobUpdate {
-	_u.mutation.ClearStarted()
+// ClearStartedAt clears the value of the "startedAt" field.
+func (_u *JobUpdate) ClearStartedAt() *JobUpdate {
+	_u.mutation.ClearStartedAt()
 	return _u
 }
 
@@ -310,20 +310,20 @@ func (_u *JobUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
-	if value, ok := _u.mutation.Created(); ok {
-		_spec.SetField(job.FieldCreated, field.TypeTime, value)
+	if value, ok := _u.mutation.CreatedAt(); ok {
+		_spec.SetField(job.FieldCreatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.Due(); ok {
-		_spec.SetField(job.FieldDue, field.TypeTime, value)
+	if value, ok := _u.mutation.DueAt(); ok {
+		_spec.SetField(job.FieldDueAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.OriginallyDue(); ok {
-		_spec.SetField(job.FieldOriginallyDue, field.TypeTime, value)
+	if value, ok := _u.mutation.OriginallyDueAt(); ok {
+		_spec.SetField(job.FieldOriginallyDueAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.Started(); ok {
-		_spec.SetField(job.FieldStarted, field.TypeTime, value)
+	if value, ok := _u.mutation.StartedAt(); ok {
+		_spec.SetField(job.FieldStartedAt, field.TypeTime, value)
 	}
-	if _u.mutation.StartedCleared() {
-		_spec.ClearField(job.FieldStarted, field.TypeTime)
+	if _u.mutation.StartedAtCleared() {
+		_spec.ClearField(job.FieldStartedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)
@@ -392,65 +392,65 @@ type JobUpdateOne struct {
 	mutation *JobMutation
 }
 
-// SetCreated sets the "created" field.
-func (_u *JobUpdateOne) SetCreated(v time.Time) *JobUpdateOne {
-	_u.mutation.SetCreated(v)
+// SetCreatedAt sets the "createdAt" field.
+func (_u *JobUpdateOne) SetCreatedAt(v time.Time) *JobUpdateOne {
+	_u.mutation.SetCreatedAt(v)
 	return _u
 }
 
-// SetNillableCreated sets the "created" field if the given value is not nil.
-func (_u *JobUpdateOne) SetNillableCreated(v *time.Time) *JobUpdateOne {
+// SetNillableCreatedAt sets the "createdAt" field if the given value is not nil.
+func (_u *JobUpdateOne) SetNillableCreatedAt(v *time.Time) *JobUpdateOne {
 	if v != nil {
-		_u.SetCreated(*v)
+		_u.SetCreatedAt(*v)
 	}
 	return _u
 }
 
-// SetDue sets the "due" field.
-func (_u *JobUpdateOne) SetDue(v time.Time) *JobUpdateOne {
-	_u.mutation.SetDue(v)
+// SetDueAt sets the "dueAt" field.
+func (_u *JobUpdateOne) SetDueAt(v time.Time) *JobUpdateOne {
+	_u.mutation.SetDueAt(v)
 	return _u
 }
 
-// SetNillableDue sets the "due" field if the given value is not nil.
-func (_u *JobUpdateOne) SetNillableDue(v *time.Time) *JobUpdateOne {
+// SetNillableDueAt sets the "dueAt" field if the given value is not nil.
+func (_u *JobUpdateOne) SetNillableDueAt(v *time.Time) *JobUpdateOne {
 	if v != nil {
-		_u.SetDue(*v)
+		_u.SetDueAt(*v)
 	}
 	return _u
 }
 
-// SetOriginallyDue sets the "originallyDue" field.
-func (_u *JobUpdateOne) SetOriginallyDue(v time.Time) *JobUpdateOne {
-	_u.mutation.SetOriginallyDue(v)
+// SetOriginallyDueAt sets the "originallyDueAt" field.
+func (_u *JobUpdateOne) SetOriginallyDueAt(v time.Time) *JobUpdateOne {
+	_u.mutation.SetOriginallyDueAt(v)
 	return _u
 }
 
-// SetNillableOriginallyDue sets the "originallyDue" field if the given value is not nil.
-func (_u *JobUpdateOne) SetNillableOriginallyDue(v *time.Time) *JobUpdateOne {
+// SetNillableOriginallyDueAt sets the "originallyDueAt" field if the given value is not nil.
+func (_u *JobUpdateOne) SetNillableOriginallyDueAt(v *time.Time) *JobUpdateOne {
 	if v != nil {
-		_u.SetOriginallyDue(*v)
+		_u.SetOriginallyDueAt(*v)
 	}
 	return _u
 }
 
-// SetStarted sets the "started" field.
-func (_u *JobUpdateOne) SetStarted(v time.Time) *JobUpdateOne {
-	_u.mutation.SetStarted(v)
+// SetStartedAt sets the "startedAt" field.
+func (_u *JobUpdateOne) SetStartedAt(v time.Time) *JobUpdateOne {
+	_u.mutation.SetStartedAt(v)
 	return _u
 }
 
-// SetNillableStarted sets the "started" field if the given value is not nil.
-func (_u *JobUpdateOne) SetNillableStarted(v *time.Time) *JobUpdateOne {
+// SetNillableStartedAt sets the "startedAt" field if the given value is not nil.
+func (_u *JobUpdateOne) SetNillableStartedAt(v *time.Time) *JobUpdateOne {
 	if v != nil {
-		_u.SetStarted(*v)
+		_u.SetStartedAt(*v)
 	}
 	return _u
 }
 
-// ClearStarted clears the value of the "started" field.
-func (_u *JobUpdateOne) ClearStarted() *JobUpdateOne {
-	_u.mutation.ClearStarted()
+// ClearStartedAt clears the value of the "startedAt" field.
+func (_u *JobUpdateOne) ClearStartedAt() *JobUpdateOne {
+	_u.mutation.ClearStartedAt()
 	return _u
 }
 
@@ -702,20 +702,20 @@ func (_u *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 			}
 		}
 	}
-	if value, ok := _u.mutation.Created(); ok {
-		_spec.SetField(job.FieldCreated, field.TypeTime, value)
+	if value, ok := _u.mutation.CreatedAt(); ok {
+		_spec.SetField(job.FieldCreatedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.Due(); ok {
-		_spec.SetField(job.FieldDue, field.TypeTime, value)
+	if value, ok := _u.mutation.DueAt(); ok {
+		_spec.SetField(job.FieldDueAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.OriginallyDue(); ok {
-		_spec.SetField(job.FieldOriginallyDue, field.TypeTime, value)
+	if value, ok := _u.mutation.OriginallyDueAt(); ok {
+		_spec.SetField(job.FieldOriginallyDueAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.Started(); ok {
-		_spec.SetField(job.FieldStarted, field.TypeTime, value)
+	if value, ok := _u.mutation.StartedAt(); ok {
+		_spec.SetField(job.FieldStartedAt, field.TypeTime, value)
 	}
-	if _u.mutation.StartedCleared() {
-		_spec.ClearField(job.FieldStarted, field.TypeTime)
+	if _u.mutation.StartedAtCleared() {
+		_spec.ClearField(job.FieldStartedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)

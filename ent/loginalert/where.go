@@ -55,9 +55,9 @@ func IDLTE(id int) predicate.LoginAlert {
 	return predicate.LoginAlert(sql.FieldLTE(FieldID, id))
 }
 
-// Time applies equality check predicate on the "time" field. It's identical to TimeEQ.
-func Time(v time.Time) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldEQ(FieldTime, v))
+// SentAt applies equality check predicate on the "sentAt" field. It's identical to SentAtEQ.
+func SentAt(v time.Time) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldEQ(FieldSentAt, v))
 }
 
 // VersionedMessengerType applies equality check predicate on the "versionedMessengerType" field. It's identical to VersionedMessengerTypeEQ.
@@ -75,44 +75,44 @@ func SessionID(v int) predicate.LoginAlert {
 	return predicate.LoginAlert(sql.FieldEQ(FieldSessionID, v))
 }
 
-// TimeEQ applies the EQ predicate on the "time" field.
-func TimeEQ(v time.Time) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldEQ(FieldTime, v))
+// SentAtEQ applies the EQ predicate on the "sentAt" field.
+func SentAtEQ(v time.Time) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldEQ(FieldSentAt, v))
 }
 
-// TimeNEQ applies the NEQ predicate on the "time" field.
-func TimeNEQ(v time.Time) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldNEQ(FieldTime, v))
+// SentAtNEQ applies the NEQ predicate on the "sentAt" field.
+func SentAtNEQ(v time.Time) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldNEQ(FieldSentAt, v))
 }
 
-// TimeIn applies the In predicate on the "time" field.
-func TimeIn(vs ...time.Time) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldIn(FieldTime, vs...))
+// SentAtIn applies the In predicate on the "sentAt" field.
+func SentAtIn(vs ...time.Time) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldIn(FieldSentAt, vs...))
 }
 
-// TimeNotIn applies the NotIn predicate on the "time" field.
-func TimeNotIn(vs ...time.Time) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldNotIn(FieldTime, vs...))
+// SentAtNotIn applies the NotIn predicate on the "sentAt" field.
+func SentAtNotIn(vs ...time.Time) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldNotIn(FieldSentAt, vs...))
 }
 
-// TimeGT applies the GT predicate on the "time" field.
-func TimeGT(v time.Time) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldGT(FieldTime, v))
+// SentAtGT applies the GT predicate on the "sentAt" field.
+func SentAtGT(v time.Time) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldGT(FieldSentAt, v))
 }
 
-// TimeGTE applies the GTE predicate on the "time" field.
-func TimeGTE(v time.Time) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldGTE(FieldTime, v))
+// SentAtGTE applies the GTE predicate on the "sentAt" field.
+func SentAtGTE(v time.Time) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldGTE(FieldSentAt, v))
 }
 
-// TimeLT applies the LT predicate on the "time" field.
-func TimeLT(v time.Time) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldLT(FieldTime, v))
+// SentAtLT applies the LT predicate on the "sentAt" field.
+func SentAtLT(v time.Time) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldLT(FieldSentAt, v))
 }
 
-// TimeLTE applies the LTE predicate on the "time" field.
-func TimeLTE(v time.Time) predicate.LoginAlert {
-	return predicate.LoginAlert(sql.FieldLTE(FieldTime, v))
+// SentAtLTE applies the LTE predicate on the "sentAt" field.
+func SentAtLTE(v time.Time) predicate.LoginAlert {
+	return predicate.LoginAlert(sql.FieldLTE(FieldSentAt, v))
 }
 
 // VersionedMessengerTypeEQ applies the EQ predicate on the "versionedMessengerType" field.

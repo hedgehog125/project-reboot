@@ -25,15 +25,15 @@ type LogEntryCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetTime sets the "time" field.
-func (_c *LogEntryCreate) SetTime(v time.Time) *LogEntryCreate {
-	_c.mutation.SetTime(v)
+// SetLoggedAt sets the "loggedAt" field.
+func (_c *LogEntryCreate) SetLoggedAt(v time.Time) *LogEntryCreate {
+	_c.mutation.SetLoggedAt(v)
 	return _c
 }
 
-// SetTimeKnown sets the "timeKnown" field.
-func (_c *LogEntryCreate) SetTimeKnown(v bool) *LogEntryCreate {
-	_c.mutation.SetTimeKnown(v)
+// SetLoggedAtKnown sets the "loggedAtKnown" field.
+func (_c *LogEntryCreate) SetLoggedAtKnown(v bool) *LogEntryCreate {
+	_c.mutation.SetLoggedAtKnown(v)
 	return _c
 }
 
@@ -155,11 +155,11 @@ func (_c *LogEntryCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *LogEntryCreate) check() error {
-	if _, ok := _c.mutation.Time(); !ok {
-		return &ValidationError{Name: "time", err: errors.New(`ent: missing required field "LogEntry.time"`)}
+	if _, ok := _c.mutation.LoggedAt(); !ok {
+		return &ValidationError{Name: "loggedAt", err: errors.New(`ent: missing required field "LogEntry.loggedAt"`)}
 	}
-	if _, ok := _c.mutation.TimeKnown(); !ok {
-		return &ValidationError{Name: "timeKnown", err: errors.New(`ent: missing required field "LogEntry.timeKnown"`)}
+	if _, ok := _c.mutation.LoggedAtKnown(); !ok {
+		return &ValidationError{Name: "loggedAtKnown", err: errors.New(`ent: missing required field "LogEntry.loggedAtKnown"`)}
 	}
 	if _, ok := _c.mutation.Level(); !ok {
 		return &ValidationError{Name: "level", err: errors.New(`ent: missing required field "LogEntry.level"`)}
@@ -218,13 +218,13 @@ func (_c *LogEntryCreate) createSpec() (*LogEntry, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := _c.mutation.Time(); ok {
-		_spec.SetField(logentry.FieldTime, field.TypeTime, value)
-		_node.Time = value
+	if value, ok := _c.mutation.LoggedAt(); ok {
+		_spec.SetField(logentry.FieldLoggedAt, field.TypeTime, value)
+		_node.LoggedAt = value
 	}
-	if value, ok := _c.mutation.TimeKnown(); ok {
-		_spec.SetField(logentry.FieldTimeKnown, field.TypeBool, value)
-		_node.TimeKnown = value
+	if value, ok := _c.mutation.LoggedAtKnown(); ok {
+		_spec.SetField(logentry.FieldLoggedAtKnown, field.TypeBool, value)
+		_node.LoggedAtKnown = value
 	}
 	if value, ok := _c.mutation.Level(); ok {
 		_spec.SetField(logentry.FieldLevel, field.TypeInt, value)
@@ -278,7 +278,7 @@ func (_c *LogEntryCreate) createSpec() (*LogEntry, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.LogEntry.Create().
-//		SetTime(v).
+//		SetLoggedAt(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -287,7 +287,7 @@ func (_c *LogEntryCreate) createSpec() (*LogEntry, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.LogEntryUpsert) {
-//			SetTime(v+v).
+//			SetLoggedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *LogEntryCreate) OnConflict(opts ...sql.ConflictOption) *LogEntryUpsertOne {
@@ -323,27 +323,27 @@ type (
 	}
 )
 
-// SetTime sets the "time" field.
-func (u *LogEntryUpsert) SetTime(v time.Time) *LogEntryUpsert {
-	u.Set(logentry.FieldTime, v)
+// SetLoggedAt sets the "loggedAt" field.
+func (u *LogEntryUpsert) SetLoggedAt(v time.Time) *LogEntryUpsert {
+	u.Set(logentry.FieldLoggedAt, v)
 	return u
 }
 
-// UpdateTime sets the "time" field to the value that was provided on create.
-func (u *LogEntryUpsert) UpdateTime() *LogEntryUpsert {
-	u.SetExcluded(logentry.FieldTime)
+// UpdateLoggedAt sets the "loggedAt" field to the value that was provided on create.
+func (u *LogEntryUpsert) UpdateLoggedAt() *LogEntryUpsert {
+	u.SetExcluded(logentry.FieldLoggedAt)
 	return u
 }
 
-// SetTimeKnown sets the "timeKnown" field.
-func (u *LogEntryUpsert) SetTimeKnown(v bool) *LogEntryUpsert {
-	u.Set(logentry.FieldTimeKnown, v)
+// SetLoggedAtKnown sets the "loggedAtKnown" field.
+func (u *LogEntryUpsert) SetLoggedAtKnown(v bool) *LogEntryUpsert {
+	u.Set(logentry.FieldLoggedAtKnown, v)
 	return u
 }
 
-// UpdateTimeKnown sets the "timeKnown" field to the value that was provided on create.
-func (u *LogEntryUpsert) UpdateTimeKnown() *LogEntryUpsert {
-	u.SetExcluded(logentry.FieldTimeKnown)
+// UpdateLoggedAtKnown sets the "loggedAtKnown" field to the value that was provided on create.
+func (u *LogEntryUpsert) UpdateLoggedAtKnown() *LogEntryUpsert {
+	u.SetExcluded(logentry.FieldLoggedAtKnown)
 	return u
 }
 
@@ -509,31 +509,31 @@ func (u *LogEntryUpsertOne) Update(set func(*LogEntryUpsert)) *LogEntryUpsertOne
 	return u
 }
 
-// SetTime sets the "time" field.
-func (u *LogEntryUpsertOne) SetTime(v time.Time) *LogEntryUpsertOne {
+// SetLoggedAt sets the "loggedAt" field.
+func (u *LogEntryUpsertOne) SetLoggedAt(v time.Time) *LogEntryUpsertOne {
 	return u.Update(func(s *LogEntryUpsert) {
-		s.SetTime(v)
+		s.SetLoggedAt(v)
 	})
 }
 
-// UpdateTime sets the "time" field to the value that was provided on create.
-func (u *LogEntryUpsertOne) UpdateTime() *LogEntryUpsertOne {
+// UpdateLoggedAt sets the "loggedAt" field to the value that was provided on create.
+func (u *LogEntryUpsertOne) UpdateLoggedAt() *LogEntryUpsertOne {
 	return u.Update(func(s *LogEntryUpsert) {
-		s.UpdateTime()
+		s.UpdateLoggedAt()
 	})
 }
 
-// SetTimeKnown sets the "timeKnown" field.
-func (u *LogEntryUpsertOne) SetTimeKnown(v bool) *LogEntryUpsertOne {
+// SetLoggedAtKnown sets the "loggedAtKnown" field.
+func (u *LogEntryUpsertOne) SetLoggedAtKnown(v bool) *LogEntryUpsertOne {
 	return u.Update(func(s *LogEntryUpsert) {
-		s.SetTimeKnown(v)
+		s.SetLoggedAtKnown(v)
 	})
 }
 
-// UpdateTimeKnown sets the "timeKnown" field to the value that was provided on create.
-func (u *LogEntryUpsertOne) UpdateTimeKnown() *LogEntryUpsertOne {
+// UpdateLoggedAtKnown sets the "loggedAtKnown" field to the value that was provided on create.
+func (u *LogEntryUpsertOne) UpdateLoggedAtKnown() *LogEntryUpsertOne {
 	return u.Update(func(s *LogEntryUpsert) {
-		s.UpdateTimeKnown()
+		s.UpdateLoggedAtKnown()
 	})
 }
 
@@ -806,7 +806,7 @@ func (_c *LogEntryCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.LogEntryUpsert) {
-//			SetTime(v+v).
+//			SetLoggedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *LogEntryCreateBulk) OnConflict(opts ...sql.ConflictOption) *LogEntryUpsertBulk {
@@ -885,31 +885,31 @@ func (u *LogEntryUpsertBulk) Update(set func(*LogEntryUpsert)) *LogEntryUpsertBu
 	return u
 }
 
-// SetTime sets the "time" field.
-func (u *LogEntryUpsertBulk) SetTime(v time.Time) *LogEntryUpsertBulk {
+// SetLoggedAt sets the "loggedAt" field.
+func (u *LogEntryUpsertBulk) SetLoggedAt(v time.Time) *LogEntryUpsertBulk {
 	return u.Update(func(s *LogEntryUpsert) {
-		s.SetTime(v)
+		s.SetLoggedAt(v)
 	})
 }
 
-// UpdateTime sets the "time" field to the value that was provided on create.
-func (u *LogEntryUpsertBulk) UpdateTime() *LogEntryUpsertBulk {
+// UpdateLoggedAt sets the "loggedAt" field to the value that was provided on create.
+func (u *LogEntryUpsertBulk) UpdateLoggedAt() *LogEntryUpsertBulk {
 	return u.Update(func(s *LogEntryUpsert) {
-		s.UpdateTime()
+		s.UpdateLoggedAt()
 	})
 }
 
-// SetTimeKnown sets the "timeKnown" field.
-func (u *LogEntryUpsertBulk) SetTimeKnown(v bool) *LogEntryUpsertBulk {
+// SetLoggedAtKnown sets the "loggedAtKnown" field.
+func (u *LogEntryUpsertBulk) SetLoggedAtKnown(v bool) *LogEntryUpsertBulk {
 	return u.Update(func(s *LogEntryUpsert) {
-		s.SetTimeKnown(v)
+		s.SetLoggedAtKnown(v)
 	})
 }
 
-// UpdateTimeKnown sets the "timeKnown" field to the value that was provided on create.
-func (u *LogEntryUpsertBulk) UpdateTimeKnown() *LogEntryUpsertBulk {
+// UpdateLoggedAtKnown sets the "loggedAtKnown" field to the value that was provided on create.
+func (u *LogEntryUpsertBulk) UpdateLoggedAtKnown() *LogEntryUpsertBulk {
 	return u.Update(func(s *LogEntryUpsert) {
-		s.UpdateTimeKnown()
+		s.UpdateLoggedAtKnown()
 	})
 }
 

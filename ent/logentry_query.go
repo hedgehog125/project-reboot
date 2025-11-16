@@ -299,12 +299,12 @@ func (_q *LogEntryQuery) WithUser(opts ...func(*UserQuery)) *LogEntryQuery {
 // Example:
 //
 //	var v []struct {
-//		Time time.Time `json:"time,omitempty"`
+//		LoggedAt time.Time `json:"loggedAt,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.LogEntry.Query().
-//		GroupBy(logentry.FieldTime).
+//		GroupBy(logentry.FieldLoggedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *LogEntryQuery) GroupBy(field string, fields ...string) *LogEntryGroupBy {
@@ -322,11 +322,11 @@ func (_q *LogEntryQuery) GroupBy(field string, fields ...string) *LogEntryGroupB
 // Example:
 //
 //	var v []struct {
-//		Time time.Time `json:"time,omitempty"`
+//		LoggedAt time.Time `json:"loggedAt,omitempty"`
 //	}
 //
 //	client.LogEntry.Query().
-//		Select(logentry.FieldTime).
+//		Select(logentry.FieldLoggedAt).
 //		Scan(ctx, &v)
 func (_q *LogEntryQuery) Select(fields ...string) *LogEntrySelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

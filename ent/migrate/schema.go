@@ -11,10 +11,10 @@ var (
 	// JobsColumns holds the columns for the "jobs" table.
 	JobsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "created", Type: field.TypeTime},
-		{Name: "due", Type: field.TypeTime},
-		{Name: "originally_due", Type: field.TypeTime},
-		{Name: "started", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "due_at", Type: field.TypeTime},
+		{Name: "originally_due_at", Type: field.TypeTime},
+		{Name: "started_at", Type: field.TypeTime, Nullable: true},
 		{Name: "type", Type: field.TypeString, Size: 128},
 		{Name: "version", Type: field.TypeInt},
 		{Name: "priority", Type: field.TypeInt8},
@@ -32,12 +32,12 @@ var (
 		PrimaryKey: []*schema.Column{JobsColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "job_status_priority_due",
+				Name:    "job_status_priority_due_at",
 				Unique:  false,
 				Columns: []*schema.Column{JobsColumns[10], JobsColumns[7], JobsColumns[2]},
 			},
 			{
-				Name:    "job_due",
+				Name:    "job_due_at",
 				Unique:  false,
 				Columns: []*schema.Column{JobsColumns[2]},
 			},
@@ -65,8 +65,8 @@ var (
 	// LogEntriesColumns holds the columns for the "log_entries" table.
 	LogEntriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "time", Type: field.TypeTime},
-		{Name: "time_known", Type: field.TypeBool},
+		{Name: "logged_at", Type: field.TypeTime},
+		{Name: "logged_at_known", Type: field.TypeBool},
 		{Name: "level", Type: field.TypeInt},
 		{Name: "message", Type: field.TypeString},
 		{Name: "attributes", Type: field.TypeJSON},
@@ -91,7 +91,7 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "logentry_time",
+				Name:    "logentry_logged_at",
 				Unique:  false,
 				Columns: []*schema.Column{LogEntriesColumns[1]},
 			},
@@ -100,7 +100,7 @@ var (
 	// LoginAlertsColumns holds the columns for the "login_alerts" table.
 	LoginAlertsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "time", Type: field.TypeTime},
+		{Name: "sent_at", Type: field.TypeTime},
 		{Name: "versioned_messenger_type", Type: field.TypeString, Size: 128},
 		{Name: "confirmed", Type: field.TypeBool},
 		{Name: "session_id", Type: field.TypeInt},
@@ -123,7 +123,7 @@ var (
 	PeriodicTasksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 128},
-		{Name: "last_ran", Type: field.TypeTime, Nullable: true},
+		{Name: "last_ran_at", Type: field.TypeTime, Nullable: true},
 	}
 	// PeriodicTasksTable holds the schema information for the "periodic_tasks" table.
 	PeriodicTasksTable = &schema.Table{
@@ -141,7 +141,7 @@ var (
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "time", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeBytes, Unique: true},
 		{Name: "valid_from", Type: field.TypeTime},
 		{Name: "valid_until", Type: field.TypeTime},

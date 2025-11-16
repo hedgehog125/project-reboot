@@ -58,7 +58,7 @@ func PersistentFixedInterval(periodicTaskName string, interval time.Duration) De
 					func(tx *ent.Tx, ctx context.Context) (*ent.PeriodicTask, error) {
 						return tx.PeriodicTask.Create().
 							SetName(periodicTaskName).
-							SetLastRan(runTime).
+							SetLastRanAt(runTime).
 							Save(ctx)
 					},
 				)
@@ -77,7 +77,7 @@ func PersistentFixedInterval(periodicTaskName string, interval time.Duration) De
 					delayCtx.App.Database,
 					func(tx *ent.Tx, ctx context.Context) error {
 						return tx.PeriodicTask.UpdateOneID(periodicTaskID).
-							SetLastRan(runTime).
+							SetLastRanAt(runTime).
 							Exec(ctx)
 					},
 				)
@@ -104,7 +104,7 @@ func PersistentFixedInterval(periodicTaskName string, interval time.Duration) De
 			)
 			if stdErr == nil {
 				periodicTaskID = periodicTask.ID
-				lastRan = periodicTask.LastRan
+				lastRan = periodicTask.LastRanAt
 			} else {
 				if !ent.IsNotFound(stdErr) {
 					delayCtx.App.Logger.Error(

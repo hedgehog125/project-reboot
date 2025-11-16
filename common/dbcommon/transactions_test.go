@@ -32,19 +32,25 @@ func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 	createJob := func() {
 		wg.Add(1)
 		defer wg.Done()
-		stdErr := WithWriteTx(t.Context(), db, func(tx *ent.Tx, ctx context.Context) error {
-			_, stdErr := tx.Job.Create().
-				SetType("test_job").
-				SetVersion(1).
-				SetPriority(1).
-				SetWeight(1).
-				SetBody(json.RawMessage("{}")).
-				Save(ctx)
-			if stdErr != nil {
-				return common.ErrWrapperDatabase.Wrap(stdErr)
-			}
-			return nil
-		})
+		stdErr := WithWriteTx(
+			t.Context(), db,
+			func(tx *ent.Tx, ctx context.Context) error {
+				_, stdErr := tx.Job.Create().
+					SetType("test_job").
+					SetCreatedAt(time.Now()).
+					SetDueAt(time.Now()).
+					SetOriginallyDueAt(time.Now()).
+					SetVersion(1).
+					SetPriority(1).
+					SetWeight(1).
+					SetBody(json.RawMessage("{}")).
+					Save(ctx)
+				if stdErr != nil {
+					return common.ErrWrapperDatabase.Wrap(stdErr)
+				}
+				return nil
+			},
+		)
 		require.NoError(t, stdErr)
 	}
 	for range JOB_COUNT {
@@ -63,6 +69,9 @@ func TestWithWriteTx_supports25CollidingIncrements(t *testing.T) {
 
 	stdErr := db.Client().Job.Create().
 		SetType("counter").
+		SetCreatedAt(time.Now()).
+		SetDueAt(time.Now()).
+		SetOriginallyDueAt(time.Now()).
 		SetVersion(1).
 		SetPriority(1).
 		SetWeight(1).

@@ -13,10 +13,10 @@ const (
 	Label = "log_entry"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldTime holds the string denoting the time field in the database.
-	FieldTime = "time"
-	// FieldTimeKnown holds the string denoting the timeknown field in the database.
-	FieldTimeKnown = "time_known"
+	// FieldLoggedAt holds the string denoting the loggedat field in the database.
+	FieldLoggedAt = "logged_at"
+	// FieldLoggedAtKnown holds the string denoting the loggedatknown field in the database.
+	FieldLoggedAtKnown = "logged_at_known"
 	// FieldLevel holds the string denoting the level field in the database.
 	FieldLevel = "level"
 	// FieldMessage holds the string denoting the message field in the database.
@@ -49,8 +49,8 @@ const (
 // Columns holds all SQL columns for logentry fields.
 var Columns = []string{
 	FieldID,
-	FieldTime,
-	FieldTimeKnown,
+	FieldLoggedAt,
+	FieldLoggedAtKnown,
 	FieldLevel,
 	FieldMessage,
 	FieldAttributes,
@@ -84,14 +84,14 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByTime orders the results by the time field.
-func ByTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTime, opts...).ToFunc()
+// ByLoggedAt orders the results by the loggedAt field.
+func ByLoggedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLoggedAt, opts...).ToFunc()
 }
 
-// ByTimeKnown orders the results by the timeKnown field.
-func ByTimeKnown(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTimeKnown, opts...).ToFunc()
+// ByLoggedAtKnown orders the results by the loggedAtKnown field.
+func ByLoggedAtKnown(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLoggedAtKnown, opts...).ToFunc()
 }
 
 // ByLevel orders the results by the level field.

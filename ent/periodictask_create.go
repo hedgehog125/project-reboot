@@ -28,16 +28,16 @@ func (_c *PeriodicTaskCreate) SetName(v string) *PeriodicTaskCreate {
 	return _c
 }
 
-// SetLastRan sets the "lastRan" field.
-func (_c *PeriodicTaskCreate) SetLastRan(v time.Time) *PeriodicTaskCreate {
-	_c.mutation.SetLastRan(v)
+// SetLastRanAt sets the "lastRanAt" field.
+func (_c *PeriodicTaskCreate) SetLastRanAt(v time.Time) *PeriodicTaskCreate {
+	_c.mutation.SetLastRanAt(v)
 	return _c
 }
 
-// SetNillableLastRan sets the "lastRan" field if the given value is not nil.
-func (_c *PeriodicTaskCreate) SetNillableLastRan(v *time.Time) *PeriodicTaskCreate {
+// SetNillableLastRanAt sets the "lastRanAt" field if the given value is not nil.
+func (_c *PeriodicTaskCreate) SetNillableLastRanAt(v *time.Time) *PeriodicTaskCreate {
 	if v != nil {
-		_c.SetLastRan(*v)
+		_c.SetLastRanAt(*v)
 	}
 	return _c
 }
@@ -115,9 +115,9 @@ func (_c *PeriodicTaskCreate) createSpec() (*PeriodicTask, *sqlgraph.CreateSpec)
 		_spec.SetField(periodictask.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := _c.mutation.LastRan(); ok {
-		_spec.SetField(periodictask.FieldLastRan, field.TypeTime, value)
-		_node.LastRan = value
+	if value, ok := _c.mutation.LastRanAt(); ok {
+		_spec.SetField(periodictask.FieldLastRanAt, field.TypeTime, value)
+		_node.LastRanAt = value
 	}
 	return _node, _spec
 }
@@ -183,21 +183,21 @@ func (u *PeriodicTaskUpsert) UpdateName() *PeriodicTaskUpsert {
 	return u
 }
 
-// SetLastRan sets the "lastRan" field.
-func (u *PeriodicTaskUpsert) SetLastRan(v time.Time) *PeriodicTaskUpsert {
-	u.Set(periodictask.FieldLastRan, v)
+// SetLastRanAt sets the "lastRanAt" field.
+func (u *PeriodicTaskUpsert) SetLastRanAt(v time.Time) *PeriodicTaskUpsert {
+	u.Set(periodictask.FieldLastRanAt, v)
 	return u
 }
 
-// UpdateLastRan sets the "lastRan" field to the value that was provided on create.
-func (u *PeriodicTaskUpsert) UpdateLastRan() *PeriodicTaskUpsert {
-	u.SetExcluded(periodictask.FieldLastRan)
+// UpdateLastRanAt sets the "lastRanAt" field to the value that was provided on create.
+func (u *PeriodicTaskUpsert) UpdateLastRanAt() *PeriodicTaskUpsert {
+	u.SetExcluded(periodictask.FieldLastRanAt)
 	return u
 }
 
-// ClearLastRan clears the value of the "lastRan" field.
-func (u *PeriodicTaskUpsert) ClearLastRan() *PeriodicTaskUpsert {
-	u.SetNull(periodictask.FieldLastRan)
+// ClearLastRanAt clears the value of the "lastRanAt" field.
+func (u *PeriodicTaskUpsert) ClearLastRanAt() *PeriodicTaskUpsert {
+	u.SetNull(periodictask.FieldLastRanAt)
 	return u
 }
 
@@ -255,24 +255,24 @@ func (u *PeriodicTaskUpsertOne) UpdateName() *PeriodicTaskUpsertOne {
 	})
 }
 
-// SetLastRan sets the "lastRan" field.
-func (u *PeriodicTaskUpsertOne) SetLastRan(v time.Time) *PeriodicTaskUpsertOne {
+// SetLastRanAt sets the "lastRanAt" field.
+func (u *PeriodicTaskUpsertOne) SetLastRanAt(v time.Time) *PeriodicTaskUpsertOne {
 	return u.Update(func(s *PeriodicTaskUpsert) {
-		s.SetLastRan(v)
+		s.SetLastRanAt(v)
 	})
 }
 
-// UpdateLastRan sets the "lastRan" field to the value that was provided on create.
-func (u *PeriodicTaskUpsertOne) UpdateLastRan() *PeriodicTaskUpsertOne {
+// UpdateLastRanAt sets the "lastRanAt" field to the value that was provided on create.
+func (u *PeriodicTaskUpsertOne) UpdateLastRanAt() *PeriodicTaskUpsertOne {
 	return u.Update(func(s *PeriodicTaskUpsert) {
-		s.UpdateLastRan()
+		s.UpdateLastRanAt()
 	})
 }
 
-// ClearLastRan clears the value of the "lastRan" field.
-func (u *PeriodicTaskUpsertOne) ClearLastRan() *PeriodicTaskUpsertOne {
+// ClearLastRanAt clears the value of the "lastRanAt" field.
+func (u *PeriodicTaskUpsertOne) ClearLastRanAt() *PeriodicTaskUpsertOne {
 	return u.Update(func(s *PeriodicTaskUpsert) {
-		s.ClearLastRan()
+		s.ClearLastRanAt()
 	})
 }
 
@@ -493,24 +493,24 @@ func (u *PeriodicTaskUpsertBulk) UpdateName() *PeriodicTaskUpsertBulk {
 	})
 }
 
-// SetLastRan sets the "lastRan" field.
-func (u *PeriodicTaskUpsertBulk) SetLastRan(v time.Time) *PeriodicTaskUpsertBulk {
+// SetLastRanAt sets the "lastRanAt" field.
+func (u *PeriodicTaskUpsertBulk) SetLastRanAt(v time.Time) *PeriodicTaskUpsertBulk {
 	return u.Update(func(s *PeriodicTaskUpsert) {
-		s.SetLastRan(v)
+		s.SetLastRanAt(v)
 	})
 }
 
-// UpdateLastRan sets the "lastRan" field to the value that was provided on create.
-func (u *PeriodicTaskUpsertBulk) UpdateLastRan() *PeriodicTaskUpsertBulk {
+// UpdateLastRanAt sets the "lastRanAt" field to the value that was provided on create.
+func (u *PeriodicTaskUpsertBulk) UpdateLastRanAt() *PeriodicTaskUpsertBulk {
 	return u.Update(func(s *PeriodicTaskUpsert) {
-		s.UpdateLastRan()
+		s.UpdateLastRanAt()
 	})
 }
 
-// ClearLastRan clears the value of the "lastRan" field.
-func (u *PeriodicTaskUpsertBulk) ClearLastRan() *PeriodicTaskUpsertBulk {
+// ClearLastRanAt clears the value of the "lastRanAt" field.
+func (u *PeriodicTaskUpsertBulk) ClearLastRanAt() *PeriodicTaskUpsertBulk {
 	return u.Update(func(s *PeriodicTaskUpsert) {
-		s.ClearLastRan()
+		s.ClearLastRanAt()
 	})
 }
 

@@ -162,15 +162,15 @@ func IsUserSufficientlyNotified(
 		}
 		mostRecentConfirmedAlert := &ent.LoginAlert{}
 		for _, alert := range confirmedLoginAlerts {
-			if alert.Time.After(mostRecentConfirmedAlert.Time) {
+			if alert.SentAt.After(mostRecentConfirmedAlert.SentAt) {
 				mostRecentConfirmedAlert = alert
 			}
 		}
-		if mostRecentConfirmedAlert.Time.Before(earliestValidTime) {
+		if mostRecentConfirmedAlert.SentAt.Before(earliestValidTime) {
 			logger.Warn(
 				"user was not sufficiently notified by one of their configured messengers because its most recent confirmed alert was too old. are jobs still running? are some messengers failing?",
 				"messengerType", messengerType,
-				"mostRecentAlertTime", mostRecentConfirmedAlert.Time,
+				"mostRecentAlertTime", mostRecentConfirmedAlert.SentAt,
 				"earliestValidTime", earliestValidTime,
 			)
 			continue

@@ -335,12 +335,12 @@ func (_q *SessionQuery) WithLoginAlerts(opts ...func(*LoginAlertQuery)) *Session
 // Example:
 //
 //	var v []struct {
-//		Time time.Time `json:"time,omitempty"`
+//		CreatedAt time.Time `json:"createdAt,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Session.Query().
-//		GroupBy(session.FieldTime).
+//		GroupBy(session.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *SessionQuery) GroupBy(field string, fields ...string) *SessionGroupBy {
@@ -358,11 +358,11 @@ func (_q *SessionQuery) GroupBy(field string, fields ...string) *SessionGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Time time.Time `json:"time,omitempty"`
+//		CreatedAt time.Time `json:"createdAt,omitempty"`
 //	}
 //
 //	client.Session.Query().
-//		Select(session.FieldTime).
+//		Select(session.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (_q *SessionQuery) Select(fields ...string) *SessionSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

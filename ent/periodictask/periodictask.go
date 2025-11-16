@@ -13,8 +13,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldLastRan holds the string denoting the lastran field in the database.
-	FieldLastRan = "last_ran"
+	// FieldLastRanAt holds the string denoting the lastranat field in the database.
+	FieldLastRanAt = "last_ran_at"
 	// Table holds the table name of the periodictask in the database.
 	Table = "periodic_tasks"
 )
@@ -23,7 +23,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
-	FieldLastRan,
+	FieldLastRanAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -54,7 +54,7 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
-// ByLastRan orders the results by the lastRan field.
-func ByLastRan(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldLastRan, opts...).ToFunc()
+// ByLastRanAt orders the results by the lastRanAt field.
+func ByLastRanAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastRanAt, opts...).ToFunc()
 }

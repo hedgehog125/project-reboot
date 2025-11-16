@@ -17,8 +17,8 @@ type LogEntry struct {
 func (LogEntry) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Time("time"),      // The entries should be batch created, so a default time wouldn't be accurate
-		field.Bool("timeKnown"), // Some logs don't have a time, so an inaccurate time is added during processing
+		field.Time("loggedAt"),      // The entries should be batch created, so a default time wouldn't be accurate
+		field.Bool("loggedAtKnown"), // Some logs don't have a time, so an inaccurate time is added during processing
 		field.Int("level"),
 		field.String("message"),
 		field.JSON("attributes", map[string]any{}),
@@ -40,6 +40,6 @@ func (LogEntry) Edges() []ent.Edge {
 
 func (LogEntry) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("time"),
+		index.Fields("loggedAt"),
 	}
 }

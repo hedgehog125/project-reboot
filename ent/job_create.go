@@ -25,58 +25,34 @@ type JobCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetCreated sets the "created" field.
-func (_c *JobCreate) SetCreated(v time.Time) *JobCreate {
-	_c.mutation.SetCreated(v)
+// SetCreatedAt sets the "createdAt" field.
+func (_c *JobCreate) SetCreatedAt(v time.Time) *JobCreate {
+	_c.mutation.SetCreatedAt(v)
 	return _c
 }
 
-// SetNillableCreated sets the "created" field if the given value is not nil.
-func (_c *JobCreate) SetNillableCreated(v *time.Time) *JobCreate {
+// SetDueAt sets the "dueAt" field.
+func (_c *JobCreate) SetDueAt(v time.Time) *JobCreate {
+	_c.mutation.SetDueAt(v)
+	return _c
+}
+
+// SetOriginallyDueAt sets the "originallyDueAt" field.
+func (_c *JobCreate) SetOriginallyDueAt(v time.Time) *JobCreate {
+	_c.mutation.SetOriginallyDueAt(v)
+	return _c
+}
+
+// SetStartedAt sets the "startedAt" field.
+func (_c *JobCreate) SetStartedAt(v time.Time) *JobCreate {
+	_c.mutation.SetStartedAt(v)
+	return _c
+}
+
+// SetNillableStartedAt sets the "startedAt" field if the given value is not nil.
+func (_c *JobCreate) SetNillableStartedAt(v *time.Time) *JobCreate {
 	if v != nil {
-		_c.SetCreated(*v)
-	}
-	return _c
-}
-
-// SetDue sets the "due" field.
-func (_c *JobCreate) SetDue(v time.Time) *JobCreate {
-	_c.mutation.SetDue(v)
-	return _c
-}
-
-// SetNillableDue sets the "due" field if the given value is not nil.
-func (_c *JobCreate) SetNillableDue(v *time.Time) *JobCreate {
-	if v != nil {
-		_c.SetDue(*v)
-	}
-	return _c
-}
-
-// SetOriginallyDue sets the "originallyDue" field.
-func (_c *JobCreate) SetOriginallyDue(v time.Time) *JobCreate {
-	_c.mutation.SetOriginallyDue(v)
-	return _c
-}
-
-// SetNillableOriginallyDue sets the "originallyDue" field if the given value is not nil.
-func (_c *JobCreate) SetNillableOriginallyDue(v *time.Time) *JobCreate {
-	if v != nil {
-		_c.SetOriginallyDue(*v)
-	}
-	return _c
-}
-
-// SetStarted sets the "started" field.
-func (_c *JobCreate) SetStarted(v time.Time) *JobCreate {
-	_c.mutation.SetStarted(v)
-	return _c
-}
-
-// SetNillableStarted sets the "started" field if the given value is not nil.
-func (_c *JobCreate) SetNillableStarted(v *time.Time) *JobCreate {
-	if v != nil {
-		_c.SetStarted(*v)
+		_c.SetStartedAt(*v)
 	}
 	return _c
 }
@@ -216,18 +192,6 @@ func (_c *JobCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *JobCreate) defaults() {
-	if _, ok := _c.mutation.Created(); !ok {
-		v := job.DefaultCreated()
-		_c.mutation.SetCreated(v)
-	}
-	if _, ok := _c.mutation.Due(); !ok {
-		v := job.DefaultDue()
-		_c.mutation.SetDue(v)
-	}
-	if _, ok := _c.mutation.OriginallyDue(); !ok {
-		v := job.DefaultOriginallyDue()
-		_c.mutation.SetOriginallyDue(v)
-	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := job.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -252,14 +216,14 @@ func (_c *JobCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *JobCreate) check() error {
-	if _, ok := _c.mutation.Created(); !ok {
-		return &ValidationError{Name: "created", err: errors.New(`ent: missing required field "Job.created"`)}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "createdAt", err: errors.New(`ent: missing required field "Job.createdAt"`)}
 	}
-	if _, ok := _c.mutation.Due(); !ok {
-		return &ValidationError{Name: "due", err: errors.New(`ent: missing required field "Job.due"`)}
+	if _, ok := _c.mutation.DueAt(); !ok {
+		return &ValidationError{Name: "dueAt", err: errors.New(`ent: missing required field "Job.dueAt"`)}
 	}
-	if _, ok := _c.mutation.OriginallyDue(); !ok {
-		return &ValidationError{Name: "originallyDue", err: errors.New(`ent: missing required field "Job.originallyDue"`)}
+	if _, ok := _c.mutation.OriginallyDueAt(); !ok {
+		return &ValidationError{Name: "originallyDueAt", err: errors.New(`ent: missing required field "Job.originallyDueAt"`)}
 	}
 	if _, ok := _c.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "Job.type"`)}
@@ -334,21 +298,21 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := _c.mutation.Created(); ok {
-		_spec.SetField(job.FieldCreated, field.TypeTime, value)
-		_node.Created = value
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(job.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
 	}
-	if value, ok := _c.mutation.Due(); ok {
-		_spec.SetField(job.FieldDue, field.TypeTime, value)
-		_node.Due = value
+	if value, ok := _c.mutation.DueAt(); ok {
+		_spec.SetField(job.FieldDueAt, field.TypeTime, value)
+		_node.DueAt = value
 	}
-	if value, ok := _c.mutation.OriginallyDue(); ok {
-		_spec.SetField(job.FieldOriginallyDue, field.TypeTime, value)
-		_node.OriginallyDue = value
+	if value, ok := _c.mutation.OriginallyDueAt(); ok {
+		_spec.SetField(job.FieldOriginallyDueAt, field.TypeTime, value)
+		_node.OriginallyDueAt = value
 	}
-	if value, ok := _c.mutation.Started(); ok {
-		_spec.SetField(job.FieldStarted, field.TypeTime, value)
-		_node.Started = value
+	if value, ok := _c.mutation.StartedAt(); ok {
+		_spec.SetField(job.FieldStartedAt, field.TypeTime, value)
+		_node.StartedAt = value
 	}
 	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(job.FieldType, field.TypeString, value)
@@ -393,7 +357,7 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Job.Create().
-//		SetCreated(v).
+//		SetCreatedAt(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -402,7 +366,7 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.JobUpsert) {
-//			SetCreated(v+v).
+//			SetCreatedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *JobCreate) OnConflict(opts ...sql.ConflictOption) *JobUpsertOne {
@@ -438,57 +402,57 @@ type (
 	}
 )
 
-// SetCreated sets the "created" field.
-func (u *JobUpsert) SetCreated(v time.Time) *JobUpsert {
-	u.Set(job.FieldCreated, v)
+// SetCreatedAt sets the "createdAt" field.
+func (u *JobUpsert) SetCreatedAt(v time.Time) *JobUpsert {
+	u.Set(job.FieldCreatedAt, v)
 	return u
 }
 
-// UpdateCreated sets the "created" field to the value that was provided on create.
-func (u *JobUpsert) UpdateCreated() *JobUpsert {
-	u.SetExcluded(job.FieldCreated)
+// UpdateCreatedAt sets the "createdAt" field to the value that was provided on create.
+func (u *JobUpsert) UpdateCreatedAt() *JobUpsert {
+	u.SetExcluded(job.FieldCreatedAt)
 	return u
 }
 
-// SetDue sets the "due" field.
-func (u *JobUpsert) SetDue(v time.Time) *JobUpsert {
-	u.Set(job.FieldDue, v)
+// SetDueAt sets the "dueAt" field.
+func (u *JobUpsert) SetDueAt(v time.Time) *JobUpsert {
+	u.Set(job.FieldDueAt, v)
 	return u
 }
 
-// UpdateDue sets the "due" field to the value that was provided on create.
-func (u *JobUpsert) UpdateDue() *JobUpsert {
-	u.SetExcluded(job.FieldDue)
+// UpdateDueAt sets the "dueAt" field to the value that was provided on create.
+func (u *JobUpsert) UpdateDueAt() *JobUpsert {
+	u.SetExcluded(job.FieldDueAt)
 	return u
 }
 
-// SetOriginallyDue sets the "originallyDue" field.
-func (u *JobUpsert) SetOriginallyDue(v time.Time) *JobUpsert {
-	u.Set(job.FieldOriginallyDue, v)
+// SetOriginallyDueAt sets the "originallyDueAt" field.
+func (u *JobUpsert) SetOriginallyDueAt(v time.Time) *JobUpsert {
+	u.Set(job.FieldOriginallyDueAt, v)
 	return u
 }
 
-// UpdateOriginallyDue sets the "originallyDue" field to the value that was provided on create.
-func (u *JobUpsert) UpdateOriginallyDue() *JobUpsert {
-	u.SetExcluded(job.FieldOriginallyDue)
+// UpdateOriginallyDueAt sets the "originallyDueAt" field to the value that was provided on create.
+func (u *JobUpsert) UpdateOriginallyDueAt() *JobUpsert {
+	u.SetExcluded(job.FieldOriginallyDueAt)
 	return u
 }
 
-// SetStarted sets the "started" field.
-func (u *JobUpsert) SetStarted(v time.Time) *JobUpsert {
-	u.Set(job.FieldStarted, v)
+// SetStartedAt sets the "startedAt" field.
+func (u *JobUpsert) SetStartedAt(v time.Time) *JobUpsert {
+	u.Set(job.FieldStartedAt, v)
 	return u
 }
 
-// UpdateStarted sets the "started" field to the value that was provided on create.
-func (u *JobUpsert) UpdateStarted() *JobUpsert {
-	u.SetExcluded(job.FieldStarted)
+// UpdateStartedAt sets the "startedAt" field to the value that was provided on create.
+func (u *JobUpsert) UpdateStartedAt() *JobUpsert {
+	u.SetExcluded(job.FieldStartedAt)
 	return u
 }
 
-// ClearStarted clears the value of the "started" field.
-func (u *JobUpsert) ClearStarted() *JobUpsert {
-	u.SetNull(job.FieldStarted)
+// ClearStartedAt clears the value of the "startedAt" field.
+func (u *JobUpsert) ClearStartedAt() *JobUpsert {
+	u.SetNull(job.FieldStartedAt)
 	return u
 }
 
@@ -678,66 +642,66 @@ func (u *JobUpsertOne) Update(set func(*JobUpsert)) *JobUpsertOne {
 	return u
 }
 
-// SetCreated sets the "created" field.
-func (u *JobUpsertOne) SetCreated(v time.Time) *JobUpsertOne {
+// SetCreatedAt sets the "createdAt" field.
+func (u *JobUpsertOne) SetCreatedAt(v time.Time) *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.SetCreated(v)
+		s.SetCreatedAt(v)
 	})
 }
 
-// UpdateCreated sets the "created" field to the value that was provided on create.
-func (u *JobUpsertOne) UpdateCreated() *JobUpsertOne {
+// UpdateCreatedAt sets the "createdAt" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateCreatedAt() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateCreated()
+		s.UpdateCreatedAt()
 	})
 }
 
-// SetDue sets the "due" field.
-func (u *JobUpsertOne) SetDue(v time.Time) *JobUpsertOne {
+// SetDueAt sets the "dueAt" field.
+func (u *JobUpsertOne) SetDueAt(v time.Time) *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.SetDue(v)
+		s.SetDueAt(v)
 	})
 }
 
-// UpdateDue sets the "due" field to the value that was provided on create.
-func (u *JobUpsertOne) UpdateDue() *JobUpsertOne {
+// UpdateDueAt sets the "dueAt" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateDueAt() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateDue()
+		s.UpdateDueAt()
 	})
 }
 
-// SetOriginallyDue sets the "originallyDue" field.
-func (u *JobUpsertOne) SetOriginallyDue(v time.Time) *JobUpsertOne {
+// SetOriginallyDueAt sets the "originallyDueAt" field.
+func (u *JobUpsertOne) SetOriginallyDueAt(v time.Time) *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.SetOriginallyDue(v)
+		s.SetOriginallyDueAt(v)
 	})
 }
 
-// UpdateOriginallyDue sets the "originallyDue" field to the value that was provided on create.
-func (u *JobUpsertOne) UpdateOriginallyDue() *JobUpsertOne {
+// UpdateOriginallyDueAt sets the "originallyDueAt" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateOriginallyDueAt() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateOriginallyDue()
+		s.UpdateOriginallyDueAt()
 	})
 }
 
-// SetStarted sets the "started" field.
-func (u *JobUpsertOne) SetStarted(v time.Time) *JobUpsertOne {
+// SetStartedAt sets the "startedAt" field.
+func (u *JobUpsertOne) SetStartedAt(v time.Time) *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.SetStarted(v)
+		s.SetStartedAt(v)
 	})
 }
 
-// UpdateStarted sets the "started" field to the value that was provided on create.
-func (u *JobUpsertOne) UpdateStarted() *JobUpsertOne {
+// UpdateStartedAt sets the "startedAt" field to the value that was provided on create.
+func (u *JobUpsertOne) UpdateStartedAt() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateStarted()
+		s.UpdateStartedAt()
 	})
 }
 
-// ClearStarted clears the value of the "started" field.
-func (u *JobUpsertOne) ClearStarted() *JobUpsertOne {
+// ClearStartedAt clears the value of the "startedAt" field.
+func (u *JobUpsertOne) ClearStartedAt() *JobUpsertOne {
 	return u.Update(func(s *JobUpsert) {
-		s.ClearStarted()
+		s.ClearStartedAt()
 	})
 }
 
@@ -1038,7 +1002,7 @@ func (_c *JobCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.JobUpsert) {
-//			SetCreated(v+v).
+//			SetCreatedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *JobCreateBulk) OnConflict(opts ...sql.ConflictOption) *JobUpsertBulk {
@@ -1117,66 +1081,66 @@ func (u *JobUpsertBulk) Update(set func(*JobUpsert)) *JobUpsertBulk {
 	return u
 }
 
-// SetCreated sets the "created" field.
-func (u *JobUpsertBulk) SetCreated(v time.Time) *JobUpsertBulk {
+// SetCreatedAt sets the "createdAt" field.
+func (u *JobUpsertBulk) SetCreatedAt(v time.Time) *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.SetCreated(v)
+		s.SetCreatedAt(v)
 	})
 }
 
-// UpdateCreated sets the "created" field to the value that was provided on create.
-func (u *JobUpsertBulk) UpdateCreated() *JobUpsertBulk {
+// UpdateCreatedAt sets the "createdAt" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateCreatedAt() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateCreated()
+		s.UpdateCreatedAt()
 	})
 }
 
-// SetDue sets the "due" field.
-func (u *JobUpsertBulk) SetDue(v time.Time) *JobUpsertBulk {
+// SetDueAt sets the "dueAt" field.
+func (u *JobUpsertBulk) SetDueAt(v time.Time) *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.SetDue(v)
+		s.SetDueAt(v)
 	})
 }
 
-// UpdateDue sets the "due" field to the value that was provided on create.
-func (u *JobUpsertBulk) UpdateDue() *JobUpsertBulk {
+// UpdateDueAt sets the "dueAt" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateDueAt() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateDue()
+		s.UpdateDueAt()
 	})
 }
 
-// SetOriginallyDue sets the "originallyDue" field.
-func (u *JobUpsertBulk) SetOriginallyDue(v time.Time) *JobUpsertBulk {
+// SetOriginallyDueAt sets the "originallyDueAt" field.
+func (u *JobUpsertBulk) SetOriginallyDueAt(v time.Time) *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.SetOriginallyDue(v)
+		s.SetOriginallyDueAt(v)
 	})
 }
 
-// UpdateOriginallyDue sets the "originallyDue" field to the value that was provided on create.
-func (u *JobUpsertBulk) UpdateOriginallyDue() *JobUpsertBulk {
+// UpdateOriginallyDueAt sets the "originallyDueAt" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateOriginallyDueAt() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateOriginallyDue()
+		s.UpdateOriginallyDueAt()
 	})
 }
 
-// SetStarted sets the "started" field.
-func (u *JobUpsertBulk) SetStarted(v time.Time) *JobUpsertBulk {
+// SetStartedAt sets the "startedAt" field.
+func (u *JobUpsertBulk) SetStartedAt(v time.Time) *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.SetStarted(v)
+		s.SetStartedAt(v)
 	})
 }
 
-// UpdateStarted sets the "started" field to the value that was provided on create.
-func (u *JobUpsertBulk) UpdateStarted() *JobUpsertBulk {
+// UpdateStartedAt sets the "startedAt" field to the value that was provided on create.
+func (u *JobUpsertBulk) UpdateStartedAt() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.UpdateStarted()
+		s.UpdateStartedAt()
 	})
 }
 
-// ClearStarted clears the value of the "started" field.
-func (u *JobUpsertBulk) ClearStarted() *JobUpsertBulk {
+// ClearStartedAt clears the value of the "startedAt" field.
+func (u *JobUpsertBulk) ClearStartedAt() *JobUpsertBulk {
 	return u.Update(func(s *JobUpsert) {
-		s.ClearStarted()
+		s.ClearStartedAt()
 	})
 }
 

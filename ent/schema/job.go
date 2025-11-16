@@ -2,7 +2,6 @@ package schema
 
 import (
 	"encoding/json"
-	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
@@ -19,10 +18,10 @@ type Job struct {
 func (Job) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
-		field.Time("created").Default(time.Now),
-		field.Time("due").Default(time.Now),
-		field.Time("originallyDue").Default(time.Now), // Due is updated for retries
-		field.Time("started").Optional(),
+		field.Time("createdAt"),
+		field.Time("dueAt"),
+		field.Time("originallyDueAt"), // Due is updated for retries
+		field.Time("startedAt").Optional(),
 		field.String("type").MinLen(1).MaxLen(128),
 		field.Int("version"),
 		field.Int8("priority"), // Currently duplicates the definition but needed for sorting and might want to make it dynamic in the future
@@ -42,7 +41,7 @@ func (Job) Edges() []ent.Edge {
 
 func (Job) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("status", "priority", "due"),
-		index.Fields("due"),
+		index.Fields("status", "priority", "dueAt"),
+		index.Fields("dueAt"),
 	}
 }

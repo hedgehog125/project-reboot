@@ -29,16 +29,16 @@ func (_u *LoginAlertUpdate) Where(ps ...predicate.LoginAlert) *LoginAlertUpdate 
 	return _u
 }
 
-// SetTime sets the "time" field.
-func (_u *LoginAlertUpdate) SetTime(v time.Time) *LoginAlertUpdate {
-	_u.mutation.SetTime(v)
+// SetSentAt sets the "sentAt" field.
+func (_u *LoginAlertUpdate) SetSentAt(v time.Time) *LoginAlertUpdate {
+	_u.mutation.SetSentAt(v)
 	return _u
 }
 
-// SetNillableTime sets the "time" field if the given value is not nil.
-func (_u *LoginAlertUpdate) SetNillableTime(v *time.Time) *LoginAlertUpdate {
+// SetNillableSentAt sets the "sentAt" field if the given value is not nil.
+func (_u *LoginAlertUpdate) SetNillableSentAt(v *time.Time) *LoginAlertUpdate {
 	if v != nil {
-		_u.SetTime(*v)
+		_u.SetSentAt(*v)
 	}
 	return _u
 }
@@ -153,8 +153,8 @@ func (_u *LoginAlertUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			}
 		}
 	}
-	if value, ok := _u.mutation.Time(); ok {
-		_spec.SetField(loginalert.FieldTime, field.TypeTime, value)
+	if value, ok := _u.mutation.SentAt(); ok {
+		_spec.SetField(loginalert.FieldSentAt, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.VersionedMessengerType(); ok {
 		_spec.SetField(loginalert.FieldVersionedMessengerType, field.TypeString, value)
@@ -211,16 +211,16 @@ type LoginAlertUpdateOne struct {
 	mutation *LoginAlertMutation
 }
 
-// SetTime sets the "time" field.
-func (_u *LoginAlertUpdateOne) SetTime(v time.Time) *LoginAlertUpdateOne {
-	_u.mutation.SetTime(v)
+// SetSentAt sets the "sentAt" field.
+func (_u *LoginAlertUpdateOne) SetSentAt(v time.Time) *LoginAlertUpdateOne {
+	_u.mutation.SetSentAt(v)
 	return _u
 }
 
-// SetNillableTime sets the "time" field if the given value is not nil.
-func (_u *LoginAlertUpdateOne) SetNillableTime(v *time.Time) *LoginAlertUpdateOne {
+// SetNillableSentAt sets the "sentAt" field if the given value is not nil.
+func (_u *LoginAlertUpdateOne) SetNillableSentAt(v *time.Time) *LoginAlertUpdateOne {
 	if v != nil {
-		_u.SetTime(*v)
+		_u.SetSentAt(*v)
 	}
 	return _u
 }
@@ -365,8 +365,8 @@ func (_u *LoginAlertUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlert, 
 			}
 		}
 	}
-	if value, ok := _u.mutation.Time(); ok {
-		_spec.SetField(loginalert.FieldTime, field.TypeTime, value)
+	if value, ok := _u.mutation.SentAt(); ok {
+		_spec.SetField(loginalert.FieldSentAt, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.VersionedMessengerType(); ok {
 		_spec.SetField(loginalert.FieldVersionedMessengerType, field.TypeString, value)

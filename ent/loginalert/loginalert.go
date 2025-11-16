@@ -12,8 +12,8 @@ const (
 	Label = "login_alert"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldTime holds the string denoting the time field in the database.
-	FieldTime = "time"
+	// FieldSentAt holds the string denoting the sentat field in the database.
+	FieldSentAt = "sent_at"
 	// FieldVersionedMessengerType holds the string denoting the versionedmessengertype field in the database.
 	FieldVersionedMessengerType = "versioned_messenger_type"
 	// FieldConfirmed holds the string denoting the confirmed field in the database.
@@ -36,7 +36,7 @@ const (
 // Columns holds all SQL columns for loginalert fields.
 var Columns = []string{
 	FieldID,
-	FieldTime,
+	FieldSentAt,
 	FieldVersionedMessengerType,
 	FieldConfirmed,
 	FieldSessionID,
@@ -65,9 +65,9 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByTime orders the results by the time field.
-func ByTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTime, opts...).ToFunc()
+// BySentAt orders the results by the sentAt field.
+func BySentAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSentAt, opts...).ToFunc()
 }
 
 // ByVersionedMessengerType orders the results by the versionedMessengerType field.

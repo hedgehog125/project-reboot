@@ -43,50 +43,54 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 			return wrappedErr
 		}
 
-		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			stdErr := tx.User.Create().
-				SetUsername(body.Username).
-				SetContent(encrypted).
-				SetFileName(body.Filename).
-				SetMime(body.Mime).
-				SetNonce(nonce).
-				SetKeySalt(salt).
-				SetHashTime(hashSettings.Time).
-				SetHashMemory(hashSettings.Memory).
-				SetHashThreads(hashSettings.Threads).
-				OnConflict().UpdateNewValues().
-				Exec(ctx)
-			if stdErr != nil {
-				return stdErr
-			}
+		return dbcommon.WithWriteTx(
+			ginCtx, app.Database,
+			func(tx *ent.Tx, ctx context.Context) error {
+				stdErr := tx.User.Create().
+					SetUsername(body.Username).
+					SetSessionsValidFrom(app.Clock.Now()).
+					SetContent(encrypted).
+					SetFileName(body.Filename).
+					SetMime(body.Mime).
+					SetNonce(nonce).
+					SetKeySalt(salt).
+					SetHashTime(hashSettings.Time).
+					SetHashMemory(hashSettings.Memory).
+					SetHashThreads(hashSettings.Threads).
+					OnConflict().UpdateNewValues().
+					Exec(ctx)
+				if stdErr != nil {
+					return stdErr
+				}
 
-			userOb, stdErr := tx.User.Query().
-				Where(user.Username(body.Username)).
-				Only(ctx)
-			if stdErr != nil {
-				return stdErr
-			}
+				userOb, stdErr := tx.User.Query().
+					Where(user.Username(body.Username)).
+					Only(ctx)
+				if stdErr != nil {
+					return stdErr
+				}
 
-			wrappedErr := app.Core.InvalidateUserSessions(userOb.ID, ctx)
-			if wrappedErr != nil {
-				return wrappedErr
-			}
+				wrappedErr := app.Core.InvalidateUserSessions(userOb.ID, ctx)
+				if wrappedErr != nil {
+					return wrappedErr
+				}
 
-			_, _, wrappedErr = app.Messengers.SendUsingAll(
-				&common.Message{
-					Type: common.MessageUserUpdate,
-					User: userOb,
-				},
-				ctx,
-			)
-			if wrappedErr != nil {
-				return wrappedErr
-			}
+				_, _, wrappedErr = app.Messengers.SendUsingAll(
+					&common.Message{
+						Type: common.MessageUserUpdate,
+						User: userOb,
+					},
+					ctx,
+				)
+				if wrappedErr != nil {
+					return wrappedErr
+				}
 
-			ginCtx.JSON(http.StatusCreated, RegisterOrUpdateResponse{
-				Errors: []servercommon.ErrorDetail{},
-			})
-			return nil
-		})
+				ginCtx.JSON(http.StatusCreated, RegisterOrUpdateResponse{
+					Errors: []servercommon.ErrorDetail{},
+				})
+				return nil
+			},
+		)
 	})
 }

@@ -3,8 +3,6 @@
 package session
 
 import (
-	"time"
-
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -14,8 +12,8 @@ const (
 	Label = "session"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldTime holds the string denoting the time field in the database.
-	FieldTime = "time"
+	// FieldCreatedAt holds the string denoting the createdat field in the database.
+	FieldCreatedAt = "created_at"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
 	// FieldValidFrom holds the string denoting the validfrom field in the database.
@@ -53,7 +51,7 @@ const (
 // Columns holds all SQL columns for session fields.
 var Columns = []string{
 	FieldID,
-	FieldTime,
+	FieldCreatedAt,
 	FieldCode,
 	FieldValidFrom,
 	FieldValidUntil,
@@ -73,8 +71,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultTime holds the default value on creation for the "time" field.
-	DefaultTime func() time.Time
 	// CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	CodeValidator func([]byte) error
 )
@@ -87,9 +83,9 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByTime orders the results by the time field.
-func ByTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTime, opts...).ToFunc()
+// ByCreatedAt orders the results by the createdAt field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
 }
 
 // ByValidFrom orders the results by the validFrom field.

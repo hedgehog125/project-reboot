@@ -51,7 +51,7 @@ type ExpectedEntry struct {
 
 func (service *Logger) AssertWritten(t *testing.T, expectedEntries []ExpectedEntry) {
 	client := service.Handler.App.Database.Client()
-	entries := client.LogEntry.Query().Order(ent.Asc(logentry.FieldTime)).AllX(t.Context())
+	entries := client.LogEntry.Query().Order(ent.Asc(logentry.FieldLoggedAt)).AllX(t.Context())
 	require.Len(t, entries, len(expectedEntries))
 	for i, entry := range entries {
 		expected := expectedEntries[i]
@@ -186,15 +186,25 @@ func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
 	t.Parallel()
 	db := testcommon.CreateDB()
 	defer db.Shutdown()
+	clock := clockwork.NewRealClock()
+
 	userIDs := []int{}
 	for i := range 2 {
-		userIDs = append(userIDs, testcommon.NewDummyUser(i+1, db.Client(), t.Context()).ID)
+		userIDs = append(
+			userIDs,
+			testcommon.NewDummyUser(
+				i+1,
+				db.Client(),
+				t.Context(),
+				clock,
+			).ID,
+		)
 	}
 
 	app := &common.App{
 		Database: db,
 		Env:      testcommon.DefaultEnv(),
-		Clock:    clockwork.NewRealClock(),
+		Clock:    clock,
 	}
 	logger := NewLogger(app)
 	app.Logger = logger
@@ -310,15 +320,25 @@ func TestLogger_SpecialAttributes(t *testing.T) {
 	t.Parallel()
 	db := testcommon.CreateDB()
 	defer db.Shutdown()
+	clock := clockwork.NewRealClock()
+
 	userIDs := []int{}
 	for i := range 2 {
-		userIDs = append(userIDs, testcommon.NewDummyUser(i+1, db.Client(), t.Context()).ID)
+		userIDs = append(
+			userIDs,
+			testcommon.NewDummyUser(
+				i+1,
+				db.Client(),
+				t.Context(),
+				clock,
+			).ID,
+		)
 	}
 
 	app := &common.App{
 		Database: db,
 		Env:      testcommon.DefaultEnv(),
-		Clock:    clockwork.NewRealClock(),
+		Clock:    clock,
 	}
 	logger := NewLogger(app)
 	app.Logger = logger

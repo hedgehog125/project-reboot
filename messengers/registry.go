@@ -96,7 +96,7 @@ func (registry *Registry) Register(definition *Definition) {
 				if body.MessageType == common.MessageAdminError {
 					wrappedErr := common.WrapErrorWithCategories(stdErr)
 					if wrappedErr.MaxRetries() > 0 || wrappedErr.MaxRetries() == -1 {
-						if registry.App.Clock.Since(jobCtx.OriginallyDue) >= registry.App.Env.ADMIN_MESSAGE_TIMEOUT {
+						if registry.App.Clock.Since(jobCtx.OriginallyDueAt) >= registry.App.Env.ADMIN_MESSAGE_TIMEOUT {
 							jobCtx.Logger.ErrorContext(
 								context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
 								"failed to notify admin about an error before ADMIN_MESSAGE_TIMEOUT, will now possible crash to notify them earlier",
@@ -126,7 +126,7 @@ func (registry *Registry) Register(definition *Definition) {
 							body.SessionIDs,
 							func(alertCreate *ent.LoginAlertCreate, i int) {
 								alertCreate.
-									SetTime(registry.App.Clock.Now()).
+									SetSentAt(registry.App.Clock.Now()).
 									SetVersionedMessengerType(body.VersionedMessengerType).
 									SetConfirmed(messengerCtx.confirmedSent).
 									SetSessionID(body.SessionIDs[i])
@@ -203,7 +203,7 @@ func (registry *Registry) Send(
 			Inner:                  string(encoded),
 		},
 		func(jobCreate *ent.JobCreate) {
-			jobCreate.SetDue(sendTime)
+			jobCreate.SetDueAt(sendTime)
 		},
 		ctx,
 	)

@@ -20,10 +20,10 @@ type LogEntry struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Time holds the value of the "time" field.
-	Time time.Time `json:"time,omitempty"`
-	// TimeKnown holds the value of the "timeKnown" field.
-	TimeKnown bool `json:"timeKnown,omitempty"`
+	// LoggedAt holds the value of the "loggedAt" field.
+	LoggedAt time.Time `json:"loggedAt,omitempty"`
+	// LoggedAtKnown holds the value of the "loggedAtKnown" field.
+	LoggedAtKnown bool `json:"loggedAtKnown,omitempty"`
 	// Level holds the value of the "level" field.
 	Level int `json:"level,omitempty"`
 	// Message holds the value of the "message" field.
@@ -73,13 +73,13 @@ func (*LogEntry) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case logentry.FieldAttributes:
 			values[i] = new([]byte)
-		case logentry.FieldTimeKnown:
+		case logentry.FieldLoggedAtKnown:
 			values[i] = new(sql.NullBool)
 		case logentry.FieldLevel, logentry.FieldSourceLine, logentry.FieldUserID:
 			values[i] = new(sql.NullInt64)
 		case logentry.FieldMessage, logentry.FieldSourceFile, logentry.FieldSourceFunction, logentry.FieldPublicMessage:
 			values[i] = new(sql.NullString)
-		case logentry.FieldTime:
+		case logentry.FieldLoggedAt:
 			values[i] = new(sql.NullTime)
 		case logentry.FieldID:
 			values[i] = new(uuid.UUID)
@@ -104,17 +104,17 @@ func (_m *LogEntry) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.ID = *value
 			}
-		case logentry.FieldTime:
+		case logentry.FieldLoggedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field time", values[i])
+				return fmt.Errorf("unexpected type %T for field loggedAt", values[i])
 			} else if value.Valid {
-				_m.Time = value.Time
+				_m.LoggedAt = value.Time
 			}
-		case logentry.FieldTimeKnown:
+		case logentry.FieldLoggedAtKnown:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field timeKnown", values[i])
+				return fmt.Errorf("unexpected type %T for field loggedAtKnown", values[i])
 			} else if value.Valid {
-				_m.TimeKnown = value.Bool
+				_m.LoggedAtKnown = value.Bool
 			}
 		case logentry.FieldLevel:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -207,11 +207,11 @@ func (_m *LogEntry) String() string {
 	var builder strings.Builder
 	builder.WriteString("LogEntry(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("time=")
-	builder.WriteString(_m.Time.Format(time.ANSIC))
+	builder.WriteString("loggedAt=")
+	builder.WriteString(_m.LoggedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("timeKnown=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TimeKnown))
+	builder.WriteString("loggedAtKnown=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LoggedAtKnown))
 	builder.WriteString(", ")
 	builder.WriteString("level=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Level))

@@ -23,9 +23,9 @@ type LoginAlertCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetTime sets the "time" field.
-func (_c *LoginAlertCreate) SetTime(v time.Time) *LoginAlertCreate {
-	_c.mutation.SetTime(v)
+// SetSentAt sets the "sentAt" field.
+func (_c *LoginAlertCreate) SetSentAt(v time.Time) *LoginAlertCreate {
+	_c.mutation.SetSentAt(v)
 	return _c
 }
 
@@ -86,8 +86,8 @@ func (_c *LoginAlertCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *LoginAlertCreate) check() error {
-	if _, ok := _c.mutation.Time(); !ok {
-		return &ValidationError{Name: "time", err: errors.New(`ent: missing required field "LoginAlert.time"`)}
+	if _, ok := _c.mutation.SentAt(); !ok {
+		return &ValidationError{Name: "sentAt", err: errors.New(`ent: missing required field "LoginAlert.sentAt"`)}
 	}
 	if _, ok := _c.mutation.VersionedMessengerType(); !ok {
 		return &ValidationError{Name: "versionedMessengerType", err: errors.New(`ent: missing required field "LoginAlert.versionedMessengerType"`)}
@@ -133,9 +133,9 @@ func (_c *LoginAlertCreate) createSpec() (*LoginAlert, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(loginalert.Table, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = _c.conflict
-	if value, ok := _c.mutation.Time(); ok {
-		_spec.SetField(loginalert.FieldTime, field.TypeTime, value)
-		_node.Time = value
+	if value, ok := _c.mutation.SentAt(); ok {
+		_spec.SetField(loginalert.FieldSentAt, field.TypeTime, value)
+		_node.SentAt = value
 	}
 	if value, ok := _c.mutation.VersionedMessengerType(); ok {
 		_spec.SetField(loginalert.FieldVersionedMessengerType, field.TypeString, value)
@@ -169,7 +169,7 @@ func (_c *LoginAlertCreate) createSpec() (*LoginAlert, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.LoginAlert.Create().
-//		SetTime(v).
+//		SetSentAt(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -178,7 +178,7 @@ func (_c *LoginAlertCreate) createSpec() (*LoginAlert, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.LoginAlertUpsert) {
-//			SetTime(v+v).
+//			SetSentAt(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *LoginAlertCreate) OnConflict(opts ...sql.ConflictOption) *LoginAlertUpsertOne {
@@ -214,15 +214,15 @@ type (
 	}
 )
 
-// SetTime sets the "time" field.
-func (u *LoginAlertUpsert) SetTime(v time.Time) *LoginAlertUpsert {
-	u.Set(loginalert.FieldTime, v)
+// SetSentAt sets the "sentAt" field.
+func (u *LoginAlertUpsert) SetSentAt(v time.Time) *LoginAlertUpsert {
+	u.Set(loginalert.FieldSentAt, v)
 	return u
 }
 
-// UpdateTime sets the "time" field to the value that was provided on create.
-func (u *LoginAlertUpsert) UpdateTime() *LoginAlertUpsert {
-	u.SetExcluded(loginalert.FieldTime)
+// UpdateSentAt sets the "sentAt" field to the value that was provided on create.
+func (u *LoginAlertUpsert) UpdateSentAt() *LoginAlertUpsert {
+	u.SetExcluded(loginalert.FieldSentAt)
 	return u
 }
 
@@ -302,17 +302,17 @@ func (u *LoginAlertUpsertOne) Update(set func(*LoginAlertUpsert)) *LoginAlertUps
 	return u
 }
 
-// SetTime sets the "time" field.
-func (u *LoginAlertUpsertOne) SetTime(v time.Time) *LoginAlertUpsertOne {
+// SetSentAt sets the "sentAt" field.
+func (u *LoginAlertUpsertOne) SetSentAt(v time.Time) *LoginAlertUpsertOne {
 	return u.Update(func(s *LoginAlertUpsert) {
-		s.SetTime(v)
+		s.SetSentAt(v)
 	})
 }
 
-// UpdateTime sets the "time" field to the value that was provided on create.
-func (u *LoginAlertUpsertOne) UpdateTime() *LoginAlertUpsertOne {
+// UpdateSentAt sets the "sentAt" field to the value that was provided on create.
+func (u *LoginAlertUpsertOne) UpdateSentAt() *LoginAlertUpsertOne {
 	return u.Update(func(s *LoginAlertUpsert) {
-		s.UpdateTime()
+		s.UpdateSentAt()
 	})
 }
 
@@ -492,7 +492,7 @@ func (_c *LoginAlertCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.LoginAlertUpsert) {
-//			SetTime(v+v).
+//			SetSentAt(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *LoginAlertCreateBulk) OnConflict(opts ...sql.ConflictOption) *LoginAlertUpsertBulk {
@@ -561,17 +561,17 @@ func (u *LoginAlertUpsertBulk) Update(set func(*LoginAlertUpsert)) *LoginAlertUp
 	return u
 }
 
-// SetTime sets the "time" field.
-func (u *LoginAlertUpsertBulk) SetTime(v time.Time) *LoginAlertUpsertBulk {
+// SetSentAt sets the "sentAt" field.
+func (u *LoginAlertUpsertBulk) SetSentAt(v time.Time) *LoginAlertUpsertBulk {
 	return u.Update(func(s *LoginAlertUpsert) {
-		s.SetTime(v)
+		s.SetSentAt(v)
 	})
 }
 
-// UpdateTime sets the "time" field to the value that was provided on create.
-func (u *LoginAlertUpsertBulk) UpdateTime() *LoginAlertUpsertBulk {
+// UpdateSentAt sets the "sentAt" field to the value that was provided on create.
+func (u *LoginAlertUpsertBulk) UpdateSentAt() *LoginAlertUpsertBulk {
 	return u.Update(func(s *LoginAlertUpsert) {
-		s.UpdateTime()
+		s.UpdateSentAt()
 	})
 }
 

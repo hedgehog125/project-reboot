@@ -70,7 +70,7 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 							Username: body.Username,
 						},
 						func(jobCreate *ent.JobCreate) {
-							jobCreate.SetDue(body.Until)
+							jobCreate.SetDueAt(body.Until)
 						},
 						ctx,
 					)

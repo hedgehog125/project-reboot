@@ -56,7 +56,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 					return nil, servercommon.SendUnauthorizedIfNotFound(stdErr)
 				}
 				if clock.Now().After(sessionOb.ValidUntil) ||
-					sessionOb.Edges.User.SessionsValidFrom.After(sessionOb.Time) {
+					sessionOb.Edges.User.SessionsValidFrom.After(sessionOb.CreatedAt) {
 					stdErr := tx.Session.DeleteOneID(sessionOb.ID).Exec(ctx)
 					if stdErr != nil {
 						return nil, stdErr

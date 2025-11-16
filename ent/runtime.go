@@ -3,8 +3,6 @@
 package ent
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/hedgehog125/project-reboot/ent/job"
 	"github.com/hedgehog125/project-reboot/ent/keyvalue"
@@ -23,18 +21,6 @@ import (
 func init() {
 	jobFields := schema.Job{}.Fields()
 	_ = jobFields
-	// jobDescCreated is the schema descriptor for created field.
-	jobDescCreated := jobFields[1].Descriptor()
-	// job.DefaultCreated holds the default value on creation for the created field.
-	job.DefaultCreated = jobDescCreated.Default.(func() time.Time)
-	// jobDescDue is the schema descriptor for due field.
-	jobDescDue := jobFields[2].Descriptor()
-	// job.DefaultDue holds the default value on creation for the due field.
-	job.DefaultDue = jobDescDue.Default.(func() time.Time)
-	// jobDescOriginallyDue is the schema descriptor for originallyDue field.
-	jobDescOriginallyDue := jobFields[3].Descriptor()
-	// job.DefaultOriginallyDue holds the default value on creation for the originallyDue field.
-	job.DefaultOriginallyDue = jobDescOriginallyDue.Default.(func() time.Time)
 	// jobDescType is the schema descriptor for type field.
 	jobDescType := jobFields[5].Descriptor()
 	// job.TypeValidator is a validator for the "type" field. It is called by the builders before save.
@@ -137,10 +123,6 @@ func init() {
 	}()
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
-	// sessionDescTime is the schema descriptor for time field.
-	sessionDescTime := sessionFields[0].Descriptor()
-	// session.DefaultTime holds the default value on creation for the time field.
-	session.DefaultTime = sessionDescTime.Default.(func() time.Time)
 	// sessionDescCode is the schema descriptor for code field.
 	sessionDescCode := sessionFields[1].Descriptor()
 	// session.CodeValidator is a validator for the "code" field. It is called by the builders before save.

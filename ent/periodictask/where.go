@@ -59,9 +59,9 @@ func Name(v string) predicate.PeriodicTask {
 	return predicate.PeriodicTask(sql.FieldEQ(FieldName, v))
 }
 
-// LastRan applies equality check predicate on the "lastRan" field. It's identical to LastRanEQ.
-func LastRan(v time.Time) predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldEQ(FieldLastRan, v))
+// LastRanAt applies equality check predicate on the "lastRanAt" field. It's identical to LastRanAtEQ.
+func LastRanAt(v time.Time) predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldEQ(FieldLastRanAt, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -129,54 +129,54 @@ func NameContainsFold(v string) predicate.PeriodicTask {
 	return predicate.PeriodicTask(sql.FieldContainsFold(FieldName, v))
 }
 
-// LastRanEQ applies the EQ predicate on the "lastRan" field.
-func LastRanEQ(v time.Time) predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldEQ(FieldLastRan, v))
+// LastRanAtEQ applies the EQ predicate on the "lastRanAt" field.
+func LastRanAtEQ(v time.Time) predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldEQ(FieldLastRanAt, v))
 }
 
-// LastRanNEQ applies the NEQ predicate on the "lastRan" field.
-func LastRanNEQ(v time.Time) predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldNEQ(FieldLastRan, v))
+// LastRanAtNEQ applies the NEQ predicate on the "lastRanAt" field.
+func LastRanAtNEQ(v time.Time) predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldNEQ(FieldLastRanAt, v))
 }
 
-// LastRanIn applies the In predicate on the "lastRan" field.
-func LastRanIn(vs ...time.Time) predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldIn(FieldLastRan, vs...))
+// LastRanAtIn applies the In predicate on the "lastRanAt" field.
+func LastRanAtIn(vs ...time.Time) predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldIn(FieldLastRanAt, vs...))
 }
 
-// LastRanNotIn applies the NotIn predicate on the "lastRan" field.
-func LastRanNotIn(vs ...time.Time) predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldNotIn(FieldLastRan, vs...))
+// LastRanAtNotIn applies the NotIn predicate on the "lastRanAt" field.
+func LastRanAtNotIn(vs ...time.Time) predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldNotIn(FieldLastRanAt, vs...))
 }
 
-// LastRanGT applies the GT predicate on the "lastRan" field.
-func LastRanGT(v time.Time) predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldGT(FieldLastRan, v))
+// LastRanAtGT applies the GT predicate on the "lastRanAt" field.
+func LastRanAtGT(v time.Time) predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldGT(FieldLastRanAt, v))
 }
 
-// LastRanGTE applies the GTE predicate on the "lastRan" field.
-func LastRanGTE(v time.Time) predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldGTE(FieldLastRan, v))
+// LastRanAtGTE applies the GTE predicate on the "lastRanAt" field.
+func LastRanAtGTE(v time.Time) predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldGTE(FieldLastRanAt, v))
 }
 
-// LastRanLT applies the LT predicate on the "lastRan" field.
-func LastRanLT(v time.Time) predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldLT(FieldLastRan, v))
+// LastRanAtLT applies the LT predicate on the "lastRanAt" field.
+func LastRanAtLT(v time.Time) predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldLT(FieldLastRanAt, v))
 }
 
-// LastRanLTE applies the LTE predicate on the "lastRan" field.
-func LastRanLTE(v time.Time) predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldLTE(FieldLastRan, v))
+// LastRanAtLTE applies the LTE predicate on the "lastRanAt" field.
+func LastRanAtLTE(v time.Time) predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldLTE(FieldLastRanAt, v))
 }
 
-// LastRanIsNil applies the IsNil predicate on the "lastRan" field.
-func LastRanIsNil() predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldIsNull(FieldLastRan))
+// LastRanAtIsNil applies the IsNil predicate on the "lastRanAt" field.
+func LastRanAtIsNil() predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldIsNull(FieldLastRanAt))
 }
 
-// LastRanNotNil applies the NotNil predicate on the "lastRan" field.
-func LastRanNotNil() predicate.PeriodicTask {
-	return predicate.PeriodicTask(sql.FieldNotNull(FieldLastRan))
+// LastRanAtNotNil applies the NotNil predicate on the "lastRanAt" field.
+func LastRanAtNotNil() predicate.PeriodicTask {
+	return predicate.PeriodicTask(sql.FieldNotNull(FieldLastRanAt))
 }
 
 // And groups predicates with the AND operator between them.

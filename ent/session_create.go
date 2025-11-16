@@ -24,17 +24,9 @@ type SessionCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetTime sets the "time" field.
-func (_c *SessionCreate) SetTime(v time.Time) *SessionCreate {
-	_c.mutation.SetTime(v)
-	return _c
-}
-
-// SetNillableTime sets the "time" field if the given value is not nil.
-func (_c *SessionCreate) SetNillableTime(v *time.Time) *SessionCreate {
-	if v != nil {
-		_c.SetTime(*v)
-	}
+// SetCreatedAt sets the "createdAt" field.
+func (_c *SessionCreate) SetCreatedAt(v time.Time) *SessionCreate {
+	_c.mutation.SetCreatedAt(v)
 	return _c
 }
 
@@ -101,7 +93,6 @@ func (_c *SessionCreate) Mutation() *SessionMutation {
 
 // Save creates the Session in the database.
 func (_c *SessionCreate) Save(ctx context.Context) (*Session, error) {
-	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -127,18 +118,10 @@ func (_c *SessionCreate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (_c *SessionCreate) defaults() {
-	if _, ok := _c.mutation.Time(); !ok {
-		v := session.DefaultTime()
-		_c.mutation.SetTime(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (_c *SessionCreate) check() error {
-	if _, ok := _c.mutation.Time(); !ok {
-		return &ValidationError{Name: "time", err: errors.New(`ent: missing required field "Session.time"`)}
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "createdAt", err: errors.New(`ent: missing required field "Session.createdAt"`)}
 	}
 	if _, ok := _c.mutation.Code(); !ok {
 		return &ValidationError{Name: "code", err: errors.New(`ent: missing required field "Session.code"`)}
@@ -193,9 +176,9 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(session.Table, sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = _c.conflict
-	if value, ok := _c.mutation.Time(); ok {
-		_spec.SetField(session.FieldTime, field.TypeTime, value)
-		_node.Time = value
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(session.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
 	}
 	if value, ok := _c.mutation.Code(); ok {
 		_spec.SetField(session.FieldCode, field.TypeBytes, value)
@@ -257,7 +240,7 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Session.Create().
-//		SetTime(v).
+//		SetCreatedAt(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -266,7 +249,7 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.SessionUpsert) {
-//			SetTime(v+v).
+//			SetCreatedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *SessionCreate) OnConflict(opts ...sql.ConflictOption) *SessionUpsertOne {
@@ -302,15 +285,15 @@ type (
 	}
 )
 
-// SetTime sets the "time" field.
-func (u *SessionUpsert) SetTime(v time.Time) *SessionUpsert {
-	u.Set(session.FieldTime, v)
+// SetCreatedAt sets the "createdAt" field.
+func (u *SessionUpsert) SetCreatedAt(v time.Time) *SessionUpsert {
+	u.Set(session.FieldCreatedAt, v)
 	return u
 }
 
-// UpdateTime sets the "time" field to the value that was provided on create.
-func (u *SessionUpsert) UpdateTime() *SessionUpsert {
-	u.SetExcluded(session.FieldTime)
+// UpdateCreatedAt sets the "createdAt" field to the value that was provided on create.
+func (u *SessionUpsert) UpdateCreatedAt() *SessionUpsert {
+	u.SetExcluded(session.FieldCreatedAt)
 	return u
 }
 
@@ -426,17 +409,17 @@ func (u *SessionUpsertOne) Update(set func(*SessionUpsert)) *SessionUpsertOne {
 	return u
 }
 
-// SetTime sets the "time" field.
-func (u *SessionUpsertOne) SetTime(v time.Time) *SessionUpsertOne {
+// SetCreatedAt sets the "createdAt" field.
+func (u *SessionUpsertOne) SetCreatedAt(v time.Time) *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
-		s.SetTime(v)
+		s.SetCreatedAt(v)
 	})
 }
 
-// UpdateTime sets the "time" field to the value that was provided on create.
-func (u *SessionUpsertOne) UpdateTime() *SessionUpsertOne {
+// UpdateCreatedAt sets the "createdAt" field to the value that was provided on create.
+func (u *SessionUpsertOne) UpdateCreatedAt() *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
-		s.UpdateTime()
+		s.UpdateCreatedAt()
 	})
 }
 
@@ -576,7 +559,6 @@ func (_c *SessionCreateBulk) Save(ctx context.Context) ([]*Session, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
-			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*SessionMutation)
 				if !ok {
@@ -659,7 +641,7 @@ func (_c *SessionCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.SessionUpsert) {
-//			SetTime(v+v).
+//			SetCreatedAt(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *SessionCreateBulk) OnConflict(opts ...sql.ConflictOption) *SessionUpsertBulk {
@@ -728,17 +710,17 @@ func (u *SessionUpsertBulk) Update(set func(*SessionUpsert)) *SessionUpsertBulk 
 	return u
 }
 
-// SetTime sets the "time" field.
-func (u *SessionUpsertBulk) SetTime(v time.Time) *SessionUpsertBulk {
+// SetCreatedAt sets the "createdAt" field.
+func (u *SessionUpsertBulk) SetCreatedAt(v time.Time) *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
-		s.SetTime(v)
+		s.SetCreatedAt(v)
 	})
 }
 
-// UpdateTime sets the "time" field to the value that was provided on create.
-func (u *SessionUpsertBulk) UpdateTime() *SessionUpsertBulk {
+// UpdateCreatedAt sets the "createdAt" field to the value that was provided on create.
+func (u *SessionUpsertBulk) UpdateCreatedAt() *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
-		s.UpdateTime()
+		s.UpdateCreatedAt()
 	})
 }
 

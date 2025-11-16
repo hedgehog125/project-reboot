@@ -55,9 +55,9 @@ func IDLTE(id int) predicate.Session {
 	return predicate.Session(sql.FieldLTE(FieldID, id))
 }
 
-// Time applies equality check predicate on the "time" field. It's identical to TimeEQ.
-func Time(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldEQ(FieldTime, v))
+// CreatedAt applies equality check predicate on the "createdAt" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // Code applies equality check predicate on the "code" field. It's identical to CodeEQ.
@@ -90,44 +90,44 @@ func UserID(v int) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldUserID, v))
 }
 
-// TimeEQ applies the EQ predicate on the "time" field.
-func TimeEQ(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldEQ(FieldTime, v))
+// CreatedAtEQ applies the EQ predicate on the "createdAt" field.
+func CreatedAtEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldEQ(FieldCreatedAt, v))
 }
 
-// TimeNEQ applies the NEQ predicate on the "time" field.
-func TimeNEQ(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldNEQ(FieldTime, v))
+// CreatedAtNEQ applies the NEQ predicate on the "createdAt" field.
+func CreatedAtNEQ(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNEQ(FieldCreatedAt, v))
 }
 
-// TimeIn applies the In predicate on the "time" field.
-func TimeIn(vs ...time.Time) predicate.Session {
-	return predicate.Session(sql.FieldIn(FieldTime, vs...))
+// CreatedAtIn applies the In predicate on the "createdAt" field.
+func CreatedAtIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldIn(FieldCreatedAt, vs...))
 }
 
-// TimeNotIn applies the NotIn predicate on the "time" field.
-func TimeNotIn(vs ...time.Time) predicate.Session {
-	return predicate.Session(sql.FieldNotIn(FieldTime, vs...))
+// CreatedAtNotIn applies the NotIn predicate on the "createdAt" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.Session {
+	return predicate.Session(sql.FieldNotIn(FieldCreatedAt, vs...))
 }
 
-// TimeGT applies the GT predicate on the "time" field.
-func TimeGT(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldGT(FieldTime, v))
+// CreatedAtGT applies the GT predicate on the "createdAt" field.
+func CreatedAtGT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGT(FieldCreatedAt, v))
 }
 
-// TimeGTE applies the GTE predicate on the "time" field.
-func TimeGTE(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldGTE(FieldTime, v))
+// CreatedAtGTE applies the GTE predicate on the "createdAt" field.
+func CreatedAtGTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldGTE(FieldCreatedAt, v))
 }
 
-// TimeLT applies the LT predicate on the "time" field.
-func TimeLT(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldLT(FieldTime, v))
+// CreatedAtLT applies the LT predicate on the "createdAt" field.
+func CreatedAtLT(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLT(FieldCreatedAt, v))
 }
 
-// TimeLTE applies the LTE predicate on the "time" field.
-func TimeLTE(v time.Time) predicate.Session {
-	return predicate.Session(sql.FieldLTE(FieldTime, v))
+// CreatedAtLTE applies the LTE predicate on the "createdAt" field.
+func CreatedAtLTE(v time.Time) predicate.Session {
+	return predicate.Session(sql.FieldLTE(FieldCreatedAt, v))
 }
 
 // CodeEQ applies the EQ predicate on the "code" field.

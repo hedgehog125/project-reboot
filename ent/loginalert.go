@@ -18,8 +18,8 @@ type LoginAlert struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Time holds the value of the "time" field.
-	Time time.Time `json:"time,omitempty"`
+	// SentAt holds the value of the "sentAt" field.
+	SentAt time.Time `json:"sentAt,omitempty"`
 	// VersionedMessengerType holds the value of the "versionedMessengerType" field.
 	VersionedMessengerType string `json:"versionedMessengerType,omitempty"`
 	// Confirmed holds the value of the "confirmed" field.
@@ -63,7 +63,7 @@ func (*LoginAlert) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case loginalert.FieldVersionedMessengerType:
 			values[i] = new(sql.NullString)
-		case loginalert.FieldTime:
+		case loginalert.FieldSentAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -86,11 +86,11 @@ func (_m *LoginAlert) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case loginalert.FieldTime:
+		case loginalert.FieldSentAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field time", values[i])
+				return fmt.Errorf("unexpected type %T for field sentAt", values[i])
 			} else if value.Valid {
-				_m.Time = value.Time
+				_m.SentAt = value.Time
 			}
 		case loginalert.FieldVersionedMessengerType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -151,8 +151,8 @@ func (_m *LoginAlert) String() string {
 	var builder strings.Builder
 	builder.WriteString("LoginAlert(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("time=")
-	builder.WriteString(_m.Time.Format(time.ANSIC))
+	builder.WriteString("sentAt=")
+	builder.WriteString(_m.SentAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("versionedMessengerType=")
 	builder.WriteString(_m.VersionedMessengerType)

@@ -128,6 +128,7 @@ func TestDownload_HappyPath(t *testing.T) {
 		func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
 			userOb, stdErr := tx.User.Create().
 				SetUsername(username).
+				SetSessionsValidFrom(clock.Now()).
 				SetContent(encrypted).
 				SetFileName(filename).
 				SetMime(mimeType).
@@ -147,6 +148,7 @@ func TestDownload_HappyPath(t *testing.T) {
 
 			sessionOb, stdErr := tx.Session.Create().
 				SetUser(userOb).
+				SetCreatedAt(clock.Now()).
 				SetCode(authCode).
 				SetValidFrom(now).
 				SetValidUntil(validUntil).
@@ -159,7 +161,7 @@ func TestDownload_HappyPath(t *testing.T) {
 
 			_, stdErr = tx.LoginAlert.Create().
 				SetSession(sessionOb).
-				SetTime(clock.Now()).
+				SetSentAt(clock.Now()).
 				SetVersionedMessengerType(mockMessenger.VersionedName()).
 				SetConfirmed(true).
 				Save(ctx)
@@ -245,6 +247,7 @@ func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T)
 
 			userOb, stdErr := tx.User.Create().
 				SetUsername(username).
+				SetSessionsValidFrom(clock.Now()).
 				SetContent(encrypted).
 				SetFileName(filename).
 				SetMime(mimeType).
@@ -264,6 +267,7 @@ func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T)
 
 			sessionOb, stdErr := tx.Session.Create().
 				SetUser(userOb).
+				SetCreatedAt(clock.Now()).
 				SetCode(authCode).
 				SetValidFrom(now).
 				SetValidUntil(validUntil).
@@ -276,7 +280,7 @@ func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T)
 
 			_, stdErr = tx.LoginAlert.Create().
 				SetSession(sessionOb).
-				SetTime(clock.Now()).
+				SetSentAt(clock.Now()).
 				SetVersionedMessengerType(mockMessenger.VersionedName()).
 				SetConfirmed(true).
 				Save(ctx)

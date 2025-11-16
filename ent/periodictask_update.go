@@ -42,23 +42,23 @@ func (_u *PeriodicTaskUpdate) SetNillableName(v *string) *PeriodicTaskUpdate {
 	return _u
 }
 
-// SetLastRan sets the "lastRan" field.
-func (_u *PeriodicTaskUpdate) SetLastRan(v time.Time) *PeriodicTaskUpdate {
-	_u.mutation.SetLastRan(v)
+// SetLastRanAt sets the "lastRanAt" field.
+func (_u *PeriodicTaskUpdate) SetLastRanAt(v time.Time) *PeriodicTaskUpdate {
+	_u.mutation.SetLastRanAt(v)
 	return _u
 }
 
-// SetNillableLastRan sets the "lastRan" field if the given value is not nil.
-func (_u *PeriodicTaskUpdate) SetNillableLastRan(v *time.Time) *PeriodicTaskUpdate {
+// SetNillableLastRanAt sets the "lastRanAt" field if the given value is not nil.
+func (_u *PeriodicTaskUpdate) SetNillableLastRanAt(v *time.Time) *PeriodicTaskUpdate {
 	if v != nil {
-		_u.SetLastRan(*v)
+		_u.SetLastRanAt(*v)
 	}
 	return _u
 }
 
-// ClearLastRan clears the value of the "lastRan" field.
-func (_u *PeriodicTaskUpdate) ClearLastRan() *PeriodicTaskUpdate {
-	_u.mutation.ClearLastRan()
+// ClearLastRanAt clears the value of the "lastRanAt" field.
+func (_u *PeriodicTaskUpdate) ClearLastRanAt() *PeriodicTaskUpdate {
+	_u.mutation.ClearLastRanAt()
 	return _u
 }
 
@@ -119,11 +119,11 @@ func (_u *PeriodicTaskUpdate) sqlSave(ctx context.Context) (_node int, err error
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(periodictask.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.LastRan(); ok {
-		_spec.SetField(periodictask.FieldLastRan, field.TypeTime, value)
+	if value, ok := _u.mutation.LastRanAt(); ok {
+		_spec.SetField(periodictask.FieldLastRanAt, field.TypeTime, value)
 	}
-	if _u.mutation.LastRanCleared() {
-		_spec.ClearField(periodictask.FieldLastRan, field.TypeTime)
+	if _u.mutation.LastRanAtCleared() {
+		_spec.ClearField(periodictask.FieldLastRanAt, field.TypeTime)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -159,23 +159,23 @@ func (_u *PeriodicTaskUpdateOne) SetNillableName(v *string) *PeriodicTaskUpdateO
 	return _u
 }
 
-// SetLastRan sets the "lastRan" field.
-func (_u *PeriodicTaskUpdateOne) SetLastRan(v time.Time) *PeriodicTaskUpdateOne {
-	_u.mutation.SetLastRan(v)
+// SetLastRanAt sets the "lastRanAt" field.
+func (_u *PeriodicTaskUpdateOne) SetLastRanAt(v time.Time) *PeriodicTaskUpdateOne {
+	_u.mutation.SetLastRanAt(v)
 	return _u
 }
 
-// SetNillableLastRan sets the "lastRan" field if the given value is not nil.
-func (_u *PeriodicTaskUpdateOne) SetNillableLastRan(v *time.Time) *PeriodicTaskUpdateOne {
+// SetNillableLastRanAt sets the "lastRanAt" field if the given value is not nil.
+func (_u *PeriodicTaskUpdateOne) SetNillableLastRanAt(v *time.Time) *PeriodicTaskUpdateOne {
 	if v != nil {
-		_u.SetLastRan(*v)
+		_u.SetLastRanAt(*v)
 	}
 	return _u
 }
 
-// ClearLastRan clears the value of the "lastRan" field.
-func (_u *PeriodicTaskUpdateOne) ClearLastRan() *PeriodicTaskUpdateOne {
-	_u.mutation.ClearLastRan()
+// ClearLastRanAt clears the value of the "lastRanAt" field.
+func (_u *PeriodicTaskUpdateOne) ClearLastRanAt() *PeriodicTaskUpdateOne {
+	_u.mutation.ClearLastRanAt()
 	return _u
 }
 
@@ -266,11 +266,11 @@ func (_u *PeriodicTaskUpdateOne) sqlSave(ctx context.Context) (_node *PeriodicTa
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(periodictask.FieldName, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.LastRan(); ok {
-		_spec.SetField(periodictask.FieldLastRan, field.TypeTime, value)
+	if value, ok := _u.mutation.LastRanAt(); ok {
+		_spec.SetField(periodictask.FieldLastRanAt, field.TypeTime, value)
 	}
-	if _u.mutation.LastRanCleared() {
-		_spec.ClearField(periodictask.FieldLastRan, field.TypeTime)
+	if _u.mutation.LastRanAtCleared() {
+		_spec.ClearField(periodictask.FieldLastRanAt, field.TypeTime)
 	}
 	_node = &PeriodicTask{config: _u.config}
 	_spec.Assign = _node.assignValues

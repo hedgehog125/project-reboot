@@ -19,8 +19,8 @@ type PeriodicTask struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// LastRan holds the value of the "lastRan" field.
-	LastRan      time.Time `json:"lastRan,omitempty"`
+	// LastRanAt holds the value of the "lastRanAt" field.
+	LastRanAt    time.Time `json:"lastRanAt,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -33,7 +33,7 @@ func (*PeriodicTask) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case periodictask.FieldName:
 			values[i] = new(sql.NullString)
-		case periodictask.FieldLastRan:
+		case periodictask.FieldLastRanAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -62,11 +62,11 @@ func (_m *PeriodicTask) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Name = value.String
 			}
-		case periodictask.FieldLastRan:
+		case periodictask.FieldLastRanAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field lastRan", values[i])
+				return fmt.Errorf("unexpected type %T for field lastRanAt", values[i])
 			} else if value.Valid {
-				_m.LastRan = value.Time
+				_m.LastRanAt = value.Time
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -107,8 +107,8 @@ func (_m *PeriodicTask) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
-	builder.WriteString("lastRan=")
-	builder.WriteString(_m.LastRan.Format(time.ANSIC))
+	builder.WriteString("lastRanAt=")
+	builder.WriteString(_m.LastRanAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -19,14 +19,14 @@ type Job struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Created holds the value of the "created" field.
-	Created time.Time `json:"created,omitempty"`
-	// Due holds the value of the "due" field.
-	Due time.Time `json:"due,omitempty"`
-	// OriginallyDue holds the value of the "originallyDue" field.
-	OriginallyDue time.Time `json:"originallyDue,omitempty"`
-	// Started holds the value of the "started" field.
-	Started time.Time `json:"started,omitempty"`
+	// CreatedAt holds the value of the "createdAt" field.
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+	// DueAt holds the value of the "dueAt" field.
+	DueAt time.Time `json:"dueAt,omitempty"`
+	// OriginallyDueAt holds the value of the "originallyDueAt" field.
+	OriginallyDueAt time.Time `json:"originallyDueAt,omitempty"`
+	// StartedAt holds the value of the "startedAt" field.
+	StartedAt time.Time `json:"startedAt,omitempty"`
 	// Type holds the value of the "type" field.
 	Type string `json:"type,omitempty"`
 	// Version holds the value of the "version" field.
@@ -63,7 +63,7 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case job.FieldType, job.FieldStatus:
 			values[i] = new(sql.NullString)
-		case job.FieldCreated, job.FieldDue, job.FieldOriginallyDue, job.FieldStarted:
+		case job.FieldCreatedAt, job.FieldDueAt, job.FieldOriginallyDueAt, job.FieldStartedAt:
 			values[i] = new(sql.NullTime)
 		case job.FieldID:
 			values[i] = new(uuid.UUID)
@@ -88,29 +88,29 @@ func (_m *Job) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.ID = *value
 			}
-		case job.FieldCreated:
+		case job.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created", values[i])
+				return fmt.Errorf("unexpected type %T for field createdAt", values[i])
 			} else if value.Valid {
-				_m.Created = value.Time
+				_m.CreatedAt = value.Time
 			}
-		case job.FieldDue:
+		case job.FieldDueAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field due", values[i])
+				return fmt.Errorf("unexpected type %T for field dueAt", values[i])
 			} else if value.Valid {
-				_m.Due = value.Time
+				_m.DueAt = value.Time
 			}
-		case job.FieldOriginallyDue:
+		case job.FieldOriginallyDueAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field originallyDue", values[i])
+				return fmt.Errorf("unexpected type %T for field originallyDueAt", values[i])
 			} else if value.Valid {
-				_m.OriginallyDue = value.Time
+				_m.OriginallyDueAt = value.Time
 			}
-		case job.FieldStarted:
+		case job.FieldStartedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field started", values[i])
+				return fmt.Errorf("unexpected type %T for field startedAt", values[i])
 			} else if value.Valid {
-				_m.Started = value.Time
+				_m.StartedAt = value.Time
 			}
 		case job.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -204,17 +204,17 @@ func (_m *Job) String() string {
 	var builder strings.Builder
 	builder.WriteString("Job(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("created=")
-	builder.WriteString(_m.Created.Format(time.ANSIC))
+	builder.WriteString("createdAt=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("due=")
-	builder.WriteString(_m.Due.Format(time.ANSIC))
+	builder.WriteString("dueAt=")
+	builder.WriteString(_m.DueAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("originallyDue=")
-	builder.WriteString(_m.OriginallyDue.Format(time.ANSIC))
+	builder.WriteString("originallyDueAt=")
+	builder.WriteString(_m.OriginallyDueAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("started=")
-	builder.WriteString(_m.Started.Format(time.ANSIC))
+	builder.WriteString("startedAt=")
+	builder.WriteString(_m.StartedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(_m.Type)

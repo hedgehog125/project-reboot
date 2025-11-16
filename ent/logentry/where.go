@@ -56,14 +56,14 @@ func IDLTE(id uuid.UUID) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldLTE(FieldID, id))
 }
 
-// Time applies equality check predicate on the "time" field. It's identical to TimeEQ.
-func Time(v time.Time) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldEQ(FieldTime, v))
+// LoggedAt applies equality check predicate on the "loggedAt" field. It's identical to LoggedAtEQ.
+func LoggedAt(v time.Time) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldEQ(FieldLoggedAt, v))
 }
 
-// TimeKnown applies equality check predicate on the "timeKnown" field. It's identical to TimeKnownEQ.
-func TimeKnown(v bool) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldEQ(FieldTimeKnown, v))
+// LoggedAtKnown applies equality check predicate on the "loggedAtKnown" field. It's identical to LoggedAtKnownEQ.
+func LoggedAtKnown(v bool) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldEQ(FieldLoggedAtKnown, v))
 }
 
 // Level applies equality check predicate on the "level" field. It's identical to LevelEQ.
@@ -101,54 +101,54 @@ func UserID(v int) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldEQ(FieldUserID, v))
 }
 
-// TimeEQ applies the EQ predicate on the "time" field.
-func TimeEQ(v time.Time) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldEQ(FieldTime, v))
+// LoggedAtEQ applies the EQ predicate on the "loggedAt" field.
+func LoggedAtEQ(v time.Time) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldEQ(FieldLoggedAt, v))
 }
 
-// TimeNEQ applies the NEQ predicate on the "time" field.
-func TimeNEQ(v time.Time) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldNEQ(FieldTime, v))
+// LoggedAtNEQ applies the NEQ predicate on the "loggedAt" field.
+func LoggedAtNEQ(v time.Time) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldNEQ(FieldLoggedAt, v))
 }
 
-// TimeIn applies the In predicate on the "time" field.
-func TimeIn(vs ...time.Time) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldIn(FieldTime, vs...))
+// LoggedAtIn applies the In predicate on the "loggedAt" field.
+func LoggedAtIn(vs ...time.Time) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldIn(FieldLoggedAt, vs...))
 }
 
-// TimeNotIn applies the NotIn predicate on the "time" field.
-func TimeNotIn(vs ...time.Time) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldNotIn(FieldTime, vs...))
+// LoggedAtNotIn applies the NotIn predicate on the "loggedAt" field.
+func LoggedAtNotIn(vs ...time.Time) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldNotIn(FieldLoggedAt, vs...))
 }
 
-// TimeGT applies the GT predicate on the "time" field.
-func TimeGT(v time.Time) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldGT(FieldTime, v))
+// LoggedAtGT applies the GT predicate on the "loggedAt" field.
+func LoggedAtGT(v time.Time) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldGT(FieldLoggedAt, v))
 }
 
-// TimeGTE applies the GTE predicate on the "time" field.
-func TimeGTE(v time.Time) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldGTE(FieldTime, v))
+// LoggedAtGTE applies the GTE predicate on the "loggedAt" field.
+func LoggedAtGTE(v time.Time) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldGTE(FieldLoggedAt, v))
 }
 
-// TimeLT applies the LT predicate on the "time" field.
-func TimeLT(v time.Time) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldLT(FieldTime, v))
+// LoggedAtLT applies the LT predicate on the "loggedAt" field.
+func LoggedAtLT(v time.Time) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldLT(FieldLoggedAt, v))
 }
 
-// TimeLTE applies the LTE predicate on the "time" field.
-func TimeLTE(v time.Time) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldLTE(FieldTime, v))
+// LoggedAtLTE applies the LTE predicate on the "loggedAt" field.
+func LoggedAtLTE(v time.Time) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldLTE(FieldLoggedAt, v))
 }
 
-// TimeKnownEQ applies the EQ predicate on the "timeKnown" field.
-func TimeKnownEQ(v bool) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldEQ(FieldTimeKnown, v))
+// LoggedAtKnownEQ applies the EQ predicate on the "loggedAtKnown" field.
+func LoggedAtKnownEQ(v bool) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldEQ(FieldLoggedAtKnown, v))
 }
 
-// TimeKnownNEQ applies the NEQ predicate on the "timeKnown" field.
-func TimeKnownNEQ(v bool) predicate.LogEntry {
-	return predicate.LogEntry(sql.FieldNEQ(FieldTimeKnown, v))
+// LoggedAtKnownNEQ applies the NEQ predicate on the "loggedAtKnown" field.
+func LoggedAtKnownNEQ(v bool) predicate.LogEntry {
+	return predicate.LogEntry(sql.FieldNEQ(FieldLoggedAtKnown, v))
 }
 
 // LevelEQ applies the EQ predicate on the "level" field.

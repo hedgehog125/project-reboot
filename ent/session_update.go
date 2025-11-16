@@ -30,16 +30,16 @@ func (_u *SessionUpdate) Where(ps ...predicate.Session) *SessionUpdate {
 	return _u
 }
 
-// SetTime sets the "time" field.
-func (_u *SessionUpdate) SetTime(v time.Time) *SessionUpdate {
-	_u.mutation.SetTime(v)
+// SetCreatedAt sets the "createdAt" field.
+func (_u *SessionUpdate) SetCreatedAt(v time.Time) *SessionUpdate {
+	_u.mutation.SetCreatedAt(v)
 	return _u
 }
 
-// SetNillableTime sets the "time" field if the given value is not nil.
-func (_u *SessionUpdate) SetNillableTime(v *time.Time) *SessionUpdate {
+// SetNillableCreatedAt sets the "createdAt" field if the given value is not nil.
+func (_u *SessionUpdate) SetNillableCreatedAt(v *time.Time) *SessionUpdate {
 	if v != nil {
-		_u.SetTime(*v)
+		_u.SetCreatedAt(*v)
 	}
 	return _u
 }
@@ -224,8 +224,8 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
-	if value, ok := _u.mutation.Time(); ok {
-		_spec.SetField(session.FieldTime, field.TypeTime, value)
+	if value, ok := _u.mutation.CreatedAt(); ok {
+		_spec.SetField(session.FieldCreatedAt, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(session.FieldCode, field.TypeBytes, value)
@@ -336,16 +336,16 @@ type SessionUpdateOne struct {
 	mutation *SessionMutation
 }
 
-// SetTime sets the "time" field.
-func (_u *SessionUpdateOne) SetTime(v time.Time) *SessionUpdateOne {
-	_u.mutation.SetTime(v)
+// SetCreatedAt sets the "createdAt" field.
+func (_u *SessionUpdateOne) SetCreatedAt(v time.Time) *SessionUpdateOne {
+	_u.mutation.SetCreatedAt(v)
 	return _u
 }
 
-// SetNillableTime sets the "time" field if the given value is not nil.
-func (_u *SessionUpdateOne) SetNillableTime(v *time.Time) *SessionUpdateOne {
+// SetNillableCreatedAt sets the "createdAt" field if the given value is not nil.
+func (_u *SessionUpdateOne) SetNillableCreatedAt(v *time.Time) *SessionUpdateOne {
 	if v != nil {
-		_u.SetTime(*v)
+		_u.SetCreatedAt(*v)
 	}
 	return _u
 }
@@ -560,8 +560,8 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 			}
 		}
 	}
-	if value, ok := _u.mutation.Time(); ok {
-		_spec.SetField(session.FieldTime, field.TypeTime, value)
+	if value, ok := _u.mutation.CreatedAt(); ok {
+		_spec.SetField(session.FieldCreatedAt, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(session.FieldCode, field.TypeBytes, value)

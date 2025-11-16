@@ -18,8 +18,8 @@ type Session struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Time holds the value of the "time" field.
-	Time time.Time `json:"time,omitempty"`
+	// CreatedAt holds the value of the "createdAt" field.
+	CreatedAt time.Time `json:"createdAt,omitempty"`
 	// Code holds the value of the "code" field.
 	Code []byte `json:"code,omitempty"`
 	// ValidFrom holds the value of the "validFrom" field.
@@ -80,7 +80,7 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case session.FieldUserAgent, session.FieldIP:
 			values[i] = new(sql.NullString)
-		case session.FieldTime, session.FieldValidFrom, session.FieldValidUntil:
+		case session.FieldCreatedAt, session.FieldValidFrom, session.FieldValidUntil:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -103,11 +103,11 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case session.FieldTime:
+		case session.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field time", values[i])
+				return fmt.Errorf("unexpected type %T for field createdAt", values[i])
 			} else if value.Valid {
-				_m.Time = value.Time
+				_m.CreatedAt = value.Time
 			}
 		case session.FieldCode:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -191,8 +191,8 @@ func (_m *Session) String() string {
 	var builder strings.Builder
 	builder.WriteString("Session(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("time=")
-	builder.WriteString(_m.Time.Format(time.ANSIC))
+	builder.WriteString("createdAt=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("code=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Code))

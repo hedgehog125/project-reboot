@@ -186,7 +186,7 @@ func (handler *Handler) bulkWrite(entries []*entry) error {
 		func(tx *ent.Tx, ctx context.Context) error {
 			return tx.LogEntry.MapCreateBulk(entries, func(lec *ent.LogEntryCreate, i int) {
 				entry := entries[i]
-				lec.SetTime(entry.time).SetTimeKnown(entry.timeKnown).
+				lec.SetLoggedAt(entry.time).SetLoggedAtKnown(entry.timeKnown).
 					SetLevel(entry.level).
 					SetMessage(entry.message).
 					SetAttributes(entry.attributes).
@@ -227,7 +227,7 @@ func (handler *Handler) individualWriteFallback(
 			ctx, handler.App.Database,
 			func(tx *ent.Tx, ctx context.Context) (uuid.UUID, error) {
 				ob, stdErr := tx.LogEntry.Create().
-					SetTime(entry.time).SetTimeKnown(entry.timeKnown).
+					SetLoggedAt(entry.time).SetLoggedAtKnown(entry.timeKnown).
 					SetLevel(entry.level).
 					SetMessage(entry.message).
 					SetAttributes(entry.attributes).

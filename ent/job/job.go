@@ -4,7 +4,6 @@ package job
 
 import (
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -15,14 +14,14 @@ const (
 	Label = "job"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldCreated holds the string denoting the created field in the database.
-	FieldCreated = "created"
-	// FieldDue holds the string denoting the due field in the database.
-	FieldDue = "due"
-	// FieldOriginallyDue holds the string denoting the originallydue field in the database.
-	FieldOriginallyDue = "originally_due"
-	// FieldStarted holds the string denoting the started field in the database.
-	FieldStarted = "started"
+	// FieldCreatedAt holds the string denoting the createdat field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldDueAt holds the string denoting the dueat field in the database.
+	FieldDueAt = "due_at"
+	// FieldOriginallyDueAt holds the string denoting the originallydueat field in the database.
+	FieldOriginallyDueAt = "originally_due_at"
+	// FieldStartedAt holds the string denoting the startedat field in the database.
+	FieldStartedAt = "started_at"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldVersion holds the string denoting the version field in the database.
@@ -48,10 +47,10 @@ const (
 // Columns holds all SQL columns for job fields.
 var Columns = []string{
 	FieldID,
-	FieldCreated,
-	FieldDue,
-	FieldOriginallyDue,
-	FieldStarted,
+	FieldCreatedAt,
+	FieldDueAt,
+	FieldOriginallyDueAt,
+	FieldStartedAt,
 	FieldType,
 	FieldVersion,
 	FieldPriority,
@@ -74,12 +73,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// DefaultCreated holds the default value on creation for the "created" field.
-	DefaultCreated func() time.Time
-	// DefaultDue holds the default value on creation for the "due" field.
-	DefaultDue func() time.Time
-	// DefaultOriginallyDue holds the default value on creation for the "originallyDue" field.
-	DefaultOriginallyDue func() time.Time
 	// TypeValidator is a validator for the "type" field. It is called by the builders before save.
 	TypeValidator func(string) error
 	// DefaultRetries holds the default value on creation for the "retries" field.
@@ -127,24 +120,24 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByCreated orders the results by the created field.
-func ByCreated(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreated, opts...).ToFunc()
+// ByCreatedAt orders the results by the createdAt field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
 }
 
-// ByDue orders the results by the due field.
-func ByDue(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDue, opts...).ToFunc()
+// ByDueAt orders the results by the dueAt field.
+func ByDueAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDueAt, opts...).ToFunc()
 }
 
-// ByOriginallyDue orders the results by the originallyDue field.
-func ByOriginallyDue(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOriginallyDue, opts...).ToFunc()
+// ByOriginallyDueAt orders the results by the originallyDueAt field.
+func ByOriginallyDueAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOriginallyDueAt, opts...).ToFunc()
 }
 
-// ByStarted orders the results by the started field.
-func ByStarted(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStarted, opts...).ToFunc()
+// ByStartedAt orders the results by the startedAt field.
+func ByStartedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartedAt, opts...).ToFunc()
 }
 
 // ByType orders the results by the type field.

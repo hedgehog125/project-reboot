@@ -55,24 +55,24 @@ func IDLTE(id uuid.UUID) predicate.Job {
 	return predicate.Job(sql.FieldLTE(FieldID, id))
 }
 
-// Created applies equality check predicate on the "created" field. It's identical to CreatedEQ.
-func Created(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldEQ(FieldCreated, v))
+// CreatedAt applies equality check predicate on the "createdAt" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldCreatedAt, v))
 }
 
-// Due applies equality check predicate on the "due" field. It's identical to DueEQ.
-func Due(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldEQ(FieldDue, v))
+// DueAt applies equality check predicate on the "dueAt" field. It's identical to DueAtEQ.
+func DueAt(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldDueAt, v))
 }
 
-// OriginallyDue applies equality check predicate on the "originallyDue" field. It's identical to OriginallyDueEQ.
-func OriginallyDue(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldEQ(FieldOriginallyDue, v))
+// OriginallyDueAt applies equality check predicate on the "originallyDueAt" field. It's identical to OriginallyDueAtEQ.
+func OriginallyDueAt(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldOriginallyDueAt, v))
 }
 
-// Started applies equality check predicate on the "started" field. It's identical to StartedEQ.
-func Started(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldEQ(FieldStarted, v))
+// StartedAt applies equality check predicate on the "startedAt" field. It's identical to StartedAtEQ.
+func StartedAt(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldStartedAt, v))
 }
 
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
@@ -110,174 +110,174 @@ func LoggedStallWarning(v bool) predicate.Job {
 	return predicate.Job(sql.FieldEQ(FieldLoggedStallWarning, v))
 }
 
-// CreatedEQ applies the EQ predicate on the "created" field.
-func CreatedEQ(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldEQ(FieldCreated, v))
+// CreatedAtEQ applies the EQ predicate on the "createdAt" field.
+func CreatedAtEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldCreatedAt, v))
 }
 
-// CreatedNEQ applies the NEQ predicate on the "created" field.
-func CreatedNEQ(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldNEQ(FieldCreated, v))
+// CreatedAtNEQ applies the NEQ predicate on the "createdAt" field.
+func CreatedAtNEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldCreatedAt, v))
 }
 
-// CreatedIn applies the In predicate on the "created" field.
-func CreatedIn(vs ...time.Time) predicate.Job {
-	return predicate.Job(sql.FieldIn(FieldCreated, vs...))
+// CreatedAtIn applies the In predicate on the "createdAt" field.
+func CreatedAtIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldCreatedAt, vs...))
 }
 
-// CreatedNotIn applies the NotIn predicate on the "created" field.
-func CreatedNotIn(vs ...time.Time) predicate.Job {
-	return predicate.Job(sql.FieldNotIn(FieldCreated, vs...))
+// CreatedAtNotIn applies the NotIn predicate on the "createdAt" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldCreatedAt, vs...))
 }
 
-// CreatedGT applies the GT predicate on the "created" field.
-func CreatedGT(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldGT(FieldCreated, v))
+// CreatedAtGT applies the GT predicate on the "createdAt" field.
+func CreatedAtGT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGT(FieldCreatedAt, v))
 }
 
-// CreatedGTE applies the GTE predicate on the "created" field.
-func CreatedGTE(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldGTE(FieldCreated, v))
+// CreatedAtGTE applies the GTE predicate on the "createdAt" field.
+func CreatedAtGTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGTE(FieldCreatedAt, v))
 }
 
-// CreatedLT applies the LT predicate on the "created" field.
-func CreatedLT(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldLT(FieldCreated, v))
+// CreatedAtLT applies the LT predicate on the "createdAt" field.
+func CreatedAtLT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLT(FieldCreatedAt, v))
 }
 
-// CreatedLTE applies the LTE predicate on the "created" field.
-func CreatedLTE(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldLTE(FieldCreated, v))
+// CreatedAtLTE applies the LTE predicate on the "createdAt" field.
+func CreatedAtLTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLTE(FieldCreatedAt, v))
 }
 
-// DueEQ applies the EQ predicate on the "due" field.
-func DueEQ(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldEQ(FieldDue, v))
+// DueAtEQ applies the EQ predicate on the "dueAt" field.
+func DueAtEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldDueAt, v))
 }
 
-// DueNEQ applies the NEQ predicate on the "due" field.
-func DueNEQ(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldNEQ(FieldDue, v))
+// DueAtNEQ applies the NEQ predicate on the "dueAt" field.
+func DueAtNEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldDueAt, v))
 }
 
-// DueIn applies the In predicate on the "due" field.
-func DueIn(vs ...time.Time) predicate.Job {
-	return predicate.Job(sql.FieldIn(FieldDue, vs...))
+// DueAtIn applies the In predicate on the "dueAt" field.
+func DueAtIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldDueAt, vs...))
 }
 
-// DueNotIn applies the NotIn predicate on the "due" field.
-func DueNotIn(vs ...time.Time) predicate.Job {
-	return predicate.Job(sql.FieldNotIn(FieldDue, vs...))
+// DueAtNotIn applies the NotIn predicate on the "dueAt" field.
+func DueAtNotIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldDueAt, vs...))
 }
 
-// DueGT applies the GT predicate on the "due" field.
-func DueGT(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldGT(FieldDue, v))
+// DueAtGT applies the GT predicate on the "dueAt" field.
+func DueAtGT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGT(FieldDueAt, v))
 }
 
-// DueGTE applies the GTE predicate on the "due" field.
-func DueGTE(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldGTE(FieldDue, v))
+// DueAtGTE applies the GTE predicate on the "dueAt" field.
+func DueAtGTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGTE(FieldDueAt, v))
 }
 
-// DueLT applies the LT predicate on the "due" field.
-func DueLT(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldLT(FieldDue, v))
+// DueAtLT applies the LT predicate on the "dueAt" field.
+func DueAtLT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLT(FieldDueAt, v))
 }
 
-// DueLTE applies the LTE predicate on the "due" field.
-func DueLTE(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldLTE(FieldDue, v))
+// DueAtLTE applies the LTE predicate on the "dueAt" field.
+func DueAtLTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLTE(FieldDueAt, v))
 }
 
-// OriginallyDueEQ applies the EQ predicate on the "originallyDue" field.
-func OriginallyDueEQ(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldEQ(FieldOriginallyDue, v))
+// OriginallyDueAtEQ applies the EQ predicate on the "originallyDueAt" field.
+func OriginallyDueAtEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldOriginallyDueAt, v))
 }
 
-// OriginallyDueNEQ applies the NEQ predicate on the "originallyDue" field.
-func OriginallyDueNEQ(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldNEQ(FieldOriginallyDue, v))
+// OriginallyDueAtNEQ applies the NEQ predicate on the "originallyDueAt" field.
+func OriginallyDueAtNEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldOriginallyDueAt, v))
 }
 
-// OriginallyDueIn applies the In predicate on the "originallyDue" field.
-func OriginallyDueIn(vs ...time.Time) predicate.Job {
-	return predicate.Job(sql.FieldIn(FieldOriginallyDue, vs...))
+// OriginallyDueAtIn applies the In predicate on the "originallyDueAt" field.
+func OriginallyDueAtIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldOriginallyDueAt, vs...))
 }
 
-// OriginallyDueNotIn applies the NotIn predicate on the "originallyDue" field.
-func OriginallyDueNotIn(vs ...time.Time) predicate.Job {
-	return predicate.Job(sql.FieldNotIn(FieldOriginallyDue, vs...))
+// OriginallyDueAtNotIn applies the NotIn predicate on the "originallyDueAt" field.
+func OriginallyDueAtNotIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldOriginallyDueAt, vs...))
 }
 
-// OriginallyDueGT applies the GT predicate on the "originallyDue" field.
-func OriginallyDueGT(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldGT(FieldOriginallyDue, v))
+// OriginallyDueAtGT applies the GT predicate on the "originallyDueAt" field.
+func OriginallyDueAtGT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGT(FieldOriginallyDueAt, v))
 }
 
-// OriginallyDueGTE applies the GTE predicate on the "originallyDue" field.
-func OriginallyDueGTE(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldGTE(FieldOriginallyDue, v))
+// OriginallyDueAtGTE applies the GTE predicate on the "originallyDueAt" field.
+func OriginallyDueAtGTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGTE(FieldOriginallyDueAt, v))
 }
 
-// OriginallyDueLT applies the LT predicate on the "originallyDue" field.
-func OriginallyDueLT(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldLT(FieldOriginallyDue, v))
+// OriginallyDueAtLT applies the LT predicate on the "originallyDueAt" field.
+func OriginallyDueAtLT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLT(FieldOriginallyDueAt, v))
 }
 
-// OriginallyDueLTE applies the LTE predicate on the "originallyDue" field.
-func OriginallyDueLTE(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldLTE(FieldOriginallyDue, v))
+// OriginallyDueAtLTE applies the LTE predicate on the "originallyDueAt" field.
+func OriginallyDueAtLTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLTE(FieldOriginallyDueAt, v))
 }
 
-// StartedEQ applies the EQ predicate on the "started" field.
-func StartedEQ(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldEQ(FieldStarted, v))
+// StartedAtEQ applies the EQ predicate on the "startedAt" field.
+func StartedAtEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldEQ(FieldStartedAt, v))
 }
 
-// StartedNEQ applies the NEQ predicate on the "started" field.
-func StartedNEQ(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldNEQ(FieldStarted, v))
+// StartedAtNEQ applies the NEQ predicate on the "startedAt" field.
+func StartedAtNEQ(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNEQ(FieldStartedAt, v))
 }
 
-// StartedIn applies the In predicate on the "started" field.
-func StartedIn(vs ...time.Time) predicate.Job {
-	return predicate.Job(sql.FieldIn(FieldStarted, vs...))
+// StartedAtIn applies the In predicate on the "startedAt" field.
+func StartedAtIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldIn(FieldStartedAt, vs...))
 }
 
-// StartedNotIn applies the NotIn predicate on the "started" field.
-func StartedNotIn(vs ...time.Time) predicate.Job {
-	return predicate.Job(sql.FieldNotIn(FieldStarted, vs...))
+// StartedAtNotIn applies the NotIn predicate on the "startedAt" field.
+func StartedAtNotIn(vs ...time.Time) predicate.Job {
+	return predicate.Job(sql.FieldNotIn(FieldStartedAt, vs...))
 }
 
-// StartedGT applies the GT predicate on the "started" field.
-func StartedGT(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldGT(FieldStarted, v))
+// StartedAtGT applies the GT predicate on the "startedAt" field.
+func StartedAtGT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGT(FieldStartedAt, v))
 }
 
-// StartedGTE applies the GTE predicate on the "started" field.
-func StartedGTE(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldGTE(FieldStarted, v))
+// StartedAtGTE applies the GTE predicate on the "startedAt" field.
+func StartedAtGTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldGTE(FieldStartedAt, v))
 }
 
-// StartedLT applies the LT predicate on the "started" field.
-func StartedLT(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldLT(FieldStarted, v))
+// StartedAtLT applies the LT predicate on the "startedAt" field.
+func StartedAtLT(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLT(FieldStartedAt, v))
 }
 
-// StartedLTE applies the LTE predicate on the "started" field.
-func StartedLTE(v time.Time) predicate.Job {
-	return predicate.Job(sql.FieldLTE(FieldStarted, v))
+// StartedAtLTE applies the LTE predicate on the "startedAt" field.
+func StartedAtLTE(v time.Time) predicate.Job {
+	return predicate.Job(sql.FieldLTE(FieldStartedAt, v))
 }
 
-// StartedIsNil applies the IsNil predicate on the "started" field.
-func StartedIsNil() predicate.Job {
-	return predicate.Job(sql.FieldIsNull(FieldStarted))
+// StartedAtIsNil applies the IsNil predicate on the "startedAt" field.
+func StartedAtIsNil() predicate.Job {
+	return predicate.Job(sql.FieldIsNull(FieldStartedAt))
 }
 
-// StartedNotNil applies the NotNil predicate on the "started" field.
-func StartedNotNil() predicate.Job {
-	return predicate.Job(sql.FieldNotNull(FieldStarted))
+// StartedAtNotNil applies the NotNil predicate on the "startedAt" field.
+func StartedAtNotNil() predicate.Job {
+	return predicate.Job(sql.FieldNotNull(FieldStartedAt))
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.

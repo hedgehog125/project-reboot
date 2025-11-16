@@ -129,7 +129,7 @@ func (engine *Engine) Listen() {
 						sendJobSignal = true
 						return tx.Job.UpdateOneID(completedJob.Object.ID).
 							SetStatus("pending").
-							SetDue(engine.App.Clock.Now().Add(backoff)).
+							SetDueAt(engine.App.Clock.Now().Add(backoff)).
 							AddRetries(1).
 							SetRetriedFraction(retriedFraction).
 							SetLoggedStallWarning(false).
@@ -155,8 +155,8 @@ func (engine *Engine) Listen() {
 				context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) (*ent.Job, error) {
 					return tx.Job.Query().
-						Where(job.StatusEQ("pending"), job.DueLTE(time.Now())).
-						Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDue)).
+						Where(job.StatusEQ("pending"), job.DueAtLTE(time.Now())).
+						Order(ent.Asc(job.FieldStatus), ent.Desc(job.FieldPriority), ent.Asc(job.FieldDueAt)).
 						First(ctx)
 				},
 			)
@@ -190,7 +190,7 @@ func (engine *Engine) Listen() {
 				context.TODO(), engine.App.Database,
 				func(tx *ent.Tx, ctx context.Context) error {
 					return tx.Job.UpdateOneID(currentJob.ID).
-						SetStatus("running").SetStarted(time.Now()).
+						SetStatus("running").SetStartedAt(time.Now()).
 						Exec(ctx)
 				},
 			)
@@ -236,11 +236,11 @@ listenLoop:
 			func(tx *ent.Tx, ctx context.Context) (*ent.Job, error) {
 				return tx.Job.Query().
 					Where(job.StatusEQ("pending")).
-					Order(ent.Asc(job.FieldDue)).
+					Order(ent.Asc(job.FieldDueAt)).
 					First(ctx)
 			})
 		if stdErr == nil {
-			timeUntil := time.Until(nextJob.Due)
+			timeUntil := time.Until(nextJob.DueAt)
 			if timeUntil < maxWaitTime {
 				maxWaitTime = timeUntil
 			}
@@ -372,8 +372,12 @@ func (engine *Engine) EnqueueEncodedWithModifier(
 	if tx == nil {
 		return nil, ErrWrapperEnqueue.Wrap(ErrNoTxInContext)
 	}
+	now := engine.App.Clock.Now()
 	jobCreate := tx.Job.Create().
 		SetType(jobType).
+		SetCreatedAt(now).
+		SetDueAt(now).
+		SetOriginallyDueAt(now).
 		SetVersion(version).
 		SetPriority(jobDefinition.Priority).
 		SetWeight(jobDefinition.Weight).

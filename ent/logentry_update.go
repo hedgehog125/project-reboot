@@ -29,30 +29,30 @@ func (_u *LogEntryUpdate) Where(ps ...predicate.LogEntry) *LogEntryUpdate {
 	return _u
 }
 
-// SetTime sets the "time" field.
-func (_u *LogEntryUpdate) SetTime(v time.Time) *LogEntryUpdate {
-	_u.mutation.SetTime(v)
+// SetLoggedAt sets the "loggedAt" field.
+func (_u *LogEntryUpdate) SetLoggedAt(v time.Time) *LogEntryUpdate {
+	_u.mutation.SetLoggedAt(v)
 	return _u
 }
 
-// SetNillableTime sets the "time" field if the given value is not nil.
-func (_u *LogEntryUpdate) SetNillableTime(v *time.Time) *LogEntryUpdate {
+// SetNillableLoggedAt sets the "loggedAt" field if the given value is not nil.
+func (_u *LogEntryUpdate) SetNillableLoggedAt(v *time.Time) *LogEntryUpdate {
 	if v != nil {
-		_u.SetTime(*v)
+		_u.SetLoggedAt(*v)
 	}
 	return _u
 }
 
-// SetTimeKnown sets the "timeKnown" field.
-func (_u *LogEntryUpdate) SetTimeKnown(v bool) *LogEntryUpdate {
-	_u.mutation.SetTimeKnown(v)
+// SetLoggedAtKnown sets the "loggedAtKnown" field.
+func (_u *LogEntryUpdate) SetLoggedAtKnown(v bool) *LogEntryUpdate {
+	_u.mutation.SetLoggedAtKnown(v)
 	return _u
 }
 
-// SetNillableTimeKnown sets the "timeKnown" field if the given value is not nil.
-func (_u *LogEntryUpdate) SetNillableTimeKnown(v *bool) *LogEntryUpdate {
+// SetNillableLoggedAtKnown sets the "loggedAtKnown" field if the given value is not nil.
+func (_u *LogEntryUpdate) SetNillableLoggedAtKnown(v *bool) *LogEntryUpdate {
 	if v != nil {
-		_u.SetTimeKnown(*v)
+		_u.SetLoggedAtKnown(*v)
 	}
 	return _u
 }
@@ -233,11 +233,11 @@ func (_u *LogEntryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
-	if value, ok := _u.mutation.Time(); ok {
-		_spec.SetField(logentry.FieldTime, field.TypeTime, value)
+	if value, ok := _u.mutation.LoggedAt(); ok {
+		_spec.SetField(logentry.FieldLoggedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.TimeKnown(); ok {
-		_spec.SetField(logentry.FieldTimeKnown, field.TypeBool, value)
+	if value, ok := _u.mutation.LoggedAtKnown(); ok {
+		_spec.SetField(logentry.FieldLoggedAtKnown, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Level(); ok {
 		_spec.SetField(logentry.FieldLevel, field.TypeInt, value)
@@ -315,30 +315,30 @@ type LogEntryUpdateOne struct {
 	mutation *LogEntryMutation
 }
 
-// SetTime sets the "time" field.
-func (_u *LogEntryUpdateOne) SetTime(v time.Time) *LogEntryUpdateOne {
-	_u.mutation.SetTime(v)
+// SetLoggedAt sets the "loggedAt" field.
+func (_u *LogEntryUpdateOne) SetLoggedAt(v time.Time) *LogEntryUpdateOne {
+	_u.mutation.SetLoggedAt(v)
 	return _u
 }
 
-// SetNillableTime sets the "time" field if the given value is not nil.
-func (_u *LogEntryUpdateOne) SetNillableTime(v *time.Time) *LogEntryUpdateOne {
+// SetNillableLoggedAt sets the "loggedAt" field if the given value is not nil.
+func (_u *LogEntryUpdateOne) SetNillableLoggedAt(v *time.Time) *LogEntryUpdateOne {
 	if v != nil {
-		_u.SetTime(*v)
+		_u.SetLoggedAt(*v)
 	}
 	return _u
 }
 
-// SetTimeKnown sets the "timeKnown" field.
-func (_u *LogEntryUpdateOne) SetTimeKnown(v bool) *LogEntryUpdateOne {
-	_u.mutation.SetTimeKnown(v)
+// SetLoggedAtKnown sets the "loggedAtKnown" field.
+func (_u *LogEntryUpdateOne) SetLoggedAtKnown(v bool) *LogEntryUpdateOne {
+	_u.mutation.SetLoggedAtKnown(v)
 	return _u
 }
 
-// SetNillableTimeKnown sets the "timeKnown" field if the given value is not nil.
-func (_u *LogEntryUpdateOne) SetNillableTimeKnown(v *bool) *LogEntryUpdateOne {
+// SetNillableLoggedAtKnown sets the "loggedAtKnown" field if the given value is not nil.
+func (_u *LogEntryUpdateOne) SetNillableLoggedAtKnown(v *bool) *LogEntryUpdateOne {
 	if v != nil {
-		_u.SetTimeKnown(*v)
+		_u.SetLoggedAtKnown(*v)
 	}
 	return _u
 }
@@ -549,11 +549,11 @@ func (_u *LogEntryUpdateOne) sqlSave(ctx context.Context) (_node *LogEntry, err 
 			}
 		}
 	}
-	if value, ok := _u.mutation.Time(); ok {
-		_spec.SetField(logentry.FieldTime, field.TypeTime, value)
+	if value, ok := _u.mutation.LoggedAt(); ok {
+		_spec.SetField(logentry.FieldLoggedAt, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.TimeKnown(); ok {
-		_spec.SetField(logentry.FieldTimeKnown, field.TypeBool, value)
+	if value, ok := _u.mutation.LoggedAtKnown(); ok {
+		_spec.SetField(logentry.FieldLoggedAtKnown, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Level(); ok {
 		_spec.SetField(logentry.FieldLevel, field.TypeInt, value)
