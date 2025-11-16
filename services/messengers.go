@@ -20,9 +20,12 @@ type Messengers struct {
 	Registry *messengers.Registry
 }
 
-func NewMessengers(app *common.App) *Messengers {
+func NewMessengers(app *common.App, registerFuncs ...func(registry *messengers.Registry)) *Messengers {
 	registry := messengers.NewRegistry(app)
 	definitions.Register(registry)
+	for _, registerFunc := range registerFuncs {
+		registerFunc(registry)
+	}
 
 	return &Messengers{
 		App:      app,

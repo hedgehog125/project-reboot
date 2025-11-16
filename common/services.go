@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -47,8 +48,9 @@ type Env struct {
 	MIN_ADMIN_MESSAGE_GAP time.Duration
 	MIN_CRASH_SIGNAL_GAP  time.Duration
 
-	DISCORD_TOKEN  string
-	SENDGRID_TOKEN string // TODO: implement
+	ENABLE_DEVELOP_MESSENGER bool
+	DISCORD_TOKEN            string
+	SENDGRID_TOKEN           string // TODO: implement
 }
 type PasswordHashSettings struct {
 	Time   uint32
@@ -193,8 +195,9 @@ type KeyValueService interface {
 }
 
 type ServerService interface {
-	Start()    // Should fatalf rather than returning an error
-	Shutdown() // Should log warning rather than return an error
+	http.Handler // Mainly used for testing
+	Start()      // Should fatalf rather than returning an error
+	Shutdown()   // Should log warning rather than return an error
 }
 type CoreService interface {
 	RotateAdminCode()

@@ -7,6 +7,7 @@ import (
 )
 
 func DefaultEnv() *common.Env {
+	//exhaustruct:enforce
 	return &common.Env{
 		IS_DEV:                        true,
 		PORT:                          -1,
@@ -22,6 +23,7 @@ func DefaultEnv() *common.Env {
 		AUTH_CODE_VALID_FOR:              time.Hour * 24 * 3,
 		USED_AUTH_CODE_VALID_FOR:         time.Hour,
 		ACTIVE_SESSION_REMINDER_INTERVAL: time.Hour * 24,
+		MIN_SUCCESSFUL_MESSAGE_COUNT:     1,
 
 		PASSWORD_HASH_SETTINGS: &common.PasswordHashSettings{
 			Time:    1,
@@ -35,7 +37,8 @@ func DefaultEnv() *common.Env {
 		MIN_ADMIN_MESSAGE_GAP: time.Minute * 5,
 		MIN_CRASH_SIGNAL_GAP:  time.Hour * 24,
 
-		DISCORD_TOKEN:  "",
-		SENDGRID_TOKEN: "",
+		ENABLE_DEVELOP_MESSENGER: false,
+		DISCORD_TOKEN:            "",
+		SENDGRID_TOKEN:           "",
 	}
 }

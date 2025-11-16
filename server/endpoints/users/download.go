@@ -104,9 +104,11 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			)
 		}
 
-		// TODO: check if user has been sufficiently notified <======
+		if !app.Core.IsUserSufficientlyNotified(sessionOb) {
+			return servercommon.NewUnauthorizedError()
+		}
 
-		stdErr = dbcommon.WithWriteTx(
+		return dbcommon.WithWriteTx(
 			ginCtx, app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
 				stdErr := tx.Session.UpdateOneID(sessionOb.ID).
@@ -122,21 +124,21 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 					},
 					ctx,
 				)
-				return wrappedErr
+				if wrappedErr != nil {
+					return wrappedErr
+				}
+
+				ginCtx.JSON(http.StatusOK, DownloadResponse{
+					Errors: []servercommon.ErrorDetail{},
+					// TODO: set these?
+					AuthorizationCodeValidFrom:  nil,
+					AuthorizationCodeValidUntil: nil,
+					Content:                     decrypted,
+					Filename:                    userOb.FileName,
+					Mime:                        userOb.Mime,
+				})
+				return nil
 			},
 		)
-		if stdErr != nil {
-			return stdErr
-		}
-
-		ginCtx.JSON(http.StatusOK, DownloadResponse{
-			Errors:                      []servercommon.ErrorDetail{},
-			AuthorizationCodeValidFrom:  nil,
-			AuthorizationCodeValidUntil: nil,
-			Content:                     decrypted,
-			Filename:                    userOb.FileName,
-			Mime:                        userOb.Mime,
-		})
-		return nil
 	})
 }

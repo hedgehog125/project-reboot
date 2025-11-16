@@ -47,8 +47,9 @@ func LoadEnvironmentVariables() *common.Env {
 		MIN_ADMIN_MESSAGE_GAP: common.RequireSecondsEnv("MIN_ADMIN_MESSAGE_GAP"),
 		MIN_CRASH_SIGNAL_GAP:  common.RequireSecondsEnv("MIN_CRASH_SIGNAL_GAP"),
 
-		DISCORD_TOKEN:  common.OptionalEnv("DISCORD_TOKEN", ""),
-		SENDGRID_TOKEN: common.OptionalEnv("SENDGRID_TOKEN", ""),
+		ENABLE_DEVELOP_MESSENGER: common.OptionalBoolEnv("ENABLE_DEVELOP_MESSENGER", false),
+		DISCORD_TOKEN:            common.OptionalEnv("DISCORD_TOKEN", ""),
+		SENDGRID_TOKEN:           common.OptionalEnv("SENDGRID_TOKEN", ""),
 	}
 	ValidateEnvironmentVariables(env)
 	return env

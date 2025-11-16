@@ -102,3 +102,12 @@ func OptionalIntEnv(name string, defaultValue int) int {
 		return defaultValue
 	}
 }
+
+func OptionalBoolEnv(name string, defaultValue bool) bool {
+	_, specified := os.LookupEnv(name)
+	if specified {
+		return RequireBoolEnv(name)
+	} else {
+		return defaultValue
+	}
+}
