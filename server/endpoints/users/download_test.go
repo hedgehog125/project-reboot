@@ -191,3 +191,108 @@ func TestDownload_HappyPath(t *testing.T) {
 	)
 	require.Equal(t, http.StatusOK, respRecorder.Code)
 }
+
+func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T) {
+	t.Parallel()
+
+	clock := clockwork.NewFakeClock()
+	env := testcommon.DefaultEnv()
+	app := &common.App{
+		Env:   env,
+		Clock: clock,
+	}
+	{
+		logger := services.NewLogger(app)
+		app.Logger = logger
+		slog.SetDefault(logger.Logger)
+	}
+	app.RateLimiter = services.NewRateLimiter(app)
+	app.Core = services.NewCore(app)
+	db := testcommon.CreateDB()
+	defer db.Shutdown()
+	app.Database = db
+	app.KeyValue = services.NewKeyValue(app)
+	app.KeyValue.Init()
+	mockMessenger := newMockMessenger("MOCK_MESSENGER_1")
+	{
+		messengerService := services.NewMessengers(app, mockMessenger.Register)
+		app.Messengers = messengerService
+		app.Jobs = services.NewJobs(app, messengerService.RegisterJobs)
+	}
+	app.Server = services.NewServer(app)
+
+	app.Jobs.Start()
+	defer app.Jobs.Shutdown()
+
+	username := "bob"
+	password := "password123456"
+	fileContent := []byte("file content here")
+	filename := "data.zip"
+	mimeType := "application/zip"
+
+	keySalt := core.GenerateSalt()
+	encryptionKey := core.HashPassword(password, keySalt, env.PASSWORD_HASH_SETTINGS)
+
+	encrypted, nonce, wrappedErr := core.Encrypt(fileContent, encryptionKey)
+	require.NoError(t, wrappedErr)
+
+	sessionOb, stdErr := dbcommon.WithReadWriteTx(
+		t.Context(), db,
+		func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
+			now := clock.Now()
+			// Set SessionsValidFrom to be in the future
+			sessionsValidFrom := now.Add(1 * time.Hour)
+
+			userOb, stdErr := tx.User.Create().
+				SetUsername(username).
+				SetContent(encrypted).
+				SetFileName(filename).
+				SetMime(mimeType).
+				SetNonce(nonce).
+				SetKeySalt(keySalt).
+				SetHashTime(env.PASSWORD_HASH_SETTINGS.Time).
+				SetHashMemory(env.PASSWORD_HASH_SETTINGS.Memory).
+				SetHashThreads(env.PASSWORD_HASH_SETTINGS.Threads).
+				SetSessionsValidFrom(sessionsValidFrom).
+				Save(ctx)
+			if stdErr != nil {
+				return nil, stdErr
+			}
+
+			authCode := core.RandomAuthCode()
+			validUntil := now.Add(24 * time.Hour)
+
+			sessionOb, stdErr := tx.Session.Create().
+				SetUser(userOb).
+				SetCode(authCode).
+				SetValidFrom(now).
+				SetValidUntil(validUntil).
+				SetUserAgent("test-agent").
+				SetIP("127.0.0.1").
+				Save(ctx)
+			if stdErr != nil {
+				return sessionOb, stdErr
+			}
+
+			_, stdErr = tx.LoginAlert.Create().
+				SetSession(sessionOb).
+				SetTime(clock.Now()).
+				SetVersionedMessengerType(mockMessenger.VersionedName()).
+				SetConfirmed(true).
+				Save(ctx)
+			return sessionOb, stdErr
+		},
+	)
+	require.NoError(t, stdErr)
+
+	respRecorder := testcommon.Post(
+		t, app.Server,
+		"/api/v1/users/download",
+		users.DownloadPayload{
+			Username:          username,
+			Password:          password,
+			AuthorizationCode: base64.StdEncoding.EncodeToString(sessionOb.Code),
+		},
+	)
+	require.Equal(t, http.StatusUnauthorized, respRecorder.Code)
+}

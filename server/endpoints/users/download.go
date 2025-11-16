@@ -44,7 +44,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		sessionOb, stdErr := dbcommon.WithReadTx(
+		sessionOb, stdErr := dbcommon.WithReadWriteTx(
 			ginCtx, app.Database,
 			func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
 				sessionOb, stdErr := tx.Session.Query().
@@ -55,14 +55,11 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 				if stdErr != nil {
 					return nil, servercommon.SendUnauthorizedIfNotFound(stdErr)
 				}
-				if clock.Now().After(sessionOb.ValidUntil) {
+				if clock.Now().After(sessionOb.ValidUntil) ||
+					sessionOb.Edges.User.SessionsValidFrom.After(sessionOb.Time) {
 					stdErr := tx.Session.DeleteOneID(sessionOb.ID).Exec(ctx)
 					if stdErr != nil {
-						servercommon.GetLogger(ginCtx).Error(
-							"unable to delete expired session",
-							"error",
-							stdErr,
-						)
+						return nil, stdErr
 					}
 					return nil, servercommon.NewUnauthorizedError()
 				}
