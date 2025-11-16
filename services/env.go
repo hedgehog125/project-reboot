@@ -19,6 +19,7 @@ func LoadEnvironmentVariables() *common.Env {
 		}
 	}
 
+	//exhaustruct:enforce
 	env := &common.Env{
 		IS_DEV:                        common.RequireBoolEnv("IS_DEV"),
 		PORT:                          common.RequireIntEnv("PORT"),
@@ -46,6 +47,7 @@ func LoadEnvironmentVariables() *common.Env {
 		ADMIN_MESSAGE_TIMEOUT: common.RequireSecondsEnv("ADMIN_MESSAGE_TIMEOUT"),
 		MIN_ADMIN_MESSAGE_GAP: common.RequireSecondsEnv("MIN_ADMIN_MESSAGE_GAP"),
 		MIN_CRASH_SIGNAL_GAP:  common.RequireSecondsEnv("MIN_CRASH_SIGNAL_GAP"),
+		PANIC_ON_ERROR:        common.OptionalBoolEnv("PANIC_ON_ERROR", false),
 
 		ENABLE_DEVELOP_MESSENGER: common.OptionalBoolEnv("ENABLE_DEVELOP_MESSENGER", false),
 		DISCORD_TOKEN:            common.OptionalEnv("DISCORD_TOKEN", ""),

@@ -91,6 +91,7 @@ func TestLogger_SavesToDatabase(t *testing.T) {
 		Clock:           clockwork.NewRealClock(),
 		ShutdownService: testcommon.NewMockShutdownService(),
 	}
+	app.Env.PANIC_ON_ERROR = false
 	app.KeyValue = services.NewKeyValue(app)
 	logger := NewLogger(app)
 	app.Logger = logger
@@ -170,6 +171,7 @@ func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) {
 					"errDuplicatesCategory":  false,
 					"error":                  "db common [package] error: WithTx error: callback error: common [package] error: database [general] error: other error: auto wrapped error: ent: constraint failed: FOREIGN KEY constraint failed",
 					"innerError":             "ent: constraint failed: FOREIGN KEY constraint failed",
+					"innerErrorType":         "*ent.ConstraintError",
 					"maxRetries":             0,
 					"retryBackoffBase":       0,
 					"retryBackoffMultiplier": 0,
@@ -456,6 +458,7 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 					"errDuplicatesCategory":  false,
 					"error":                  "db common [package] error: WithTx error: callback error: common [package] error: auto wrapped error: temporary but unretryable error",
 					"innerError":             "temporary but unretryable error",
+					"innerErrorType":         "*errors.errorString",
 					"maxRetries":             0,
 					"retryBackoffBase":       0,
 					"retryBackoffMultiplier": 0,
@@ -482,6 +485,7 @@ func TestLogger_NoAdminUser_UsesCrashSignal(t *testing.T) {
 			Clock:           clock,
 			ShutdownService: shutdownService,
 		}
+		app.Env.PANIC_ON_ERROR = false
 		app.KeyValue = services.NewKeyValue(app)
 		logger := NewLogger(app)
 		app.Logger = logger

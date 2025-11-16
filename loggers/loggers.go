@@ -558,6 +558,10 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 			record,
 		)
 	}
+
+	if record.Level >= slog.LevelError && handler.App.Env.PANIC_ON_ERROR {
+		panic("an error was logged")
+	}
 	return nil
 }
 
