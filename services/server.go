@@ -2,14 +2,17 @@ package services
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common"
+	"github.com/hedgehog125/project-reboot/server"
 	"github.com/hedgehog125/project-reboot/server/endpoints"
 	"github.com/hedgehog125/project-reboot/server/middleware"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
@@ -37,9 +40,21 @@ func NewServer(app *common.App) *Server {
 		})
 	})
 	router.Use(middleware.NewTimeout())
-	router.LoadHTMLGlob("./server/templates/*.html")
+
+	embeddedFolder, stdErr := static.EmbedFolder(server.TemplateFiles.FS, server.TemplateFiles.Path)
+	if stdErr != nil {
+		log.Fatalf("failed to load embedded template files:\n%v", stdErr.Error())
+	}
+	router.LoadHTMLFS(embeddedFolder)
+
 	router.Use(middleware.NewRateLimiting("api", app.RateLimiter))
-	router.Static("/static", "./public")
+
+	embeddedFolder, stdErr = static.EmbedFolder(server.PublicFiles.FS, server.PublicFiles.Path)
+	if stdErr != nil {
+		log.Fatalf("failed to load embedded public files:\n%v", stdErr.Error())
+	}
+	router.Use(static.Serve("/static", embeddedFolder))
+
 	router.Use(middleware.NewError())
 
 	adminMiddleware := middleware.NewAdminProtected(app.Core)
@@ -50,25 +65,24 @@ func NewServer(app *common.App) *Server {
 	}
 	endpoints.ConfigureEndpoints(router.Group(""), serverApp) // TODO: rework to be more like jobs registry, embed *gin.RouterGroup
 
-	return &Server{
-		App:    app,
-		Router: router,
-	}
-}
-
-func (service *Server) Start() {
-	server := &http.Server{
-		Addr:              fmt.Sprintf(":%v", service.App.Env.PORT),
-		Handler:           service.Router.Handler(),
+	httpServer := &http.Server{
+		Addr:              fmt.Sprintf(":%v", app.Env.PORT),
+		Handler:           router.Handler(),
 		ReadHeaderTimeout: 2 * time.Second,
 		ReadTimeout:       3 * time.Second,
 		WriteTimeout:      3 * time.Second,
 		IdleTimeout:       30 * time.Second,
 	}
-	service.Server = server
+	return &Server{
+		App:    app,
+		Router: router,
+		Server: httpServer,
+	}
+}
 
+func (service *Server) Start() {
 	go func() {
-		stdErr := server.ListenAndServe()
+		stdErr := service.Server.ListenAndServe()
 		if stdErr != nil && !errors.Is(stdErr, http.ErrServerClosed) {
 			log.Fatalf("an error occurred while starting the HTTP server:\n%v", stdErr.Error())
 		}
@@ -82,4 +96,8 @@ func (service *Server) Shutdown() {
 	if stdErr != nil {
 		service.App.Logger.Warn("an error occurred while shutting down the HTTP server", stdErr)
 	}
+}
+
+func (service *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	service.Server.Handler.ServeHTTP(w, r)
 }
