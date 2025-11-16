@@ -206,23 +206,23 @@ func init() {
 	// user.DefaultLocked holds the default value on creation for the locked field.
 	user.DefaultLocked = userDescLocked.Default.(bool)
 	// userDescContent is the schema descriptor for content field.
-	userDescContent := userFields[5].Descriptor()
+	userDescContent := userFields[6].Descriptor()
 	// user.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	user.ContentValidator = userDescContent.Validators[0].(func([]byte) error)
 	// userDescFileName is the schema descriptor for fileName field.
-	userDescFileName := userFields[6].Descriptor()
+	userDescFileName := userFields[7].Descriptor()
 	// user.FileNameValidator is a validator for the "fileName" field. It is called by the builders before save.
 	user.FileNameValidator = userDescFileName.Validators[0].(func(string) error)
 	// userDescMime is the schema descriptor for mime field.
-	userDescMime := userFields[7].Descriptor()
+	userDescMime := userFields[8].Descriptor()
 	// user.MimeValidator is a validator for the "mime" field. It is called by the builders before save.
 	user.MimeValidator = userDescMime.Validators[0].(func(string) error)
 	// userDescNonce is the schema descriptor for nonce field.
-	userDescNonce := userFields[8].Descriptor()
+	userDescNonce := userFields[9].Descriptor()
 	// user.NonceValidator is a validator for the "nonce" field. It is called by the builders before save.
 	user.NonceValidator = userDescNonce.Validators[0].(func([]byte) error)
 	// userDescKeySalt is the schema descriptor for keySalt field.
-	userDescKeySalt := userFields[9].Descriptor()
+	userDescKeySalt := userFields[10].Descriptor()
 	// user.KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
 	user.KeySaltValidator = userDescKeySalt.Validators[0].(func([]byte) error)
 }

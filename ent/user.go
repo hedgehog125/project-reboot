@@ -27,6 +27,8 @@ type User struct {
 	Locked bool `json:"locked,omitempty"`
 	// LockedUntil holds the value of the "lockedUntil" field.
 	LockedUntil *time.Time `json:"lockedUntil,omitempty"`
+	// SessionsValidFrom holds the value of the "sessionsValidFrom" field.
+	SessionsValidFrom time.Time `json:"sessionsValidFrom,omitempty"`
 	// Content holds the value of the "content" field.
 	Content []byte `json:"content,omitempty"`
 	// FileName holds the value of the "fileName" field.
@@ -91,7 +93,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case user.FieldUsername, user.FieldAlertDiscordId, user.FieldAlertEmail, user.FieldFileName, user.FieldMime:
 			values[i] = new(sql.NullString)
-		case user.FieldLockedUntil:
+		case user.FieldLockedUntil, user.FieldSessionsValidFrom:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -144,6 +146,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.LockedUntil = new(time.Time)
 				*_m.LockedUntil = value.Time
+			}
+		case user.FieldSessionsValidFrom:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field sessionsValidFrom", values[i])
+			} else if value.Valid {
+				_m.SessionsValidFrom = value.Time
 			}
 		case user.FieldContent:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -255,6 +263,9 @@ func (_m *User) String() string {
 		builder.WriteString("lockedUntil=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("sessionsValidFrom=")
+	builder.WriteString(_m.SessionsValidFrom.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("content=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Content))

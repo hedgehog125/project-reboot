@@ -4930,35 +4930,36 @@ func (m *TwoFactorActionMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op              Op
-	typ             string
-	id              *int
-	username        *string
-	alertDiscordId  *string
-	alertEmail      *string
-	locked          *bool
-	lockedUntil     *time.Time
-	content         *[]byte
-	fileName        *string
-	mime            *string
-	nonce           *[]byte
-	keySalt         *[]byte
-	hashTime        *uint32
-	addhashTime     *int32
-	hashMemory      *uint32
-	addhashMemory   *int32
-	hashThreads     *uint8
-	addhashThreads  *int8
-	clearedFields   map[string]struct{}
-	sessions        map[int]struct{}
-	removedsessions map[int]struct{}
-	clearedsessions bool
-	logs            map[uuid.UUID]struct{}
-	removedlogs     map[uuid.UUID]struct{}
-	clearedlogs     bool
-	done            bool
-	oldValue        func(context.Context) (*User, error)
-	predicates      []predicate.User
+	op                Op
+	typ               string
+	id                *int
+	username          *string
+	alertDiscordId    *string
+	alertEmail        *string
+	locked            *bool
+	lockedUntil       *time.Time
+	sessionsValidFrom *time.Time
+	content           *[]byte
+	fileName          *string
+	mime              *string
+	nonce             *[]byte
+	keySalt           *[]byte
+	hashTime          *uint32
+	addhashTime       *int32
+	hashMemory        *uint32
+	addhashMemory     *int32
+	hashThreads       *uint8
+	addhashThreads    *int8
+	clearedFields     map[string]struct{}
+	sessions          map[int]struct{}
+	removedsessions   map[int]struct{}
+	clearedsessions   bool
+	logs              map[uuid.UUID]struct{}
+	removedlogs       map[uuid.UUID]struct{}
+	clearedlogs       bool
+	done              bool
+	oldValue          func(context.Context) (*User, error)
+	predicates        []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -5250,6 +5251,42 @@ func (m *UserMutation) LockedUntilCleared() bool {
 func (m *UserMutation) ResetLockedUntil() {
 	m.lockedUntil = nil
 	delete(m.clearedFields, user.FieldLockedUntil)
+}
+
+// SetSessionsValidFrom sets the "sessionsValidFrom" field.
+func (m *UserMutation) SetSessionsValidFrom(t time.Time) {
+	m.sessionsValidFrom = &t
+}
+
+// SessionsValidFrom returns the value of the "sessionsValidFrom" field in the mutation.
+func (m *UserMutation) SessionsValidFrom() (r time.Time, exists bool) {
+	v := m.sessionsValidFrom
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSessionsValidFrom returns the old "sessionsValidFrom" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldSessionsValidFrom(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSessionsValidFrom is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSessionsValidFrom requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSessionsValidFrom: %w", err)
+	}
+	return oldValue.SessionsValidFrom, nil
+}
+
+// ResetSessionsValidFrom resets all changes to the "sessionsValidFrom" field.
+func (m *UserMutation) ResetSessionsValidFrom() {
+	m.sessionsValidFrom = nil
 }
 
 // SetContent sets the "content" field.
@@ -5742,7 +5779,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
@@ -5757,6 +5794,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.lockedUntil != nil {
 		fields = append(fields, user.FieldLockedUntil)
+	}
+	if m.sessionsValidFrom != nil {
+		fields = append(fields, user.FieldSessionsValidFrom)
 	}
 	if m.content != nil {
 		fields = append(fields, user.FieldContent)
@@ -5800,6 +5840,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Locked()
 	case user.FieldLockedUntil:
 		return m.LockedUntil()
+	case user.FieldSessionsValidFrom:
+		return m.SessionsValidFrom()
 	case user.FieldContent:
 		return m.Content()
 	case user.FieldFileName:
@@ -5835,6 +5877,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldLocked(ctx)
 	case user.FieldLockedUntil:
 		return m.OldLockedUntil(ctx)
+	case user.FieldSessionsValidFrom:
+		return m.OldSessionsValidFrom(ctx)
 	case user.FieldContent:
 		return m.OldContent(ctx)
 	case user.FieldFileName:
@@ -5894,6 +5938,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLockedUntil(v)
+		return nil
+	case user.FieldSessionsValidFrom:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSessionsValidFrom(v)
 		return nil
 	case user.FieldContent:
 		v, ok := value.([]byte)
@@ -6062,6 +6113,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldLockedUntil:
 		m.ResetLockedUntil()
+		return nil
+	case user.FieldSessionsValidFrom:
+		m.ResetSessionsValidFrom()
 		return nil
 	case user.FieldContent:
 		m.ResetContent()

@@ -200,6 +200,7 @@ var (
 		{Name: "alert_email", Type: field.TypeString, Default: ""},
 		{Name: "locked", Type: field.TypeBool, Default: false},
 		{Name: "locked_until", Type: field.TypeTime, Nullable: true},
+		{Name: "sessions_valid_from", Type: field.TypeTime},
 		{Name: "content", Type: field.TypeBytes},
 		{Name: "file_name", Type: field.TypeString},
 		{Name: "mime", Type: field.TypeString},

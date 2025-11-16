@@ -107,6 +107,20 @@ func (_u *UserUpdate) ClearLockedUntil() *UserUpdate {
 	return _u
 }
 
+// SetSessionsValidFrom sets the "sessionsValidFrom" field.
+func (_u *UserUpdate) SetSessionsValidFrom(v time.Time) *UserUpdate {
+	_u.mutation.SetSessionsValidFrom(v)
+	return _u
+}
+
+// SetNillableSessionsValidFrom sets the "sessionsValidFrom" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableSessionsValidFrom(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetSessionsValidFrom(*v)
+	}
+	return _u
+}
+
 // SetContent sets the "content" field.
 func (_u *UserUpdate) SetContent(v []byte) *UserUpdate {
 	_u.mutation.SetContent(v)
@@ -385,6 +399,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.LockedUntilCleared() {
 		_spec.ClearField(user.FieldLockedUntil, field.TypeTime)
 	}
+	if value, ok := _u.mutation.SessionsValidFrom(); ok {
+		_spec.SetField(user.FieldSessionsValidFrom, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
 	}
@@ -601,6 +618,20 @@ func (_u *UserUpdateOne) SetNillableLockedUntil(v *time.Time) *UserUpdateOne {
 // ClearLockedUntil clears the value of the "lockedUntil" field.
 func (_u *UserUpdateOne) ClearLockedUntil() *UserUpdateOne {
 	_u.mutation.ClearLockedUntil()
+	return _u
+}
+
+// SetSessionsValidFrom sets the "sessionsValidFrom" field.
+func (_u *UserUpdateOne) SetSessionsValidFrom(v time.Time) *UserUpdateOne {
+	_u.mutation.SetSessionsValidFrom(v)
+	return _u
+}
+
+// SetNillableSessionsValidFrom sets the "sessionsValidFrom" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableSessionsValidFrom(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetSessionsValidFrom(*v)
+	}
 	return _u
 }
 
@@ -911,6 +942,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if _u.mutation.LockedUntilCleared() {
 		_spec.ClearField(user.FieldLockedUntil, field.TypeTime)
+	}
+	if value, ok := _u.mutation.SessionsValidFrom(); ok {
+		_spec.SetField(user.FieldSessionsValidFrom, field.TypeTime, value)
 	}
 	if value, ok := _u.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)

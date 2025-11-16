@@ -87,6 +87,12 @@ func (_c *UserCreate) SetNillableLockedUntil(v *time.Time) *UserCreate {
 	return _c
 }
 
+// SetSessionsValidFrom sets the "sessionsValidFrom" field.
+func (_c *UserCreate) SetSessionsValidFrom(v time.Time) *UserCreate {
+	_c.mutation.SetSessionsValidFrom(v)
+	return _c
+}
+
 // SetContent sets the "content" field.
 func (_c *UserCreate) SetContent(v []byte) *UserCreate {
 	_c.mutation.SetContent(v)
@@ -233,6 +239,9 @@ func (_c *UserCreate) check() error {
 	if _, ok := _c.mutation.Locked(); !ok {
 		return &ValidationError{Name: "locked", err: errors.New(`ent: missing required field "User.locked"`)}
 	}
+	if _, ok := _c.mutation.SessionsValidFrom(); !ok {
+		return &ValidationError{Name: "sessionsValidFrom", err: errors.New(`ent: missing required field "User.sessionsValidFrom"`)}
+	}
 	if _, ok := _c.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "User.content"`)}
 	}
@@ -328,6 +337,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LockedUntil(); ok {
 		_spec.SetField(user.FieldLockedUntil, field.TypeTime, value)
 		_node.LockedUntil = &value
+	}
+	if value, ok := _c.mutation.SessionsValidFrom(); ok {
+		_spec.SetField(user.FieldSessionsValidFrom, field.TypeTime, value)
+		_node.SessionsValidFrom = value
 	}
 	if value, ok := _c.mutation.Content(); ok {
 		_spec.SetField(user.FieldContent, field.TypeBytes, value)
@@ -508,6 +521,18 @@ func (u *UserUpsert) UpdateLockedUntil() *UserUpsert {
 // ClearLockedUntil clears the value of the "lockedUntil" field.
 func (u *UserUpsert) ClearLockedUntil() *UserUpsert {
 	u.SetNull(user.FieldLockedUntil)
+	return u
+}
+
+// SetSessionsValidFrom sets the "sessionsValidFrom" field.
+func (u *UserUpsert) SetSessionsValidFrom(v time.Time) *UserUpsert {
+	u.Set(user.FieldSessionsValidFrom, v)
+	return u
+}
+
+// UpdateSessionsValidFrom sets the "sessionsValidFrom" field to the value that was provided on create.
+func (u *UserUpsert) UpdateSessionsValidFrom() *UserUpsert {
+	u.SetExcluded(user.FieldSessionsValidFrom)
 	return u
 }
 
@@ -739,6 +764,20 @@ func (u *UserUpsertOne) UpdateLockedUntil() *UserUpsertOne {
 func (u *UserUpsertOne) ClearLockedUntil() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearLockedUntil()
+	})
+}
+
+// SetSessionsValidFrom sets the "sessionsValidFrom" field.
+func (u *UserUpsertOne) SetSessionsValidFrom(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetSessionsValidFrom(v)
+	})
+}
+
+// UpdateSessionsValidFrom sets the "sessionsValidFrom" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateSessionsValidFrom() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateSessionsValidFrom()
 	})
 }
 
@@ -1153,6 +1192,20 @@ func (u *UserUpsertBulk) UpdateLockedUntil() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearLockedUntil() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearLockedUntil()
+	})
+}
+
+// SetSessionsValidFrom sets the "sessionsValidFrom" field.
+func (u *UserUpsertBulk) SetSessionsValidFrom(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetSessionsValidFrom(v)
+	})
+}
+
+// UpdateSessionsValidFrom sets the "sessionsValidFrom" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateSessionsValidFrom() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateSessionsValidFrom()
 	})
 }
 

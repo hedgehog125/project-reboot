@@ -20,6 +20,7 @@ func (User) Fields() []ent.Field {
 		field.String("alertEmail").Default(""),
 		field.Bool("locked").Default(false),
 		field.Time("lockedUntil").Nillable().Optional(),
+		field.Time("sessionsValidFrom"),
 
 		field.Bytes("content").NotEmpty(),
 		field.String("fileName").NotEmpty(),

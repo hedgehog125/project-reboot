@@ -22,6 +22,8 @@ const (
 	FieldLocked = "locked"
 	// FieldLockedUntil holds the string denoting the lockeduntil field in the database.
 	FieldLockedUntil = "locked_until"
+	// FieldSessionsValidFrom holds the string denoting the sessionsvalidfrom field in the database.
+	FieldSessionsValidFrom = "sessions_valid_from"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
 	// FieldFileName holds the string denoting the filename field in the database.
@@ -68,6 +70,7 @@ var Columns = []string{
 	FieldAlertEmail,
 	FieldLocked,
 	FieldLockedUntil,
+	FieldSessionsValidFrom,
 	FieldContent,
 	FieldFileName,
 	FieldMime,
@@ -140,6 +143,11 @@ func ByLocked(opts ...sql.OrderTermOption) OrderOption {
 // ByLockedUntil orders the results by the lockedUntil field.
 func ByLockedUntil(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLockedUntil, opts...).ToFunc()
+}
+
+// BySessionsValidFrom orders the results by the sessionsValidFrom field.
+func BySessionsValidFrom(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSessionsValidFrom, opts...).ToFunc()
 }
 
 // ByFileName orders the results by the fileName field.

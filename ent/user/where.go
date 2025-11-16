@@ -80,6 +80,11 @@ func LockedUntil(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldLockedUntil, v))
 }
 
+// SessionsValidFrom applies equality check predicate on the "sessionsValidFrom" field. It's identical to SessionsValidFromEQ.
+func SessionsValidFrom(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldSessionsValidFrom, v))
+}
+
 // Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
 func Content(v []byte) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldContent, v))
@@ -373,6 +378,46 @@ func LockedUntilIsNil() predicate.User {
 // LockedUntilNotNil applies the NotNil predicate on the "lockedUntil" field.
 func LockedUntilNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldLockedUntil))
+}
+
+// SessionsValidFromEQ applies the EQ predicate on the "sessionsValidFrom" field.
+func SessionsValidFromEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldSessionsValidFrom, v))
+}
+
+// SessionsValidFromNEQ applies the NEQ predicate on the "sessionsValidFrom" field.
+func SessionsValidFromNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldSessionsValidFrom, v))
+}
+
+// SessionsValidFromIn applies the In predicate on the "sessionsValidFrom" field.
+func SessionsValidFromIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldSessionsValidFrom, vs...))
+}
+
+// SessionsValidFromNotIn applies the NotIn predicate on the "sessionsValidFrom" field.
+func SessionsValidFromNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldSessionsValidFrom, vs...))
+}
+
+// SessionsValidFromGT applies the GT predicate on the "sessionsValidFrom" field.
+func SessionsValidFromGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldSessionsValidFrom, v))
+}
+
+// SessionsValidFromGTE applies the GTE predicate on the "sessionsValidFrom" field.
+func SessionsValidFromGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldSessionsValidFrom, v))
+}
+
+// SessionsValidFromLT applies the LT predicate on the "sessionsValidFrom" field.
+func SessionsValidFromLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldSessionsValidFrom, v))
+}
+
+// SessionsValidFromLTE applies the LTE predicate on the "sessionsValidFrom" field.
+func SessionsValidFromLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldSessionsValidFrom, v))
 }
 
 // ContentEQ applies the EQ predicate on the "content" field.
