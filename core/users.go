@@ -9,6 +9,7 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/session"
+	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/jonboulle/clockwork"
 )
 
@@ -77,6 +78,31 @@ func DeleteExpiredSessions(ctx context.Context, clock clockwork.Clock) common.Wr
 		Exec(ctx)
 	if stdErr != nil {
 		return ErrWrapperDeleteExpiredSessions.Wrap(
+			ErrWrapperDatabase.Wrap(stdErr),
+		)
+	}
+	return nil
+}
+
+func InvalidateUserSessions(userID int, ctx context.Context, clock clockwork.Clock) common.WrappedError {
+	tx := ent.TxFromContext(ctx)
+	if tx == nil {
+		return ErrWrapperInvalidateUserSessions.Wrap(common.ErrNoTxInContext)
+	}
+
+	_, stdErr := tx.Session.Delete().
+		Where(session.HasUserWith(user.ID(userID))).
+		Exec(ctx)
+	if stdErr != nil {
+		return ErrWrapperInvalidateUserSessions.Wrap(
+			ErrWrapperDatabase.Wrap(stdErr),
+		)
+	}
+	stdErr = tx.User.UpdateOneID(userID).
+		SetSessionsValidFrom(clock.Now()).
+		Exec(ctx)
+	if stdErr != nil {
+		return ErrWrapperInvalidateUserSessions.Wrap(
 			ErrWrapperDatabase.Wrap(stdErr),
 		)
 	}

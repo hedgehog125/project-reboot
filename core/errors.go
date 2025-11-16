@@ -5,6 +5,7 @@ import "github.com/hedgehog125/project-reboot/common"
 const (
 	ErrTypeSendActiveSessionReminders = "send active session reminders"
 	ErrTypeDeleteExpiredSessions      = "delete expired sessions"
+	ErrTypeInvalidateUserSessions     = "invalidate user sessions"
 	ErrTypeEncrypt                    = "encrypt"
 	ErrTypeDecrypt                    = "decrypt"
 	// Lower level
@@ -18,6 +19,7 @@ var ErrIncorrectPassword = common.NewErrorWithCategories("incorrect password", c
 
 var ErrWrapperSendActiveSessionReminders = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeSendActiveSessionReminders)
 var ErrWrapperDeleteExpiredSessions = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeDeleteExpiredSessions)
+var ErrWrapperInvalidateUserSessions = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeInvalidateUserSessions)
 
 // These functions don't categorize their errors
 var ErrWrapperEncrypt = common.NewErrorWrapper(common.ErrTypeCore, ErrTypeEncrypt)

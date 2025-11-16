@@ -44,6 +44,9 @@ func (service *Core) SendActiveSessionReminders(ctx context.Context) common.Wrap
 func (service *Core) DeleteExpiredSessions(ctx context.Context) common.WrappedError {
 	return core.DeleteExpiredSessions(ctx, service.App.Clock)
 }
+func (service *Core) InvalidateUserSessions(userID int, ctx context.Context) common.WrappedError {
+	return core.InvalidateUserSessions(userID, ctx, service.App.Clock)
+}
 func (service *Core) IsUserSufficientlyNotified(sessionOb *ent.Session) bool {
 	return core.IsUserSufficientlyNotified(
 		sessionOb,

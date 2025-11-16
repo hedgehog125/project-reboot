@@ -8,7 +8,6 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
@@ -57,11 +56,9 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 
 			// The user most likely isn't trying to log in if they've coordinated this with their admin
 			// And deleting the sessions simplifies IsUserSufficientlyNotified
-			_, stdErr = tx.Session.Delete().
-				Where(session.UserID(userOb.ID)).
-				Exec(ctx)
-			if stdErr != nil {
-				return stdErr
+			wrappedErr = app.Core.InvalidateUserSessions(userOb.ID, ctx)
+			if wrappedErr != nil {
+				return wrappedErr
 			}
 
 			ginCtx.JSON(http.StatusOK, SetContactsResponse{

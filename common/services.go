@@ -207,6 +207,7 @@ type CoreService interface {
 	RandomAuthCode() []byte
 	SendActiveSessionReminders(ctx context.Context) WrappedError
 	DeleteExpiredSessions(ctx context.Context) WrappedError
+	InvalidateUserSessions(userID int, ctx context.Context) WrappedError
 	IsUserSufficientlyNotified(sessionOb *ent.Session) bool
 
 	Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, WrappedError)

@@ -1,5 +1,6 @@
 # TODO
 
+-   Store timestamp in session so it can be double checked to ensure it's still valid by comparing to auth_timestamps_valid_from in users table
 -   Move more logic out of endpoints
 -   Use hash-wasm on the frontend when backend rate limits the hashing. It's single threaded but multithreaded WASM seems to be patchy at the moment, even in languages with good support like Rust
 -   -   Switch to SvelteKit at the same time
@@ -7,7 +8,6 @@
 -   Add limits on self-locking so a hacker can't lock you out forever
 -   -   Attempting to get an authorisation code when locked should send the unlock date
 -   -   Admins should be able to reset it so if there's an unauthorised login, the user can block with a self lock, the admin can reset them and then they can block again without waiting
--   Store timestamp in session so it can be double checked to ensure it's still valid by comparing to auth_timestamps_valid_from in users table
 -   Email messenger
 -   Signal messenger? Using that REST API in a separate container over the internal network only so no security required, hosting should be very cheap if it's serverless
 -   Repeat password in sign up form

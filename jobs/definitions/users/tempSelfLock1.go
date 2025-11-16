@@ -7,7 +7,6 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/session"
 	"github.com/hedgehog125/project-reboot/ent/user"
 	"github.com/hedgehog125/project-reboot/jobs"
 )
@@ -41,19 +40,18 @@ func TempSelfLock1(app *common.App) *jobs.Definition {
 					if stdErr != nil {
 						return stdErr
 					}
-					userOb, stdErr = userOb.Update().SetLockedUntil(body.Until).
+					userOb, stdErr = userOb.Update().
+						SetLockedUntil(body.Until).
 						Save(ctx)
 					if stdErr != nil {
 						return stdErr
 					}
-					_, stdErr = tx.Session.Delete().
-						Where(session.UserID(userOb.ID)).
-						Exec(ctx)
-					if stdErr != nil {
-						return stdErr
-					}
 
-					_, _, wrappedErr := app.Messengers.SendUsingAll(
+					wrappedErr := app.Core.InvalidateUserSessions(userOb.ID, ctx)
+					if wrappedErr != nil {
+						return wrappedErr
+					}
+					_, _, wrappedErr = app.Messengers.SendUsingAll(
 						&common.Message{
 							Type: common.MessageSelfLock,
 							User: userOb,
