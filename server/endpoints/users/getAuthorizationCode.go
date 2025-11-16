@@ -60,7 +60,6 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				Threads: userOb.HashThreads,
 			},
 		)
-		time.Sleep(10 * time.Second)
 		_, wrappedErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
 		if wrappedErr != nil {
 			return servercommon.NewUnauthorizedError()

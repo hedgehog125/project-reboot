@@ -3,6 +3,7 @@
 -   Require at least 2 login alert messages for n messengers to have been successfully sent before authorising download
 -   -   n = max(ceil(configured_messengers / 2), 1)
 -   -   If 1 is configured, can only require one. Configuring 2 allows one to fail so it's a bit more resilient. 3 still means only 1 can fail, so you get a good balance. And then after 4, neither way is likely to be an issue
+-   Add panic in tests when an error is logged
 -   Move more logic out of endpoints
 -   Use hash-wasm on the frontend when backend rate limits the hashing. It's single threaded but multithreaded WASM seems to be patchy at the moment, even in languages with good support like Rust
 -   -   Switch to SvelteKit at the same time

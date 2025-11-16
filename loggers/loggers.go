@@ -363,7 +363,8 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 						return false, wrappedErr
 					}
 					now := handler.App.Clock.Now()
-					if now.Before(lastCrashSignal.Add(handler.App.Env.MIN_CRASH_SIGNAL_GAP)) {
+					if handler.App.Env.MIN_CRASH_SIGNAL_GAP <= 0 ||
+						now.Before(lastCrashSignal.Add(handler.App.Env.MIN_CRASH_SIGNAL_GAP)) {
 						return false, nil
 					}
 

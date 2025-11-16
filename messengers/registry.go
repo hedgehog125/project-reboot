@@ -99,7 +99,7 @@ func (registry *Registry) Register(definition *Definition) {
 						if registry.App.Clock.Since(jobCtx.OriginallyDue) >= registry.App.Env.ADMIN_MESSAGE_TIMEOUT {
 							jobCtx.Logger.ErrorContext(
 								context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
-								"failed to notify admin about an error before ADMIN_MESSAGE_TIMEOUT, crashing to notify them earlier",
+								"failed to notify admin about an error before ADMIN_MESSAGE_TIMEOUT, will now possible crash to notify them earlier",
 								"jobID",
 								jobCtx.ID,
 							)
@@ -107,7 +107,7 @@ func (registry *Registry) Register(definition *Definition) {
 					} else {
 						jobCtx.Logger.ErrorContext(
 							context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
-							"failed to notify admin about an error! crashing to notify them earlier",
+							"failed to notify admin about an error! will now possible crash to notify them earlier",
 							"jobID",
 							jobCtx.ID,
 						)
