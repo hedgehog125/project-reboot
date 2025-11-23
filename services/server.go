@@ -41,19 +41,14 @@ func NewServer(app *common.App) *Server {
 	})
 	router.Use(middleware.NewTimeout())
 
-	embeddedFolder, stdErr := static.EmbedFolder(server.TemplateFiles.FS, server.TemplateFiles.Path)
-	if stdErr != nil {
-		log.Fatalf("failed to load embedded template files:\n%v", stdErr.Error())
-	}
-	router.LoadHTMLFS(embeddedFolder)
-
+	router.LoadHTMLFS(http.FS(server.TemplateFiles.FS), fmt.Sprintf("%v/*.html", server.TemplateFiles.Path))
 	router.Use(middleware.NewRateLimiting("api", app.RateLimiter))
 
-	embeddedFolder, stdErr = static.EmbedFolder(server.PublicFiles.FS, server.PublicFiles.Path)
+	embeddedFolder, stdErr := static.EmbedFolder(server.PublicFiles.FS, server.PublicFiles.Path)
 	if stdErr != nil {
 		log.Fatalf("failed to load embedded public files:\n%v", stdErr.Error())
 	}
-	router.Use(static.Serve("/static", embeddedFolder))
+	router.StaticFS("/static/", embeddedFolder)
 
 	router.Use(middleware.NewError())
 
