@@ -1,22 +1,19 @@
 # TODO
 
--   Store timestamp in session so it can be double checked to ensure it's still valid by comparing to auth_timestamps_valid_from in users table
--   Move more logic out of endpoints
+-   Split endpoints into admin and normal?
 -   Use hash-wasm on the frontend when backend rate limits the hashing. It's single threaded but multithreaded WASM seems to be patchy at the moment, even in languages with good support like Rust
 -   -   Switch to SvelteKit at the same time
 -   -   Backend should limit number of concurrent hash requests to avoid using too much RAM
 -   Add limits on self-locking so a hacker can't lock you out forever
 -   -   Attempting to get an authorisation code when locked should send the unlock date
+-   Repeat password in sign up form
 -   -   Admins should be able to reset it so if there's an unauthorised login, the user can block with a self lock, the admin can reset them and then they can block again without waiting
 -   Email messenger
 -   Signal messenger? Using that REST API in a separate container over the internal network only so no security required, hosting should be very cheap if it's serverless
--   Repeat password in sign up form
--   Does gin.ctx.Context include the timeout info from the middleware?
--   Rework endpoint system, maybe the endpoint functions could return an Endpoint struct with an array of handlers and some other things? Middleware should be defined there instead of in RegisterEndpoints
--   Review contexts. Possibly want to give them all a timeout, partly to make shutdowns more predictable
--   SMS messenger
--   Split endpoints into admin and normal?
 -   Switch to a pure Go SQLite implementation, speed will be fine considering SQLite it already has the single writer system
+-   SMS messenger
+-   Move more logic out of endpoints
+-   Review contexts. Possibly want to give them all a timeout, partly to make shutdowns more predictable
 -   Does log.Fatalf stop the shutdown logic running if the server crashes on startup?
 -   Require both admin and users to click a link every 4 weeks (unless already locked) to confirm their contacts are working. If they don't click it, users will automatically lock and have to be unlocked by an admin. If the admin doesn't, all users will automatically lock
 -   Admin endpoints for troubleshooting:
@@ -39,6 +36,7 @@
 -   -   Admin endpoints don't need this security, as long as they fail early if unauthorised
 -   When the admin is locked, whether temporarily or permanently, errors should make the server enter some kind of lockdown state? Need to weigh up pros and cons
 
+-   Rework endpoint system, maybe the endpoint functions could return an Endpoint struct with an array of handlers and some other things? Middleware should be defined there instead of in RegisterEndpoints
 -   Create servicescommon so things can be split up better?
 -   Job engine should support rate limiting for each API by each definition having an optional function to modify the database object.
     There could be a function to increase the due time based on the internal rate limit for the API. Probably not needed though
