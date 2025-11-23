@@ -48,7 +48,7 @@ func NewServer(app *common.App) *Server {
 	if stdErr != nil {
 		log.Fatalf("failed to load embedded public files:\n%v", stdErr.Error())
 	}
-	router.StaticFS("/static/", embeddedFolder)
+	router.StaticFS("/", embeddedFolder)
 
 	router.Use(middleware.NewError())
 
@@ -58,7 +58,10 @@ func NewServer(app *common.App) *Server {
 		Router:          router,
 		AdminMiddleware: adminMiddleware,
 	}
-	endpoints.ConfigureEndpoints(router.Group(""), serverApp) // TODO: rework to be more like jobs registry, embed *gin.RouterGroup
+	endpoints.ConfigureEndpoints(&servercommon.Group{
+		RouterGroup: router.Group(""),
+		App:         serverApp,
+	})
 
 	httpServer := &http.Server{
 		Addr:              fmt.Sprintf(":%v", app.Env.PORT),

@@ -1,10 +1,9 @@
-package endpoints
+package twofactoractions
 
 import (
-	v1 "github.com/hedgehog125/project-reboot/server/endpoints/v1"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
 func ConfigureEndpoints(group *servercommon.Group) {
-	v1.ConfigureEndpoints(group.Group("/api/v1"))
+	group.POST("/:id/confirm", Confirm(group.App))
 }

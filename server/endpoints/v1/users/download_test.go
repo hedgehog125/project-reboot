@@ -14,7 +14,7 @@ import (
 	"github.com/hedgehog125/project-reboot/core"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/messengers"
-	"github.com/hedgehog125/project-reboot/server/endpoints/users"
+	"github.com/hedgehog125/project-reboot/server/endpoints/v1/users"
 	"github.com/hedgehog125/project-reboot/server/servercommon"
 	"github.com/hedgehog125/project-reboot/services"
 	"github.com/jonboulle/clockwork"

@@ -26,7 +26,7 @@ form.addEventListener("submit", async (e) => {
 	const content = dataUrl.slice(dataUrl.indexOf(",") + 1);
 	const mime = dataUrl.slice("data:".length, dataUrl.indexOf(";"));
 
-	const resp = await fetch("/api/v1/users/register-or-update", {
+	const resp = await fetch("/api/v1/admin/users/register-or-update", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
