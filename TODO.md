@@ -1,12 +1,10 @@
 # TODO
 
--   Write tests to assert that endpoints check if the user is locked
--   -   Create testhelpers package in server/endpoints
--   -   Jobs and messengers should have an equivalent package for their setup, it'll probably be a bit different
--   -   Middleware should be tested at unit level
 -   Write tests to assert that service shutdown methods can be called in multiple places concurrently
 -   Rework admin code system to be more secure
 -   Can cancelling requests make views non-atomic if a view uses multiple transactions? Are there any security risks with this?
+-   Move user contacts to separate model so SMS and Signal can have different phone numbers for the same user for example. Each messenger can be explicitly enabled and has its own options. e.g only send login alerts via SMS, don't send any other types of messages to it
+-   Standardise returning errors and using gin.H vs the endpoint specific download struct. That struct applies defaults which the other 2 approaches don't, so it could leak information
 -   Experiment using Cloudflare to prevent DDoS requests on the hashing endpoint. It's not a great idea to shift the hashing to the client due to WASM and different devices' RAM limitations. Can specifically limit that endpoint
 -   Limit number of concurrent hash requests to avoid using too much RAM
 -   Add limits on self-locking so a hacker can't lock you out forever

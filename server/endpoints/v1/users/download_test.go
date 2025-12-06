@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/base64"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/common/testcommon"
 	"github.com/hedgehog125/project-reboot/core"
@@ -18,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDownload_HappyPath(t *testing.T) {
+func TestDownload_SufficientlyNotifiedUser_AllowsDownload(t *testing.T) {
 	t.Parallel()
 	// TODO: assert messenger sent message, maybe improve the setup
 
@@ -42,9 +44,10 @@ func TestDownload_HappyPath(t *testing.T) {
 	sessionOb, stdErr := dbcommon.WithReadWriteTx(
 		t.Context(), app.Database,
 		func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
+			now := clock.Now()
 			userOb, stdErr := tx.User.Create().
 				SetUsername(username).
-				SetSessionsValidFrom(clock.Now()).
+				SetSessionsValidFrom(now).
 				SetContent(encrypted).
 				SetFileName(filename).
 				SetMime(mimeType).
@@ -53,18 +56,18 @@ func TestDownload_HappyPath(t *testing.T) {
 				SetHashTime(app.Env.PASSWORD_HASH_SETTINGS.Time).
 				SetHashMemory(app.Env.PASSWORD_HASH_SETTINGS.Memory).
 				SetHashThreads(app.Env.PASSWORD_HASH_SETTINGS.Threads).
+				SetLockedUntil(now). // Has just expired
 				Save(ctx)
 			if stdErr != nil {
 				return nil, stdErr
 			}
 
 			authCode := app.Core.RandomAuthCode()
-			now := clock.Now()
 			validUntil := now.Add(24 * time.Hour)
 
 			sessionOb, stdErr := tx.Session.Create().
 				SetUser(userOb).
-				SetCreatedAt(clock.Now()).
+				SetCreatedAt(now).
 				SetCode(authCode).
 				SetValidFrom(now).
 				SetValidUntil(validUntil).
@@ -77,7 +80,7 @@ func TestDownload_HappyPath(t *testing.T) {
 
 			_, stdErr = tx.LoginAlert.Create().
 				SetSession(sessionOb).
-				SetSentAt(clock.Now()).
+				SetSentAt(now).
 				SetVersionedMessengerType(app.MockMessenger.VersionedName()).
 				SetConfirmed(true).
 				Save(ctx)
@@ -107,7 +110,6 @@ func TestDownload_HappyPath(t *testing.T) {
 			Mime:                        mimeType,
 		},
 	)
-	require.Equal(t, http.StatusOK, respRecorder.Code)
 }
 
 func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T) {
@@ -139,7 +141,7 @@ func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T)
 
 			userOb, stdErr := tx.User.Create().
 				SetUsername(username).
-				SetSessionsValidFrom(clock.Now()).
+				SetSessionsValidFrom(now).
 				SetContent(encrypted).
 				SetFileName(filename).
 				SetMime(mimeType).
@@ -159,7 +161,7 @@ func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T)
 
 			sessionOb, stdErr := tx.Session.Create().
 				SetUser(userOb).
-				SetCreatedAt(clock.Now()).
+				SetCreatedAt(now).
 				SetCode(authCode).
 				SetValidFrom(now).
 				SetValidUntil(validUntil).
@@ -172,7 +174,7 @@ func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T)
 
 			_, stdErr = tx.LoginAlert.Create().
 				SetSession(sessionOb).
-				SetSentAt(clock.Now()).
+				SetSentAt(now).
 				SetVersionedMessengerType(app.MockMessenger.VersionedName()).
 				SetConfirmed(true).
 				Save(ctx)
@@ -190,15 +192,235 @@ func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T)
 			AuthorizationCode: base64.StdEncoding.EncodeToString(sessionOb.Code),
 		},
 	)
-	require.Equal(t, http.StatusUnauthorized, respRecorder.Code)
+	testcommon.AssertJSONResponse(
+		t, respRecorder,
+		http.StatusUnauthorized,
+		&gin.H{
+			"errors": []servercommon.ErrorDetail{},
+		},
+	)
 }
 
 func TestDownload_TemporarilyLockedUser_ReturnsUnauthorizedError(t *testing.T) {
-	panic("not implemented")
-}
-func TestDownload_ExpiredTemporarilyLockedUser_AllowsDownload(t *testing.T) {
-	panic("not implemented")
+	t.Parallel()
+	// TODO: assert messenger sent message, maybe improve the setup
+
+	clock := clockwork.NewFakeClock()
+	app := testhelpers.NewApp(t, &testhelpers.AppOptions{
+		Clock: clock,
+	})
+
+	username := "alice"
+	password := "password123456"
+	fileContent := []byte("file content here")
+	filename := "data.zip"
+	mimeType := "application/zip"
+
+	keySalt := app.Core.GenerateSalt()
+	encryptionKey := app.Core.HashPassword(password, keySalt, app.Env.PASSWORD_HASH_SETTINGS)
+
+	encrypted, nonce, wrappedErr := app.Core.Encrypt(fileContent, encryptionKey)
+	require.NoError(t, wrappedErr)
+
+	sessionOb, stdErr := dbcommon.WithReadWriteTx(
+		t.Context(), app.Database,
+		func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
+			now := clock.Now()
+			userOb, stdErr := tx.User.Create().
+				SetUsername(username).
+				SetSessionsValidFrom(now).
+				SetContent(encrypted).
+				SetFileName(filename).
+				SetMime(mimeType).
+				SetNonce(nonce).
+				SetKeySalt(keySalt).
+				SetHashTime(app.Env.PASSWORD_HASH_SETTINGS.Time).
+				SetHashMemory(app.Env.PASSWORD_HASH_SETTINGS.Memory).
+				SetHashThreads(app.Env.PASSWORD_HASH_SETTINGS.Threads).
+				SetLockedUntil(now.Add((24 * time.Hour) + time.Nanosecond)).
+				Save(ctx)
+			if stdErr != nil {
+				return nil, stdErr
+			}
+
+			authCode := app.Core.RandomAuthCode()
+			validUntil := now.Add(2 * 24 * time.Hour) // Lasts until after the user is unlocked
+
+			// This session shouldn't exist, but let's say an attacker managed to somehow create it at the exact time the user was locked
+			// Even though both things should happen in the same transaction
+			sessionOb, stdErr := tx.Session.Create().
+				SetUser(userOb).
+				SetCreatedAt(now).
+				SetCode(authCode).
+				SetValidFrom(now).
+				SetValidUntil(validUntil).
+				SetUserAgent("test-agent").
+				SetIP("127.0.0.1").
+				Save(ctx)
+			if stdErr != nil {
+				return sessionOb, stdErr
+			}
+
+			_, stdErr = tx.LoginAlert.Create().
+				SetSession(sessionOb).
+				SetSentAt(now).
+				SetVersionedMessengerType(app.MockMessenger.VersionedName()).
+				SetConfirmed(true).
+				Save(ctx)
+			if stdErr != nil {
+				return sessionOb, stdErr
+			}
+
+			// Slightly unrealistic but it's easiest to create both alerts here
+			// This is needed otherwise core.IsUserSufficientlyNotified thinks the jobs are failing and prevents the login
+			_, stdErr = tx.LoginAlert.Create().
+				SetSession(sessionOb).
+				SetSentAt(now.Add(24 * time.Hour)).
+				SetVersionedMessengerType(app.MockMessenger.VersionedName()).
+				SetConfirmed(true).
+				Save(ctx)
+			if stdErr != nil {
+				return sessionOb, stdErr
+			}
+
+			return sessionOb, nil
+		},
+	)
+	require.NoError(t, stdErr)
+
+	makeRequest := func() *httptest.ResponseRecorder {
+		return testcommon.Post(
+			t, app.Server,
+			"/api/v1/users/download",
+			users.DownloadPayload{
+				Username:          username,
+				Password:          password,
+				AuthorizationCode: base64.StdEncoding.EncodeToString(sessionOb.Code),
+			},
+		)
+	}
+	respRecorder := makeRequest()
+	testcommon.AssertJSONResponse(
+		t, respRecorder,
+		http.StatusUnauthorized,
+		&gin.H{
+			"errors": []servercommon.ErrorDetail{},
+		},
+	)
+
+	clock.Advance(24 * time.Hour) // 1ns before the user is unlocked
+	respRecorder = makeRequest()
+	testcommon.AssertJSONResponse(
+		t, respRecorder,
+		http.StatusUnauthorized,
+		&gin.H{
+			"errors": []servercommon.ErrorDetail{},
+		},
+	)
+
+	clock.Advance(time.Nanosecond)
+	respRecorder = makeRequest()
+	// Unfortunately if this did actually happen,
+	// we wouldn't have a way to know to reject this request after the temporary lock expired
+	testcommon.AssertJSONResponse(
+		t, respRecorder,
+		http.StatusOK,
+		&users.DownloadResponse{
+			Errors:                      []servercommon.ErrorDetail{},
+			AuthorizationCodeValidFrom:  nil,
+			AuthorizationCodeValidUntil: nil,
+			Content:                     fileContent,
+			Filename:                    filename,
+			Mime:                        mimeType,
+		},
+	)
 }
 func TestDownload_PermanentlyLockedUser_ReturnsUnauthorizedError(t *testing.T) {
-	panic("not implemented")
+	t.Parallel()
+	// TODO: assert messenger sent message, maybe improve the setup
+
+	clock := clockwork.NewFakeClock()
+	app := testhelpers.NewApp(t, &testhelpers.AppOptions{
+		Clock: clock,
+	})
+
+	username := "alice"
+	password := "password123456"
+	fileContent := []byte("file content here")
+	filename := "data.zip"
+	mimeType := "application/zip"
+
+	keySalt := app.Core.GenerateSalt()
+	encryptionKey := app.Core.HashPassword(password, keySalt, app.Env.PASSWORD_HASH_SETTINGS)
+
+	encrypted, nonce, wrappedErr := app.Core.Encrypt(fileContent, encryptionKey)
+	require.NoError(t, wrappedErr)
+
+	sessionOb, stdErr := dbcommon.WithReadWriteTx(
+		t.Context(), app.Database,
+		func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
+			now := clock.Now()
+			userOb, stdErr := tx.User.Create().
+				SetUsername(username).
+				SetSessionsValidFrom(now).
+				SetContent(encrypted).
+				SetFileName(filename).
+				SetMime(mimeType).
+				SetNonce(nonce).
+				SetKeySalt(keySalt).
+				SetHashTime(app.Env.PASSWORD_HASH_SETTINGS.Time).
+				SetHashMemory(app.Env.PASSWORD_HASH_SETTINGS.Memory).
+				SetHashThreads(app.Env.PASSWORD_HASH_SETTINGS.Threads).
+				SetLockedUntil(now.Add(-time.Hour)). // Expired a little while ago
+				SetLocked(true).                     // But this takes priority
+				Save(ctx)
+			if stdErr != nil {
+				return nil, stdErr
+			}
+
+			authCode := app.Core.RandomAuthCode()
+			validUntil := now.Add(24 * time.Hour)
+
+			// This session shouldn't exist, but let's say an attacker managed to somehow create it at the exact time the user was locked
+			// Even though both things should happen in the same transaction
+			sessionOb, stdErr := tx.Session.Create().
+				SetUser(userOb).
+				SetCreatedAt(now).
+				SetCode(authCode).
+				SetValidFrom(now).
+				SetValidUntil(validUntil).
+				SetUserAgent("test-agent").
+				SetIP("127.0.0.1").
+				Save(ctx)
+			if stdErr != nil {
+				return sessionOb, stdErr
+			}
+
+			_, stdErr = tx.LoginAlert.Create().
+				SetSession(sessionOb).
+				SetSentAt(now).
+				SetVersionedMessengerType(app.MockMessenger.VersionedName()).
+				SetConfirmed(true).
+				Save(ctx)
+			return sessionOb, stdErr
+		},
+	)
+	require.NoError(t, stdErr)
+
+	respRecorder := testcommon.Post(
+		t, app.Server,
+		"/api/v1/users/download",
+		users.DownloadPayload{
+			Username:          username,
+			Password:          password,
+			AuthorizationCode: base64.StdEncoding.EncodeToString(sessionOb.Code),
+		},
+	)
+	testcommon.AssertJSONResponse(
+		t, respRecorder,
+		http.StatusUnauthorized,
+		&gin.H{
+			"errors": []servercommon.ErrorDetail{},
+		},
+	)
 }

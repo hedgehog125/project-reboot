@@ -44,7 +44,7 @@ func NewApp(t *testing.T, options *AppOptions) *App {
 	mockMessengers := options.MockMessengers
 	var mockMessenger *MockMessenger
 	if mockMessengers == nil {
-		mockMessenger = NewMockMessenger("MOCK_MESSENGER_1")
+		mockMessenger = NewMockMessenger("MOCK_MESSENGER")
 		mockMessengers = []*MockMessenger{mockMessenger}
 	}
 
