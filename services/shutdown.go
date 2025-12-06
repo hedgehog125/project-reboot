@@ -47,6 +47,12 @@ func (shutdown *Shutdown) Listen() {
 		<-shutdown.shutdownCompletedChan
 	}
 }
+
+// Unlike Listen, this doesn't listen for a SIGINT. Mostly used for tests
+func (shutdown *Shutdown) ListenForShutdownCall() {
+	<-shutdown.shutdownStartedChan
+	<-shutdown.shutdownCompletedChan
+}
 func (shutdown *Shutdown) Shutdown(reason string) {
 	shutdown.shutdownOnce.Do(func() {
 		close(shutdown.shutdownStartedChan)

@@ -1,9 +1,14 @@
 # TODO
 
--   Split endpoints into admin and normal?
--   Use hash-wasm on the frontend when backend rate limits the hashing. It's single threaded but multithreaded WASM seems to be patchy at the moment, even in languages with good support like Rust
--   -   Switch to SvelteKit at the same time
--   -   Backend should limit number of concurrent hash requests to avoid using too much RAM
+-   Write tests to assert that endpoints check if the user is locked
+-   -   Create testhelpers package in server/endpoints
+-   -   Jobs and messengers should have an equivalent package for their setup, it'll probably be a bit different
+-   -   Middleware should be tested at unit level
+-   Write tests to assert that service shutdown methods can be called in multiple places concurrently
+-   Rework admin code system to be more secure
+-   Can cancelling requests make views non-atomic if a view uses multiple transactions? Are there any security risks with this?
+-   Experiment using Cloudflare to prevent DDoS requests on the hashing endpoint. It's not a great idea to shift the hashing to the client due to WASM and different devices' RAM limitations. Can specifically limit that endpoint
+-   Limit number of concurrent hash requests to avoid using too much RAM
 -   Add limits on self-locking so a hacker can't lock you out forever
 -   -   Attempting to get an authorisation code when locked should send the unlock date
 -   Repeat password in sign up form
@@ -12,7 +17,9 @@
 -   Signal messenger? Using that REST API in a separate container over the internal network only so no security required, hosting should be very cheap if it's serverless
 -   Switch to a pure Go SQLite implementation, speed will be fine considering SQLite it already has the single writer system
 -   SMS messenger
+-   Rotate admin code when used
 -   Move more logic out of endpoints
+-   CC admin (or all users?) when a user receives a login alert
 -   Review contexts. Possibly want to give them all a timeout, partly to make shutdowns more predictable
 -   Does log.Fatalf stop the shutdown logic running if the server crashes on startup?
 -   Require both admin and users to click a link every 4 weeks (unless already locked) to confirm their contacts are working. If they don't click it, users will automatically lock and have to be unlocked by an admin. If the admin doesn't, all users will automatically lock

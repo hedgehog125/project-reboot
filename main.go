@@ -33,7 +33,7 @@ func main() {
 		}, false),
 		services.NewShutdownTask(func() {
 			if app.Logger != nil {
-				app.Logger.Shutdown() // Note: logs will still be written to the console after this, just not stored
+				app.Logger.Shutdown() // Note: logs will still be sent to stdout/stderr, just not stored
 			}
 		}, false),
 		services.NewShutdownTask(func() {

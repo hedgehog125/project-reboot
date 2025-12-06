@@ -55,6 +55,9 @@ func (service *Core) IsUserSufficientlyNotified(sessionOb *ent.Session) bool {
 		service.App.Clock, service.App.Env,
 	)
 }
+func (service *Core) IsUserLocked(userOb *ent.User) bool {
+	return core.IsUserLocked(userOb, service.App.Clock)
+}
 
 func (service *Core) Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, common.WrappedError) {
 	return core.Encrypt(data, encryptionKey)

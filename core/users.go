@@ -200,3 +200,13 @@ func IsUserSufficientlyNotified(
 	)
 	return true
 }
+
+func IsUserLocked(userOb *ent.User, clock clockwork.Clock) bool {
+	if userOb.Locked {
+		return true
+	}
+	if userOb.LockedUntil == nil {
+		return false
+	}
+	return clock.Now().Before(*userOb.LockedUntil)
+}

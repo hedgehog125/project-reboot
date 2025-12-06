@@ -58,7 +58,9 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		if stdErr != nil {
 			return stdErr
 		}
-		// TODO: check the user isn't locked
+		if app.Core.IsUserLocked(userOb) {
+			return servercommon.NewUnauthorizedError()
+		}
 
 		encryptionKey := app.Core.HashPassword(
 			body.Password,

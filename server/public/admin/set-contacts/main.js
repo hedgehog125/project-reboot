@@ -10,7 +10,7 @@ form.addEventListener("submit", async (e) => {
 	e.preventDefault();
 	displayMessage("");
 
-	const resp = await fetch("/api/v1/users/set-user-contacts", {
+	const resp = await fetch("/api/v1/admin/users/set-user-contacts", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

@@ -82,6 +82,9 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 			})
 			return nil
 		}
+		if app.Core.IsUserLocked(sessionOb.Edges.User) {
+			return servercommon.NewUnauthorizedError()
+		}
 
 		userOb := sessionOb.Edges.User
 		encryptionKey := app.Core.HashPassword(

@@ -209,6 +209,7 @@ type CoreService interface {
 	DeleteExpiredSessions(ctx context.Context) WrappedError
 	InvalidateUserSessions(userID int, ctx context.Context) WrappedError
 	IsUserSufficientlyNotified(sessionOb *ent.Session) bool
+	IsUserLocked(userOb *ent.User) bool
 
 	Encrypt(data []byte, encryptionKey []byte) ([]byte, []byte, WrappedError)
 	Decrypt(encrypted []byte, encryptionKey []byte, nonce []byte) ([]byte, WrappedError)

@@ -50,6 +50,9 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		if stdErr != nil {
 			return stdErr
 		}
+		if app.Core.IsUserLocked(userOb) {
+			return servercommon.NewUnauthorizedError()
+		}
 
 		encryptionKey := app.Core.HashPassword(
 			body.Password,
@@ -73,6 +76,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 				validUntil := clock.Now().Add(app.Env.AUTH_CODE_VALID_FOR)
 
 				sessionOb, stdErr := tx.Session.Create().
+					SetCreatedAt(clock.Now()).
 					SetUser(userOb).
 					SetCode(authCode).
 					SetValidFrom(validFrom).
