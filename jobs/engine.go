@@ -24,6 +24,7 @@ type Engine struct {
 	waitingForJobsChan   chan struct{}
 	requestShutdownChan  chan struct{}
 	shutdownFinishedChan chan struct{}
+	shutdownOnce         sync.Once
 	mu                   sync.Mutex
 }
 
@@ -310,11 +311,13 @@ func (engine *Engine) WaitForJobs() {
 func (engine *Engine) Shutdown() {
 	// TODO: timeout?
 	// TODO: what if it's not running?
-	engine.App.Logger.Info("requesting job engine shutdown")
-	engine.requestShutdownChan <- struct{}{}
-	engine.App.Logger.Info("waiting for job engine to finish jobs...")
-	<-engine.shutdownFinishedChan
-	engine.App.Logger.Info("job engine stopped")
+	engine.shutdownOnce.Do(func() {
+		engine.App.Logger.Info("requesting job engine shutdown")
+		engine.requestShutdownChan <- struct{}{}
+		engine.App.Logger.Info("waiting for job engine to finish jobs...")
+		<-engine.shutdownFinishedChan
+		engine.App.Logger.Info("job engine stopped")
+	})
 }
 
 func (engine *Engine) Enqueue(

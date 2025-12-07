@@ -1,6 +1,7 @@
 # TODO
 
 -   Write tests to assert that service shutdown methods can be called in multiple places concurrently
+-   -   Also write tests for what happens if you shut them down before they start
 -   Rework admin code system to be more secure
 -   Can cancelling requests make views non-atomic if a view uses multiple transactions? Are there any security risks with this?
 -   Move user contacts to separate model so SMS and Signal can have different phone numbers for the same user for example. Each messenger can be explicitly enabled and has its own options. e.g only send login alerts via SMS, don't send any other types of messages to it

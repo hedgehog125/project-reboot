@@ -12,6 +12,7 @@ import (
 	"github.com/hedgehog125/project-reboot/common"
 	"github.com/hedgehog125/project-reboot/common/dbcommon"
 	"github.com/hedgehog125/project-reboot/common/testcommon"
+	"github.com/hedgehog125/project-reboot/common/testcommon/mocks"
 	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/hedgehog125/project-reboot/ent/logentry"
 	"github.com/hedgehog125/project-reboot/loggers"
@@ -89,7 +90,7 @@ func TestLogger_SavesToDatabase(t *testing.T) {
 		Database:        db,
 		Env:             testcommon.DefaultEnv(),
 		Clock:           clockwork.NewRealClock(),
-		ShutdownService: testcommon.NewMockShutdownService(),
+		ShutdownService: mocks.NewShutdownService(),
 	}
 	app.Env.PANIC_ON_ERROR = false
 	app.KeyValue = services.NewKeyValue(app)
@@ -498,7 +499,7 @@ func TestLogger_NoAdminUser_UsesCrashSignal(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 
 	runProgram := func(expectedToCrashSignal bool, expectedLastSignal time.Time) {
-		shutdownService := testcommon.NewMockShutdownService()
+		shutdownService := mocks.NewShutdownService()
 		app := &common.App{
 			Database:        db,
 			Env:             testcommon.DefaultEnv(),

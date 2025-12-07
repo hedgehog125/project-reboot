@@ -47,7 +47,7 @@ type Handler struct {
 	shutdownCtx          context.Context
 	cancelShutdownCtx    context.CancelFunc
 	shutdownFinishedChan chan struct{}
-	mu                   *sync.Mutex
+	shutdownOnce         *sync.Once
 }
 type entry struct {
 	time                         time.Time
@@ -83,7 +83,7 @@ func NewHandler(
 		entryChan:            make(chan *entry, 100),
 		requestShutdownChan:  make(chan struct{}),
 		shutdownFinishedChan: make(chan struct{}),
-		mu:                   &sync.Mutex{},
+		shutdownOnce:         &sync.Once{},
 	}
 }
 
@@ -499,13 +499,13 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 
 func (handler *Handler) Shutdown() {
 	// TODO: what if it's not running?
-	handler.mu.Lock()
-	ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
-	handler.shutdownCtx = ctx
-	handler.cancelShutdownCtx = cancel
-	handler.mu.Unlock()
-	handler.requestShutdownChan <- struct{}{}
-	<-handler.shutdownFinishedChan
+	handler.shutdownOnce.Do(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
+		handler.shutdownCtx = ctx
+		handler.cancelShutdownCtx = cancel
+		handler.requestShutdownChan <- struct{}{}
+		<-handler.shutdownFinishedChan
+	})
 }
 
 func (handler Handler) Enabled(_ context.Context, level slog.Level) bool {

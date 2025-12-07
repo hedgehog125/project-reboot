@@ -13,6 +13,7 @@ type Engine struct {
 	RequestShutdownChan  chan struct{}
 	shutdownFinishedChan chan struct{}
 	shutdownWg           sync.WaitGroup
+	shutdownOnce         sync.Once
 }
 
 func NewEngine(app *common.App) *Engine {
@@ -45,8 +46,10 @@ func (engine *Engine) Run() {
 	close(engine.shutdownFinishedChan)
 }
 func (engine *Engine) Shutdown() {
-	engine.App.Logger.Info("scheduler shutting down...")
-	close(engine.RequestShutdownChan)
-	<-engine.shutdownFinishedChan
-	engine.App.Logger.Info("scheduler stopped")
+	engine.shutdownOnce.Do(func() {
+		engine.App.Logger.Info("scheduler shutting down...")
+		close(engine.RequestShutdownChan)
+		<-engine.shutdownFinishedChan
+		engine.App.Logger.Info("scheduler stopped")
+	})
 }
