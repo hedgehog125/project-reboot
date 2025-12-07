@@ -31,3 +31,22 @@ func TestShutdown_HandlesConcurrentCalls(t *testing.T) {
 	}
 	shutdownService.ListenForShutdownCall()
 }
+
+func TestShutdown_NoOpWhenNotStarted(t *testing.T) {
+	t.Parallel()
+
+	app := &common.App{
+		Clock:  clockwork.NewRealClock(),
+		Logger: testcommon.NewTestLogger(),
+	}
+	shutdownService := services.NewShutdown(app)
+	app.ShutdownService = shutdownService
+
+	select {
+	case <-common.NewCallbackChannel(func() {
+		shutdownService.Shutdown("")
+	}):
+	case <-time.After(200 * time.Millisecond):
+		t.Fatalf("Shutdown service blocked when not started; expected no-op")
+	}
+}
