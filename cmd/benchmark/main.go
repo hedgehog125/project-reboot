@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/core"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/core"
 )
 
 type guess struct {

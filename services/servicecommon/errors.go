@@ -1,6 +1,6 @@
 package servicecommon
 
-import "github.com/hedgehog125/project-reboot/common"
+import "github.com/NicoClack/cryptic-stash/common"
 
 // TODO: move types like common.Message to this package?
 

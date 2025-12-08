@@ -1,6 +1,6 @@
 package mocks
 
-import "github.com/hedgehog125/project-reboot/common"
+import "github.com/NicoClack/cryptic-stash/common"
 
 type EmptyRateLimiterService struct{}
 

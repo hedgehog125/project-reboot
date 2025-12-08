@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/periodictask"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/ent/periodictask"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
 )
 
 // PeriodicTaskUpdate is the builder for updating PeriodicTask entities.

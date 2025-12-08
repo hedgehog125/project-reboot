@@ -3,7 +3,7 @@ package api
 import (
 	"time"
 
-	"github.com/hedgehog125/project-reboot/ratelimiting"
+	"github.com/NicoClack/cryptic-stash/ratelimiting"
 )
 
 func Register(group *ratelimiting.Group) {

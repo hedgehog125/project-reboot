@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/keyvalue"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/ent/keyvalue"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
 )
 
 // KeyValueQuery is the builder for querying KeyValue entities.

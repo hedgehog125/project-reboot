@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/core"
-	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/core"
+	"github.com/NicoClack/cryptic-stash/ent"
 )
 
 type Core struct {

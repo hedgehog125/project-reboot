@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
-	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/ent/twofactoraction"
 )
 
 // TwoFactorActionDelete is the builder for deleting a TwoFactorAction entity.

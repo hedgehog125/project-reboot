@@ -4,10 +4,10 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/common/testcommon"
-	"github.com/hedgehog125/project-reboot/messengers"
-	"github.com/hedgehog125/project-reboot/services"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/common/testcommon"
+	"github.com/NicoClack/cryptic-stash/messengers"
+	"github.com/NicoClack/cryptic-stash/services"
 	"github.com/jonboulle/clockwork"
 )
 

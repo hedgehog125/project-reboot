@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/NicoClack/cryptic-stash/ent"
 )
 
 // The JobFunc type is an adapter to allow the use of ordinary

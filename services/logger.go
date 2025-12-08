@@ -3,8 +3,8 @@ package services
 import (
 	"log/slog"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/loggers"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/loggers"
 )
 
 type Logger struct {

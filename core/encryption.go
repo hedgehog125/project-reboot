@@ -4,7 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 
-	"github.com/hedgehog125/project-reboot/common"
+	"github.com/NicoClack/cryptic-stash/common"
 )
 
 // Adapted from: https://tutorialedge.net/golang/go-encrypt-decrypt-aes-tutorial/

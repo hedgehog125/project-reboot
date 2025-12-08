@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/ratelimiting"
 	"github.com/gin-gonic/gin"
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ratelimiting"
 )
 
 func NewRateLimiting(eventName string, limiter common.LimiterService) gin.HandlerFunc {

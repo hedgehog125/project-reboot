@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/NicoClack/cryptic-stash/ent/job"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent/job"
 )
 
 // Job is the model entity for the Job schema.

@@ -3,7 +3,7 @@ package testcommon
 import (
 	"time"
 
-	"github.com/hedgehog125/project-reboot/common"
+	"github.com/NicoClack/cryptic-stash/common"
 )
 
 func DefaultEnv() *common.Env {

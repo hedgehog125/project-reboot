@@ -3,7 +3,7 @@ package messengers
 import (
 	"fmt"
 
-	"github.com/hedgehog125/project-reboot/common"
+	"github.com/NicoClack/cryptic-stash/common"
 )
 
 func getLoginAttemptMessageBody(message *common.Message) string {
@@ -47,7 +47,7 @@ var defaultMessageMap = map[common.MessageType]func(message *common.Message) str
 		return "Warning: your self-lock has expired, you (or anyone else) can now try to log in again."
 	},
 	common.MessageAdminError: func(message *common.Message) string {
-		return "[Admin] An error has occurred! Please investigate the logs and possibly create an issue at https://github.com/hedgehog125/project-reboot/issues as this might be reducing security"
+		return "[Admin] An error has occurred! Please investigate the logs and possibly create an issue at https://github.com/NicoClack/cryptic-stash/issues as this might be reducing security"
 	},
 }
 

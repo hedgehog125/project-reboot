@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/hedgehog125/project-reboot/ent/periodictask"
+	"github.com/NicoClack/cryptic-stash/ent/periodictask"
 )
 
 // PeriodicTask is the model entity for the PeriodicTask schema.

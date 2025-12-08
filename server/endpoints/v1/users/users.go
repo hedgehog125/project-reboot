@@ -1,7 +1,7 @@
 package users
 
 import (
-	"github.com/hedgehog125/project-reboot/server/servercommon"
+	"github.com/NicoClack/cryptic-stash/server/servercommon"
 )
 
 func ConfigureEndpoints(group *servercommon.Group) {

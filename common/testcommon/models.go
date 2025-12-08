@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/NicoClack/cryptic-stash/ent"
 	"github.com/jonboulle/clockwork"
 )
 

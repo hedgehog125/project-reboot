@@ -1,8 +1,8 @@
 package testhelpers
 
 import (
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/messengers"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/messengers"
 )
 
 type MockMessenger struct {

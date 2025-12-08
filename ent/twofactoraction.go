@@ -10,8 +10,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/NicoClack/cryptic-stash/ent/twofactoraction"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 )
 
 // TwoFactorAction is the model entity for the TwoFactorAction schema.

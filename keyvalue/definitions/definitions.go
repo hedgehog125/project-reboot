@@ -3,7 +3,7 @@ package definitions
 import (
 	"time"
 
-	"github.com/hedgehog125/project-reboot/keyvalue"
+	"github.com/NicoClack/cryptic-stash/keyvalue"
 )
 
 func Register(group *keyvalue.RegistryGroup) {

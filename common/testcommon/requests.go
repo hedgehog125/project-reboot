@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hedgehog125/project-reboot/common"
+	"github.com/NicoClack/cryptic-stash/common"
 	"github.com/stretchr/testify/require"
 )
 

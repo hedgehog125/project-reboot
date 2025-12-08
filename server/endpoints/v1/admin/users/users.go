@@ -1,6 +1,6 @@
 package users
 
-import "github.com/hedgehog125/project-reboot/server/servercommon"
+import "github.com/NicoClack/cryptic-stash/server/servercommon"
 
 func ConfigureEndpoints(group *servercommon.Group) {
 	group.POST("/register-or-update", RegisterOrUpdate(group.App))

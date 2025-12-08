@@ -3,9 +3,9 @@ package services
 import (
 	"encoding/json"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/jobs"
-	"github.com/hedgehog125/project-reboot/jobs/definitions"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/jobs"
+	"github.com/NicoClack/cryptic-stash/jobs/definitions"
 )
 
 type Jobs struct {

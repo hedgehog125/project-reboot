@@ -7,11 +7,11 @@ import (
 	"log"
 	"os"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/services"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/common/dbcommon"
+	"github.com/NicoClack/cryptic-stash/ent"
+	"github.com/NicoClack/cryptic-stash/ent/user"
+	"github.com/NicoClack/cryptic-stash/services"
 )
 
 func main() {

@@ -1,8 +1,8 @@
 package definitions
 
 import (
-	"github.com/hedgehog125/project-reboot/ratelimiting"
-	"github.com/hedgehog125/project-reboot/ratelimiting/definitions/api"
+	"github.com/NicoClack/cryptic-stash/ratelimiting"
+	"github.com/NicoClack/cryptic-stash/ratelimiting/definitions/api"
 )
 
 func Register(group *ratelimiting.Group) {

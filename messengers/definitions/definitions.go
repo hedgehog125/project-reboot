@@ -1,7 +1,7 @@
 package definitions
 
 import (
-	"github.com/hedgehog125/project-reboot/messengers"
+	"github.com/NicoClack/cryptic-stash/messengers"
 )
 
 func Register(registry *messengers.Registry) {

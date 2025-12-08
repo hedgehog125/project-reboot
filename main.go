@@ -3,8 +3,8 @@ package main
 import (
 	"log/slog"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/services"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/services"
 	"github.com/jonboulle/clockwork"
 )
 

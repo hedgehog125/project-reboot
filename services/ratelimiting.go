@@ -1,9 +1,9 @@
 package services
 
 import (
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ratelimiting"
-	"github.com/hedgehog125/project-reboot/ratelimiting/definitions"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/ratelimiting"
+	"github.com/NicoClack/cryptic-stash/ratelimiting/definitions"
 )
 
 type RateLimiter struct {

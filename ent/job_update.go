@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/job"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/ent/job"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
 )
 
 // JobUpdate is the builder for updating Job entities.

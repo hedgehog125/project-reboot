@@ -1,4 +1,4 @@
-module github.com/hedgehog125/project-reboot
+module github.com/NicoClack/cryptic-stash
 
 go 1.25.0
 

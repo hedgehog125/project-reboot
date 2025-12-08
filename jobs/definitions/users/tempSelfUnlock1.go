@@ -3,11 +3,11 @@ package users
 import (
 	"context"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/jobs"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/common/dbcommon"
+	"github.com/NicoClack/cryptic-stash/ent"
+	"github.com/NicoClack/cryptic-stash/ent/user"
+	"github.com/NicoClack/cryptic-stash/jobs"
 )
 
 type TempSelfUnlock1Body struct {

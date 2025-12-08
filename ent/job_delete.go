@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/job"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/ent/job"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
 )
 
 // JobDelete is the builder for deleting a Job entity.

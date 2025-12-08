@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/periodictask"
+	"github.com/NicoClack/cryptic-stash/ent/periodictask"
 )
 
 // PeriodicTaskCreate is the builder for creating a PeriodicTask entity.

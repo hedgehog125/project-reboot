@@ -13,8 +13,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/NicoClack/cryptic-stash/ent"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent"
 	"github.com/jonboulle/clockwork"
 )
 

@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/hedgehog125/project-reboot/ent/keyvalue"
+	"github.com/NicoClack/cryptic-stash/ent/keyvalue"
 )
 
 // KeyValue is the model entity for the KeyValue schema.

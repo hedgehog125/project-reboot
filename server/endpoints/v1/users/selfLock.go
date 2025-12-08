@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/common/dbcommon"
+	"github.com/NicoClack/cryptic-stash/ent"
+	"github.com/NicoClack/cryptic-stash/ent/user"
+	userjobs "github.com/NicoClack/cryptic-stash/jobs/definitions/users"
+	"github.com/NicoClack/cryptic-stash/server/servercommon"
+	"github.com/NicoClack/cryptic-stash/twofactoractions"
 	"github.com/gin-gonic/gin"
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/user"
-	userjobs "github.com/hedgehog125/project-reboot/jobs/definitions/users"
-	"github.com/hedgehog125/project-reboot/server/servercommon"
-	"github.com/hedgehog125/project-reboot/twofactoractions"
 )
 
 const MAX_SELF_LOCK_DURATION = 14 * (24 * time.Hour)

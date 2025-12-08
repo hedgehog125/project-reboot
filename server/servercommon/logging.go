@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/NicoClack/cryptic-stash/common"
 	"github.com/gin-gonic/gin"
-	"github.com/hedgehog125/project-reboot/common"
 )
 
 const (

@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/hedgehog125/project-reboot/ent/session"
-	"github.com/hedgehog125/project-reboot/ent/user"
+	"github.com/NicoClack/cryptic-stash/ent/session"
+	"github.com/NicoClack/cryptic-stash/ent/user"
 )
 
 // Session is the model entity for the Session schema.

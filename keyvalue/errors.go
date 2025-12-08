@@ -1,6 +1,6 @@
 package keyvalue
 
-import "github.com/hedgehog125/project-reboot/common"
+import "github.com/NicoClack/cryptic-stash/common"
 
 const (
 	ErrTypeGetValue = "get value"

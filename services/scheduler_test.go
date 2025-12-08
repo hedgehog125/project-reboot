@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/common/testcommon"
-	"github.com/hedgehog125/project-reboot/common/testcommon/mocks"
-	"github.com/hedgehog125/project-reboot/services"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/common/testcommon"
+	"github.com/NicoClack/cryptic-stash/common/testcommon/mocks"
+	"github.com/NicoClack/cryptic-stash/services"
 	"github.com/jonboulle/clockwork"
 )
 

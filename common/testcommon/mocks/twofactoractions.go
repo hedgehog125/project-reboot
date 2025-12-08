@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/ent"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ent"
 )
 
 type EmptyTwoFactorActionService struct{}

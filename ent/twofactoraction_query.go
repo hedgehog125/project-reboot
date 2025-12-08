@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/ent/twofactoraction"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
-	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
 )
 
 // TwoFactorActionQuery is the builder for querying TwoFactorAction entities.

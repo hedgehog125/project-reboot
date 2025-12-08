@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
-	"github.com/hedgehog125/project-reboot/ent/session"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/ent/session"
 )
 
 // SessionDelete is the builder for deleting a Session entity.

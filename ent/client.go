@@ -9,21 +9,21 @@ import (
 	"log"
 	"reflect"
 
+	"github.com/NicoClack/cryptic-stash/ent/migrate"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/hedgehog125/project-reboot/ent/job"
-	"github.com/hedgehog125/project-reboot/ent/keyvalue"
-	"github.com/hedgehog125/project-reboot/ent/logentry"
-	"github.com/hedgehog125/project-reboot/ent/loginalert"
-	"github.com/hedgehog125/project-reboot/ent/periodictask"
-	"github.com/hedgehog125/project-reboot/ent/session"
-	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
-	"github.com/hedgehog125/project-reboot/ent/user"
+	"github.com/NicoClack/cryptic-stash/ent/job"
+	"github.com/NicoClack/cryptic-stash/ent/keyvalue"
+	"github.com/NicoClack/cryptic-stash/ent/logentry"
+	"github.com/NicoClack/cryptic-stash/ent/loginalert"
+	"github.com/NicoClack/cryptic-stash/ent/periodictask"
+	"github.com/NicoClack/cryptic-stash/ent/session"
+	"github.com/NicoClack/cryptic-stash/ent/twofactoraction"
+	"github.com/NicoClack/cryptic-stash/ent/user"
 )
 
 // Client is the client that holds all ent builders.

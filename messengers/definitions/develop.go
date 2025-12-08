@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/messengers"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/messengers"
 )
 
 type Develop1Body struct {

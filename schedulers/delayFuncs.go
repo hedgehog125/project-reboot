@@ -5,10 +5,10 @@ import (
 	"math"
 	"time"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/periodictask"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/common/dbcommon"
+	"github.com/NicoClack/cryptic-stash/ent"
+	"github.com/NicoClack/cryptic-stash/ent/periodictask"
 )
 
 type DelayFuncContext struct {

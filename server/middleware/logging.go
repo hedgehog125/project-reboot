@@ -3,9 +3,9 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/server/servercommon"
 	"github.com/gin-gonic/gin"
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
 func NewLogger(logger common.Logger) gin.HandlerFunc {

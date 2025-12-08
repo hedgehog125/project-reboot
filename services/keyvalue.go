@@ -4,11 +4,11 @@ import (
 	"context"
 	"log"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/keyvalue"
-	"github.com/hedgehog125/project-reboot/keyvalue/definitions"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/common/dbcommon"
+	"github.com/NicoClack/cryptic-stash/ent"
+	"github.com/NicoClack/cryptic-stash/keyvalue"
+	"github.com/NicoClack/cryptic-stash/keyvalue/definitions"
 )
 
 type KeyValue struct {

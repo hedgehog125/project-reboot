@@ -6,8 +6,8 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/ent"
 )
 
 type Registry struct {

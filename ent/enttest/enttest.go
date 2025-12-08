@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/NicoClack/cryptic-stash/ent"
 	// required by schema hooks.
-	_ "github.com/hedgehog125/project-reboot/ent/runtime"
+	_ "github.com/NicoClack/cryptic-stash/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/hedgehog125/project-reboot/ent/migrate"
+	"github.com/NicoClack/cryptic-stash/ent/migrate"
 )
 
 type (

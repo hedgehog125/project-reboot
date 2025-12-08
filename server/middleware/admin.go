@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/server/servercommon"
 	"github.com/gin-gonic/gin"
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
 func NewAdminProtected(core common.CoreService) gin.HandlerFunc {

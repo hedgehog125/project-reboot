@@ -5,11 +5,11 @@ import (
 	"crypto/subtle"
 	"time"
 
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/ent"
+	"github.com/NicoClack/cryptic-stash/ent/twofactoraction"
+	"github.com/NicoClack/cryptic-stash/twofactoractions"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/twofactoraction"
-	"github.com/hedgehog125/project-reboot/twofactoractions"
 )
 
 type TwoFactorActions struct {

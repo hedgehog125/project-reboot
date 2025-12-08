@@ -3,7 +3,7 @@ package schedulers
 import (
 	"sync"
 
-	"github.com/hedgehog125/project-reboot/common"
+	"github.com/NicoClack/cryptic-stash/common"
 )
 
 type Engine struct {

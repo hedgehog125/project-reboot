@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/hedgehog125/project-reboot/common"
+	"github.com/NicoClack/cryptic-stash/common"
 )
 
 func (registry *Registry) Encode(versionedType string, body any) (json.RawMessage, common.WrappedError) {

@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/NicoClack/cryptic-stash/ent/job"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent/job"
 )
 
 // JobCreate is the builder for creating a Job entity.

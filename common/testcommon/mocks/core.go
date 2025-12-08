@@ -3,8 +3,8 @@ package mocks
 import (
 	"context"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ent"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/ent"
 )
 
 type EmptyCoreService struct{}

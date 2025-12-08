@@ -1,10 +1,10 @@
 package v1
 
 import (
-	"github.com/hedgehog125/project-reboot/server/endpoints/v1/admin"
-	"github.com/hedgehog125/project-reboot/server/endpoints/v1/twofactoractions"
-	"github.com/hedgehog125/project-reboot/server/endpoints/v1/users"
-	"github.com/hedgehog125/project-reboot/server/servercommon"
+	"github.com/NicoClack/cryptic-stash/server/endpoints/v1/admin"
+	"github.com/NicoClack/cryptic-stash/server/endpoints/v1/twofactoractions"
+	"github.com/NicoClack/cryptic-stash/server/endpoints/v1/users"
+	"github.com/NicoClack/cryptic-stash/server/servercommon"
 )
 
 func ConfigureEndpoints(group *servercommon.Group) {

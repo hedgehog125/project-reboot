@@ -1,8 +1,8 @@
 package definitions
 
 import (
-	"github.com/hedgehog125/project-reboot/jobs"
-	"github.com/hedgehog125/project-reboot/jobs/definitions/users"
+	"github.com/NicoClack/cryptic-stash/jobs"
+	"github.com/NicoClack/cryptic-stash/jobs/definitions/users"
 )
 
 func Register(group *jobs.RegistryGroup) {

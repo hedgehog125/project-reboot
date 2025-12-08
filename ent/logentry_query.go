@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/NicoClack/cryptic-stash/ent/logentry"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/ent/user"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent/logentry"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
-	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
 // LogEntryQuery is the builder for querying LogEntry entities.

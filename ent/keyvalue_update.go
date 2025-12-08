@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/keyvalue"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/ent/keyvalue"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
 )
 
 // KeyValueUpdate is the builder for updating KeyValue entities.

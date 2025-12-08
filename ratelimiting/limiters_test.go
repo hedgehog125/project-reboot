@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ratelimiting"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/ratelimiting"
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 )

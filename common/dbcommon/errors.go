@@ -3,7 +3,7 @@ package dbcommon
 import (
 	"errors"
 
-	"github.com/hedgehog125/project-reboot/common"
+	"github.com/NicoClack/cryptic-stash/common"
 )
 
 const (

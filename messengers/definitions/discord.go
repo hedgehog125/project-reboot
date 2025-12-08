@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/messengers"
 	"github.com/bwmarrin/discordgo"
 	"github.com/gorilla/websocket"
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/messengers"
 )
 
 type Discord1Body struct {

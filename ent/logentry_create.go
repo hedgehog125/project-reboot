@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/NicoClack/cryptic-stash/ent/logentry"
+	"github.com/NicoClack/cryptic-stash/ent/user"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent/logentry"
-	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
 // LogEntryCreate is the builder for creating a LogEntry entity.

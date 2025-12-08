@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/hedgehog125/project-reboot/ent/loginalert"
-	"github.com/hedgehog125/project-reboot/ent/session"
+	"github.com/NicoClack/cryptic-stash/ent/loginalert"
+	"github.com/NicoClack/cryptic-stash/ent/session"
 )
 
 // LoginAlert is the model entity for the LoginAlert schema.

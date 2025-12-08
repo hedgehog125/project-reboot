@@ -1,6 +1,6 @@
 package core
 
-import "github.com/hedgehog125/project-reboot/common"
+import "github.com/NicoClack/cryptic-stash/common"
 
 const (
 	ErrTypeSendActiveSessionReminders = "send active session reminders"

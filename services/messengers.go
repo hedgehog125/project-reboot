@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/jobs"
-	"github.com/hedgehog125/project-reboot/messengers"
-	"github.com/hedgehog125/project-reboot/messengers/definitions"
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/ent"
+	"github.com/NicoClack/cryptic-stash/jobs"
+	"github.com/NicoClack/cryptic-stash/messengers"
+	"github.com/NicoClack/cryptic-stash/messengers/definitions"
 )
 
 const (

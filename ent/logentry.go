@@ -10,9 +10,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/NicoClack/cryptic-stash/ent/logentry"
+	"github.com/NicoClack/cryptic-stash/ent/user"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent/logentry"
-	"github.com/hedgehog125/project-reboot/ent/user"
 )
 
 // LogEntry is the model entity for the LogEntry schema.

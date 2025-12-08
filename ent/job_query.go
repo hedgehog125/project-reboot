@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/NicoClack/cryptic-stash/ent/job"
+	"github.com/NicoClack/cryptic-stash/ent/predicate"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/ent/job"
-	"github.com/hedgehog125/project-reboot/ent/predicate"
 )
 
 // JobQuery is the builder for querying Job entities.

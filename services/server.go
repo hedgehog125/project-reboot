@@ -9,13 +9,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/server"
+	"github.com/NicoClack/cryptic-stash/server/endpoints"
+	"github.com/NicoClack/cryptic-stash/server/middleware"
+	"github.com/NicoClack/cryptic-stash/server/servercommon"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/server"
-	"github.com/hedgehog125/project-reboot/server/endpoints"
-	"github.com/hedgehog125/project-reboot/server/middleware"
-	"github.com/hedgehog125/project-reboot/server/servercommon"
 )
 
 type Server struct {

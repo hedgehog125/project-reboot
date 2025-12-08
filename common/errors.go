@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hedgehog125/project-reboot/ent" // Note: will have to reorganise if I end up needing to use the common module in schemas
+	"github.com/NicoClack/cryptic-stash/ent" // Note: will have to reorganise if I end up needing to use the common module in schemas
 	"github.com/mattn/go-sqlite3"
 )
 

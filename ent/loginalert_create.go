@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/hedgehog125/project-reboot/ent/loginalert"
-	"github.com/hedgehog125/project-reboot/ent/session"
+	"github.com/NicoClack/cryptic-stash/ent/loginalert"
+	"github.com/NicoClack/cryptic-stash/ent/session"
 )
 
 // LoginAlertCreate is the builder for creating a LoginAlert entity.

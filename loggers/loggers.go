@@ -12,13 +12,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/common/dbcommon"
+	"github.com/NicoClack/cryptic-stash/ent"
+	"github.com/NicoClack/cryptic-stash/ent/user"
+	"github.com/NicoClack/cryptic-stash/messengers"
+	"github.com/NicoClack/cryptic-stash/ratelimiting"
 	"github.com/google/uuid"
-	"github.com/hedgehog125/project-reboot/common"
-	"github.com/hedgehog125/project-reboot/common/dbcommon"
-	"github.com/hedgehog125/project-reboot/ent"
-	"github.com/hedgehog125/project-reboot/ent/user"
-	"github.com/hedgehog125/project-reboot/messengers"
-	"github.com/hedgehog125/project-reboot/ratelimiting"
 	"github.com/lmittmann/tint"
 )
 

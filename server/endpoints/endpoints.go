@@ -1,8 +1,8 @@
 package endpoints
 
 import (
-	v1 "github.com/hedgehog125/project-reboot/server/endpoints/v1"
-	"github.com/hedgehog125/project-reboot/server/servercommon"
+	v1 "github.com/NicoClack/cryptic-stash/server/endpoints/v1"
+	"github.com/NicoClack/cryptic-stash/server/servercommon"
 )
 
 func ConfigureEndpoints(group *servercommon.Group) {
