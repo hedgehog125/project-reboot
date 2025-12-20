@@ -17,7 +17,7 @@ func getLoginAttemptMessageBody(message *common.Message) string {
 
 var defaultMessageMap = map[common.MessageType]func(message *common.Message) string{
 	common.MessageUserUpdate: func(message *common.Message) string {
-		return "Your account password and/or file have been updated by your admin."
+		return "Your account password and/or stash have been updated by your admin."
 	},
 	common.MessageLogin: func(message *common.Message) string {
 		return "LOGIN ATTEMPT! " + getLoginAttemptMessageBody(message)
@@ -26,7 +26,7 @@ var defaultMessageMap = map[common.MessageType]func(message *common.Message) str
 		return "REMINDER: YOU HAVE A PENDING LOGIN ATTEMPT! " + getLoginAttemptMessageBody(message)
 	},
 	common.MessageDownload: func(message *common.Message) string {
-		return "Your data has been downloaded. If this wasn't you, please rotate your 2FA backup codes immediately and contact your admin!"
+		return "Your stash has been downloaded. If this wasn't you, please rotate your 2FA backup codes immediately and contact your admin!"
 	},
 	common.MessageTest: func(message *common.Message) string {
 		return "If you're reading this message, it means your updated contacts are working."
