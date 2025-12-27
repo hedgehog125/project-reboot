@@ -1,0 +1,139 @@
+version: "2"
+
+formatters:
+    enable:
+        - golines
+        - goimports
+        - gci
+    settings:
+        golines:
+            max-len: 120
+            tab-len: 4
+
+linters:
+    enable:
+        - arangolint
+        - asasalint
+        - asciicheck
+        - bidichk
+        - bodyclose
+        - canonicalheader
+        - contextcheck
+        - copyloopvar
+        # - cyclop # Maybe re-enable later?
+        - decorder
+        - dogsled
+        # - dupl # Maybe re-enable later?
+        - dupword
+        - durationcheck
+        - err113
+        - errchkjson
+        - errname
+        - errorlint
+        - exhaustive
+        - exhaustruct
+        - exptostd
+        - fatcontext
+        - forbidigo
+        - forcetypeassert
+        - ginkgolinter
+        - gocheckcompilerdirectives
+        - gochecknoglobals
+        - gochecknoinits
+        - gochecksumtype
+        # - gocognit # Maybe re-enable later?
+        - goconst
+        - gocritic
+        # - gocyclo # Maybe re-enable later?
+        # - godox # Maybe re-enable later?
+        - goheader
+        - gomoddirectives
+        - gomodguard
+        - goprintffuncname
+        - gosec
+        - gosmopolitan
+        - govet
+        - grouper
+        - iface
+        - importas
+        - inamedparam
+        - ineffassign
+        - intrange
+        - iotamixing
+        - ireturn
+        - lll
+        - loggercheck
+        - maintidx
+        - makezero
+        - mirror
+        - misspell
+        - modernize
+        - musttag
+        - nakedret
+        # - nestif # Maybe re-enable later?
+        - nilerr
+        - nilnesserr
+        - nilnil
+        - noctx
+        - noinlineerr
+        - nolintlint
+        - nonamedreturns
+        - nosprintfhostport
+        - paralleltest
+        - perfsprint
+        - prealloc
+        - predeclared
+        - promlinter
+        - protogetter
+        - reassign
+        - recvcheck
+        - revive
+        - rowserrcheck
+        - sloglint
+        - spancheck
+        - sqlclosecheck
+        - staticcheck
+        - tagalign
+        - tagliatelle
+        - testableexamples
+        - testifylint
+        - testpackage
+        - thelper
+        - tparallel
+        - unconvert
+        - unparam
+        - unqueryvet
+        - unused
+        - usestdlibvars
+        - usetesting
+        - varnamelen
+        - wastedassign
+        - whitespace
+        - wrapcheck
+        - zerologlint
+
+    disable:
+        - depguard
+        - wsl
+        - wsl_v5
+        - errcheck
+        - funcorder
+        - funlen
+        - godoclint
+        - godot
+        - mnd
+        - nlreturn
+        - embeddedstructfieldcheck
+        - containedctx
+        - interfacebloat
+
+    settings:
+        exhaustruct:
+            exclude:
+                - ".*"
+        forbidigo:
+            forbid:
+                - pattern: '^(fmt\.Print(|f|ln)|print|println)$'
+                  msg: "Don't commit print statements."
+                - pattern: '^common\.DumpJSON$'
+                  msg: "Don't commit print statements."
