@@ -55,9 +55,35 @@ func TestSchedulerShutdown_NoOpWhenNotStarted(t *testing.T) {
 
 	app.Scheduler = services.NewScheduler(app)
 
-	select {
-	case <-common.NewCallbackChannel(app.Scheduler.Shutdown):
-	case <-time.After(200 * time.Millisecond):
-		t.Fatalf("Scheduler Shutdown blocked when service was not started; expected no-op")
+	testcommon.AssertNoOp(t, app.Scheduler.Shutdown)
+}
+
+func TestSchedulerStart_SubsequentCallsAreNoOp(t *testing.T) {
+	t.Parallel()
+
+	app := &common.App{
+		Clock:            clockwork.NewRealClock(),
+		Env:              testcommon.DefaultEnv(),
+		Database:         testcommon.CreateDB(),
+		Logger:           testcommon.NewTestLogger(),
+		Core:             mocks.NewEmptyCoreService(),
+		TwoFactorActions: mocks.NewEmptyTwoFactorActionService(),
+		RateLimiter:      mocks.NewEmptyRateLimiterService(),
 	}
+	app.Database.Start()
+	t.Cleanup(app.Database.Shutdown)
+
+	app.Scheduler = services.NewScheduler(app)
+	t.Cleanup(app.Scheduler.Shutdown)
+
+	app.Scheduler.Start()
+	testcommon.AssertNoOp(t, app.Scheduler.Start)
+
+	var wg sync.WaitGroup
+	for range 5 {
+		wg.Go(func() {
+			testcommon.AssertNoOp(t, app.Scheduler.Start)
+		})
+	}
+	wg.Wait()
 }

@@ -3,11 +3,11 @@ package services_test
 import (
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/NicoClack/cryptic-stash/common"
 	"github.com/NicoClack/cryptic-stash/common/testcommon"
 	"github.com/NicoClack/cryptic-stash/services"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDatabaseShutdown_HandlesConcurrentCalls(t *testing.T) {
@@ -36,9 +36,34 @@ func TestDatabaseShutdown_NoOpWhenNotStarted(t *testing.T) {
 		Env: env,
 	})
 
-	select {
-	case <-common.NewCallbackChannel(db.Shutdown):
-	case <-time.After(200 * time.Millisecond):
-		t.Fatalf("Shutdown blocked when service was not started; expected no-op")
+	testcommon.AssertNoOp(t, db.Shutdown)
+}
+
+func TestDatabaseStart_SubsequentCallsAreNoOp(t *testing.T) {
+	t.Parallel()
+
+	env := testcommon.DefaultEnv()
+	env.MOUNT_PATH = t.TempDir()
+	db := services.NewDatabase(&common.App{
+		Env: env,
+	})
+	t.Cleanup(db.Shutdown)
+
+	db.Start()
+	client1 := db.Client()
+	testcommon.AssertNoOp(t, db.Start)
+	client2 := db.Client()
+	require.Same(t, client1, client2)
+
+	var wg sync.WaitGroup
+	for range 5 {
+		wg.Go(func() {
+			testcommon.AssertNoOp(t, db.Start)
+			client := db.Client()
+			if client != client1 {
+				t.Error("concurrent Start() call returned different client")
+			}
+		})
 	}
+	wg.Wait()
 }

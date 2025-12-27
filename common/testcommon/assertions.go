@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/NicoClack/cryptic-stash/common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,4 +37,19 @@ func AssertJSONResponse(
 	require.NoError(t, stdErr)
 
 	require.Equal(t, string(expectedJSON), respRecorder.Body.String())
+}
+
+func CallWithTimeout(t *testing.T, callback func(), timeout time.Duration) {
+	select {
+	case <-common.NewCallbackChannel(callback):
+	case <-time.After(timeout):
+		t.Fatalf("Function call timed out after %v", timeout)
+	}
+}
+func AssertNoOp(t *testing.T, callback func()) {
+	select {
+	case <-common.NewCallbackChannel(callback):
+	case <-time.After(5 * time.Millisecond):
+		t.Fatalf("Expected no-op, but callback blocked")
+	}
 }

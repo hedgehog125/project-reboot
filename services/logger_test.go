@@ -3,7 +3,6 @@ package services_test
 import (
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/NicoClack/cryptic-stash/common"
 	"github.com/NicoClack/cryptic-stash/common/testcommon"
@@ -37,9 +36,26 @@ func TestLoggerShutdown_NoOpWhenNotStarted(t *testing.T) {
 	}
 	app.Logger = services.NewLogger(app)
 
-	select {
-	case <-common.NewCallbackChannel(app.Logger.Shutdown):
-	case <-time.After(200 * time.Millisecond):
-		t.Fatalf("Logger Shutdown blocked when service was not started; expected no-op")
+	testcommon.AssertNoOp(t, app.Logger.Shutdown)
+}
+
+func TestLoggerStart_SubsequentCallsAreNoOp(t *testing.T) {
+	t.Parallel()
+
+	app := &common.App{
+		Env: testcommon.DefaultEnv(),
 	}
+	app.Logger = services.NewLogger(app)
+	t.Cleanup(app.Logger.Shutdown)
+
+	app.Logger.Start()
+	testcommon.AssertNoOp(t, app.Logger.Start)
+
+	var wg sync.WaitGroup
+	for range 5 {
+		wg.Go(func() {
+			testcommon.AssertNoOp(t, app.Logger.Start)
+		})
+	}
+	wg.Wait()
 }

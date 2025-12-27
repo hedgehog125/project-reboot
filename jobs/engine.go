@@ -308,7 +308,10 @@ func (engine *Engine) runJob(
 }
 
 func (engine *Engine) WaitForJobs() {
-	<-engine.waitingForJobsChan
+	engine.mu.Lock()
+	waitingForJobsChan := engine.waitingForJobsChan
+	engine.mu.Unlock()
+	<-waitingForJobsChan
 }
 
 func (engine *Engine) Shutdown() {
