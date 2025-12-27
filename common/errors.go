@@ -609,3 +609,9 @@ func (errWrapper *DynamicErrorWrapper) Wrap(err error) WrappedError {
 func IsErrorType(err error, targetTypePtr any) bool {
 	return errors.As(err, &targetTypePtr)
 }
+
+func PanicIfError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
