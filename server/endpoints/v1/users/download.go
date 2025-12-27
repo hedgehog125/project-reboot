@@ -24,11 +24,11 @@ type DownloadPayload struct {
 
 type DownloadResponse struct {
 	Errors                      []servercommon.ErrorDetail `binding:"required" json:"errors"`
-	AuthorizationCodeValidFrom  *time.Time                 `json:"authorizationCodeValidFrom"`
-	AuthorizationCodeValidUntil *time.Time                 `json:"authorizationCodeValidUntil"`
-	Content                     []byte                     `json:"content"`
-	Filename                    string                     `json:"filename"`
-	Mime                        string                     `json:"mime"`
+	AuthorizationCodeValidFrom  *time.Time                 `                   json:"authorizationCodeValidFrom"`
+	AuthorizationCodeValidUntil *time.Time                 `                   json:"authorizationCodeValidUntil"`
+	Content                     []byte                     `                   json:"content"`
+	Filename                    string                     `                   json:"filename"`
+	Mime                        string                     `                   json:"mime"`
 }
 
 func Download(app *servercommon.ServerApp) gin.HandlerFunc {

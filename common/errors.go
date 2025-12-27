@@ -24,8 +24,10 @@ const (
 	ErrTypeMemory   = "memory [general]"
 	ErrTypeAPI      = "api [general]"
 	ErrTypeClient   = "client [general]"
-	// If there's no applicable general category, there should be no [general] category on the error. Functions that return a category should return an empty string
-	ErrTypeOther = "other" // Used to maintain the hierarchy, but doesn't have a [general] tag because the lower level error is more useful
+	// If there's no applicable general category, there should be no [general] category on the error.
+	// Functions that return a category should return an empty string
+	// But you might use this to maintain the hierarchy
+	ErrTypeOther = "other"
 
 	// Package categories
 	ErrTypeCommon          = "common [package]"
@@ -123,7 +125,8 @@ type WrappedError interface {
 	error
 	json.Marshaler
 	Unwrap() error
-	// No `Is` method because we just want to compare the unwrapped errors, it doesn't really matter if the categories are different
+	// No `Is` method because we just want to compare the unwrapped errors,
+	// it doesn't really matter if the categories are different
 
 	// StandardError isn't needed because you can't accidentally wrap a nil in an interface once it's already one
 	// common.Error still has this though since it's a concrete type
@@ -162,7 +165,8 @@ func (commErr *Error) Error() string {
 	reversedCategories := slices.Clone(commErr.categories)
 	slices.Reverse(reversedCategories) // Highest to lowest level
 	if commErr.errDuplicatesCategory {
-		reversedCategories = DeleteSliceIndex(reversedCategories, -1) // Ignore the lowest (last) category since it duplicates the error
+		// Ignore the lowest (last) category since it duplicates the error
+		reversedCategories = DeleteSliceIndex(reversedCategories, -1)
 	}
 
 	for _, category := range reversedCategories {
@@ -249,8 +253,8 @@ func (commErr *Error) ErrDuplicatesCategory() bool {
 	return commErr.errDuplicatesCategory
 }
 
-// Note: this number might not be reached if there are other errors with less or no retries in the WithRetries call. And the context
-// could always time out before this number is reached.
+// Note: this number might not be reached if there are other errors with less or no retries in the WithRetries call.
+// And the context could always time out before this number is reached.
 //
 // -1 means no limit
 func (commErr *Error) MaxRetries() int {
@@ -420,7 +424,8 @@ func (commErr *Error) RemoveLowestCategoryMut() {
 	commErr.categories = newErr.categories
 }
 
-// categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
+// categories is lowest to highest level except packages go before their categories
+// e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
 func NewErrorWithCategories(message string, categories ...string) *Error {
 	stdErr := errors.New(message)
 	return &Error{
@@ -431,7 +436,8 @@ func NewErrorWithCategories(message string, categories ...string) *Error {
 	}
 }
 
-// categories is lowest to highest level except packages go before their categories, e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
+// categories is lowest to highest level except packages go before their categories
+// e.g. "auth [package]", "constraint", common.ErrTypeDatabase, "create profile", "create user"
 func WrapErrorWithCategories(stdErr error, categories ...string) WrappedError {
 	// Also use errors.As?
 	if stdErr == nil {

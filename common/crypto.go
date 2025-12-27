@@ -15,8 +15,8 @@ func CryptoRandomBytes(length int) []byte {
 	return salt
 }
 
-func CryptoRandomInt(max int64) int64 {
-	n, err := rand.Int(rand.Reader, big.NewInt(max))
+func CryptoRandomInt(maxValue int64) int64 {
+	n, err := rand.Int(rand.Reader, big.NewInt(maxValue))
 	if err != nil {
 		panic(fmt.Sprintf("CryptoRandomInt: couldn't get random int. error:\n%v", err))
 	}

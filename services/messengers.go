@@ -76,7 +76,6 @@ func (service *Messengers) SendBulk(
 
 func (service *Messengers) GetConfiguredMessengerTypes(user *ent.User) []string {
 	return service.Registry.GetConfiguredMessengerTypes(user)
-
 }
 func (service *Messengers) GetPublicDefinition(versionedType string) (*common.MessengerDefinition, bool) {
 	return service.Registry.GetPublicDefinition(versionedType)

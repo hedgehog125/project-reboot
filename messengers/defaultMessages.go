@@ -7,7 +7,9 @@ import (
 )
 
 func getLoginAttemptMessageBody(message *common.Message) string {
-	explanation := "If you're reading this, it most likely wasn't you that's logging in! Please self-lock your user ASAP and contact your admin as they can make the lock permanent if you want. If you want to be able to safely unlock your user, you should update your password with help from your admin."
+	explanation := "If you're reading this, it most likely wasn't you that's logging in! Please self-lock your user " +
+		"ASAP and contact your admin as they can make the lock permanent if you want. If you want to be able to safely " +
+		"unlock your user, you should update your password with help from your admin."
 	return fmt.Sprintf(
 		"%v\n\nIF YOU DO NOTHING, we'll assume you're locked out and will ALLOW THE USER TO LOG IN after %v UTC.",
 		explanation,
@@ -26,7 +28,8 @@ var defaultMessageMap = map[common.MessageType]func(message *common.Message) str
 		return "REMINDER: YOU HAVE A PENDING LOGIN ATTEMPT! " + getLoginAttemptMessageBody(message)
 	},
 	common.MessageDownload: func(message *common.Message) string {
-		return "Your stash has been downloaded. If this wasn't you, please rotate your 2FA backup codes immediately and contact your admin!"
+		return "Your stash has been downloaded. If this wasn't you, " +
+			"please rotate your 2FA backup codes immediately and contact your admin!"
 	},
 	common.MessageTest: func(message *common.Message) string {
 		return "If you're reading this message, it means your updated contacts are working."
@@ -35,7 +38,8 @@ var defaultMessageMap = map[common.MessageType]func(message *common.Message) str
 		return fmt.Sprintf("2FA code: %s", message.Code)
 	},
 	common.MessageLock: func(message *common.Message) string {
-		return "Your account has been locked by your admin, this will replace your self lock if you have one. The lock will remain until your admin removes it."
+		return "Your account has been locked by your admin, this will replace your self lock if you have one. " +
+			"The lock will remain until your admin removes it."
 	},
 	common.MessageUnlock: func(message *common.Message) string {
 		return "Your account has been unlocked by your admin, you (or anyone else) can now try to log in again."
@@ -47,7 +51,8 @@ var defaultMessageMap = map[common.MessageType]func(message *common.Message) str
 		return "Warning: your self-lock has expired, you (or anyone else) can now try to log in again."
 	},
 	common.MessageAdminError: func(message *common.Message) string {
-		return "[Admin] An error has occurred! Please investigate the logs and possibly create an issue at https://github.com/NicoClack/cryptic-stash/issues as this might be reducing security"
+		return "[Admin] An error has occurred! Please investigate the logs and possibly create an issue at " +
+			"https://github.com/NicoClack/cryptic-stash/issues as this might be reducing security"
 	},
 }
 

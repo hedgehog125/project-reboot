@@ -14,7 +14,10 @@ const (
 )
 
 var ErrUnknownName = common.NewErrorWithCategories("unknown name")
-var ErrWrongPointerType = common.NewErrorWithCategories("wrong pointer type, must be a pointer to the same type as the definition")
+
+var ErrWrongPointerType = common.NewErrorWithCategories(
+	"wrong pointer type, must be a pointer to the same type as the definition",
+)
 
 var ErrWrapperGetValue = common.NewErrorWrapper(ErrTypeGetValue)
 var ErrWrapperSetValue = common.NewErrorWrapper(ErrTypeSetValue)

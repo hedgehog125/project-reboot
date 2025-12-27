@@ -31,6 +31,7 @@ func (service *Core) RotateAdminCode() {
 func (service *Core) CheckAdminCode(givenCode string) bool {
 	service.mu.RLock()
 	defer service.mu.RUnlock()
+
 	return core.CheckAdminCode(givenCode, service.AdminCode, service.App.Logger)
 }
 func (service *Core) RandomAuthCode() []byte {

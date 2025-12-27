@@ -27,10 +27,13 @@ type Registry struct {
 type Definition struct {
 	ID      string
 	Version int
-	// Supplemental messengers often can't tell if a message was successfully sent. So they increase the chance the user is notified but are ignored when assessing if the user was sufficiently notified.
-	// This also means that the user needs to have at least one non-supplemental messenger configured, otherwise they'll never be considered sufficiently notified.
+	// Supplemental messengers often can't tell if a message was successfully sent. So they increase the
+	// chance the user is notified but are ignored when assessing if the user was sufficiently notified.
+	// This also means that the user needs to have at least one non-supplemental messenger configured,
+	// otherwise they'll never be considered sufficiently notified.
 	IsSupplemental bool
-	// Returns the data the Handler needs, typically a struct containing the formatted message and some sort of contact (e.g a username)
+	// Returns the data the Handler needs, typically a struct containing the formatted message and
+	// some sort of contact (e.g a username)
 	// If the user doesn't have the right contacts for this messenger, return messengers.ErrNoContactForUser.Clone()
 	Prepare PrepareFunc
 	// The return type of Prepare
@@ -99,7 +102,8 @@ func (registry *Registry) Register(definition *Definition) {
 						if registry.App.Clock.Since(jobCtx.OriginallyDueAt) >= registry.App.Env.ADMIN_MESSAGE_TIMEOUT {
 							jobCtx.Logger.ErrorContext(
 								context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
-								"failed to notify admin about an error before ADMIN_MESSAGE_TIMEOUT, will now possible crash to notify them earlier",
+								"failed to notify admin about an error before ADMIN_MESSAGE_TIMEOUT, "+
+									"will now possibly crash to notify them earlier",
 								"jobID",
 								jobCtx.ID,
 							)
@@ -107,7 +111,7 @@ func (registry *Registry) Register(definition *Definition) {
 					} else {
 						jobCtx.Logger.ErrorContext(
 							context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
-							"failed to notify admin about an error! will now possible crash to notify them earlier",
+							"failed to notify admin about an error! will now possibly crash to notify them earlier",
 							"jobID",
 							jobCtx.ID,
 						)
@@ -118,7 +122,8 @@ func (registry *Registry) Register(definition *Definition) {
 
 			if body.MessageType == common.MessageLogin ||
 				body.MessageType == common.MessageActiveSessionReminder {
-				// This is in a separate transaction, so we could successfully commit the messenger's transaction but roll back this one, but that's ok since it's best to undercount the successful login alerts sent
+				// This is in a separate transaction, so we could successfully commit the messenger's transaction
+				// but roll back this one. But that's ok since it's best to undercount the successful login alerts sent
 				stdErr := dbcommon.WithWriteTx(
 					jobCtx.Context, registry.App.Database,
 					func(tx *ent.Tx, ctx context.Context) error {
@@ -137,7 +142,8 @@ func (registry *Registry) Register(definition *Definition) {
 				if stdErr != nil {
 					// TODO: handle missing session IDs, stop this being atomic
 					jobCtx.Logger.Error(
-						"failed to create LoginAlert objects for successfully sent message, if not enough objects are created, the user won't be able to download their data once their session becomes valid",
+						"failed to create LoginAlert objects for successfully sent message, if not enough objects are created, "+
+							"the user won't be able to download their data once their session becomes valid",
 						"error",
 						stdErr,
 						"sessionIDs",
@@ -242,7 +248,8 @@ func (registry *Registry) SendUsingAll(
 		if wrappedErr == nil {
 			messagesQueued++
 		} else {
-			// TODO: remove this ErrNoContactForUser sentinel error and have a separate hook to check if the messenger has the right contacts?
+			// TODO: remove this ErrNoContactForUser sentinel error and have a separate hook
+			// to check if the messenger has the right contacts?
 			errs[versionedType] = wrappedErr
 			if !ErrWrapperPrepare.HasWrapped(wrappedErr) {
 				return messagesQueued, errs, ErrWrapperSendUsingAll.Wrap(wrappedErr)

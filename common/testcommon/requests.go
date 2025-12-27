@@ -15,7 +15,7 @@ func Post(t *testing.T, server common.ServerService, url string, body any) *http
 	encodedBody, stdErr := json.Marshal(body)
 	require.NoError(t, stdErr)
 
-	req, stdErr := http.NewRequest("POST", url, bytes.NewBuffer(encodedBody))
+	req, stdErr := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(encodedBody))
 	require.NoError(t, stdErr)
 	req.Header.Set("Content-Type", "application/json")
 

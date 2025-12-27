@@ -8,7 +8,11 @@ func NewEmptyRateLimiterService() *EmptyRateLimiterService {
 	return &EmptyRateLimiterService{}
 }
 
-func (m *EmptyRateLimiterService) RequestSession(eventName string, amount int, user string) (common.LimiterSession, common.WrappedError) {
+func (m *EmptyRateLimiterService) RequestSession(
+	eventName string,
+	amount int,
+	user string,
+) (common.LimiterSession, common.WrappedError) {
 	return &EmptyRateLimiterSession{}, nil
 }
 func (m *EmptyRateLimiterService) DeleteInactiveUsers() {

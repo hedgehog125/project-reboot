@@ -24,9 +24,24 @@ func main() {
 	password := flag.String("password", "", "the password to try to guess")
 	hashTime := flag.Uint("hash-time", 0, "the time parameter for Argon2ID")
 	hashMemory := flag.Uint("hash-memory", 0, "the memory parameter for Argon2ID in KiB")
-	hashThreads := flag.Uint("hash-threads", 0, "the threads parameter for Argon2ID (note: changing this affects the hashes produced)")
-	benchmarkThreads := flag.Uint("benchmark-threads", 0, "the number of simultaneous decryptions to run, should be at most ceil(CPU threads / hash-threads) but ensure you have sufficient RAM to avoid slowdown due to swap (note: each benchmark thread often consumes twice of hash-memory)")
-	spacing := flag.Uint("spacing", 0, "the time in ms that each thread should wait before trying the next attempt. setting this allows the garbage collector to reduce the average RAM usage")
+	hashThreads := flag.Uint(
+		"hash-threads",
+		0,
+		"the threads parameter for Argon2ID (note: changing this affects the hashes produced)",
+	)
+	benchmarkThreads := flag.Uint(
+		"benchmark-threads",
+		0,
+		"the number of simultaneous decryptions to run, should be at most ceil(CPU threads / hash-threads). "+
+			"But ensure you have sufficient RAM to avoid slowdown due to swap "+
+			"(note: each benchmark thread often consumes twice of hash-memory)",
+	)
+	spacing := flag.Uint(
+		"spacing",
+		0,
+		"the time in ms that each thread should wait before trying the next attempt."+
+			" setting this allows the garbage collector to reduce the average RAM usage",
+	)
 	flag.Parse()
 	if *password == "" {
 		log.Fatalf("missing required argument \"password\"")
@@ -165,8 +180,10 @@ func performanceLoop(completedChecksPointer *int64, currentPassword []int32, ben
 		}
 
 		completedChange := completedChecks - completedChecksWas
-		fmt.Fprintf(os.Stdout,
-			"\nTotal attempts per minute: %v\nLatency per guess: %vms (not average time, which decreases with more benchmark threads)\nCurrent guess: [%v]\n",
+		fmt.Fprintf(
+			os.Stdout,
+			"\nTotal attempts per minute: %v\nLatency per guess: %vms "+
+				"(not average time, which decreases with more benchmark threads)\nCurrent guess: [%v]\n",
 			completedChange,
 			math.Round(
 				(60_000/

@@ -11,7 +11,8 @@ const BackoffJitter = float64(0.05)
 const MaxBackoffJitter = 500 * time.Millisecond
 const BackoffMaxRetriesEpsilon = 1e-9
 
-// TODO: enforce a timeout or log a warning if it's exceeded? Some contexts don't have a deadline but instead can just be cancelled after a while
+// TODO: enforce a timeout or log a warning if it's exceeded?
+// Some contexts don't have a deadline but instead can just be cancelled after a while
 func WithRetries(
 	ctx context.Context, logger Logger, fn func() error,
 ) WrappedError {
@@ -59,14 +60,16 @@ func WithRetries(
 		if wrappedErr.MaxRetries() > 0 {
 			retriedFraction += 1 / float64(wrappedErr.MaxRetries()+1)
 		}
-		if retriedFraction >= 1-BackoffMaxRetriesEpsilon || (wrappedErr.MaxRetries() < 1 && wrappedErr.MaxRetries() != -1) {
+		if retriedFraction >= 1-BackoffMaxRetriesEpsilon ||
+			(wrappedErr.MaxRetries() < 1 && wrappedErr.MaxRetries() != -1) {
 			return wrapError(wrappedErr)
 		}
 		errs = append(errs, stdErr)
 
 		retries := retriesByCategory[wrappedErr.GeneralCategory()]
 		backoff := CalculateBackoff(retries, wrappedErr.RetryBackoffBase(), wrappedErr.RetryBackoffMultiplier())
-		if wrappedErr.RetryBackoffMultiplier() > 1 { // Errors with a multiplier of 1 shouldn't increase the backoff for other errors with the same category
+		// Errors with a multiplier of 1 shouldn't increase the backoff for other errors with the same category
+		if wrappedErr.RetryBackoffMultiplier() > 1 {
 			retriesByCategory[wrappedErr.GeneralCategory()] = retries + 1
 		}
 

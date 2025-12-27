@@ -80,7 +80,10 @@ func prepareJobDefinition(definition *Definition) {
 		log.Fatalf("job definition %s weight must be 1 or higher", versionedType)
 	}
 	if definition.Priority < LowPriority || definition.Priority > RealtimePriority {
-		log.Fatalf("job definition %s priority must be between -1 (LowPriority) and 5 (RealtimePriority)", versionedType)
+		log.Fatalf(
+			"job definition %s priority must be between -1 (LowPriority) and 5 (RealtimePriority)",
+			versionedType,
+		)
 	}
 }
 func AssertTypeIsValidBodyType(bodyType reflect.Type, versionedType string) {

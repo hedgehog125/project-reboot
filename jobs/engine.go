@@ -165,8 +165,10 @@ func (engine *Engine) Listen() {
 				if ent.IsNotFound(stdErr) {
 					return false
 				}
-				// We won't shutdown directly but a few restarts might be tried by the health service, though this probably won't help
-				// The download endpoint also checks that the job system is healthy before sending the file, as there could be a pending self lock that can't run due to the failing job system
+				// It might be good to shut down if this happens enough times in a row
+				// But if jobs aren't running, then downloads should be blocked because the endpoint checks that
+				// enough messages have been sent recently
+				// And those won't send if the job engine is failing
 				engine.App.Logger.Error("failed to get current job to run", "error", stdErr)
 				engine.App.Clock.Sleep(250 * time.Millisecond)
 				continue
@@ -230,7 +232,8 @@ listenLoop:
 			break listenLoop
 		}
 		// TODO: check for stalled jobs, do a similar thing to scheduled jobs. Wait until they should have finished
-		// Maybe schedule a job to check for stalled jobs every 5 minutes or so, because checking after all the jobs have finished running might be too late if there are a lot
+		// Maybe schedule a job to check for stalled jobs every 5 minutes or so
+		// because checking after all the jobs have finished running might be too late if there are a lot
 
 		maxWaitTime := engine.App.Env.JOB_POLL_INTERVAL
 		nextJob, stdErr := dbcommon.WithReadTx(context.TODO(), engine.App.Database,

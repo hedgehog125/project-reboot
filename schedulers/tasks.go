@@ -17,7 +17,9 @@ type Task struct {
 	Init func(engine *Engine)
 	Run  func(engine *Engine)
 }
-type TaskCallback func(taskContext *TaskContext) // TODO: why does not having an equals here work? Why does it now mean you get the proper function snippet?
+
+// TODO: why does not having an equals here work? Why does it now mean you get the proper function snippet?
+type TaskCallback func(taskContext *TaskContext)
 type TaskContext struct {
 	App      *common.App
 	CallTime time.Time

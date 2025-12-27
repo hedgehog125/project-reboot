@@ -59,7 +59,8 @@ func LoadEnvironmentVariables() *common.Env {
 func ValidateEnvironmentVariables(env *common.Env) {
 	if float64(env.AUTH_CODE_VALID_FOR)/float64(env.UNLOCK_TIME) < 1.1 {
 		log.Fatalf(
-			"AUTH_CODE_VALID_FOR must be at least slightly larger than UNLOCK_TIME because a download requires the auth code to be valid and the unlock time needs to have passed",
+			"AUTH_CODE_VALID_FOR must be at least slightly larger than UNLOCK_TIME because a download requires " +
+				"the auth code to be valid and the unlock time needs to have passed",
 		)
 	}
 }

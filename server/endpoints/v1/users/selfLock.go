@@ -20,11 +20,11 @@ const MAX_SELF_LOCK_DURATION = 14 * (24 * time.Hour)
 type SelfLockPayload struct {
 	Username string    `binding:"required,min=1,max=32,alphanum,lowercase" json:"username"`
 	Password string    `binding:"required,min=8,max=256"                   json:"password"`
-	Until    time.Time `binding:"required" json:"until"`
+	Until    time.Time `binding:"required"                                 json:"until"`
 }
 type SelfLockResponse struct {
 	Errors            []servercommon.ErrorDetail `binding:"required" json:"errors"`
-	TwoFactorActionID string                     `json:"twoFactorActionID"`
+	TwoFactorActionID string                     `                   json:"twoFactorActionID"`
 }
 
 func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {

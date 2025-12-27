@@ -3,7 +3,8 @@ package common
 /*
 The core principal is to abstract just enough that:
 * The service can be mocked to some extent (although I don't think this is really necessary for the database)
-* The service can be used in simplified ways for testing. e.g a test can use a different job registry with a real implementation
+* The service can be used in simplified ways for testing.
+e.g a test can use a different job registry with a real implementation
 */
 
 import (
@@ -41,10 +42,12 @@ type Env struct {
 	LOG_STORE_INTERVAL time.Duration
 	ADMIN_USERNAME     string
 	// How long the server should wait for messengers to succeed before crashing the server to send the message
-	// Note: this time will be exceeded as it's a simple check when the job succeeds and doesn't take into account when the next retry is
+	// Note: this time will be exceeded as it's a simple check when the job succeeds and doesn't take into account
+	// when the next retry is.
 	// Note: currently all of the successfully prepared messages must succeed for a crash to be avoided
 	ADMIN_MESSAGE_TIMEOUT time.Duration
-	// If it's been less than this amount of time since the last admin message, other errors won't send a message to avoid spamming the admin
+	// If it's been less than this amount of time since the last admin message,
+	// other errors won't send a message to avoid spamming the admin
 	MIN_ADMIN_MESSAGE_GAP time.Duration
 	MIN_CRASH_SIGNAL_GAP  time.Duration
 	// Used for testing, not recommended when running the server
@@ -97,11 +100,13 @@ type MessengerService interface {
 		ctx context.Context,
 	) WrappedError
 
-	// The error map is more like warnings about why specific messengers failed to prepare, they are logged already so you might just want to ignore them
+	// The error map is more like warnings about why specific messengers failed to prepare,
+	// they are logged already so you might just want to ignore them
 	//
 	// But check the second WrappedError value first because you should fail the transaction if it's not nil
 	//
-	// Note: the number of successfully queued messages (the int return value) might not be 0 if some messages were queued before a non-messenger specific error occurred
+	// Note: the number of successfully queued messages (the int return value) might not be 0 if some messages
+	// were queued before a non-messenger specific error occurred
 	SendUsingAll(message *Message, ctx context.Context) (int, map[string]WrappedError, WrappedError)
 	ScheduleSendUsingAll(
 		message *Message,
@@ -161,10 +166,12 @@ type Logger interface {
 	WithGroup(name string) *slog.Logger
 }
 
-// When in a context passed to a logger.Error call, the server will deliberately crash to notify the admin as opposed to sending a message
+// When in a context passed to a logger.Error call, the server will deliberately crash to
+// notify the admin as opposed to sending a message
 type AdminNotificationFallbackKey struct{}
 
-// When in a context passed to a logger.Error call, the server won't attempt to notify the admin, neither by crashing or sending a message
+// When in a context passed to a logger.Error call, the server won't attempt to notify the admin,
+// neither by crashing or sending a message
 type DisableAdminNotificationKey struct{}
 
 // Used to store a logger override in a context

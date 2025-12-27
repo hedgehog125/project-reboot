@@ -73,7 +73,12 @@ func (service *Logger) AssertWritten(t *testing.T, expectedEntries []ExpectedEnt
 		if expected.Attributes == nil {
 			expected.Attributes = map[string]any{}
 		}
-		testcommon.AssertJSONEqual(t, expected.Attributes, entry.Attributes, fmt.Sprintf("%v \"Attributes\" properties", prefix))
+		testcommon.AssertJSONEqual(
+			t,
+			expected.Attributes,
+			entry.Attributes,
+			fmt.Sprintf("%v \"Attributes\" properties", prefix),
+		)
 	}
 }
 func (service *Logger) DeleteWrittenLogs(t *testing.T) {
@@ -169,8 +174,10 @@ func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) {
 							"name":    "retries reset by WithRetries from...",
 						},
 					},
-					"errDuplicatesCategory":  false,
-					"error":                  "db common [package] error: WithTx error: callback error: common [package] error: database [general] error: other error: auto wrapped error: ent: constraint failed: FOREIGN KEY constraint failed",
+					"errDuplicatesCategory": false,
+					"error": "db common [package] error: WithTx error: callback error: common [package] error: " +
+						"database [general] error: other error: auto wrapped error: ent: constraint failed: " +
+						"FOREIGN KEY constraint failed",
 					"innerError":             "ent: constraint failed: FOREIGN KEY constraint failed",
 					"innerErrorType":         "*ent.ConstraintError",
 					"maxRetries":             0,
@@ -453,8 +460,9 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 			Level:   int(slog.LevelInfo),
 		},
 		{
-			Message: "bulk log write failed but the individual fallback writes all succeeded, so the writes took longer than they should have",
-			Level:   int(slog.LevelWarn),
+			Message: "bulk log write failed but the individual fallback writes all succeeded, " +
+				"so the writes took longer than they should have",
+			Level: int(slog.LevelWarn),
 			Attributes: map[string]any{
 				"error": map[string]any{
 					"categories": []any{
@@ -476,8 +484,9 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 							"name":    "retries reset by WithRetries from...",
 						},
 					},
-					"errDuplicatesCategory":  false,
-					"error":                  "db common [package] error: WithTx error: callback error: common [package] error: auto wrapped error: temporary but unretryable error",
+					"errDuplicatesCategory": false,
+					"error": "db common [package] error: WithTx error: callback error: common [package] error: " +
+						"auto wrapped error: temporary but unretryable error",
 					"innerError":             "temporary but unretryable error",
 					"innerErrorType":         "*errors.errorString",
 					"maxRetries":             0,
@@ -487,7 +496,8 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 			},
 		},
 	})
-	// Should do a bulk create that fails, retry that with 2 individual creates and then do another bulk create to store the warning
+	// Should do a bulk create that fails, retry that with 2 individual creates
+	// and then do another bulk create to store the warning
 	require.Equal(t, int64(3), successfulCreateCounter.Load())
 }
 

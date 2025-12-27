@@ -20,7 +20,11 @@ func RandomAuthCode() []byte {
 	return common.CryptoRandomBytes(AuthCodeByteLength)
 }
 
-func SendActiveSessionReminders(ctx context.Context, clock clockwork.Clock, messengers common.MessengerService) common.WrappedError {
+func SendActiveSessionReminders(
+	ctx context.Context,
+	clock clockwork.Clock,
+	messengers common.MessengerService,
+) common.WrappedError {
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return ErrWrapperSendActiveSessionReminders.Wrap(common.ErrNoTxInContext)
@@ -153,10 +157,14 @@ func IsUserSufficientlyNotified(
 
 		if len(confirmedLoginAlerts) < env.MIN_SUCCESSFUL_MESSAGE_COUNT {
 			logger.Warn(
-				"user was not sufficiently notified by one of their configured messengers because it didn't successfully send and confirm enough login alerts",
-				"messengerType", messengerType,
-				"loginAlertCount", len(loginAlerts),
-				"confirmedLoginAlertCount", len(confirmedLoginAlerts),
+				"user was not sufficiently notified by one of their configured messengers because it "+
+					"didn't successfully send and confirm enough login alerts",
+				"messengerType",
+				messengerType,
+				"loginAlertCount",
+				len(loginAlerts),
+				"confirmedLoginAlertCount",
+				len(confirmedLoginAlerts),
 			)
 			continue
 		}
@@ -168,10 +176,14 @@ func IsUserSufficientlyNotified(
 		}
 		if mostRecentConfirmedAlert.SentAt.Before(earliestValidTime) {
 			logger.Warn(
-				"user was not sufficiently notified by one of their configured messengers because its most recent confirmed alert was too old. are jobs still running? are some messengers failing?",
-				"messengerType", messengerType,
-				"mostRecentAlertTime", mostRecentConfirmedAlert.SentAt,
-				"earliestValidTime", earliestValidTime,
+				"user was not sufficiently notified by one of their configured messengers because "+
+					"its most recent confirmed alert was too old. are jobs still running? are some messengers failing?",
+				"messengerType",
+				messengerType,
+				"mostRecentAlertTime",
+				mostRecentConfirmedAlert.SentAt,
+				"earliestValidTime",
+				earliestValidTime,
 			)
 			continue
 		}
@@ -184,10 +196,14 @@ func IsUserSufficientlyNotified(
 	), 1)
 	if len(successfulMessengerTypes) < minSuccessfulMessengers {
 		logger.Warn(
-			"user was not sufficiently notified because not enough of their core configured messengers successfully sent login alerts",
-			"configuredMessengerTypes", messengerTypes,
-			"successfulMessengerTypes", successfulMessengerTypes,
-			"minSuccessfulMessengers", minSuccessfulMessengers,
+			"user was not sufficiently notified because not enough of their core configured messengers "+
+				"successfully sent login alerts",
+			"configuredMessengerTypes",
+			messengerTypes,
+			"successfulMessengerTypes",
+			successfulMessengerTypes,
+			"minSuccessfulMessengers",
+			minSuccessfulMessengers,
 		)
 		return false
 	}

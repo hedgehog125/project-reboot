@@ -70,8 +70,15 @@ func TestRequestSession(t *testing.T) {
 		wg.Wait()
 		require.ErrorIs(t, makeHashRequest("user1", true), ratelimiting.ErrUserRateLimitExceeded)
 		require.ErrorIs(t, makeHashRequest("user2", true), ratelimiting.ErrUserRateLimitExceeded)
-		require.NoError(t, makeHashRequest("user3", true))                                        // Reach the global limit for hash-password
-		require.ErrorIs(t, makeHashRequest("user1", true), ratelimiting.ErrUserRateLimitExceeded) // There's no global limit for api
+		require.NoError(
+			t,
+			makeHashRequest("user3", true),
+		) // Reach the global limit for hash-password
+		require.ErrorIs(
+			t,
+			makeHashRequest("user1", true),
+			ratelimiting.ErrUserRateLimitExceeded,
+		) // There's no global limit for api
 		require.ErrorIs(t, makeHashRequest("user2", true), ratelimiting.ErrGlobalRateLimitExceeded)
 	}
 

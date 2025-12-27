@@ -246,7 +246,8 @@ func TestDownload_TemporarilyLockedUser_ReturnsUnauthorizedError(t *testing.T) {
 			authCode := app.Core.RandomAuthCode()
 			validUntil := now.Add(2 * 24 * time.Hour) // Lasts until after the user is unlocked
 
-			// This session shouldn't exist, but let's say an attacker managed to somehow create it at the exact time the user was locked
+			// This session shouldn't exist, but let's say an attacker managed to somehow create it
+			// at the exact time the user was locked
 			// Even though both things should happen in the same transaction
 			sessionOb, stdErr := tx.Session.Create().
 				SetUser(userOb).
@@ -381,7 +382,8 @@ func TestDownload_PermanentlyLockedUser_ReturnsUnauthorizedError(t *testing.T) {
 			authCode := app.Core.RandomAuthCode()
 			validUntil := now.Add(24 * time.Hour)
 
-			// This session shouldn't exist, but let's say an attacker managed to somehow create it at the exact time the user was locked
+			// This session shouldn't exist, but let's say an attacker managed to somehow create it
+			// at the exact time the user was locked
 			// Even though both things should happen in the same transaction
 			sessionOb, stdErr := tx.Session.Create().
 				SetUser(userOb).

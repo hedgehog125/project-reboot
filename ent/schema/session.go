@@ -17,7 +17,9 @@ type Session struct {
 func (Session) Fields() []ent.Field {
 	return []ent.Field{
 		field.Time("createdAt"),
-		field.Bytes("code").Unique().MinLen(128), // The randomly generated authorisation code that will become valid after enough time
+		field.Bytes("code").
+			Unique().
+			MinLen(128), // The randomly generated authorisation code that will become valid after enough time
 		field.Time("validFrom"),
 		field.Time("validUntil"),
 		field.String("userAgent"),

@@ -1,4 +1,4 @@
-package dbcommon
+package dbcommon_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/NicoClack/cryptic-stash/common/dbcommon"
 	"github.com/NicoClack/cryptic-stash/common/testcommon"
 	"github.com/NicoClack/cryptic-stash/ent"
 	"github.com/NicoClack/cryptic-stash/ent/job"
@@ -32,7 +33,7 @@ func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 	createJob := func() {
 		wg.Add(1)
 		defer wg.Done()
-		stdErr := WithWriteTx(
+		stdErr := dbcommon.WithWriteTx(
 			t.Context(), db,
 			func(tx *ent.Tx, ctx context.Context) error {
 				_, stdErr := tx.Job.Create().
@@ -83,7 +84,7 @@ func TestWithWriteTx_supports25CollidingIncrements(t *testing.T) {
 	var wg sync.WaitGroup
 	for range INCREMENT_COUNT {
 		wg.Go(func() {
-			stdErr := WithWriteTx(
+			stdErr := dbcommon.WithWriteTx(
 				t.Context(), db,
 				func(tx *ent.Tx, ctx context.Context) error {
 					job, stdErr := tx.Job.Query().Where(job.TypeEQ("counter")).Only(ctx)

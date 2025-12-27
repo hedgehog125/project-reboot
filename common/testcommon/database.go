@@ -21,7 +21,8 @@ var dbCounter = common.MutexValue[int64]{}
 
 func CreateDB() *TestDatabase {
 	// TODO: review options
-	// TODO: what does shared cache do any why is it sometimes necessary in order to stop the database being deleted mid test?
+	// TODO: what does shared cache do any why is it sometimes necessary
+	// in order to stop the database being deleted mid test?
 	// ^ this seems to enable WAL mode? Which isn't what I want
 	dbCounter.Mutex.Lock()
 	defer dbCounter.Mutex.Unlock()

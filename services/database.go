@@ -12,7 +12,6 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/NicoClack/cryptic-stash/common"
 	"github.com/NicoClack/cryptic-stash/ent"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -32,14 +31,17 @@ type Database struct {
 func (service *Database) Start() {
 	defer close(service.readyChan)
 
-	err := os.MkdirAll(service.app.Env.MOUNT_PATH, 0700)
-	if err != nil {
-		log.Fatalf("couldn't create storage directory. Error:\n%v", err)
+	stdErr := os.MkdirAll(service.app.Env.MOUNT_PATH, 0700)
+	if stdErr != nil {
+		log.Fatalf("couldn't create storage directory. Error:\n%v", stdErr)
 	}
 
-	db, err := sql.Open("sqlite3", fmt.Sprintf("%v?_fk=1&_busy_timeout=250&_foreign_keys=on", filepath.Join(service.app.Env.MOUNT_PATH, "database.sqlite3")))
-	if err != nil {
-		log.Fatalf("couldn't start database. error:\n%v", err)
+	db, stdErr := sql.Open("sqlite3", fmt.Sprintf(
+		"%v?_fk=1&_foreign_keys=on",
+		filepath.Join(service.app.Env.MOUNT_PATH, "database.sqlite3"),
+	))
+	if stdErr != nil {
+		log.Fatalf("couldn't start database. error:\n%v", stdErr)
 	}
 
 	db.SetMaxIdleConns(5)
@@ -51,10 +53,10 @@ func (service *Database) Start() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	err = client.Schema.Create(ctx)
-	if err != nil {
+	stdErr = client.Schema.Create(ctx)
+	if stdErr != nil {
 		_ = client.Close()
-		log.Fatalf("couldn't create schema resources. error:\n%v", err)
+		log.Fatalf("couldn't create schema resources. error:\n%v", stdErr)
 	}
 }
 

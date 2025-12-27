@@ -112,7 +112,10 @@ func (session *Session) AdjustTo(amount int) common.WrappedError {
 	if session.limit.globalMax != -1 && globalCounter.value > session.limit.globalMax {
 		return ErrWrapperAdjustTo.Wrap(ErrGlobalRateLimitExceeded)
 	}
-	userCounter := session.limit.userCounters[session.User].refresh(session.limiter.App.Clock.Now(), session.limit.resetDuration)
+	userCounter := session.limit.userCounters[session.User].refresh(
+		session.limiter.App.Clock.Now(),
+		session.limit.resetDuration,
+	)
 	userCounter.value = max(userCounter.value+diff, 0)
 	if session.limit.userMax != -1 && userCounter.value > session.limit.userMax {
 		return ErrWrapperAdjustTo.Wrap(ErrUserRateLimitExceeded)

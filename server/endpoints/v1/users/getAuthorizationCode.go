@@ -21,9 +21,9 @@ type GetAuthorizationCodePayload struct {
 
 type GetAuthorizationCodeResponse struct {
 	Errors            []servercommon.ErrorDetail `binding:"required" json:"errors"`
-	AuthorizationCode string                     `json:"authorizationCode"`
-	ValidFrom         time.Time                  `json:"validFrom"`
-	ValidUntil        time.Time                  `json:"validUntil"`
+	AuthorizationCode string                     `                   json:"authorizationCode"`
+	ValidFrom         time.Time                  `                   json:"validFrom"`
+	ValidUntil        time.Time                  `                   json:"validUntil"`
 }
 
 func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {

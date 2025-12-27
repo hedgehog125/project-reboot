@@ -1,4 +1,4 @@
-package jobs
+package jobs_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/common/dbcommon"
 	"github.com/NicoClack/cryptic-stash/common/testcommon"
 	"github.com/NicoClack/cryptic-stash/ent"
+	"github.com/NicoClack/cryptic-stash/jobs"
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -25,18 +26,18 @@ func TestEngine_runsJob(t *testing.T) {
 	}
 	type body = struct{}
 	completeJobChan := make(chan struct{})
-	registry := NewRegistry(app)
-	registry.Register(&Definition{
+	registry := jobs.NewRegistry(app)
+	registry.Register(&jobs.Definition{
 		ID:      "test_job",
 		Version: 1,
-		Handler: func(ctx *Context) error {
+		Handler: func(ctx *jobs.Context) error {
 			completeJobChan <- struct{}{}
 			return nil
 		},
 		BodyType: &body{},
 		Weight:   1,
 	})
-	engine := NewEngine(registry)
+	engine := jobs.NewEngine(registry)
 	go engine.Listen()
 	defer engine.Shutdown()
 	stdErr := dbcommon.WithWriteTx(
@@ -66,12 +67,12 @@ func TestEngine_retriesJob(t *testing.T) {
 	}
 	type body = struct{}
 	completeJobChan := make(chan struct{})
-	registry := NewRegistry(app)
+	registry := jobs.NewRegistry(app)
 	attempt := 0
-	registry.Register(&Definition{
+	registry.Register(&jobs.Definition{
 		ID:      "test_job",
 		Version: 1,
-		Handler: func(ctx *Context) error {
+		Handler: func(ctx *jobs.Context) error {
 			attempt++
 			if attempt < 3 {
 				return common.NewErrorWithCategories("temporary error").
@@ -83,7 +84,7 @@ func TestEngine_retriesJob(t *testing.T) {
 		BodyType: &body{},
 		Weight:   1,
 	})
-	engine := NewEngine(registry)
+	engine := jobs.NewEngine(registry)
 	go engine.Listen()
 	defer engine.Shutdown()
 

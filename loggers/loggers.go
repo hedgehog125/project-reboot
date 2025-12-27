@@ -316,7 +316,8 @@ func (handler *Handler) individualWriteFallback(
 		record := slog.NewRecord(
 			handler.App.Clock.Now(),
 			slog.LevelWarn,
-			"bulk log write failed but the individual fallback writes all succeeded, so the writes took longer than they should have",
+			"bulk log write failed but the individual fallback writes all succeeded, "+
+				"so the writes took longer than they should have",
 			pc,
 		)
 		record.AddAttrs(slog.Any("error", bulkWriteErr))
@@ -470,7 +471,8 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 			*loggedAdminNotificationErrorPtr = true
 			selfLogged = true
 		}
-		if queuedCount == 0 { // TODO: apply the same logic as what's used to check if a user was sufficiently notified of a login
+		// TODO: apply the same logic as what's used to check if a user was sufficiently notified of a login
+		if queuedCount == 0 {
 			session.Cancel()
 			message := "admin user has no contacts so couldn't notify them about an error"
 			for _, wrappedErr := range errs {
@@ -651,7 +653,8 @@ func (handler Handler) appendAttr(
 					)
 				}
 			}
-			outputAttrs[attr.Key] = attr.Value.Any() // Also store the value in the attributes so it's preserved if the user is deleted
+			// Also store the value in the attributes so it's preserved if the user is deleted
+			outputAttrs[attr.Key] = attr.Value.Any()
 			return
 		}
 	}

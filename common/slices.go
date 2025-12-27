@@ -12,9 +12,9 @@ func DeleteSliceIndex[T any](slice []T, index int) []T {
 }
 
 func CheckPathPattern(path []string, pattern []string) bool {
-	return checkPathPattern(path, simplifyPathPattern(pattern))
+	return checkPathPattern(path, SimplifyPathPattern(pattern))
 }
-func simplifyPathPattern(pattern []string) []string {
+func SimplifyPathPattern(pattern []string) []string {
 	simplifiedPattern := []string{}
 
 	inDoubleWildcardChain := false
