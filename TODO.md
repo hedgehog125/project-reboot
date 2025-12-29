@@ -8,6 +8,7 @@
 -   Standardise returning errors and using gin.H vs the endpoint specific download struct. That struct applies defaults which the other 2 approaches don't, so it could leak information
 -   Experiment using Cloudflare to prevent DDoS requests on the hashing endpoint. It's not a great idea to shift the hashing to the client due to WASM and different devices' RAM limitations. Can specifically limit that endpoint
 -   Limit number of concurrent hash requests to avoid using too much RAM
+-   Avoid sending successful responses inside a transaction because it could fail while committing?
 -   Add limits on self-locking so a hacker can't lock you out forever
 -   -   Attempting to get an authorisation code when locked should send the unlock date
 -   Repeat password in sign up form

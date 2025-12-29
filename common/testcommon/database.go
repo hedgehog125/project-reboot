@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sync"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -17,19 +18,23 @@ type TestDatabase struct {
 	startTxHooks []func(tx *ent.Tx) error
 }
 
-var dbCounter = common.MutexValue[int64]{}
+var (
+	dbCounter = int64(0)
+	// TODO: this seems to be necessary because of some race conditions in Ent/Atlas
+	createMu = sync.Mutex{}
+)
 
 func CreateDB() *TestDatabase {
 	// TODO: review options
 	// TODO: what does shared cache do any why is it sometimes necessary
 	// in order to stop the database being deleted mid test?
 	// ^ this seems to enable WAL mode? Which isn't what I want
-	dbCounter.Mutex.Lock()
-	defer dbCounter.Mutex.Unlock()
-	dbCounter.Value++
+	createMu.Lock()
+	defer createMu.Unlock()
+	dbCounter++
 	db, stdErr := sql.Open("sqlite3", fmt.Sprintf(
 		"file:temp%v?mode=memory&cache=shared&_fk=1&_busy_timeout=250&_foreign_keys=on",
-		dbCounter.Value,
+		dbCounter,
 	))
 	if stdErr != nil {
 		panic(fmt.Sprintf("failed to open test database. error: %v", stdErr.Error()))

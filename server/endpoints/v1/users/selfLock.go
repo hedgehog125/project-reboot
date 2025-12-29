@@ -43,7 +43,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		)
 
 		userOb, stdErr := dbcommon.WithReadTx(
-			ginCtx, app.Database,
+			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
 				userOb, stdErr := tx.User.Query().
 					Where(user.Username(body.Username)).
@@ -77,7 +77,7 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(
-			ginCtx, app.Database,
+			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
 				action, code, wrappedErr := app.TwoFactorActions.Create(
 					"users/TEMP_SELF_LOCK_1",

@@ -44,7 +44,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(
-			ginCtx, app.Database,
+			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
 				stdErr := tx.User.Create().
 					SetUsername(body.Username).

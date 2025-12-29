@@ -45,7 +45,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		sessionOb, stdErr := dbcommon.WithReadWriteTx(
-			ginCtx, app.Database,
+			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
 				sessionOb, stdErr := tx.Session.Query().
 					Where(session.And(session.HasUserWith(user.Username(body.Username)), session.Code(givenAuthCodeBytes))).
@@ -109,7 +109,7 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(
-			ginCtx, app.Database,
+			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
 				stdErr := tx.Session.UpdateOneID(sessionOb.ID).
 					SetValidUntil(clock.Now().Add(app.Env.USED_AUTH_CODE_VALID_FOR)).

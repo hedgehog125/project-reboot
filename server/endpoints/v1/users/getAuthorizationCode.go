@@ -36,7 +36,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		userOb, stdErr := dbcommon.WithReadTx(
-			ginCtx, app.Database,
+			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
 				userOb, stdErr := tx.User.Query().
 					Where(user.Username(body.Username)).
@@ -69,7 +69,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(
-			ginCtx, app.Database,
+			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
 				authCode := app.Core.RandomAuthCode()
 				validFrom := clock.Now().Add(app.Env.UNLOCK_TIME)

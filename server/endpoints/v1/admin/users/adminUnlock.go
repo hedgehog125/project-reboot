@@ -28,7 +28,7 @@ func AdminUnlock(app *servercommon.ServerApp) gin.HandlerFunc {
 		}
 
 		return dbcommon.WithWriteTx(
-			ginCtx, app.Database,
+			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
 				userOb, stdErr := tx.User.Query().
 					Where(user.Username(body.Username)).

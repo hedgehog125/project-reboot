@@ -30,23 +30,26 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			_, wrappedErr := app.TwoFactorActions.Confirm(parsedID, body.Code, ctx)
-			if wrappedErr != nil {
-				return servercommon.ExpectAnyOfErrors(
-					wrappedErr,
-					[]error{
-						twofactoractions.ErrNotFound,
-						twofactoractions.ErrExpired,
-						twofactoractions.ErrWrongCode,
-					},
-					http.StatusUnauthorized, nil,
-				)
-			}
-			ginCtx.JSON(http.StatusOK, ConfirmResponse{
-				Errors: []servercommon.ErrorDetail{},
-			})
-			return nil
-		})
+		return dbcommon.WithWriteTx(
+			ginCtx.Request.Context(), app.Database,
+			func(tx *ent.Tx, ctx context.Context) error {
+				_, wrappedErr := app.TwoFactorActions.Confirm(parsedID, body.Code, ctx)
+				if wrappedErr != nil {
+					return servercommon.ExpectAnyOfErrors(
+						wrappedErr,
+						[]error{
+							twofactoractions.ErrNotFound,
+							twofactoractions.ErrExpired,
+							twofactoractions.ErrWrongCode,
+						},
+						http.StatusUnauthorized, nil,
+					)
+				}
+				ginCtx.JSON(http.StatusOK, ConfirmResponse{
+					Errors: []servercommon.ErrorDetail{},
+				})
+				return nil
+			},
+		)
 	})
 }

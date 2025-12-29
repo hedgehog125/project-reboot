@@ -28,43 +28,46 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 			return ctxErr
 		}
 
-		return dbcommon.WithWriteTx(ginCtx, app.Database, func(tx *ent.Tx, ctx context.Context) error {
-			userOb, stdErr := tx.User.Query().
-				Where(user.Username(body.Username)).
-				Only(ctx)
-			if stdErr != nil {
-				return servercommon.Send404IfNotFound(stdErr)
-			}
-			userOb, stdErr = userOb.Update().
-				SetAlertDiscordId(body.DiscordUserId).
-				SetAlertEmail(body.Email).
-				Save(ctx)
-			if stdErr != nil {
-				return servercommon.Send404IfNotFound(stdErr)
-			}
+		return dbcommon.WithWriteTx(
+			ginCtx.Request.Context(), app.Database,
+			func(tx *ent.Tx, ctx context.Context) error {
+				userOb, stdErr := tx.User.Query().
+					Where(user.Username(body.Username)).
+					Only(ctx)
+				if stdErr != nil {
+					return servercommon.Send404IfNotFound(stdErr)
+				}
+				userOb, stdErr = userOb.Update().
+					SetAlertDiscordId(body.DiscordUserId).
+					SetAlertEmail(body.Email).
+					Save(ctx)
+				if stdErr != nil {
+					return servercommon.Send404IfNotFound(stdErr)
+				}
 
-			_, _, wrappedErr := app.Messengers.SendUsingAll(
-				&common.Message{
-					Type: common.MessageTest,
-					User: userOb,
-				},
-				ctx,
-			)
-			if wrappedErr != nil {
-				return wrappedErr
-			}
+				_, _, wrappedErr := app.Messengers.SendUsingAll(
+					&common.Message{
+						Type: common.MessageTest,
+						User: userOb,
+					},
+					ctx,
+				)
+				if wrappedErr != nil {
+					return wrappedErr
+				}
 
-			// The user most likely isn't trying to log in if they've coordinated this with their admin
-			// And deleting the sessions simplifies IsUserSufficientlyNotified
-			wrappedErr = app.Core.InvalidateUserSessions(userOb.ID, ctx)
-			if wrappedErr != nil {
-				return wrappedErr
-			}
+				// The user most likely isn't trying to log in if they've coordinated this with their admin
+				// And deleting the sessions simplifies IsUserSufficientlyNotified
+				wrappedErr = app.Core.InvalidateUserSessions(userOb.ID, ctx)
+				if wrappedErr != nil {
+					return wrappedErr
+				}
 
-			ginCtx.JSON(http.StatusOK, SetContactsResponse{
-				Errors: []servercommon.ErrorDetail{},
-			})
-			return nil
-		})
+				ginCtx.JSON(http.StatusOK, SetContactsResponse{
+					Errors: []servercommon.ErrorDetail{},
+				})
+				return nil
+			},
+		)
 	})
 }
