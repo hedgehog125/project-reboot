@@ -1,27 +1,36 @@
 package schedulers
 
 import (
+	"context"
+	"errors"
 	"sync"
+	"time"
 
 	"github.com/NicoClack/cryptic-stash/common"
+)
+
+const (
+	ShutdownTimeout = 10 * time.Second
 )
 
 type Engine struct {
 	App   *common.App
 	tasks []Task
 	// Note: outside of the schedulers package, this should only be used by LoopFuncs to listen for shutdown requests
-	RequestShutdownChan  chan struct{}
-	shutdownFinishedChan chan struct{}
-	shutdownWg           sync.WaitGroup
-	shutdownOnce         sync.Once
+	RequestShutdownChan chan struct{}
+	shutdownCtx         context.Context
+	cancelShutdownCtx   context.CancelFunc
+	shutdownWg          sync.WaitGroup
+	runOnce             sync.Once
+	shutdownOnce        sync.Once
+	mu                  sync.Mutex
 }
 
 func NewEngine(app *common.App) *Engine {
 	return &Engine{
-		App:                  app,
-		tasks:                make([]Task, 0),
-		RequestShutdownChan:  make(chan struct{}),
-		shutdownFinishedChan: make(chan struct{}),
+		App:                 app,
+		tasks:               make([]Task, 0),
+		RequestShutdownChan: make(chan struct{}),
 	}
 }
 func (engine *Engine) Register(callback TaskCallback, delayFunc DelayFunc) {
@@ -34,22 +43,37 @@ func (engine *Engine) RegisterTask(task Task) {
 	engine.tasks = append(engine.tasks, task)
 }
 func (engine *Engine) Run() {
-	for _, task := range engine.tasks {
-		if task.Init != nil {
-			task.Init(engine)
+	engine.runOnce.Do(func() {
+		for _, task := range engine.tasks {
+			if task.Init != nil {
+				task.Init(engine)
+			}
+			engine.shutdownWg.Go(func() {
+				task.Run(engine)
+			})
 		}
-		engine.shutdownWg.Go(func() {
-			task.Run(engine)
-		})
-	}
-	engine.shutdownWg.Wait()
-	close(engine.shutdownFinishedChan)
+		engine.shutdownWg.Wait()
+		engine.mu.Lock()
+		engine.cancelShutdownCtx()
+		engine.mu.Unlock()
+	})
 }
 func (engine *Engine) Shutdown() {
+	go engine.Run()
 	engine.shutdownOnce.Do(func() {
 		engine.App.Logger.Info("scheduler shutting down...")
+		ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
+		engine.mu.Lock()
+		engine.shutdownCtx = ctx
+		engine.cancelShutdownCtx = cancel
+		engine.mu.Unlock()
 		close(engine.RequestShutdownChan)
-		<-engine.shutdownFinishedChan
-		engine.App.Logger.Info("scheduler stopped")
+
+		<-ctx.Done()
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			engine.App.Logger.Error("scheduler shutdown timed out")
+		} else {
+			engine.App.Logger.Info("scheduler stopped")
+		}
 	})
 }
