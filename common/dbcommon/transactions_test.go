@@ -31,8 +31,6 @@ func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 
 	var wg sync.WaitGroup
 	createJob := func() {
-		wg.Add(1)
-		defer wg.Done()
 		stdErr := dbcommon.WithWriteTx(
 			t.Context(), db,
 			func(tx *ent.Tx, ctx context.Context) error {
@@ -55,7 +53,7 @@ func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
 		require.NoError(t, stdErr)
 	}
 	for range JOB_COUNT {
-		go createJob()
+		wg.Go(createJob)
 	}
 	wg.Wait()
 	count, stdErr := db.Client().Job.Query().Count(t.Context())

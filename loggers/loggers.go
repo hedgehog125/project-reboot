@@ -34,20 +34,27 @@ const (
 type disableErrorLoggingKey = struct{} // Used to prevent infinite loops
 
 type Handler struct {
-	App                 *common.App
-	Level               slog.Level
-	SaveToDatabase      bool
-	ShouldPrint         bool
-	tintHandler         slog.Handler
-	baseAttrs           map[string]any
-	baseSpecialProps    specialProperties
-	baseGroups          []string
+	App              *common.App
+	Level            slog.Level
+	SaveToDatabase   bool
+	ShouldPrint      bool
+	tintHandler      slog.Handler
+	baseAttrs        map[string]any
+	baseSpecialProps specialProperties
+	baseGroups       []string
+	topHandler       *topHandler
+	mu               *sync.RWMutex
+}
+type topHandler struct {
 	entryChan           chan *entry
 	requestShutdownChan chan struct{}
 	shutdownCtx         context.Context
 	cancelShutdownCtx   context.CancelFunc
-	listenOnce          *sync.Once
-	shutdownOnce        *sync.Once
+	listenOnce          sync.Once
+	shutdownOnce        sync.Once
+	// Note: the channels and sync.Onces are assumed to be constant once created
+	// shutdownCtx and cancelShutdownCtx are only set during shutdown
+	mu sync.RWMutex
 }
 type entry struct {
 	time                         time.Time
@@ -79,16 +86,20 @@ func NewHandler(
 			AddSource:  true,
 			TimeFormat: time.TimeOnly,
 		}),
-		baseAttrs:           map[string]any{},
-		entryChan:           make(chan *entry, 100),
-		requestShutdownChan: make(chan struct{}),
-		listenOnce:          &sync.Once{},
-		shutdownOnce:        &sync.Once{},
+		baseAttrs: map[string]any{},
+		topHandler: &topHandler{
+			entryChan:           make(chan *entry, 100),
+			requestShutdownChan: make(chan struct{}),
+			listenOnce:          sync.Once{},
+			shutdownOnce:        sync.Once{},
+			mu:                  sync.RWMutex{},
+		},
+		mu: &sync.RWMutex{},
 	}
 }
 
 func (handler *Handler) Listen() {
-	handler.listenOnce.Do(func() {
+	handler.topHandler.listenOnce.Do(func() {
 		shuttingDown := false
 		loggedBulkWarning := false
 		loggedAdminNotificationError := false
@@ -100,7 +111,7 @@ func (handler *Handler) Listen() {
 			emptyEntryChan := func() {
 				for {
 					select {
-					case entry := <-handler.entryChan:
+					case entry := <-handler.topHandler.entryChan:
 						entries = append(entries, entry)
 					default:
 						return
@@ -112,9 +123,9 @@ func (handler *Handler) Listen() {
 				emptyEntryChan()
 			} else {
 				select {
-				case entry := <-handler.entryChan:
+				case entry := <-handler.topHandler.entryChan:
 					entries = append(entries, entry)
-				case <-handler.requestShutdownChan:
+				case <-handler.topHandler.requestShutdownChan:
 					shuttingDown = true
 					emptyEntryChan()
 				}
@@ -125,9 +136,9 @@ func (handler *Handler) Listen() {
 			collectBatchLoop:
 				for {
 					select {
-					case entry := <-handler.entryChan:
+					case entry := <-handler.topHandler.entryChan:
 						entries = append(entries, entry)
-					case <-handler.requestShutdownChan:
+					case <-handler.topHandler.requestShutdownChan:
 						shuttingDown = true
 						emptyEntryChan()
 						break collectBatchLoop
@@ -161,8 +172,12 @@ func (handler *Handler) Listen() {
 			}
 			if shuttingDown {
 				if selfLogged {
+					handler.topHandler.mu.RLock()
+					shutdownCtx := handler.topHandler.shutdownCtx
+					handler.topHandler.mu.RUnlock()
+
 					select {
-					case <-handler.shutdownCtx.Done():
+					case <-shutdownCtx.Done():
 						break listenLoop
 					default:
 					}
@@ -173,12 +188,14 @@ func (handler *Handler) Listen() {
 				}
 			}
 		}
-		close(handler.requestShutdownChan)
-		handler.cancelShutdownCtx()
+		close(handler.topHandler.requestShutdownChan)
+		handler.topHandler.cancelShutdownCtx()
 	})
 }
 func (handler *Handler) bulkWrite(entries []*entry) error {
-	ctx := handler.shutdownCtx
+	handler.topHandler.mu.RLock()
+	ctx := handler.topHandler.shutdownCtx
+	handler.topHandler.mu.RUnlock()
 	if ctx == nil {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
@@ -221,9 +238,11 @@ func (handler *Handler) individualWriteFallback(
 			timeout = 100 * time.Millisecond
 		}
 		baseCtx := context.Background()
-		if handler.shutdownCtx != nil {
-			baseCtx = handler.shutdownCtx
+		handler.topHandler.mu.RLock()
+		if handler.topHandler.shutdownCtx != nil {
+			baseCtx = handler.topHandler.shutdownCtx
 		}
+		handler.topHandler.mu.RUnlock()
 		ctx, cancel := context.WithTimeout(baseCtx, timeout)
 		defer cancel()
 		entryID, stdErr := dbcommon.WithReadWriteTx(
@@ -350,12 +369,13 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 		}
 	}
 	if shouldNotifyAdmin {
-		// TODO: rate limiting!
 		if useFallback {
 			baseCtx := context.Background()
-			if handler.shutdownCtx != nil {
-				baseCtx = handler.shutdownCtx
+			handler.topHandler.mu.RLock()
+			if handler.topHandler.shutdownCtx != nil {
+				baseCtx = handler.topHandler.shutdownCtx
 			}
+			handler.topHandler.mu.RUnlock()
 			ctx, cancel := context.WithTimeout(baseCtx, 2*time.Second)
 			defer cancel()
 			shouldCrash, stdErr := dbcommon.WithReadWriteTx(
@@ -427,9 +447,11 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 
 		// TODO: reserve a bit of time for this in case the database writing times out during a shutdown
 		baseCtx := context.Background()
-		if handler.shutdownCtx != nil {
-			baseCtx = handler.shutdownCtx
+		handler.topHandler.mu.RLock()
+		if handler.topHandler.shutdownCtx != nil {
+			baseCtx = handler.topHandler.shutdownCtx
 		}
+		handler.topHandler.mu.RUnlock()
 		ctx, cancel := context.WithTimeout(baseCtx, 2*time.Second)
 		defer cancel()
 		var queuedCount int
@@ -503,17 +525,19 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 }
 
 func (handler *Handler) Shutdown() {
-	go handler.listenOnce.Do(func() {
-		<-handler.requestShutdownChan
-		handler.cancelShutdownCtx()
+	go handler.topHandler.listenOnce.Do(func() {
+		<-handler.topHandler.requestShutdownChan
+		handler.topHandler.cancelShutdownCtx()
 	})
-	handler.shutdownOnce.Do(func() {
+	handler.topHandler.shutdownOnce.Do(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
-		// TODO: this isn't thread safe
-		handler.shutdownCtx = ctx
-		handler.cancelShutdownCtx = cancel
-		handler.requestShutdownChan <- struct{}{}
-		<-handler.shutdownCtx.Done()
+		handler.topHandler.mu.Lock()
+		handler.topHandler.shutdownCtx = ctx
+		handler.topHandler.cancelShutdownCtx = cancel
+		handler.topHandler.mu.Unlock()
+
+		handler.topHandler.requestShutdownChan <- struct{}{}
+		<-ctx.Done()
 	})
 }
 
@@ -548,11 +572,13 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 		attrs = append(attrs, attr)
 		return true
 	})
+	handler.mu.RLock()
 	resolvedAttrs := handler.resolveNestedAttrs(attrs, !disableErrLogging, &entry.publicMessage, &entry.userID)
+	handler.mu.RUnlock()
 	entry.attributes = resolvedAttrs
 
 	stdErr := handler.tintHandler.Handle(ctx, record)
-	handler.entryChan <- entry
+	handler.topHandler.entryChan <- entry
 	if stdErr != nil && !disableErrLogging {
 		pc, _, _, _ := runtime.Caller(0)
 		record := slog.NewRecord(
@@ -673,12 +699,18 @@ func (handler Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	if len(attrs) == 0 {
 		return handler
 	}
+	oldMu := handler.mu
+	oldMu.RLock()
+	defer oldMu.RUnlock()
+
 	handler.tintHandler = handler.tintHandler.WithAttrs(attrs)
 	resolvedAttrs := handler.resolveNestedAttrs(
 		attrs, true,
 		&handler.baseSpecialProps.publicMessage, &handler.baseSpecialProps.userID,
 	)
 	handler.baseAttrs = resolvedAttrs
+	handler.mu = &sync.RWMutex{}
+	// We don't need to clone any other properties since they get cloned before modification
 
 	return handler
 }
@@ -687,7 +719,14 @@ func (handler Handler) WithGroup(name string) slog.Handler {
 	if name == "" {
 		return handler
 	}
+	oldMu := handler.mu
+	oldMu.RLock()
+	defer oldMu.RUnlock()
+
 	handler.tintHandler = handler.tintHandler.WithGroup(name)
 	handler.baseGroups = slices.Concat(handler.baseGroups, []string{name})
+	handler.mu = &sync.RWMutex{}
+	// We don't need to clone any other properties since they get cloned before modification
+
 	return handler
 }
