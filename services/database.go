@@ -83,6 +83,7 @@ func (service *Database) WriteTx(ctx context.Context) (*ent.Tx, error) {
 }
 
 func (service *Database) Shutdown() {
+	service.startOnce.Do(func() {})
 	service.shutdownOnce.Do(func() {
 		service.mu.Lock()
 		client := service.client
