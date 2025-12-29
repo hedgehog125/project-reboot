@@ -100,107 +100,112 @@ func NewHandler(
 
 func (handler *Handler) Listen() {
 	handler.topHandler.listenOnce.Do(func() {
-		shuttingDown := false
 		loggedBulkWarning := false
 		loggedAdminNotificationError := false
+		entries := []*entry{}
 	listenLoop:
 		for {
 			shouldReEnableSelfLogging := false
-			entries := []*entry{}
-			selfLogged := false
-			emptyEntryChan := func() {
-				for {
-					select {
-					case entry := <-handler.topHandler.entryChan:
-						entries = append(entries, entry)
-					default:
-						return
-					}
-				}
+			select {
+			case entry := <-handler.topHandler.entryChan:
+				entries = append(entries, entry)
+			case <-handler.topHandler.requestShutdownChan:
+				break listenLoop
 			}
 
-			if shuttingDown {
-				emptyEntryChan()
-			} else {
+			timeoutChan := handler.App.Clock.After(handler.App.Env.LOG_STORE_INTERVAL)
+		collectBatchLoop:
+			for {
 				select {
 				case entry := <-handler.topHandler.entryChan:
 					entries = append(entries, entry)
+				case <-timeoutChan:
+					shouldReEnableSelfLogging = true
+					break collectBatchLoop
 				case <-handler.topHandler.requestShutdownChan:
-					shuttingDown = true
-					emptyEntryChan()
+					break listenLoop
 				}
-			}
-
-			if !shuttingDown {
-				timeoutChan := handler.App.Clock.After(handler.App.Env.LOG_STORE_INTERVAL)
-			collectBatchLoop:
-				for {
-					select {
-					case entry := <-handler.topHandler.entryChan:
-						entries = append(entries, entry)
-					case <-handler.topHandler.requestShutdownChan:
-						shuttingDown = true
-						emptyEntryChan()
-						break collectBatchLoop
-					case <-timeoutChan:
-						shouldReEnableSelfLogging = true
-						break collectBatchLoop
-					}
-					if len(entries) >= MaxSaveBatchSize {
-						break
-					}
+				if len(entries) >= MaxSaveBatchSize {
+					break collectBatchLoop
 				}
 			}
 
 			if len(entries) > 0 {
-				bulkWriteErr := handler.bulkWrite(entries)
+				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+				var bulkWriteErr error
+				func() {
+					defer cancel()
+					bulkWriteErr = handler.bulkWrite(entries, ctx)
+				}()
 				if bulkWriteErr != nil {
-					if handler.individualWriteFallback(entries, bulkWriteErr, &loggedBulkWarning) {
+					ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+					var selfLoggedNow bool
+					func() {
+						defer cancel()
+						selfLoggedNow = handler.individualWriteFallback(
+							entries, bulkWriteErr, &loggedBulkWarning, ctx,
+						)
+					}()
+					if selfLoggedNow {
 						shouldReEnableSelfLogging = false
-						selfLogged = true
 					}
 				}
 				if handler.maybeNotifyAdmin(entries, &loggedAdminNotificationError) {
 					shouldReEnableSelfLogging = false
-					selfLogged = true
 				}
+				entries = []*entry{}
 			}
 
 			if shouldReEnableSelfLogging {
 				loggedBulkWarning = false
 				loggedAdminNotificationError = false
 			}
-			if shuttingDown {
-				if selfLogged {
-					handler.topHandler.mu.RLock()
-					shutdownCtx := handler.topHandler.shutdownCtx
-					handler.topHandler.mu.RUnlock()
-
-					select {
-					case <-shutdownCtx.Done():
-						break listenLoop
-					default:
-					}
-					// TODO: remove?
-					time.Sleep(5 * time.Millisecond) // Give the channels a second so that all the entries that were added can be read
-				} else {
-					break listenLoop
-				}
-			}
 		}
 		close(handler.topHandler.requestShutdownChan)
+
+		handler.topHandler.mu.RLock()
+		shutdownCtx := handler.topHandler.shutdownCtx
+		handler.topHandler.mu.RUnlock()
+	shutdownLoop:
+		for {
+			selfLogged := false
+		drainLoop:
+			for {
+				select {
+				case entry := <-handler.topHandler.entryChan:
+					entries = append(entries, entry)
+				case <-shutdownCtx.Done():
+					break shutdownLoop
+				default:
+					break drainLoop
+				}
+			}
+			if len(entries) > 0 {
+				bulkWriteErr := handler.bulkWrite(entries, shutdownCtx)
+				if bulkWriteErr != nil {
+					if handler.individualWriteFallback(
+						entries, bulkWriteErr, &loggedBulkWarning, shutdownCtx,
+					) {
+						selfLogged = true
+					}
+				}
+				if handler.maybeNotifyAdmin(entries, &loggedAdminNotificationError) {
+					selfLogged = true
+				}
+				entries = []*entry{}
+			}
+
+			if !selfLogged {
+				break
+			}
+		}
+
+		handler.topHandler.mu.Lock()
 		handler.topHandler.cancelShutdownCtx()
+		handler.topHandler.mu.Unlock()
 	})
 }
-func (handler *Handler) bulkWrite(entries []*entry) error {
-	handler.topHandler.mu.RLock()
-	ctx := handler.topHandler.shutdownCtx
-	handler.topHandler.mu.RUnlock()
-	if ctx == nil {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-	}
+func (handler *Handler) bulkWrite(entries []*entry, ctx context.Context) error {
 	return dbcommon.WithWriteTx(
 		ctx, handler.App.Database,
 		func(tx *ent.Tx, ctx context.Context) error {
@@ -225,6 +230,7 @@ func (handler *Handler) individualWriteFallback(
 	entries []*entry,
 	bulkWriteErr error,
 	loggedBulkWarningPtr *bool,
+	ctx context.Context,
 ) bool {
 	selfLogged := false
 	allSucceeded := true
@@ -237,16 +243,10 @@ func (handler *Handler) individualWriteFallback(
 		} else {
 			timeout = 100 * time.Millisecond
 		}
-		baseCtx := context.Background()
-		handler.topHandler.mu.RLock()
-		if handler.topHandler.shutdownCtx != nil {
-			baseCtx = handler.topHandler.shutdownCtx
-		}
-		handler.topHandler.mu.RUnlock()
-		ctx, cancel := context.WithTimeout(baseCtx, timeout)
+		individualCtx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 		entryID, stdErr := dbcommon.WithReadWriteTx(
-			ctx, handler.App.Database,
+			individualCtx, handler.App.Database,
 			func(tx *ent.Tx, ctx context.Context) (uuid.UUID, error) {
 				ob, stdErr := tx.LogEntry.Create().
 					SetLoggedAt(entry.time).SetLoggedAtKnown(entry.timeKnown).
@@ -291,7 +291,7 @@ func (handler *Handler) individualWriteFallback(
 			continue
 		}
 		stdErr = dbcommon.WithWriteTx(
-			ctx, handler.App.Database,
+			individualCtx, handler.App.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
 				return tx.LogEntry.UpdateOneID(entryID).SetUserID(entry.userID).Exec(ctx)
 			},
@@ -525,10 +525,7 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 }
 
 func (handler *Handler) Shutdown() {
-	go handler.topHandler.listenOnce.Do(func() {
-		<-handler.topHandler.requestShutdownChan
-		handler.topHandler.cancelShutdownCtx()
-	})
+	go handler.Listen()
 	handler.topHandler.shutdownOnce.Do(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), ShutdownTimeout)
 		handler.topHandler.mu.Lock()
@@ -536,8 +533,21 @@ func (handler *Handler) Shutdown() {
 		handler.topHandler.cancelShutdownCtx = cancel
 		handler.topHandler.mu.Unlock()
 
-		handler.topHandler.requestShutdownChan <- struct{}{}
-		<-ctx.Done()
+		select {
+		case handler.topHandler.requestShutdownChan <- struct{}{}:
+			<-ctx.Done()
+		case <-ctx.Done():
+		}
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			pc, _, _, _ := runtime.Caller(0)
+			record := slog.NewRecord(
+				handler.App.Clock.Now(),
+				slog.LevelError,
+				"logger shutdown timed out",
+				pc,
+			)
+			handler.tintHandler.Handle(context.Background(), record)
+		}
 	})
 }
 
