@@ -11,7 +11,7 @@ import (
 
 type Core struct {
 	App       *common.App
-	AdminCode core.AdminCode
+	adminCode core.AdminCode
 	mu        sync.RWMutex
 }
 
@@ -25,15 +25,25 @@ func NewCore(app *common.App) *Core {
 func (service *Core) RotateAdminCode() {
 	service.mu.Lock()
 	defer service.mu.Unlock()
-	service.AdminCode = core.NewAdminCode()
-	service.AdminCode.Print()
+	service.adminCode = core.NewAdminCode()
 }
 func (service *Core) CheckAdminCode(givenCode string) bool {
 	service.mu.RLock()
 	defer service.mu.RUnlock()
 
-	return core.CheckAdminCode(givenCode, service.AdminCode, service.App.Logger)
+	return core.CheckAdminCode(givenCode, service.adminCode, service.App.Logger)
 }
+func (service *Core) CheckAdminCredentials(password string, totpCode string) bool {
+	return core.CheckAdminCredentials(
+		password,
+		totpCode,
+		service.App.Env.ADMIN_PASSWORD_HASH,
+		service.App.Env.ADMIN_PASSWORD_SALT,
+		service.App.Env.ADMIN_PASSWORD_HASH_SETTINGS,
+		service.App.Env.ADMIN_TOTP_SECRET,
+	)
+}
+
 func (service *Core) RandomAuthCode() []byte {
 	return core.RandomAuthCode()
 }

@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/base64"
 	"log"
 	"math"
 	"os"
@@ -82,6 +83,14 @@ func RequireBoolEnv(name string) bool {
 	log.Fatalf("couldn't parse environment variable \"%v\". \"%v\" is not true or false", name, rawValue)
 	return false
 }
+func RequireBase64Env(name string) []byte {
+	rawValue := RequireEnv(name)
+	decoded, stdErr := base64.StdEncoding.DecodeString(rawValue)
+	if stdErr != nil {
+		log.Fatalf("couldn't parse environment variable \"%v\" into base64: %v", name, stdErr)
+	}
+	return decoded
+}
 
 // Mainly used for the CLI commands eg. BENCHMARK_THREAD_COUNT
 func OptionalEnv(name string, defaultValue string) string {
@@ -107,6 +116,14 @@ func OptionalBoolEnv(name string, defaultValue bool) bool {
 	_, specified := os.LookupEnv(name)
 	if specified {
 		return RequireBoolEnv(name)
+	} else {
+		return defaultValue
+	}
+}
+func OptionalBase64Env(name string, defaultValue []byte) []byte {
+	_, specified := os.LookupEnv(name)
+	if specified {
+		return RequireBase64Env(name)
 	} else {
 		return defaultValue
 	}

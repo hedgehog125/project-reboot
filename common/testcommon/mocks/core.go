@@ -48,3 +48,6 @@ func (m *EmptyCoreService) GenerateSalt() []byte {
 func (m *EmptyCoreService) HashPassword(password string, salt []byte, settings *common.PasswordHashSettings) []byte {
 	return []byte{}
 }
+func (m *EmptyCoreService) CheckAdminCredentials(password string, totpCode string) bool {
+	return false
+}

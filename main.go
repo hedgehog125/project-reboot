@@ -51,6 +51,7 @@ func main() {
 	}
 	app.RateLimiter = services.NewRateLimiter(app)
 	app.Core = services.NewCore(app)
+	app.Setup = services.NewSetupService(app)
 	app.Database = services.NewDatabase(app)
 	app.KeyValue = services.NewKeyValue(app)
 	app.Database.Start()

@@ -56,6 +56,12 @@ type Env struct {
 	ENABLE_DEVELOP_MESSENGER bool
 	DISCORD_TOKEN            string
 	SENDGRID_TOKEN           string // TODO: implement
+
+	ADMIN_PASSWORD_HASH          []byte
+	ADMIN_PASSWORD_SALT          []byte
+	ADMIN_PASSWORD_HASH_SETTINGS *PasswordHashSettings
+	ADMIN_TOTP_SECRET            string
+	ENABLE_SETUP                 bool
 }
 type PasswordHashSettings struct {
 	Time   uint32
@@ -76,6 +82,7 @@ type App struct {
 	Messengers       MessengerService
 	Server           ServerService
 	Core             CoreService
+	Setup            SetupService
 	Jobs             JobService
 	Scheduler        SchedulerService
 }
@@ -211,7 +218,9 @@ type ServerService interface {
 type CoreService interface {
 	RotateAdminCode()
 	CheckAdminCode(givenCode string) bool
+	CheckAdminCredentials(password string, totpCode string) bool
 	RandomAuthCode() []byte
+
 	SendActiveSessionReminders(ctx context.Context) WrappedError
 	DeleteExpiredSessions(ctx context.Context) WrappedError
 	InvalidateUserSessions(userID int, ctx context.Context) WrappedError
@@ -275,4 +284,15 @@ type LimiterService interface {
 type LimiterSession interface {
 	AdjustTo(amount int) WrappedError
 	Cancel()
+}
+
+type SetupService interface {
+	IsSetupComplete(ctx context.Context) (bool, WrappedError)
+	GenerateAdminSetupConstants(password string) (*AdminAuthEnvVars, string, WrappedError)
+}
+
+type AdminAuthEnvVars struct {
+	ADMIN_PASSWORD_HASH string
+	ADMIN_PASSWORD_SALT string
+	ADMIN_TOTP_SECRET   string
 }

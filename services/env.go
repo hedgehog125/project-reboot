@@ -31,6 +31,16 @@ func LoadEnvironmentVariables() *common.Env {
 		JOB_POLL_INTERVAL:    common.RequireSecondsEnv("JOB_POLL_INTERVAL"),
 		MAX_TOTAL_JOB_WEIGHT: common.RequireIntEnv("MAX_TOTAL_JOB_WEIGHT"),
 
+		ADMIN_PASSWORD_HASH_SETTINGS: &common.PasswordHashSettings{
+			Time:    common.RequireUint32Env("ADMIN_PASSWORD_HASH_TIME"),
+			Memory:  common.RequireUint32Env("ADMIN_PASSWORD_HASH_MEMORY"),
+			Threads: common.RequireUint8Env("ADMIN_PASSWORD_HASH_THREADS"),
+		},
+		ENABLE_SETUP:        common.RequireBoolEnv("ENABLE_SETUP"),
+		ADMIN_PASSWORD_HASH: common.OptionalBase64Env("ADMIN_PASSWORD_HASH", []byte{}),
+		ADMIN_PASSWORD_SALT: common.OptionalBase64Env("ADMIN_PASSWORD_SALT", []byte{}),
+		ADMIN_TOTP_SECRET:   common.OptionalEnv("ADMIN_TOTP_SECRET", ""),
+
 		UNLOCK_TIME:                      common.RequireSecondsEnv("UNLOCK_TIME"),
 		AUTH_CODE_VALID_FOR:              common.RequireSecondsEnv("AUTH_CODE_VALID_FOR"),
 		USED_AUTH_CODE_VALID_FOR:         common.RequireSecondsEnv("USED_AUTH_CODE_VALID_FOR"),
@@ -57,6 +67,14 @@ func LoadEnvironmentVariables() *common.Env {
 	return env
 }
 func ValidateEnvironmentVariables(env *common.Env) {
+	if common.AllOrNone(
+		len(env.ADMIN_PASSWORD_HASH) == 0,
+		len(env.ADMIN_PASSWORD_SALT) == 0,
+		env.ADMIN_TOTP_SECRET == "",
+	) {
+		log.Fatal("ADMIN_PASSWORD_HASH and ADMIN_TOTP_SECRET must be all set or all unset")
+	}
+
 	if float64(env.AUTH_CODE_VALID_FOR)/float64(env.UNLOCK_TIME) < 1.1 {
 		log.Fatalf(
 			"AUTH_CODE_VALID_FOR must be at least slightly larger than UNLOCK_TIME because a download requires " +

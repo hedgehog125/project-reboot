@@ -3,9 +3,9 @@ package core
 import (
 	"crypto/subtle"
 	"encoding/base64"
-	"fmt"
 
 	"github.com/NicoClack/cryptic-stash/common"
+	"github.com/pquerna/otp/totp"
 )
 
 // Doubled because the bytes are represented as base64
@@ -18,9 +18,6 @@ func NewAdminCode() AdminCode {
 }
 func (adminCode AdminCode) String() string {
 	return base64.StdEncoding.EncodeToString(adminCode)
-}
-func (adminCode AdminCode) Print() {
-	fmt.Printf("\n==========\n\nadmin code:\n%v\n\n==========\n\n", adminCode.String())
 }
 
 func CheckAdminCode(givenCode string, expected AdminCode, logger common.Logger) bool {
@@ -37,4 +34,23 @@ func CheckAdminCode(givenCode string, expected AdminCode, logger common.Logger) 
 		return false
 	}
 	return subtle.ConstantTimeCompare(givenBytes, expected) == 1
+}
+
+func CheckAdminCredentials(
+	password string,
+	totpCode string,
+	expectedHash []byte,
+	salt []byte,
+	settings *common.PasswordHashSettings,
+	totpSecret string,
+) bool {
+	encryptionKey := HashPassword(password, salt, settings)
+	isHashValid := subtle.ConstantTimeCompare(encryptionKey, expectedHash)
+	isTotpValidBool := totp.Validate(totpCode, totpSecret)
+	isTotpValid := 0
+	if isTotpValidBool {
+		isTotpValid = 1
+	}
+
+	return isHashValid&isTotpValid == 1
 }

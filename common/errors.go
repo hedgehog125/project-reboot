@@ -18,6 +18,7 @@ import (
 const (
 	// General categories
 	ErrTypeDatabase = "database [general]"
+	ErrTypeTotp     = "totp [general]"
 	ErrTypeTimeout  = "timeout [general]"
 	ErrTypeNetwork  = "network [general]"
 	ErrTypeDisk     = "disk [general]"
@@ -31,6 +32,7 @@ const (
 
 	// Package categories
 	ErrTypeCommon          = "common [package]"
+	ErrTypeSetup           = "setup [package]"
 	ErrTypeCore            = "core [package]"
 	ErrTypeJobs            = "jobs [package]"
 	ErrTypeTwoFactorAction = "two factor action [package]"
