@@ -67,12 +67,12 @@ func LoadEnvironmentVariables() *common.Env {
 	return env
 }
 func ValidateEnvironmentVariables(env *common.Env) {
-	if common.AllOrNone(
+	if !common.AllOrNone(
 		len(env.ADMIN_PASSWORD_HASH) == 0,
 		len(env.ADMIN_PASSWORD_SALT) == 0,
 		env.ADMIN_TOTP_SECRET == "",
 	) {
-		log.Fatal("ADMIN_PASSWORD_HASH and ADMIN_TOTP_SECRET must be all set or all unset")
+		log.Fatal("ADMIN_PASSWORD_HASH, ADMIN_PASSWORD_SALT and ADMIN_TOTP_SECRET must be all set or all unset")
 	}
 
 	if float64(env.AUTH_CODE_VALID_FOR)/float64(env.UNLOCK_TIME) < 1.1 {
@@ -80,5 +80,9 @@ func ValidateEnvironmentVariables(env *common.Env) {
 			"AUTH_CODE_VALID_FOR must be at least slightly larger than UNLOCK_TIME because a download requires " +
 				"the auth code to be valid and the unlock time needs to have passed",
 		)
+	}
+
+	if env.ENABLE_SETUP {
+		slog.Warn("setup mode is enabled. to disable, set ENABLE_SETUP to false.")
 	}
 }

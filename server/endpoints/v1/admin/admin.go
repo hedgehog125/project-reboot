@@ -6,5 +6,6 @@ import (
 )
 
 func ConfigureEndpoints(group *servercommon.Group) {
+	// /login is registered in v1.go since it's unauthenticated
 	users.ConfigureEndpoints(group.Group("/users"))
 }

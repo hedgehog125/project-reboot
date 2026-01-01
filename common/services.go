@@ -219,6 +219,7 @@ type CoreService interface {
 	RotateAdminCode()
 	CheckAdminCode(givenCode string) bool
 	CheckAdminCredentials(password string, totpCode string) bool
+	GetAdminCode(password string, totpCode string) (string, bool)
 	RandomAuthCode() []byte
 
 	SendActiveSessionReminders(ctx context.Context) WrappedError
@@ -289,10 +290,12 @@ type LimiterSession interface {
 type SetupService interface {
 	IsSetupComplete(ctx context.Context) (bool, WrappedError)
 	GenerateAdminSetupConstants(password string) (*AdminAuthEnvVars, string, WrappedError)
+	// Only used for setup, otherwise use app.Core.CheckAdminCredentials instead
+	CheckTotpCode(totpCode string, totpSecret string) bool
 }
 
 type AdminAuthEnvVars struct {
-	ADMIN_PASSWORD_HASH string
-	ADMIN_PASSWORD_SALT string
-	ADMIN_TOTP_SECRET   string
+	ADMIN_PASSWORD_HASH string `json:"ADMIN_PASSWORD_HASH"`
+	ADMIN_PASSWORD_SALT string `json:"ADMIN_PASSWORD_SALT"`
+	ADMIN_TOTP_SECRET   string `json:"ADMIN_TOTP_SECRET"`
 }

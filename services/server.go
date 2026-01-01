@@ -34,21 +34,10 @@ func NewServer(app *common.App) *Server {
 	router.Use(middleware.NewLogger(app.Logger))
 	router.Use(gin.Logger()) // TODO: make the custom logger log completed requests so this isn't needed
 	// TODO: ^ this is logging "Error #01: ..."
-	router.NoRoute(func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{
-			"errors": []string{},
-		})
-	})
 	router.Use(middleware.NewTimeout())
 
 	router.LoadHTMLFS(http.FS(server.TemplateFiles.FS), fmt.Sprintf("%v/*.html", server.TemplateFiles.Path))
 	router.Use(middleware.NewRateLimiting("api", app.RateLimiter))
-
-	embeddedFolder, stdErr := static.EmbedFolder(server.PublicFiles.FS, server.PublicFiles.Path)
-	if stdErr != nil {
-		log.Fatalf("failed to load embedded public files:\n%v", stdErr.Error())
-	}
-	router.StaticFS("/", embeddedFolder)
 
 	router.Use(middleware.NewError())
 
@@ -61,6 +50,18 @@ func NewServer(app *common.App) *Server {
 	endpoints.ConfigureEndpoints(&servercommon.Group{
 		RouterGroup: router.Group(""),
 		App:         serverApp,
+	})
+
+	embeddedFolder, stdErr := static.EmbedFolder(server.PublicFiles.FS, server.PublicFiles.Path)
+	if stdErr != nil {
+		log.Fatalf("failed to load embedded public files:\n%v", stdErr.Error())
+	}
+	// TODO: static.Serve doesn't have the fix
+	router.Use(static.Serve("/", embeddedFolder))
+	router.NoRoute(func(ginCtx *gin.Context) {
+		ginCtx.JSON(http.StatusNotFound, gin.H{
+			"errors": []string{},
+		})
 	})
 
 	httpServer := &http.Server{

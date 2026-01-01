@@ -43,3 +43,7 @@ func GenerateAdminSetupConstants(
 		key.URL(),
 		nil
 }
+
+func CheckTotpCode(totpCode string, totpSecret string) bool {
+	return totp.Validate(totpCode, totpSecret)
+}

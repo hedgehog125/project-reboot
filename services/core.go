@@ -23,6 +23,7 @@ func NewCore(app *common.App) *Core {
 }
 
 func (service *Core) RotateAdminCode() {
+	// TODO: rotate based on logins rather than periodically
 	service.mu.Lock()
 	defer service.mu.Unlock()
 	service.adminCode = core.NewAdminCode()
@@ -42,6 +43,15 @@ func (service *Core) CheckAdminCredentials(password string, totpCode string) boo
 		service.App.Env.ADMIN_PASSWORD_HASH_SETTINGS,
 		service.App.Env.ADMIN_TOTP_SECRET,
 	)
+}
+func (service *Core) GetAdminCode(password string, totpCode string) (string, bool) {
+	if !service.CheckAdminCredentials(password, totpCode) {
+		return "", false
+	}
+
+	service.mu.RLock()
+	defer service.mu.RUnlock()
+	return service.adminCode.String(), true
 }
 
 func (service *Core) RandomAuthCode() []byte {

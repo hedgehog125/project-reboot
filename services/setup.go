@@ -31,3 +31,7 @@ func (service *Setup) GenerateAdminSetupConstants(
 		service.App.Core,
 	)
 }
+
+func (service *Setup) CheckTotpCode(totpCode string, totpSecret string) bool {
+	return setup.CheckTotpCode(totpCode, totpSecret)
+}

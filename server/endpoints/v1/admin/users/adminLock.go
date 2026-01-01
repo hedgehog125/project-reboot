@@ -19,7 +19,6 @@ type AdminLockResponse struct {
 	Errors []servercommon.ErrorDetail `binding:"required" json:"errors"`
 }
 
-// Admin route
 func AdminLock(app *servercommon.ServerApp) gin.HandlerFunc {
 	return servercommon.NewHandler(func(ginCtx *gin.Context) error {
 		body := AdminLockPayload{}
