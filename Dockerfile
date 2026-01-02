@@ -19,7 +19,7 @@ COPY backend/ ./
 # Copy frontend build output to backend/server/public
 COPY --from=frontend-builder /app/frontend/build ./server/public
 
-RUN CGO_ENABLED=0 GOOS=linux go build main.go -o main
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
 # Stage 3: Final lightweight image
 FROM alpine:latest
