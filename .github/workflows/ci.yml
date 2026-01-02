@@ -51,6 +51,10 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: ./frontend
+
       - name: Run unit tests
         working-directory: ./frontend
         run: npm run test:unit -- --run
