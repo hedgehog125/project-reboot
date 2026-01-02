@@ -19,26 +19,73 @@ import (
 func TestWithReadTx_AllowsConcurrentReads(t *testing.T) {
 	t.Parallel()
 
-	panic("not implemented")
+	const READ_COUNT = 100
+	db := testcommon.CreateDB()
+	t.Cleanup(db.Shutdown)
+
+	jobOb, stdErr := db.Client().Job.Create().
+		SetType("test_job").
+		SetCreatedAt(time.Now()).
+		SetDueAt(time.Now()).
+		SetOriginallyDueAt(time.Now()).
+		SetVersion(1).
+		SetPriority(1).
+		SetWeight(1).
+		SetBody(json.RawMessage("{}")).
+		Save(t.Context())
+	require.NoError(t, stdErr)
+	jobID := jobOb.ID
+
+	var wg sync.WaitGroup
+	for range READ_COUNT {
+		wg.Go(func() {
+			_, stdErr := dbcommon.WithReadTx(
+				t.Context(), db,
+				func(tx *ent.Tx, ctx context.Context) (*ent.Job, error) {
+					return tx.Job.Get(ctx, jobID)
+				},
+			)
+			require.NoError(t, stdErr)
+		})
+	}
+
+	testcommon.CallWithTimeout(t, wg.Wait, 250*time.Millisecond)
 }
 func TestWithWriteTx_NestedTransactions_ReturnsError(t *testing.T) {
 	t.Parallel()
+	db := testcommon.CreateDB()
+	t.Cleanup(db.Shutdown)
 
-	panic("not implemented")
+	stdErr := dbcommon.WithWriteTx(
+		t.Context(), db,
+		func(tx *ent.Tx, ctx context.Context) error {
+			return dbcommon.WithWriteTx(
+				ctx, db,
+				func(tx *ent.Tx, ctx context.Context) error {
+					return nil
+				},
+			)
+		},
+	)
+
+	require.Error(t, stdErr)
+	require.ErrorIs(t, stdErr, dbcommon.ErrUnexpectedTransaction)
 }
+
+// SQLite isn't suitable if the program has many more concurrent writes than this
 func TestWithWriteTx_Supports50ConcurrentWrites(t *testing.T) {
-	// SQLite isn't suitable if the program has many more concurrent writes than this
 	t.Parallel()
+
 	JOB_COUNT := 50
 	db := testcommon.CreateDB() // TODO: use a disk database to more accurately measure performance
-	defer db.Shutdown()
+	t.Cleanup(db.Shutdown)
 
 	var wg sync.WaitGroup
 	createJob := func() {
 		stdErr := dbcommon.WithWriteTx(
 			t.Context(), db,
 			func(tx *ent.Tx, ctx context.Context) error {
-				_, stdErr := tx.Job.Create().
+				return tx.Job.Create().
 					SetType("test_job").
 					SetCreatedAt(time.Now()).
 					SetDueAt(time.Now()).
@@ -47,11 +94,7 @@ func TestWithWriteTx_Supports50ConcurrentWrites(t *testing.T) {
 					SetPriority(1).
 					SetWeight(1).
 					SetBody(json.RawMessage("{}")).
-					Save(ctx)
-				if stdErr != nil {
-					return common.ErrWrapperDatabase.Wrap(stdErr)
-				}
-				return nil
+					Exec(ctx)
 			},
 		)
 		require.NoError(t, stdErr)
