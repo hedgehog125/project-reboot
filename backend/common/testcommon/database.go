@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"sync"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/NicoClack/cryptic-stash/backend/common"
+	"github.com/NicoClack/cryptic-stash/backend/common/globals"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
 	_ "github.com/NicoClack/cryptic-stash/backend/entps"
 )
@@ -21,8 +21,6 @@ type TestDatabase struct {
 
 var (
 	dbCounter = int64(0)
-	// TODO: this seems to be necessary because of some race conditions in Ent/Atlas
-	createMu = sync.Mutex{}
 )
 
 func CreateDB() *TestDatabase {
@@ -32,11 +30,11 @@ func CreateDB() *TestDatabase {
 	// TODO: what does shared cache do any why is it sometimes necessary
 	// in order to stop the database being deleted mid test?
 	// ^ this seems to enable WAL mode? Which isn't what I want
-	createMu.Lock()
-	defer createMu.Unlock()
+	globals.MigrateMu.Lock()
+	defer globals.MigrateMu.Unlock()
 	dbCounter++
 	db, stdErr := sql.Open("sqlite3", fmt.Sprintf(
-		"file:temp%v?mode=memory&cache=shared&_fk=1&_busy_timeout=250&_foreign_keys=on",
+		"file:temp%v?mode=memory&cache=shared",
 		dbCounter,
 	))
 	if stdErr != nil {

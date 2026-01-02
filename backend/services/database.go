@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/NicoClack/cryptic-stash/backend/common"
+	"github.com/NicoClack/cryptic-stash/backend/common/globals"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
 	_ "github.com/NicoClack/cryptic-stash/backend/entps"
 )
@@ -32,15 +32,18 @@ type Database struct {
 
 func (service *Database) Start() {
 	service.startOnce.Do(func() {
+		// When the program normally runs, it shouldn't be possible for there to be parallel calls of this.
+		// However, the tests for this file can run in parallel.
+		// We could disable that, but there could still be a race condition with testcommon.CreateDB(), so they share a mutex
+		globals.MigrateMu.Lock()
+		defer globals.MigrateMu.Unlock()
+
 		stdErr := os.MkdirAll(service.app.Env.MOUNT_PATH, 0700)
 		if stdErr != nil {
 			log.Fatalf("couldn't create storage directory. error:\n%v", stdErr)
 		}
 
-		db, stdErr := sql.Open("sqlite3", fmt.Sprintf(
-			"%v?_fk=1&_foreign_keys=on",
-			filepath.Join(service.app.Env.MOUNT_PATH, "database.sqlite3"),
-		))
+		db, stdErr := sql.Open("sqlite3", filepath.Join(service.app.Env.MOUNT_PATH, "database.sqlite3"))
 		if stdErr != nil {
 			log.Fatalf("couldn't start database. error:\n%v", stdErr)
 		}
