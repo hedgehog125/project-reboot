@@ -1,6 +1,6 @@
 # TODO
 
--   Rework admin code system to be more secure
+-   Improve frontend
 -   Can cancelling requests make views non-atomic if a view uses multiple transactions? Are there any security risks with this?
 -   Move user contacts to separate model so SMS and Signal can have different phone numbers for the same user for example. Each messenger can be explicitly enabled and has its own options. e.g only send login alerts via SMS, don't send any other types of messages to it
 -   Standardise returning errors and using gin.H vs the endpoint specific download struct. That struct applies defaults which the other 2 approaches don't, so it could leak information

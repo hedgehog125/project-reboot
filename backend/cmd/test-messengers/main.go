@@ -1,0 +1,58 @@
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NicoClack/cryptic-stash/backend/common"
+	"github.com/NicoClack/cryptic-stash/backend/common/dbcommon"
+	"github.com/NicoClack/cryptic-stash/backend/ent"
+	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/NicoClack/cryptic-stash/backend/services"
+)
+
+func main() {
+	username := flag.String("username", "", "the name of the user to send messages to")
+	flag.Parse()
+	if *username == "" {
+		log.Fatalf("missing required argument \"username\"")
+	}
+
+	app := &common.App{
+		Env: services.LoadEnvironmentVariables(),
+	}
+	app.Database = services.NewDatabase(app)
+	app.Database.Start()
+	defer app.Database.Shutdown()
+
+	{
+		messengerService := services.NewMessengers(app)
+		app.Messengers = messengerService
+		app.Jobs = services.NewJobs(app, messengerService.RegisterJobs)
+		defer app.Jobs.Shutdown()
+	}
+
+	userOb, stdErr := dbcommon.WithReadTx(
+		context.Background(), app.Database,
+		func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
+			return tx.User.Query().
+				Where(user.Username(*username)).
+				Only(ctx)
+		},
+	)
+	if stdErr != nil {
+		panic(fmt.Sprintf("couldn't read user. error:\n%v", stdErr.Error()))
+	}
+	_, _, wrappedErr := app.Messengers.SendUsingAll(&common.Message{
+		Type: common.MessageTest,
+		User: userOb,
+	}, context.Background())
+	if wrappedErr != nil {
+		panic(fmt.Sprintf("couldn't send queue message. error:\n%v", wrappedErr.Error()))
+	}
+	fmt.Fprintln(os.Stdout, "waiting for message jobs to run...")
+	app.Jobs.WaitForJobs()
+}
