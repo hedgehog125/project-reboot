@@ -50,7 +50,7 @@ func NewScheduler(app *common.App) *Scheduler {
 					}
 					wrappedErr = app.TwoFactorActions.DeleteExpiredActions(ctx)
 					if wrappedErr != nil {
-						return nil
+						return wrappedErr
 					}
 
 					return nil
@@ -81,5 +81,5 @@ func NewScheduler(app *common.App) *Scheduler {
 	}
 }
 func (scheduler *Scheduler) Start() {
-	go scheduler.Engine.Run()
+	go scheduler.Run()
 }

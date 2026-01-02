@@ -2,7 +2,6 @@ package testcommon
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -12,13 +11,15 @@ import (
 )
 
 func AssertJSONEqual(t *testing.T, expected any, actual any, messagePrefix string) {
+	t.Helper()
+
 	messagePrefix += ": testcommon.AssertJSONEqual"
 	expectedJSON, stdErr := json.Marshal(expected)
-	require.NoError(t, stdErr, fmt.Sprintf("%v: marshalling expectedJSON shouldn't error", messagePrefix))
+	require.NoError(t, stdErr, "%v: marshalling expectedJSON shouldn't error", messagePrefix)
 	actualJSON, stdErr := json.Marshal(actual)
-	require.NoError(t, stdErr, fmt.Sprintf("%v: marshalling actualJSON shouldn't error", messagePrefix))
+	require.NoError(t, stdErr, "%v: marshalling actualJSON shouldn't error", messagePrefix)
 
-	require.Equal(t, string(expectedJSON), string(actualJSON), fmt.Sprintf("%v: JSON should match", messagePrefix))
+	require.JSONEq(t, string(expectedJSON), string(actualJSON), "%v: JSON should match", messagePrefix)
 }
 
 func AssertJSONResponse(
@@ -26,6 +27,8 @@ func AssertJSONResponse(
 	expectedStatus int,
 	expectedPtr any,
 ) {
+	t.Helper()
+
 	if respRecorder.Code != expectedStatus {
 		t.Fatalf(
 			"expected HTTP status %v but got %v. response body:\n%v",
@@ -36,10 +39,12 @@ func AssertJSONResponse(
 	expectedJSON, stdErr := json.Marshal(expectedPtr)
 	require.NoError(t, stdErr)
 
-	require.Equal(t, string(expectedJSON), respRecorder.Body.String())
+	require.JSONEq(t, string(expectedJSON), respRecorder.Body.String())
 }
 
 func CallWithTimeout(t *testing.T, callback func(), timeout time.Duration) {
+	t.Helper()
+
 	select {
 	case <-common.NewCallbackChannel(callback):
 	case <-time.After(timeout):
@@ -47,6 +52,8 @@ func CallWithTimeout(t *testing.T, callback func(), timeout time.Duration) {
 	}
 }
 func AssertNoOp(t *testing.T, callback func()) {
+	t.Helper()
+
 	select {
 	case <-common.NewCallbackChannel(callback):
 	case <-time.After(5 * time.Millisecond):

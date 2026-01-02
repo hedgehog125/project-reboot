@@ -290,12 +290,10 @@ func (engine *Engine) handleCompletedJob(completedJob completedJob, currentWeigh
 		)
 		if stdErr != nil {
 			logger.Error("failed to mark job as failed / reset to pending", "error", stdErr)
-		} else {
-			if sendJobSignal {
-				select {
-				case engine.newJobChan <- struct{}{}:
-				default:
-				}
+		} else if sendJobSignal {
+			select {
+			case engine.newJobChan <- struct{}{}:
+			default:
 			}
 		}
 	}

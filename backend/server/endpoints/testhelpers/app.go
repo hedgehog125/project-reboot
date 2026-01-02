@@ -25,6 +25,8 @@ type AppOptions struct {
 }
 
 func NewApp(t *testing.T, options *AppOptions) *App {
+	t.Helper()
+
 	if options == nil {
 		options = &AppOptions{}
 	}

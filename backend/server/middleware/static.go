@@ -24,7 +24,7 @@ func NewStaticFS(embeddedFS embed.FS, prefix string) gin.HandlerFunc {
 		if path.Ext(ginCtx.Request.URL.Path) == "" {
 			file, stdErr := subFS.Open(path.Clean(ginCtx.Request.URL.Path))
 			if stdErr == nil {
-				file.Close()
+				_ = file.Close()
 			} else {
 				ginCtx.Request.URL.Path = "/"
 			}

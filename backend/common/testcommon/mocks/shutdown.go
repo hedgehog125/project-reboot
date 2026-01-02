@@ -26,12 +26,16 @@ func (service *ShutdownService) Shutdown(reason string) {
 	service.reason = reason
 }
 func (service *ShutdownService) AssertCalled(t *testing.T, expectedReason string) {
+	t.Helper()
+
 	service.mu.Lock()
 	defer service.mu.Unlock()
 	require.True(t, service.called)
 	require.Equal(t, expectedReason, service.reason)
 }
 func (service *ShutdownService) AssertNotCalled(t *testing.T) {
+	t.Helper()
+
 	service.mu.Lock()
 	defer service.mu.Unlock()
 	require.False(t, service.called)

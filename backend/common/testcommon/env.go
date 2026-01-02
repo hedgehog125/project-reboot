@@ -16,6 +16,17 @@ func DefaultEnv() *common.Env {
 		CLEAN_UP_INTERVAL:             time.Hour,
 		FULL_GC_INTERVAL:              0,
 
+		ADMIN_PASSWORD_HASH_SETTINGS: &common.PasswordHashSettings{
+			Time:    1,
+			Memory:  1024,
+			Threads: 1,
+		},
+		ENABLE_SETUP:                 common.RequireBoolEnv("ENABLE_SETUP"),
+		ADMIN_CODE_ROTATION_INTERVAL: common.RequireSecondsEnv("ADMIN_CODE_ROTATION_INTERVAL"),
+		ADMIN_PASSWORD_HASH:          common.OptionalBase64Env("ADMIN_PASSWORD_HASH", []byte{}),
+		ADMIN_PASSWORD_SALT:          common.OptionalBase64Env("ADMIN_PASSWORD_SALT", []byte{}),
+		ADMIN_TOTP_SECRET:            common.OptionalEnv("ADMIN_TOTP_SECRET", ""),
+
 		JOB_POLL_INTERVAL:    time.Hour * 999,
 		MAX_TOTAL_JOB_WEIGHT: 100,
 

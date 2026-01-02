@@ -14,7 +14,7 @@ import (
 )
 
 type Discord1Body struct {
-	UserID           string `json:"userID"`
+	UserID           string `json:"userId"`
 	FormattedMessage string `json:"formattedMessage"`
 }
 

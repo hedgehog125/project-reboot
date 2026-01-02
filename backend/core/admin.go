@@ -13,6 +13,7 @@ import (
 // Doubled because the bytes are represented as base64
 const AdminCodeByteLength = 128
 
+// nolint: recvcheck
 type AdminCode struct {
 	Current       []byte
 	LastRotatedAt time.Time

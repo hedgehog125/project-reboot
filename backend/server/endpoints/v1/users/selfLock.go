@@ -24,7 +24,7 @@ type SelfLockPayload struct {
 }
 type SelfLockResponse struct {
 	Errors            []servercommon.ErrorDetail `binding:"required" json:"errors"`
-	TwoFactorActionID string                     `                   json:"twoFactorActionID"`
+	TwoFactorActionID string                     `                   json:"twoFactorActionId"`
 }
 
 func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {

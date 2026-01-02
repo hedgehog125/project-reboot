@@ -32,7 +32,7 @@ func (service *KeyValue) Init() {
 		context.TODO(), service.App.Database,
 		func(tx *ent.Tx, ctx context.Context) error {
 			// TODO: why no transaction?
-			return service.Registry.InitAll(ctx)
+			return service.InitAll(ctx)
 		},
 	)
 	if stdErr != nil {

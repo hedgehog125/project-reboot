@@ -83,6 +83,7 @@ var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) WrappedError {
 var ErrWrapperAPI = NewErrorWrapper(ErrTypeAPI)
 
 var ErrNoTxInContext = NewErrorWithCategories("no db transaction found in context")
+var ErrNotImplemented = NewErrorWithCategories("not implemented")
 
 // Note: this constant error will be wrapped in a common.Error with more details
 
@@ -122,7 +123,7 @@ type Error struct {
 type DebugValue struct {
 	Name    string `json:"name"`
 	Message string `json:"message"`
-	Value   any
+	Value   any    `json:"value"`
 }
 type WrappedError interface {
 	error
@@ -163,8 +164,6 @@ type WrappedError interface {
 }
 
 func (commErr *Error) Error() string {
-	message := ""
-
 	reversedCategories := slices.Clone(commErr.categories)
 	slices.Reverse(reversedCategories) // Highest to lowest level
 	if commErr.errDuplicatesCategory {
@@ -172,11 +171,14 @@ func (commErr *Error) Error() string {
 		reversedCategories = DeleteSliceIndex(reversedCategories, -1)
 	}
 
+	var builder strings.Builder
 	for _, category := range reversedCategories {
-		message += fmt.Sprintf("%v error: ", category)
+		builder.WriteString(category)
+		builder.WriteString(" error: ")
 	}
+	builder.WriteString(commErr.err.Error())
 
-	return message + commErr.err.Error()
+	return builder.String()
 }
 
 // Use when you need to cast to an error interface and the *Error might be nil
@@ -446,6 +448,7 @@ func WrapErrorWithCategories(stdErr error, categories ...string) WrappedError {
 	if stdErr == nil {
 		return nil
 	}
+	//nolint: errorlint // we don't want to unwrap the error and lose details, so instead we'll double wrap it
 	wrappedErr, ok := stdErr.(WrappedError)
 	if ok {
 		wrappedErr = wrappedErr.CloneAsWrappedError()
@@ -530,6 +533,8 @@ func AutoWrapError(err error) WrappedError {
 type ErrorWrapper interface {
 	Wrap(err error) WrappedError
 }
+
+// nolint: recvcheck
 type ConstantErrorWrapper struct {
 	Categories []string
 	Child      ErrorWrapper

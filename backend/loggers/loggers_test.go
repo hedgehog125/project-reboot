@@ -51,6 +51,8 @@ type ExpectedEntry struct {
 }
 
 func (service *Logger) AssertWritten(t *testing.T, expectedEntries []ExpectedEntry) {
+	t.Helper()
+
 	client := service.Handler.App.Database.Client()
 	entries := client.LogEntry.Query().Order(ent.Asc(logentry.FieldLoggedAt)).AllX(t.Context())
 	require.Len(t, entries, len(expectedEntries))
@@ -58,16 +60,16 @@ func (service *Logger) AssertWritten(t *testing.T, expectedEntries []ExpectedEnt
 		expected := expectedEntries[i]
 		prefix := fmt.Sprintf("Logger.AssertWritten: entry %v:", i)
 		require.Equal(t, expected.Message, entry.Message,
-			fmt.Sprintf("%v \"Message\" properties should match", prefix),
+			"%v \"Message\" properties should match", prefix,
 		)
 		require.Equal(t, expected.PublicMessage, entry.PublicMessage,
-			fmt.Sprintf("%v \"PublicMessage\" properties should match", prefix),
+			"%v \"PublicMessage\" properties should match", prefix,
 		)
 		require.Equal(t, expected.UserID, entry.UserID,
-			fmt.Sprintf("%v \"UserID\" properties should match", prefix),
+			"%v \"UserID\" properties should match", prefix,
 		)
 		require.Equal(t, expected.Level, entry.Level,
-			fmt.Sprintf("%v \"Level\" properties should match", prefix),
+			"%v \"Level\" properties should match", prefix,
 		)
 
 		if expected.Attributes == nil {
@@ -82,6 +84,8 @@ func (service *Logger) AssertWritten(t *testing.T, expectedEntries []ExpectedEnt
 	}
 }
 func (service *Logger) DeleteWrittenLogs(t *testing.T) {
+	t.Helper()
+
 	client := service.Handler.App.Database.Client()
 	_, stdErr := client.LogEntry.Delete().Exec(t.Context())
 	require.NoError(t, stdErr)

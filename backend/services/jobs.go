@@ -25,10 +25,10 @@ func NewJobs(app *common.App, registerFuncs ...func(group *jobs.RegistryGroup)) 
 }
 
 func (service *Jobs) Start() {
-	go service.Engine.Listen()
+	go service.Listen()
 }
 
 // TODO: is this the best approach?
 func (service *Jobs) Encode(versionedType string, body any) (json.RawMessage, common.WrappedError) {
-	return service.Engine.Registry.Encode(versionedType, body)
+	return service.Registry.Encode(versionedType, body)
 }

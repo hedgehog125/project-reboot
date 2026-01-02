@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -23,10 +24,13 @@ func WithRetries(
 	getPreviousErrorsDebugValue := func() DebugValue {
 		message := "no previous errors"
 		if len(errs) > 0 {
-			message = "from oldest to newest:"
+			var builder strings.Builder
+			builder.WriteString("from oldest to newest:")
 			for _, prevErr := range errs {
-				message += "\n" + prevErr.Error()
+				builder.WriteString("\n")
+				builder.WriteString(prevErr.Error())
 			}
+			message = builder.String()
 		}
 		return DebugValue{
 			Name:    "previous retry errors (WithRetries)",

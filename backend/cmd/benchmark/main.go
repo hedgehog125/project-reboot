@@ -96,10 +96,11 @@ func main() {
 	var successfulGuess guess
 MainLoop:
 	for {
-		asString := ""
+		var builder strings.Builder
 		for _, charID := range currentPassword {
-			asString += string(alphabet[charID])
+			builder.WriteRune(alphabet[charID])
 		}
+		asString := builder.String()
 
 		select {
 		case nextPasswordChan <- asString:

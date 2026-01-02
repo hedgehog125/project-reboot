@@ -33,6 +33,7 @@ const (
 
 type disableErrorLoggingKey = struct{} // Used to prevent infinite loops
 
+// nolint: recvcheck
 type Handler struct {
 	App              *common.App
 	Level            slog.Level
@@ -205,6 +206,7 @@ func (handler *Handler) Listen() {
 		handler.topHandler.mu.Unlock()
 	})
 }
+
 func (handler *Handler) bulkWrite(entries []*entry, ctx context.Context) error {
 	return dbcommon.WithWriteTx(
 		ctx, handler.App.Database,
@@ -226,6 +228,7 @@ func (handler *Handler) bulkWrite(entries []*entry, ctx context.Context) error {
 		},
 	)
 }
+
 func (handler *Handler) individualWriteFallback(
 	entries []*entry,
 	bulkWriteErr error,
@@ -236,11 +239,12 @@ func (handler *Handler) individualWriteFallback(
 	allSucceeded := true
 	for _, entry := range entries {
 		var timeout time.Duration
-		if entry.level >= int(slog.LevelError) {
+		switch {
+		case entry.level >= int(slog.LevelError):
 			timeout = time.Second
-		} else if entry.level >= int(slog.LevelWarn) {
+		case entry.level >= int(slog.LevelWarn):
 			timeout = 500 * time.Millisecond
-		} else {
+		default:
 			timeout = 100 * time.Millisecond
 		}
 		individualCtx, cancel := context.WithTimeout(ctx, timeout)
@@ -278,7 +282,8 @@ func (handler *Handler) individualWriteFallback(
 				)
 				record.AddAttrs(slog.Any("log", entry))
 				record.AddAttrs(slog.Any("error", stdErr))
-				handler.Handle(
+				//nolint: contextcheck // logging is a different context to the code that created the original log
+				_ = handler.Handle(
 					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
 					record,
 				)
@@ -308,7 +313,8 @@ func (handler *Handler) individualWriteFallback(
 				)
 				record.AddAttrs(slog.Any("log", entry))
 				record.AddAttrs(slog.Any("error", stdErr))
-				handler.Handle(
+				//nolint: contextcheck // logging is a different context to the code that created the original log
+				_ = handler.Handle(
 					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
 					record,
 				)
@@ -323,7 +329,8 @@ func (handler *Handler) individualWriteFallback(
 				)
 				record.AddAttrs(slog.Any("log", entry))
 				record.AddAttrs(slog.Any("error", stdErr))
-				handler.Handle(
+				//nolint: contextcheck // logging is a different context to the code that created the original log
+				_ = handler.Handle(
 					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
 					record,
 				)
@@ -343,7 +350,8 @@ func (handler *Handler) individualWriteFallback(
 			pc,
 		)
 		record.AddAttrs(slog.Any("error", bulkWriteErr))
-		handler.Handle(
+		//nolint: contextcheck // logging is a different context to the code that created the original log
+		_ = handler.Handle(
 			context.Background(),
 			record,
 		)
@@ -352,6 +360,7 @@ func (handler *Handler) individualWriteFallback(
 	}
 	return selfLogged
 }
+
 func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificationErrorPtr *bool) bool {
 	if *loggedAdminNotificationErrorPtr {
 		return false
@@ -408,7 +417,8 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 					pc,
 				)
 				record.AddAttrs(slog.Any("error", stdErr))
-				handler.Handle(
+
+				_ = handler.Handle(
 					context.WithValue(context.Background(), common.DisableAdminNotificationKey{}, true),
 					record,
 				)
@@ -438,7 +448,8 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 				pc,
 			)
 			record.AddAttrs(slog.Any("error", wrappedErr))
-			handler.Handle(
+
+			_ = handler.Handle(
 				context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
 				record,
 			)
@@ -485,7 +496,8 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 				pc,
 			)
 			record.AddAttrs(slog.Any("error", stdErr))
-			handler.Handle(
+
+			_ = handler.Handle(
 				context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
 				record,
 			)
@@ -514,7 +526,8 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 				message,
 				pc,
 			)
-			handler.Handle(
+
+			_ = handler.Handle(
 				context.WithValue(context.Background(), common.AdminNotificationFallbackKey{}, true),
 				record,
 			)
@@ -546,7 +559,7 @@ func (handler *Handler) Shutdown() {
 				"logger shutdown timed out",
 				pc,
 			)
-			handler.tintHandler.Handle(context.Background(), record)
+			_ = handler.tintHandler.Handle(ctx, record)
 		}
 	})
 }
@@ -583,6 +596,7 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 		return true
 	})
 	handler.mu.RLock()
+	//nolint: contextcheck // loggers should ignore deadlines and cancellations from the context
 	resolvedAttrs := handler.resolveNestedAttrs(attrs, !disableErrLogging, &entry.publicMessage, &entry.userID)
 	handler.mu.RUnlock()
 	entry.attributes = resolvedAttrs
@@ -598,7 +612,8 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 			pc,
 		)
 		record.AddAttrs(slog.Any("error", stdErr))
-		handler.Handle(
+		//nolint: contextcheck // logging is a different context to the code that created the original log
+		_ = handler.Handle(
 			context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
 			record,
 		)
@@ -640,6 +655,7 @@ func (handler Handler) resolveNestedAttrs(
 }
 
 // Note: handler.baseGroups is handled by appendNestedAttrs instead
+
 func (handler Handler) appendAttr(
 	attr slog.Attr, outputAttrs map[string]any,
 	isTopLevel bool, logErrors bool,
@@ -680,21 +696,20 @@ func (handler Handler) appendAttr(
 			intValue, ok := attr.Value.Any().(int64)
 			if ok {
 				*userIDPtr = int(intValue)
-			} else {
-				if logErrors {
-					pc, _, _, _ := runtime.Caller(0)
-					record := slog.NewRecord(
-						handler.App.Clock.Now(),
-						slog.LevelWarn,
-						"userID property in log statement was not an int so has been ignored",
-						pc,
-					)
-					record.AddAttrs(slog.String("type", reflect.TypeOf(attr.Value.Any()).String()))
-					handler.Handle(
-						context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
-						record,
-					)
-				}
+			} else if logErrors {
+				pc, _, _, _ := runtime.Caller(0)
+				record := slog.NewRecord(
+					handler.App.Clock.Now(),
+					slog.LevelWarn,
+					"userID property in log statement was not an int so has been ignored",
+					pc,
+				)
+				record.AddAttrs(slog.String("type", reflect.TypeOf(attr.Value.Any()).String()))
+
+				_ = handler.Handle(
+					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
+					record,
+				)
 			}
 			// Also store the value in the attributes so it's preserved if the user is deleted
 			outputAttrs[attr.Key] = attr.Value.Any()

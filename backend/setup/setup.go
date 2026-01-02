@@ -13,9 +13,9 @@ func GenerateAdminSetupConstants(
 	isDev bool,
 	core common.CoreService,
 ) (
-	envVars *common.AdminAuthEnvVars,
-	totpURL string,
-	wrappedErr common.WrappedError,
+	*common.AdminAuthEnvVars,
+	string,
+	common.WrappedError,
 ) {
 	issuer := "Cryptic Stash"
 	if isDev {
@@ -36,9 +36,9 @@ func GenerateAdminSetupConstants(
 	encryptionKey := core.HashPassword(password, salt, passwordSettings)
 
 	return &common.AdminAuthEnvVars{
-			ADMIN_PASSWORD_HASH: base64.StdEncoding.EncodeToString(encryptionKey),
-			ADMIN_PASSWORD_SALT: base64.StdEncoding.EncodeToString(salt),
-			ADMIN_TOTP_SECRET:   totpSecret,
+			AdminPasswordHash: base64.StdEncoding.EncodeToString(encryptionKey),
+			AdminPasswordSalt: base64.StdEncoding.EncodeToString(salt),
+			AdminTotpSecret:   totpSecret,
 		},
 		key.URL(),
 		nil

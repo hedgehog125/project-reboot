@@ -26,7 +26,6 @@ linters:
         # - dupl # Maybe re-enable later?
         - dupword
         - durationcheck
-        - err113
         - errchkjson
         - errname
         - errorlint
@@ -35,14 +34,10 @@ linters:
         - exptostd
         - fatcontext
         - forbidigo
-        - forcetypeassert
         - ginkgolinter
         - gocheckcompilerdirectives
-        - gochecknoglobals
-        - gochecknoinits
         - gochecksumtype
         # - gocognit # Maybe re-enable later?
-        - goconst
         - gocritic
         # - gocyclo # Maybe re-enable later?
         # - godox # Maybe re-enable later?
@@ -60,7 +55,6 @@ linters:
         - ineffassign
         - intrange
         - iotamixing
-        - ireturn
         - lll
         - loggercheck
         - maintidx
@@ -75,12 +69,10 @@ linters:
         - nilnesserr
         - nilnil
         - noctx
-        - noinlineerr
         - nolintlint
         - nonamedreturns
         - nosprintfhostport
         - paralleltest
-        - perfsprint
         - prealloc
         - predeclared
         - promlinter
@@ -106,10 +98,8 @@ linters:
         - unused
         - usestdlibvars
         - usetesting
-        - varnamelen
         - wastedassign
         - whitespace
-        - wrapcheck
         - zerologlint
 
     disable:
@@ -126,6 +116,16 @@ linters:
         - embeddedstructfieldcheck
         - containedctx
         - interfacebloat
+        - wrapcheck
+        - err113
+        - forcetypeassert
+        - gochecknoglobals # I mostly avoid them but I have a globals package for some niche situations
+        - gochecknoinits # Similar reason
+        - goconst
+        - ireturn
+        - noinlineerr # I mostly follow this already but I use it to reduce the boilerplate when parsing request bodies
+        - perfsprint # Performance isn't this critical
+        - varnamelen
 
     settings:
         exhaustruct:
@@ -137,3 +137,9 @@ linters:
                   msg: "Don't commit print statements."
                 - pattern: '^common\.DumpJSON$'
                   msg: "Don't commit print statements."
+        revive:
+            rules:
+                - name: exported
+                  disabled: true
+        nolintlint:
+          require-specific: true

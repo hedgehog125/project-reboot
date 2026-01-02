@@ -49,7 +49,7 @@ func CreateDB() *TestDatabase {
 
 	stdErr = client.Schema.Create(context.Background())
 	if stdErr != nil {
-		client.Close()
+		_ = client.Close()
 		panic(fmt.Sprintf("failed to create test database schema. error: %v", stdErr.Error()))
 	}
 

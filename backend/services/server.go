@@ -26,7 +26,7 @@ type Server struct {
 func NewServer(app *common.App) *Server {
 	router := gin.New()
 	if app.Env.PROXY_ORIGINAL_IP_HEADER_NAME == "" {
-		router.SetTrustedProxies(nil)
+		_ = router.SetTrustedProxies(nil)
 	} else {
 		router.TrustedPlatform = app.Env.PROXY_ORIGINAL_IP_HEADER_NAME
 	}

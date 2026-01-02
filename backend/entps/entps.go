@@ -12,9 +12,11 @@ type sqlite3Driver struct {
 }
 
 type sqlite3DriverConn interface {
+	//nolint: inamedparam
 	Exec(string, []driver.Value) (driver.Result, error)
 }
 
+// nolint: nonamedreturns
 func (d sqlite3Driver) Open(name string) (conn driver.Conn, err error) {
 	conn, err = d.Driver.Open(name)
 	if err != nil {

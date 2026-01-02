@@ -16,13 +16,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWithReadTx_allowsConcurrentReads(t *testing.T) {
-	// TODO
+func TestWithReadTx_AllowsConcurrentReads(t *testing.T) {
+	t.Parallel()
+
+	panic("not implemented")
 }
-func TestWithWriteTx_nestedTransactions_returnsError(t *testing.T) {
-	// TODO
+func TestWithWriteTx_NestedTransactions_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	panic("not implemented")
 }
-func TestWithWriteTx_supports50ConcurrentWrites(t *testing.T) {
+func TestWithWriteTx_Supports50ConcurrentWrites(t *testing.T) {
 	// SQLite isn't suitable if the program has many more concurrent writes than this
 	t.Parallel()
 	JOB_COUNT := 50

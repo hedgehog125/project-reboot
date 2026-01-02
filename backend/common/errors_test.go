@@ -78,6 +78,7 @@ func TestGetSuccessfulActionIDs_returnsCorrectIDs(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
 			ids := common.GetSuccessfulActionIDs(testCase.actionIDs, testCase.errs)
 			require.Equal(t, testCase.expected, ids)
 		})
@@ -146,7 +147,7 @@ func TestError_worksWithIs(t *testing.T) {
 		common.ErrTypeDatabase,
 	).CommonError()
 
-	require.ErrorIs(t, sentinelErr, sentinelErr)
+	require.ErrorIs(t, wrappedSentinelErr, sentinelErr)
 	require.NotErrorIs(t, sentinelErr, databaseErr)
 	require.ErrorIs(t, sentinelErr, sentinelErr.Unwrap())
 	require.NotErrorIs(t, sentinelErr.Unwrap(), sentinelErr) // Target is more specific than err

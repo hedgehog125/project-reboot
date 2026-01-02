@@ -78,10 +78,10 @@ func (err *Error) Unwrap() error {
 }
 func (err *Error) MarshalJSON() ([]byte, error) {
 	type jsonError struct {
-		Child     common.WrappedError
-		Status    int
-		Details   []ErrorDetail
-		ShouldLog bool
+		Child     common.WrappedError `json:"child"`
+		Status    int                 `json:"status"`
+		Details   []ErrorDetail       `json:"details"`
+		ShouldLog bool                `json:"shouldLog"`
 	}
 	return json.Marshal(&jsonError{
 		Child:     err.child,
