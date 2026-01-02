@@ -14,7 +14,6 @@ import (
 	"github.com/NicoClack/cryptic-stash/server/endpoints"
 	"github.com/NicoClack/cryptic-stash/server/middleware"
 	"github.com/NicoClack/cryptic-stash/server/servercommon"
-	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,7 +37,6 @@ func NewServer(app *common.App) *Server {
 
 	router.LoadHTMLFS(http.FS(server.TemplateFiles.FS), fmt.Sprintf("%v/*.html", server.TemplateFiles.Path))
 	router.Use(middleware.NewRateLimiting("api", app.RateLimiter))
-
 	router.Use(middleware.NewError())
 
 	adminMiddleware := middleware.NewAdminProtected(app.Core)
@@ -52,17 +50,7 @@ func NewServer(app *common.App) *Server {
 		App:         serverApp,
 	})
 
-	embeddedFolder, stdErr := static.EmbedFolder(server.PublicFiles.FS, server.PublicFiles.Path)
-	if stdErr != nil {
-		log.Fatalf("failed to load embedded public files:\n%v", stdErr.Error())
-	}
-	// TODO: static.Serve doesn't have the fix
-	router.Use(static.Serve("/", embeddedFolder))
-	router.NoRoute(func(ginCtx *gin.Context) {
-		ginCtx.JSON(http.StatusNotFound, gin.H{
-			"errors": []string{},
-		})
-	})
+	router.Use(middleware.NewStaticFS(server.PublicFiles.FS, server.PublicFiles.Path))
 
 	httpServer := &http.Server{
 		Addr:              fmt.Sprintf(":%v", app.Env.PORT),
