@@ -7,7 +7,22 @@ on:
     branches: [ main ]
 
 jobs:
+  backend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.7.1
+          working-directory: backend
+
   backend-test:
+    needs: backend-lint
     runs-on: ubuntu-latest
     container:
       image: golang:1.25-alpine
@@ -35,7 +50,28 @@ jobs:
         working-directory: ./backend
         run: go test ./...
 
+  frontend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run linting
+        working-directory: ./frontend
+        run: npm run lint
+
   frontend-test:
+    needs: frontend-lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +94,3 @@ jobs:
       - name: Run unit tests
         working-directory: ./frontend
         run: npm run test:unit -- --run
-
-      - name: Run linting
-        working-directory: ./frontend
-        run: npm run lint
