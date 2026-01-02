@@ -448,7 +448,7 @@ func WrapErrorWithCategories(stdErr error, categories ...string) WrappedError {
 	if stdErr == nil {
 		return nil
 	}
-	//nolint: errorlint // we don't want to unwrap the error and lose details, so instead we'll double wrap it
+	//nolint:errorlint // we don't want to unwrap the error and lose details, so instead we'll double wrap it
 	wrappedErr, ok := stdErr.(WrappedError)
 	if ok {
 		wrappedErr = wrappedErr.CloneAsWrappedError()
@@ -534,7 +534,7 @@ type ErrorWrapper interface {
 	Wrap(err error) WrappedError
 }
 
-// nolint: recvcheck
+//nolint:recvcheck
 type ConstantErrorWrapper struct {
 	Categories []string
 	Child      ErrorWrapper

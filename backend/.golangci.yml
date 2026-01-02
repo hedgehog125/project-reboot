@@ -85,7 +85,6 @@ linters:
         - spancheck
         - sqlclosecheck
         - staticcheck
-        - tagalign
         - tagliatelle
         - testableexamples
         - testifylint
@@ -126,6 +125,7 @@ linters:
         - noinlineerr # I mostly follow this already but I use it to reduce the boilerplate when parsing request bodies
         - perfsprint # Performance isn't this critical
         - varnamelen
+        - tagalign # Had weird issues and is considered slow
 
     settings:
         exhaustruct:

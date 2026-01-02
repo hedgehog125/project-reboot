@@ -33,7 +33,7 @@ const (
 
 type disableErrorLoggingKey = struct{} // Used to prevent infinite loops
 
-// nolint: recvcheck
+//nolint:recvcheck
 type Handler struct {
 	App              *common.App
 	Level            slog.Level
@@ -282,7 +282,7 @@ func (handler *Handler) individualWriteFallback(
 				)
 				record.AddAttrs(slog.Any("log", entry))
 				record.AddAttrs(slog.Any("error", stdErr))
-				//nolint: contextcheck // logging is a different context to the code that created the original log
+				//nolint:contextcheck // logging is a different context to the code that created the original log
 				_ = handler.Handle(
 					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
 					record,
@@ -313,7 +313,7 @@ func (handler *Handler) individualWriteFallback(
 				)
 				record.AddAttrs(slog.Any("log", entry))
 				record.AddAttrs(slog.Any("error", stdErr))
-				//nolint: contextcheck // logging is a different context to the code that created the original log
+				//nolint:contextcheck // logging is a different context to the code that created the original log
 				_ = handler.Handle(
 					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
 					record,
@@ -329,7 +329,7 @@ func (handler *Handler) individualWriteFallback(
 				)
 				record.AddAttrs(slog.Any("log", entry))
 				record.AddAttrs(slog.Any("error", stdErr))
-				//nolint: contextcheck // logging is a different context to the code that created the original log
+				//nolint:contextcheck // logging is a different context to the code that created the original log
 				_ = handler.Handle(
 					context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
 					record,
@@ -350,7 +350,7 @@ func (handler *Handler) individualWriteFallback(
 			pc,
 		)
 		record.AddAttrs(slog.Any("error", bulkWriteErr))
-		//nolint: contextcheck // logging is a different context to the code that created the original log
+		//nolint:contextcheck // logging is a different context to the code that created the original log
 		_ = handler.Handle(
 			context.Background(),
 			record,
@@ -596,7 +596,7 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 		return true
 	})
 	handler.mu.RLock()
-	//nolint: contextcheck // loggers should ignore deadlines and cancellations from the context
+	//nolint:contextcheck // loggers should ignore deadlines and cancellations from the context
 	resolvedAttrs := handler.resolveNestedAttrs(attrs, !disableErrLogging, &entry.publicMessage, &entry.userID)
 	handler.mu.RUnlock()
 	entry.attributes = resolvedAttrs
@@ -612,7 +612,7 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 			pc,
 		)
 		record.AddAttrs(slog.Any("error", stdErr))
-		//nolint: contextcheck // logging is a different context to the code that created the original log
+		//nolint:contextcheck // logging is a different context to the code that created the original log
 		_ = handler.Handle(
 			context.WithValue(context.Background(), disableErrorLoggingKey{}, true),
 			record,

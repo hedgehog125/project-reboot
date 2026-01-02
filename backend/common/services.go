@@ -295,10 +295,10 @@ type SetupService interface {
 }
 
 type AdminAuthEnvVars struct {
-	//nolint: tagliatelle
+	//nolint:tagliatelle
 	AdminPasswordHash string `json:"ADMIN_PASSWORD_HASH"`
-	//nolint: tagliatelle
+	//nolint:tagliatelle
 	AdminPasswordSalt string `json:"ADMIN_PASSWORD_SALT"`
-	//nolint: tagliatelle
+	//nolint:tagliatelle
 	AdminTotpSecret string `json:"ADMIN_TOTP_SECRET"`
 }
