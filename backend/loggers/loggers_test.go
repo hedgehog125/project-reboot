@@ -168,12 +168,12 @@ func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) {
 					},
 					"debugValues": []any{
 						map[string]any{
-							"Value":   []any{},
+							"value":   []any{},
 							"message": "no previous errors",
 							"name":    "previous retry errors (WithRetries)",
 						},
 						map[string]any{
-							"Value":   nil,
+							"value":   nil,
 							"message": "max retries: 0, base backoff: 0s, backoff multiplier: 0",
 							"name":    "retries reset by WithRetries from...",
 						},
@@ -478,12 +478,12 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 					},
 					"debugValues": []any{
 						map[string]any{
-							"Value":   []any{},
+							"value":   []any{},
 							"message": "no previous errors",
 							"name":    "previous retry errors (WithRetries)",
 						},
 						map[string]any{
-							"Value":   nil,
+							"value":   nil,
 							"message": "max retries: 0, base backoff: 0s, backoff multiplier: 0",
 							"name":    "retries reset by WithRetries from...",
 						},
