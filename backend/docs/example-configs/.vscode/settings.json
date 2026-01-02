@@ -1,0 +1,13 @@
+{
+	"[go]": {
+		"editor.defaultFormatter": "golang.go",
+		"editor.formatOnSave": true
+	},
+	"go.lintTool": "golangci-lint-v2",
+	"go.lintFlags": ["--fix", "--fast-only"],
+	"go.formatTool": "custom",
+	"go.alternateTools": {
+		"customFormatter": "golangci-lint"
+	},
+	"go.formatFlags": ["run", "--fix"]
+}
