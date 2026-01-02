@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"runtime"
-	"time"
 
 	"github.com/NicoClack/cryptic-stash/common"
 	"github.com/NicoClack/cryptic-stash/common/dbcommon"
@@ -18,9 +17,6 @@ type Scheduler struct {
 func NewScheduler(app *common.App) *Scheduler {
 	engine := schedulers.NewEngine(app)
 
-	engine.Register(func(taskContext *schedulers.TaskContext) {
-		app.Core.RotateAdminCode()
-	}, schedulers.SimpleFixedInterval(1*time.Hour))
 	engine.Register(
 		func(taskContext *schedulers.TaskContext) {
 			app.Logger.Info("sending active session reminders...")

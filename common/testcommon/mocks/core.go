@@ -13,8 +13,6 @@ func NewEmptyCoreService() *EmptyCoreService {
 	return &EmptyCoreService{}
 }
 
-func (m *EmptyCoreService) RotateAdminCode() {
-}
 func (m *EmptyCoreService) CheckAdminCode(givenCode string) bool {
 	return false
 }

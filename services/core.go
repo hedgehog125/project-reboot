@@ -11,28 +11,26 @@ import (
 
 type Core struct {
 	App       *common.App
-	adminCode core.AdminCode
-	mu        sync.RWMutex
+	adminCode *core.AdminCode
+	mu        sync.Mutex
 }
 
 func NewCore(app *common.App) *Core {
 	return &Core{
-		App: app,
-		// AdminCode will be initialised by the scheduler
+		App:       app,
+		adminCode: common.Pointer(core.NewAdminCode(app.Clock)),
 	}
 }
 
-func (service *Core) RotateAdminCode() {
-	// TODO: rotate based on logins rather than periodically
-	service.mu.Lock()
-	defer service.mu.Unlock()
-	service.adminCode = core.NewAdminCode()
+func (service *Core) maybeRotateAdminCode() {
+	service.adminCode.MaybeRotate(service.App.Clock.Now(), service.App.Env.ADMIN_CODE_ROTATION_INTERVAL)
 }
 func (service *Core) CheckAdminCode(givenCode string) bool {
-	service.mu.RLock()
-	defer service.mu.RUnlock()
+	service.mu.Lock()
+	defer service.mu.Unlock()
 
-	return core.CheckAdminCode(givenCode, service.adminCode, service.App.Logger)
+	service.maybeRotateAdminCode()
+	return core.CheckAdminCode(givenCode, *service.adminCode, service.App.Logger)
 }
 func (service *Core) CheckAdminCredentials(password string, totpCode string) bool {
 	return core.CheckAdminCredentials(
@@ -49,8 +47,10 @@ func (service *Core) GetAdminCode(password string, totpCode string) (string, boo
 		return "", false
 	}
 
-	service.mu.RLock()
-	defer service.mu.RUnlock()
+	service.mu.Lock()
+	defer service.mu.Unlock()
+
+	service.maybeRotateAdminCode()
 	return service.adminCode.String(), true
 }
 

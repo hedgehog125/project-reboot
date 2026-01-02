@@ -31,6 +31,13 @@ type Env struct {
 	JOB_POLL_INTERVAL    time.Duration
 	MAX_TOTAL_JOB_WEIGHT int
 
+	ADMIN_PASSWORD_HASH_SETTINGS *PasswordHashSettings
+	ENABLE_SETUP                 bool
+	ADMIN_CODE_ROTATION_INTERVAL time.Duration
+	ADMIN_PASSWORD_HASH          []byte
+	ADMIN_PASSWORD_SALT          []byte
+	ADMIN_TOTP_SECRET            string
+
 	UNLOCK_TIME         time.Duration
 	AUTH_CODE_VALID_FOR time.Duration
 	// Once used, how much longer the auth code remains valid for
@@ -56,12 +63,6 @@ type Env struct {
 	ENABLE_DEVELOP_MESSENGER bool
 	DISCORD_TOKEN            string
 	SENDGRID_TOKEN           string // TODO: implement
-
-	ADMIN_PASSWORD_HASH          []byte
-	ADMIN_PASSWORD_SALT          []byte
-	ADMIN_PASSWORD_HASH_SETTINGS *PasswordHashSettings
-	ADMIN_TOTP_SECRET            string
-	ENABLE_SETUP                 bool
 }
 type PasswordHashSettings struct {
 	Time   uint32
@@ -216,7 +217,6 @@ type ServerService interface {
 	Shutdown()   // Should log warning rather than return an error
 }
 type CoreService interface {
-	RotateAdminCode()
 	CheckAdminCode(givenCode string) bool
 	CheckAdminCredentials(password string, totpCode string) bool
 	GetAdminCode(password string, totpCode string) (string, bool)
