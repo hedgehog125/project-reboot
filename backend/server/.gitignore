@@ -1,2 +1,2 @@
-public/**
-!public/.no-frontend.html
+./public/**
+./!public/.no-frontend.html
