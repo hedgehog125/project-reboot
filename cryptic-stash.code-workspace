@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"name": "Frontend",
+			"path": "./frontend"
+		},
+		{
+			"name": "Backend",
+			"path": "./backend"
+		},
+		{
+			"name": "Shared Files",
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"frontend/": true,
+			"backend/": true
+		}
+	}
+}
