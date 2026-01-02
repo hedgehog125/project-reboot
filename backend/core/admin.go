@@ -60,6 +60,10 @@ func CheckAdminCredentials(
 	settings *common.PasswordHashSettings,
 	totpSecret string,
 ) bool {
+	if len(expectedHash) == 0 || len(salt) == 0 || totpSecret == "" {
+		return false
+	}
+
 	encryptionKey := HashPassword(password, salt, settings)
 	isHashValid := subtle.ConstantTimeCompare(encryptionKey, expectedHash)
 	isTotpValidBool := totp.Validate(totpCode, totpSecret)
