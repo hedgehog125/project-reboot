@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/NicoClack/cryptic-stash/backend/ent" // Note: will have to reorganise if I end up needing to use the common module in schemas
-	"github.com/mattn/go-sqlite3"
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 // TODO: rename to ErrType1 and ErrType2?
@@ -49,25 +50,25 @@ var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) WrappedError {
 		return nil
 	}
 
-	sqliteErr := sqlite3.Error{}
 	if errors.Is(err, context.DeadlineExceeded) {
 		wrappedErr.AddCategoriesMut(ErrTypeTimeout, ErrTypeDatabase)
 		return wrappedErr
 	}
+	sqliteErr := &sqlite.Error{}
 	if errors.As(err, &sqliteErr) {
-		if slices.Index([]sqlite3.ErrNo{
-			sqlite3.ErrFull,
-			sqlite3.ErrAuth,
-			sqlite3.ErrReadonly,
-			sqlite3.ErrBusy,
-			sqlite3.ErrNoLFS,
-			sqlite3.ErrCantOpen,
-			sqlite3.ErrIoErr,
-			sqlite3.ErrLocked,
-			sqlite3.ErrNomem,
-		}, sqliteErr.Code) != -1 {
+		code := sqliteErr.Code()
+		if slices.Index([]int{
+			sqlite3.SQLITE_FULL,
+			sqlite3.SQLITE_AUTH,
+			sqlite3.SQLITE_READONLY,
+			sqlite3.SQLITE_BUSY,
+			sqlite3.SQLITE_CANTOPEN,
+			sqlite3.SQLITE_IOERR,
+			sqlite3.SQLITE_LOCKED,
+			sqlite3.SQLITE_NOMEM,
+		}, code) != -1 {
 			wrappedErr.ConfigureRetriesMut(10, 50*time.Millisecond, 2)
-			if sqliteErr.Code == sqlite3.ErrNomem {
+			if code == sqlite3.SQLITE_NOMEM {
 				wrappedErr.AddCategoriesMut(ErrTypeMemory, ErrTypeDatabase)
 			} else {
 				wrappedErr.AddCategoriesMut(ErrTypeDisk, ErrTypeDatabase)
@@ -511,7 +512,7 @@ func AutoWrapError(err error) WrappedError {
 	}
 
 	wrappedErr = WrapErrorWithCategories(err, ErrTypeCommon, "auto wrapped")
-	if errors.As(err, &sqlite3.Error{}) {
+	if IsErrorType[*sqlite.Error](err) {
 		return ErrWrapperDatabase.Wrap(wrappedErr)
 	}
 	if ent.IsConstraintError(err) ||
@@ -608,8 +609,9 @@ func (errWrapper *DynamicErrorWrapper) Wrap(err error) WrappedError {
 	return errWrapper.callback(err)
 }
 
-func IsErrorType(err error, targetTypePtr any) bool {
-	return errors.As(err, &targetTypePtr)
+func IsErrorType[T error](err error) bool {
+	var target T
+	return errors.As(err, &target)
 }
 
 func PanicIfError(err error) {

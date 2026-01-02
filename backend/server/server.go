@@ -2,7 +2,6 @@ package server
 
 import (
 	"embed"
-	_ "embed"
 
 	"github.com/NicoClack/cryptic-stash/backend/common"
 )

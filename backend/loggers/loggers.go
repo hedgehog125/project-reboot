@@ -298,7 +298,7 @@ func (handler *Handler) individualWriteFallback(
 		)
 		cancel()
 		if stdErr != nil {
-			if common.IsErrorType(stdErr, &ent.ConstraintError{}) {
+			if common.IsErrorType[*ent.ConstraintError](stdErr) {
 				pc, _, _, _ := runtime.Caller(0)
 				record := slog.NewRecord(
 					handler.App.Clock.Now(),

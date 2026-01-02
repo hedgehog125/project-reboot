@@ -1,12 +1,13 @@
 {
 	"folders": [
-		{
-			"name": "Frontend",
-			"path": "./frontend"
-		},
+		// Needs to go first, otherwise there are issues with debugging
 		{
 			"name": "Backend",
 			"path": "./backend"
+		},
+		{
+			"name": "Frontend",
+			"path": "./frontend"
 		},
 		{
 			"name": "Shared Files",

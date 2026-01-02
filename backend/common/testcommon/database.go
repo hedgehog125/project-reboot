@@ -10,6 +10,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
+	_ "github.com/NicoClack/cryptic-stash/backend/entps"
 )
 
 type TestDatabase struct {
@@ -25,6 +26,8 @@ var (
 )
 
 func CreateDB() *TestDatabase {
+	// TODO: use enttest like in https://entgo.io/blog/2023/02/23/simple-cms-with-ent/
+
 	// TODO: review options
 	// TODO: what does shared cache do any why is it sometimes necessary
 	// in order to stop the database being deleted mid test?

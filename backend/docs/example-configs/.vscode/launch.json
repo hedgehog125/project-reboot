@@ -10,6 +10,7 @@
 			"request": "launch",
 			"mode": "auto",
 			"program": "${file}",
+			"cwd": "${workspaceFolder:Backend}",
 			"env": {
 				"CGO_ENABLED": "1"
 			}
@@ -19,7 +20,8 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "test",
-			"program": "${file}"
+			"program": "${file}",
+			"cwd": "${workspaceFolder:Backend}",
 			// "buildFlags": ["-race"]
 		}
 	]

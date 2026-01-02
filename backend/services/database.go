@@ -13,7 +13,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/NicoClack/cryptic-stash/backend/entps"
 )
 
 func NewDatabase(app *common.App) *Database {

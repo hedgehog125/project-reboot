@@ -24,8 +24,8 @@ var ErrWrapperDiscord = common.NewDynamicErrorWrapper(func(err error) common.Wra
 		return nil
 	}
 
-	isUrlErr := common.IsErrorType(err, &url.Error{})
-	isWebsocketErr := common.IsErrorType(err, &websocket.CloseError{})
+	isUrlErr := common.IsErrorType[*url.Error](err)
+	isWebsocketErr := common.IsErrorType[*websocket.CloseError](err)
 	if isUrlErr || isWebsocketErr {
 		wrappedErr.ConfigureRetriesMut(10, time.Second*5, 1.5)
 		if isUrlErr {

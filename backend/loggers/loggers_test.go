@@ -177,8 +177,8 @@ func TestLogger_UserIDNoMatch_LogsWarning(t *testing.T) {
 					"errDuplicatesCategory": false,
 					"error": "db common [package] error: WithTx error: callback error: common [package] error: " +
 						"database [general] error: other error: auto wrapped error: ent: constraint failed: " +
-						"FOREIGN KEY constraint failed",
-					"innerError":             "ent: constraint failed: FOREIGN KEY constraint failed",
+						"constraint failed: FOREIGN KEY constraint failed (787)",
+					"innerError":             "ent: constraint failed: constraint failed: FOREIGN KEY constraint failed (787)",
 					"innerErrorType":         "*ent.ConstraintError",
 					"maxRetries":             0,
 					"retryBackoffBase":       0,
