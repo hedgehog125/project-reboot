@@ -9,7 +9,8 @@ import (
 var (
 	//go:embed templates/*.html
 	templateFS embed.FS
-	//go:embed public
+	// Go excludes underscored files unless we use "all:"
+	//go:embed all:public
 	publicFS embed.FS
 )
 

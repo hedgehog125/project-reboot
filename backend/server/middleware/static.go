@@ -32,6 +32,14 @@ func NewStaticFS(embeddedFS embed.FS, prefix string) gin.HandlerFunc {
 			return
 		}
 
+		urlPath := path.Clean(ginCtx.Request.URL.Path)
+		for part := range strings.SplitSeq(urlPath, "/") {
+			if strings.HasPrefix(part, ".") {
+				ginCtx.AbortWithStatus(http.StatusNotFound)
+				return
+			}
+		}
+
 		// We can make things slightly more efficient and this 200 fallback behaviour slightly less confusing by only doing
 		// local redirects for pages, not resources
 		// Also this means fileServer can redirect /index.html to /
