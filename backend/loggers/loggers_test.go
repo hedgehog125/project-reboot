@@ -505,6 +505,7 @@ func TestLogger_RetriesBulkCreateIndividually(t *testing.T) {
 	require.Equal(t, int64(3), successfulCreateCounter.Load())
 }
 
+// TODO: flaky?
 func TestLogger_NoAdminUser_UsesCrashSignal(t *testing.T) {
 	t.Parallel()
 

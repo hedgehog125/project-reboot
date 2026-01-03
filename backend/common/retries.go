@@ -84,7 +84,11 @@ func WithRetries(
 			return wrapError(wrappedErr)
 		}
 
-		logger.Debug("[WithRetries] waiting %vms", backoff.Milliseconds())
+		logger.Debug(
+			"[WithRetries] retrying temporary error",
+			"waitMs", backoff.Milliseconds(),
+			"error", stdErr,
+		)
 
 		select {
 		case <-time.After(backoff):

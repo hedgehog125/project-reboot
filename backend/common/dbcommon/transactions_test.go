@@ -53,6 +53,7 @@ func TestWithReadTx_AllowsConcurrentReads(t *testing.T) {
 }
 func TestWithWriteTx_NestedTransactions_ReturnsError(t *testing.T) {
 	t.Parallel()
+
 	db := testcommon.CreateDB()
 	t.Cleanup(db.Shutdown)
 
@@ -109,6 +110,7 @@ func TestWithWriteTx_Supports50ConcurrentWrites(t *testing.T) {
 }
 func TestWithWriteTx_supports25CollidingIncrements(t *testing.T) {
 	t.Parallel()
+
 	INCREMENT_COUNT := 25
 	db := testcommon.CreateDB()
 	defer db.Shutdown()

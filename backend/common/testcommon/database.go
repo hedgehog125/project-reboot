@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
@@ -52,6 +53,9 @@ func CreateDB() *TestDatabase {
 		_ = client.Close()
 		panic(fmt.Sprintf("failed to create test database schema. error: %v", stdErr.Error()))
 	}
+
+	// TODO: take logger as argument?
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	return &TestDatabase{
 		client:       client,
