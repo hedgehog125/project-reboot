@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,11 +19,19 @@ func NewStaticFS(embeddedFS embed.FS, prefix string) gin.HandlerFunc {
 	fileServer := http.FileServerFS(subFS)
 
 	return func(ginCtx *gin.Context) {
+		if strings.HasPrefix(ginCtx.Request.URL.Path, "/api") {
+			return
+		}
+
 		// We can make things slightly more efficient and this 200 fallback behaviour slightly less confusing by only doing
 		// local redirects for pages, not resources
 		// Also this means fileServer can redirect /index.html to /
 		if path.Ext(ginCtx.Request.URL.Path) == "" {
-			file, stdErr := subFS.Open(path.Clean(ginCtx.Request.URL.Path))
+			filePath := strings.TrimPrefix(path.Clean(ginCtx.Request.URL.Path), "/")
+			if filePath == "" {
+				filePath = "."
+			}
+			file, stdErr := subFS.Open(filePath)
 			if stdErr == nil {
 				_ = file.Close()
 			} else {

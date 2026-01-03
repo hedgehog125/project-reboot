@@ -11,6 +11,7 @@ const config = {
 		adapter: adapter({
 			fallback: "index.html",
 		}),
+		appDir: "assets",
 	},
 };
 
