@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/NicoClack/cryptic-stash/backend/server/servercommon"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,6 +21,9 @@ func NewStaticFS(embeddedFS embed.FS, prefix string) gin.HandlerFunc {
 
 	return func(ginCtx *gin.Context) {
 		if strings.HasPrefix(ginCtx.Request.URL.Path, "/api") {
+			ginCtx.JSON(http.StatusNotFound, gin.H{
+				"errors": []servercommon.ErrorDetail{},
+			})
 			return
 		}
 

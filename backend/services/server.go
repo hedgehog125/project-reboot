@@ -50,7 +50,7 @@ func NewServer(app *common.App) *Server {
 		App:         serverApp,
 	})
 
-	router.Use(middleware.NewStaticFS(server.PublicFiles.FS, server.PublicFiles.Path))
+	router.NoRoute(middleware.NewStaticFS(server.PublicFiles.FS, server.PublicFiles.Path))
 
 	httpServer := &http.Server{
 		Addr:              fmt.Sprintf(":%v", app.Env.PORT),
