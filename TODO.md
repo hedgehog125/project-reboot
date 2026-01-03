@@ -1,8 +1,6 @@
 # TODO
 
-- Is no-frontend.html being copied into the docker image?
-- SQLITE_BUSY not being retried?
-- Also 00:07:52 ERR schedulers\delayFuncs.go:68 unable to create initial PeriodicTask object error="db common [package] error: WithTx error: start transaction error: database [general] error: other error: ent: starting a transaction: SQL logic error: cannot start a transaction within a transaction (1)" periodicTaskName=SEND_ACTIVE_SESSION_REMINDERS
+-   00:07:52 ERR schedulers\delayFuncs.go:68 unable to create initial PeriodicTask object error="db common [package] error: WithTx error: start transaction error: database [general] error: other error: ent: starting a transaction: SQL logic error: cannot start a transaction within a transaction (1)" periodicTaskName=SEND_ACTIVE_SESSION_REMINDERS
 -   Improve frontend
 -   Can cancelling requests make views non-atomic if a view uses multiple transactions? Are there any security risks with this?
 -   Move user contacts to separate model so SMS and Signal can have different phone numbers for the same user for example. Each messenger can be explicitly enabled and has its own options. e.g only send login alerts via SMS, don't send any other types of messages to it
@@ -16,9 +14,7 @@
 -   -   Admins should be able to reset it so if there's an unauthorised login, the user can block with a self lock, the admin can reset them and then they can block again without waiting
 -   Email messenger
 -   Signal messenger? Using that REST API in a separate container over the internal network only so no security required, hosting should be very cheap if it's serverless
--   Switch to a pure Go SQLite implementation, speed will be fine considering SQLite it already has the single writer system
 -   SMS messenger
--   Rotate admin code when used
 -   CSRF?
 -   Move more logic out of endpoints
 -   CC admin (or all users?) when a user receives a login alert

@@ -18,6 +18,7 @@ COPY backend/ ./
 
 # Copy frontend build output to backend/server/public
 COPY --from=frontend-builder /app/frontend/build ./server/public
+RUN rm ./server/public/no-frontend.html
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 

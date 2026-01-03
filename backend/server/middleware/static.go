@@ -17,6 +17,14 @@ func NewStaticFS(embeddedFS embed.FS, prefix string) gin.HandlerFunc {
 	if stdErr != nil {
 		log.Fatalf("error calling fs.Sub:\n%v", stdErr.Error())
 	}
+
+	hasFrontend := true
+	file, stdErr := subFS.Open("no-frontend.html")
+	if stdErr == nil {
+		hasFrontend = false
+		_ = file.Close()
+	}
+
 	fileServer := http.FileServerFS(subFS)
 
 	return func(ginCtx *gin.Context) {
@@ -29,6 +37,13 @@ func NewStaticFS(embeddedFS embed.FS, prefix string) gin.HandlerFunc {
 					},
 				},
 			})
+			return
+		}
+
+		if !hasFrontend {
+			ginCtx.Request.URL.Path = "/no-frontend.html"
+			fileServer.ServeHTTP(ginCtx.Writer, ginCtx.Request)
+			ginCtx.Abort()
 			return
 		}
 

@@ -87,7 +87,7 @@ func WithRetries(
 		logger.Debug(
 			"[WithRetries] retrying temporary error",
 			"waitMs", backoff.Milliseconds(),
-			"error", stdErr,
+			"error", wrappedErr,
 		)
 
 		select {
