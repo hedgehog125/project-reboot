@@ -22,7 +22,12 @@ func NewStaticFS(embeddedFS embed.FS, prefix string) gin.HandlerFunc {
 	return func(ginCtx *gin.Context) {
 		if strings.HasPrefix(ginCtx.Request.URL.Path, "/api") {
 			ginCtx.JSON(http.StatusNotFound, gin.H{
-				"errors": []servercommon.ErrorDetail{},
+				"errors": []servercommon.ErrorDetail{
+					{
+						Code:    "ENDPOINT_NOT_FOUND",
+						Message: "Endpoint not found",
+					},
+				},
 			})
 			return
 		}
