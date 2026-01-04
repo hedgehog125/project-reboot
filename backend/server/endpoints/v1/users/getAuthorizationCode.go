@@ -34,6 +34,9 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
+		if body.Username == common.AdminUsername {
+			return servercommon.NewInvalidUsernameError()
+		}
 
 		userOb, stdErr := dbcommon.WithReadTx(
 			ginCtx.Request.Context(), app.Database,

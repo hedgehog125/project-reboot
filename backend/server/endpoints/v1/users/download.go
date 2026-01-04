@@ -39,6 +39,9 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
+		if body.Username == common.AdminUsername {
+			return servercommon.NewInvalidUsernameError()
+		}
 		givenAuthCodeBytes, ctxErr := servercommon.DecodeBase64(body.AuthorizationCode)
 		if ctxErr != nil {
 			return ctxErr

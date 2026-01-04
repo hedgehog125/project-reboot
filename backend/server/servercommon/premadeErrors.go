@@ -19,6 +19,16 @@ var ErrNotFound = NewError(common.NewErrorWithCategories(
 	"not found", common.ErrTypeServerCommon, common.ErrTypeClient,
 )).SetStatus(http.StatusNotFound).DisableLogging()
 
+// Mostly when "admin" is passed to a non-admin endpoint
+var ErrInvalidUsername = NewError(common.NewErrorWithCategories(
+	"invalid username", common.ErrTypeServerCommon, common.ErrTypeClient,
+)).
+	SetStatus(http.StatusBadRequest).
+	AddDetail(ErrorDetail{
+		Code:    "INVALID_USERNAME",
+		Message: "Invalid username",
+	})
+
 var ErrWrapperBadRequest = common.NewErrorWrapper(common.ErrTypeServerCommon, ErrTypeBadRequest, common.ErrTypeClient)
 
 func NewUnauthorizedError() *Error {
@@ -26,6 +36,9 @@ func NewUnauthorizedError() *Error {
 }
 func NewNotFoundError() *Error {
 	return ErrNotFound.Clone()
+}
+func NewInvalidUsernameError() *Error {
+	return ErrInvalidUsername.Clone()
 }
 
 func NewBadRequestError(fieldName string, message string, errorCode string) *Error {

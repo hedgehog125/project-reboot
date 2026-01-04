@@ -31,6 +31,9 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
+		if body.Username == common.AdminUsername {
+			return servercommon.NewInvalidUsernameError()
+		}
 		contentBytes, ctxErr := servercommon.DecodeBase64(body.Content)
 		if ctxErr != nil {
 			return ctxErr

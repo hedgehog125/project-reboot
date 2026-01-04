@@ -17,8 +17,8 @@ func NewSetupService(app *common.App) *Setup {
 	}
 }
 
-func (service *Setup) IsSetupComplete(ctx context.Context) (bool, common.WrappedError) {
-	return false, nil
+func (service *Setup) GetStatus(ctx context.Context) (*common.SetupStatus, common.WrappedError) {
+	return setup.GetStatus(ctx, service.App.Messengers, service.App.Env)
 }
 
 func (service *Setup) GenerateAdminSetupConstants(

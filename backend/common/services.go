@@ -24,6 +24,7 @@ type Env struct {
 	PORT                          int
 	MOUNT_PATH                    string
 	PROXY_ORIGINAL_IP_HEADER_NAME string
+	ALLOWED_ORIGINS               []string
 	// Things like deleting expired login sessions
 	CLEAN_UP_INTERVAL time.Duration
 	FULL_GC_INTERVAL  time.Duration
@@ -32,7 +33,7 @@ type Env struct {
 	MAX_TOTAL_JOB_WEIGHT int
 
 	ADMIN_PASSWORD_HASH_SETTINGS *PasswordHashSettings
-	ENABLE_SETUP                 bool
+	ENABLE_ENV_SETUP             bool
 	ADMIN_CODE_ROTATION_INTERVAL time.Duration
 	ADMIN_PASSWORD_HASH          []byte
 	ADMIN_PASSWORD_SALT          []byte
@@ -288,12 +289,17 @@ type LimiterSession interface {
 }
 
 type SetupService interface {
-	IsSetupComplete(ctx context.Context) (bool, WrappedError)
+	GetStatus(ctx context.Context) (*SetupStatus, WrappedError)
 	GenerateAdminSetupConstants(password string) (*AdminAuthEnvVars, string, WrappedError)
 	// Only used for setup, otherwise use app.Core.CheckAdminCredentials instead
 	CheckTotpCode(totpCode string, totpSecret string) bool
 }
 
+type SetupStatus struct {
+	IsComplete                   bool
+	IsEnvComplete                bool
+	AreAdminMessengersConfigured bool
+}
 type AdminAuthEnvVars struct {
 	//nolint:tagliatelle
 	AdminPasswordHash string `json:"ADMIN_PASSWORD_HASH"`

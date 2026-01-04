@@ -27,6 +27,9 @@ func SetContacts(app *servercommon.ServerApp) gin.HandlerFunc {
 		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
+		if body.Username == common.AdminUsername {
+			return servercommon.NewInvalidUsernameError()
+		}
 
 		return dbcommon.WithWriteTx(
 			ginCtx.Request.Context(), app.Database,

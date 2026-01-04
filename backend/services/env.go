@@ -25,6 +25,7 @@ func LoadEnvironmentVariables() *common.Env {
 		PORT:                          common.RequireIntEnv("PORT"),
 		MOUNT_PATH:                    common.RequireEnv("MOUNT_PATH"),
 		PROXY_ORIGINAL_IP_HEADER_NAME: common.RequireEnv("PROXY_ORIGINAL_IP_HEADER_NAME"),
+		ALLOWED_ORIGINS:               common.RequireStrArrEnv("ALLOWED_ORIGINS"),
 		CLEAN_UP_INTERVAL:             common.RequireSecondsEnv("CLEAN_UP_INTERVAL"),
 		FULL_GC_INTERVAL:              common.RequireSecondsEnv("FULL_GC_INTERVAL"),
 
@@ -36,7 +37,7 @@ func LoadEnvironmentVariables() *common.Env {
 			Memory:  common.RequireUint32Env("ADMIN_PASSWORD_HASH_MEMORY"),
 			Threads: common.RequireUint8Env("ADMIN_PASSWORD_HASH_THREADS"),
 		},
-		ENABLE_SETUP:                 common.RequireBoolEnv("ENABLE_SETUP"),
+		ENABLE_ENV_SETUP:             common.RequireBoolEnv("ENABLE_ENV_SETUP"),
 		ADMIN_CODE_ROTATION_INTERVAL: common.RequireSecondsEnv("ADMIN_CODE_ROTATION_INTERVAL"),
 		ADMIN_PASSWORD_HASH:          common.OptionalBase64Env("ADMIN_PASSWORD_HASH", []byte{}),
 		ADMIN_PASSWORD_SALT:          common.OptionalBase64Env("ADMIN_PASSWORD_SALT", []byte{}),
@@ -72,8 +73,12 @@ func ValidateEnvironmentVariables(env *common.Env) {
 		len(env.ADMIN_PASSWORD_HASH) == 0,
 		len(env.ADMIN_PASSWORD_SALT) == 0,
 		env.ADMIN_TOTP_SECRET == "",
+		env.ENABLE_ENV_SETUP,
 	) {
-		log.Fatal("ADMIN_PASSWORD_HASH, ADMIN_PASSWORD_SALT and ADMIN_TOTP_SECRET must be all set or all unset")
+		log.Fatal(
+			"ADMIN_PASSWORD_HASH, ADMIN_PASSWORD_SALT and ADMIN_TOTP_SECRET must be all set and ENABLE_ENV_SETUP set to " +
+				"false, or they must all be unset and ENABLE_ENV_SETUP set to true.",
+		)
 	}
 
 	if float64(env.AUTH_CODE_VALID_FOR)/float64(env.UNLOCK_TIME) < 1.1 {
@@ -83,7 +88,7 @@ func ValidateEnvironmentVariables(env *common.Env) {
 		)
 	}
 
-	if env.ENABLE_SETUP {
-		slog.Warn("setup mode is enabled. to disable, set ENABLE_SETUP to false.")
+	if env.ENABLE_ENV_SETUP {
+		slog.Warn("setup mode is enabled. please complete the setup in the app and avoid leaving it in this state.")
 	}
 }

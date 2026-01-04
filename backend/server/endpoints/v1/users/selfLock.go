@@ -35,6 +35,9 @@ func SelfLock(app *servercommon.ServerApp) gin.HandlerFunc {
 		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
+		if body.Username == common.AdminUsername {
+			return servercommon.NewInvalidUsernameError()
+		}
 		until := clock.Now().Add(
 			min(
 				body.Until.Sub(clock.Now()), // Convert to duration

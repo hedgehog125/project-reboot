@@ -21,7 +21,7 @@ func DefaultEnv() *common.Env {
 			Memory:  1024,
 			Threads: 1,
 		},
-		ENABLE_SETUP:                 false,
+		ENABLE_ENV_SETUP:             false,
 		ADMIN_CODE_ROTATION_INTERVAL: time.Hour,
 		ADMIN_PASSWORD_HASH:          []byte{},
 		ADMIN_PASSWORD_SALT:          []byte{},

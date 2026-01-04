@@ -1,49 +1,33 @@
 package setup
 
 import (
-	"encoding/base64"
+	"context"
 
 	"github.com/NicoClack/cryptic-stash/backend/common"
-	"github.com/pquerna/otp/totp"
 )
 
-func GenerateAdminSetupConstants(
-	password string,
-	passwordSettings *common.PasswordHashSettings,
-	isDev bool,
-	core common.CoreService,
-) (
-	*common.AdminAuthEnvVars,
-	string,
-	common.WrappedError,
-) {
-	issuer := "Cryptic Stash"
-	if isDev {
-		issuer = "Cryptic Stash (Development)"
+func GetStatus(
+	ctx context.Context,
+	messengers common.MessengerService,
+	env *common.Env,
+) (*common.SetupStatus, common.WrappedError) {
+	status := &common.SetupStatus{}
+	if env.ENABLE_ENV_SETUP {
+		return status, nil
 	}
-	key, stdErr := totp.Generate(totp.GenerateOpts{
-		Issuer:      issuer,
-		AccountName: common.AdminUsername,
-	})
-	if stdErr != nil {
-		return nil, "", ErrWrapperGenerateAdminSetupConstants.Wrap(
-			ErrWrapperTotp.Wrap(stdErr),
+	status.IsEnvComplete = true
+
+	hasMessengers, wrappedErr := CheckAdminHasMessengers(ctx, messengers)
+	if wrappedErr != nil {
+		return status, ErrWrapperGetStatus.Wrap(
+			wrappedErr,
 		)
 	}
-	totpSecret := key.Secret()
+	if !hasMessengers {
+		return status, nil
+	}
+	status.AreAdminMessengersConfigured = true
 
-	salt := core.GenerateSalt()
-	encryptionKey := core.HashPassword(password, salt, passwordSettings)
-
-	return &common.AdminAuthEnvVars{
-			AdminPasswordHash: base64.StdEncoding.EncodeToString(encryptionKey),
-			AdminPasswordSalt: base64.StdEncoding.EncodeToString(salt),
-			AdminTotpSecret:   totpSecret,
-		},
-		key.URL(),
-		nil
-}
-
-func CheckTotpCode(totpCode string, totpSecret string) bool {
-	return totp.Validate(totpCode, totpSecret)
+	status.IsComplete = true
+	return status, nil
 }
