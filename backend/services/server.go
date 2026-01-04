@@ -14,6 +14,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/server/endpoints"
 	"github.com/NicoClack/cryptic-stash/backend/server/middleware"
 	"github.com/NicoClack/cryptic-stash/backend/server/servercommon"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,6 +35,10 @@ func NewServer(app *common.App) *Server {
 	router.Use(gin.Logger()) // TODO: make the custom logger log completed requests so this isn't needed
 	// TODO: ^ this is logging "Error #01: ..."
 	router.Use(middleware.NewTimeout())
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = app.Env.ALLOWED_ORIGINS
+	router.Use(cors.New(corsConfig))
 
 	router.LoadHTMLFS(http.FS(server.TemplateFiles.FS), fmt.Sprintf("%v/*.html", server.TemplateFiles.Path))
 	router.Use(middleware.NewRateLimiting("api", app.RateLimiter))
