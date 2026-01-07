@@ -43,6 +43,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
 				userOb, stdErr := tx.User.Query().
 					Where(user.Username(body.Username)).
+					WithStash().
 					Only(ctx)
 				if stdErr != nil {
 					return nil, servercommon.SendUnauthorizedIfNotFound(stdErr)
@@ -57,16 +58,20 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 			return servercommon.NewUnauthorizedError()
 		}
 
+		stashOb := userOb.Edges.Stash
+		if stashOb == nil {
+			return servercommon.NewUnauthorizedError()
+		}
 		encryptionKey := app.Core.HashPassword(
 			body.Password,
-			userOb.KeySalt,
+			stashOb.KeySalt,
 			&common.PasswordHashSettings{
-				Time:    userOb.HashTime,
-				Memory:  userOb.HashMemory,
-				Threads: userOb.HashThreads,
+				Time:    stashOb.HashTime,
+				Memory:  stashOb.HashMemory,
+				Threads: stashOb.HashThreads,
 			},
 		)
-		_, wrappedErr := app.Core.Decrypt(userOb.Content, encryptionKey, userOb.Nonce)
+		_, wrappedErr := app.Core.Decrypt(stashOb.Content, encryptionKey, stashOb.Nonce)
 		if wrappedErr != nil {
 			return servercommon.NewUnauthorizedError()
 		}

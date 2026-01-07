@@ -7,7 +7,6 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/common/dbcommon"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
-	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 	"github.com/NicoClack/cryptic-stash/backend/server/servercommon"
 	"github.com/gin-gonic/gin"
 )
@@ -23,6 +22,8 @@ type RegisterOrUpdateResponse struct {
 	Errors []servercommon.ErrorDetail `binding:"required" json:"errors"`
 }
 
+// TODO: rename and create new update endpoint
+// TODO: split creating/updating stash into own endpoint?
 func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 	hashSettings := app.Env.PASSWORD_HASH_SETTINGS
 
@@ -49,9 +50,7 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 		return dbcommon.WithWriteTx(
 			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
-				stdErr := tx.User.Create().
-					SetUsername(body.Username).
-					SetSessionsValidFrom(app.Clock.Now()).
+				stashOb, stdErr := tx.Stash.Create().
 					SetContent(encrypted).
 					SetFileName(body.Filename).
 					SetMime(body.Mime).
@@ -60,15 +59,15 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 					SetHashTime(hashSettings.Time).
 					SetHashMemory(hashSettings.Memory).
 					SetHashThreads(hashSettings.Threads).
-					OnConflict().UpdateNewValues().
-					Exec(ctx)
+					Save(ctx)
 				if stdErr != nil {
 					return stdErr
 				}
-
-				userOb, stdErr := tx.User.Query().
-					Where(user.Username(body.Username)).
-					Only(ctx)
+				userOb, stdErr := tx.User.Create().
+					SetUsername(body.Username).
+					SetSessionsValidFrom(app.Clock.Now()).
+					SetStash(stashOb).
+					Save(ctx)
 				if stdErr != nil {
 					return stdErr
 				}
