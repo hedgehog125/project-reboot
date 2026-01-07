@@ -22,6 +22,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/loginalert"
 	"github.com/NicoClack/cryptic-stash/backend/ent/periodictask"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
+	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/twofactoraction"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 )
@@ -43,6 +44,8 @@ type Client struct {
 	PeriodicTask *PeriodicTaskClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
+	// Stash is the client for interacting with the Stash builders.
+	Stash *StashClient
 	// TwoFactorAction is the client for interacting with the TwoFactorAction builders.
 	TwoFactorAction *TwoFactorActionClient
 	// User is the client for interacting with the User builders.
@@ -64,6 +67,7 @@ func (c *Client) init() {
 	c.LoginAlert = NewLoginAlertClient(c.config)
 	c.PeriodicTask = NewPeriodicTaskClient(c.config)
 	c.Session = NewSessionClient(c.config)
+	c.Stash = NewStashClient(c.config)
 	c.TwoFactorAction = NewTwoFactorActionClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -164,6 +168,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		LoginAlert:      NewLoginAlertClient(cfg),
 		PeriodicTask:    NewPeriodicTaskClient(cfg),
 		Session:         NewSessionClient(cfg),
+		Stash:           NewStashClient(cfg),
 		TwoFactorAction: NewTwoFactorActionClient(cfg),
 		User:            NewUserClient(cfg),
 	}, nil
@@ -191,6 +196,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		LoginAlert:      NewLoginAlertClient(cfg),
 		PeriodicTask:    NewPeriodicTaskClient(cfg),
 		Session:         NewSessionClient(cfg),
+		Stash:           NewStashClient(cfg),
 		TwoFactorAction: NewTwoFactorActionClient(cfg),
 		User:            NewUserClient(cfg),
 	}, nil
@@ -222,7 +228,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Job, c.KeyValue, c.LogEntry, c.LoginAlert, c.PeriodicTask, c.Session,
+		c.Job, c.KeyValue, c.LogEntry, c.LoginAlert, c.PeriodicTask, c.Session, c.Stash,
 		c.TwoFactorAction, c.User,
 	} {
 		n.Use(hooks...)
@@ -233,7 +239,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Job, c.KeyValue, c.LogEntry, c.LoginAlert, c.PeriodicTask, c.Session,
+		c.Job, c.KeyValue, c.LogEntry, c.LoginAlert, c.PeriodicTask, c.Session, c.Stash,
 		c.TwoFactorAction, c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -255,6 +261,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PeriodicTask.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
+	case *StashMutation:
+		return c.Stash.mutate(ctx, m)
 	case *TwoFactorActionMutation:
 		return c.TwoFactorAction.mutate(ctx, m)
 	case *UserMutation:
@@ -1126,6 +1134,155 @@ func (c *SessionClient) mutate(ctx context.Context, m *SessionMutation) (Value, 
 	}
 }
 
+// StashClient is a client for the Stash schema.
+type StashClient struct {
+	config
+}
+
+// NewStashClient returns a client for the Stash from the given config.
+func NewStashClient(c config) *StashClient {
+	return &StashClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `stash.Hooks(f(g(h())))`.
+func (c *StashClient) Use(hooks ...Hook) {
+	c.hooks.Stash = append(c.hooks.Stash, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `stash.Intercept(f(g(h())))`.
+func (c *StashClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Stash = append(c.inters.Stash, interceptors...)
+}
+
+// Create returns a builder for creating a Stash entity.
+func (c *StashClient) Create() *StashCreate {
+	mutation := newStashMutation(c.config, OpCreate)
+	return &StashCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Stash entities.
+func (c *StashClient) CreateBulk(builders ...*StashCreate) *StashCreateBulk {
+	return &StashCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *StashClient) MapCreateBulk(slice any, setFunc func(*StashCreate, int)) *StashCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &StashCreateBulk{err: fmt.Errorf("calling to StashClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*StashCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &StashCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Stash.
+func (c *StashClient) Update() *StashUpdate {
+	mutation := newStashMutation(c.config, OpUpdate)
+	return &StashUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *StashClient) UpdateOne(_m *Stash) *StashUpdateOne {
+	mutation := newStashMutation(c.config, OpUpdateOne, withStash(_m))
+	return &StashUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *StashClient) UpdateOneID(id int) *StashUpdateOne {
+	mutation := newStashMutation(c.config, OpUpdateOne, withStashID(id))
+	return &StashUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Stash.
+func (c *StashClient) Delete() *StashDelete {
+	mutation := newStashMutation(c.config, OpDelete)
+	return &StashDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *StashClient) DeleteOne(_m *Stash) *StashDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *StashClient) DeleteOneID(id int) *StashDeleteOne {
+	builder := c.Delete().Where(stash.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &StashDeleteOne{builder}
+}
+
+// Query returns a query builder for Stash.
+func (c *StashClient) Query() *StashQuery {
+	return &StashQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeStash},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Stash entity by its id.
+func (c *StashClient) Get(ctx context.Context, id int) (*Stash, error) {
+	return c.Query().Where(stash.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *StashClient) GetX(ctx context.Context, id int) *Stash {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Stash.
+func (c *StashClient) QueryUser(_m *Stash) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(stash.Table, stash.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, stash.UserTable, stash.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *StashClient) Hooks() []Hook {
+	return c.hooks.Stash
+}
+
+// Interceptors returns the client interceptors.
+func (c *StashClient) Interceptors() []Interceptor {
+	return c.inters.Stash
+}
+
+func (c *StashClient) mutate(ctx context.Context, m *StashMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&StashCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&StashUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&StashUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&StashDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Stash mutation op: %q", m.Op())
+	}
+}
+
 // TwoFactorActionClient is a client for the TwoFactorAction schema.
 type TwoFactorActionClient struct {
 	config
@@ -1367,6 +1524,22 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	return obj
 }
 
+// QueryStash queries the stash edge of a User.
+func (c *UserClient) QueryStash(_m *User) *StashQuery {
+	query := (&StashClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(stash.Table, stash.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.StashTable, user.StashColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QuerySessions queries the sessions edge of a User.
 func (c *UserClient) QuerySessions(_m *User) *SessionQuery {
 	query := (&SessionClient{config: c.config}).Query()
@@ -1427,11 +1600,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Job, KeyValue, LogEntry, LoginAlert, PeriodicTask, Session, TwoFactorAction,
-		User []ent.Hook
+		Job, KeyValue, LogEntry, LoginAlert, PeriodicTask, Session, Stash,
+		TwoFactorAction, User []ent.Hook
 	}
 	inters struct {
-		Job, KeyValue, LogEntry, LoginAlert, PeriodicTask, Session, TwoFactorAction,
-		User []ent.Interceptor
+		Job, KeyValue, LogEntry, LoginAlert, PeriodicTask, Session, Stash,
+		TwoFactorAction, User []ent.Interceptor
 	}
 )

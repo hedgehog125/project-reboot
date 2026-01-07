@@ -19,6 +19,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/periodictask"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
+	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/twofactoraction"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 	"github.com/google/uuid"
@@ -39,6 +40,7 @@ const (
 	TypeLoginAlert      = "LoginAlert"
 	TypePeriodicTask    = "PeriodicTask"
 	TypeSession         = "Session"
+	TypeStash           = "Stash"
 	TypeTwoFactorAction = "TwoFactorAction"
 	TypeUser            = "User"
 )
@@ -4327,6 +4329,920 @@ func (m *SessionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Session edge %s", name)
 }
 
+// StashMutation represents an operation that mutates the Stash nodes in the graph.
+type StashMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	content        *[]byte
+	fileName       *string
+	mime           *string
+	nonce          *[]byte
+	keySalt        *[]byte
+	hashTime       *uint32
+	addhashTime    *int32
+	hashMemory     *uint32
+	addhashMemory  *int32
+	hashThreads    *uint8
+	addhashThreads *int8
+	clearedFields  map[string]struct{}
+	user           *int
+	cleareduser    bool
+	done           bool
+	oldValue       func(context.Context) (*Stash, error)
+	predicates     []predicate.Stash
+}
+
+var _ ent.Mutation = (*StashMutation)(nil)
+
+// stashOption allows management of the mutation configuration using functional options.
+type stashOption func(*StashMutation)
+
+// newStashMutation creates new mutation for the Stash entity.
+func newStashMutation(c config, op Op, opts ...stashOption) *StashMutation {
+	m := &StashMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeStash,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withStashID sets the ID field of the mutation.
+func withStashID(id int) stashOption {
+	return func(m *StashMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Stash
+		)
+		m.oldValue = func(ctx context.Context) (*Stash, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Stash.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withStash sets the old Stash of the mutation.
+func withStash(node *Stash) stashOption {
+	return func(m *StashMutation) {
+		m.oldValue = func(context.Context) (*Stash, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m StashMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m StashMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *StashMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *StashMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Stash.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetContent sets the "content" field.
+func (m *StashMutation) SetContent(b []byte) {
+	m.content = &b
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *StashMutation) Content() (r []byte, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the Stash entity.
+// If the Stash object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StashMutation) OldContent(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *StashMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetFileName sets the "fileName" field.
+func (m *StashMutation) SetFileName(s string) {
+	m.fileName = &s
+}
+
+// FileName returns the value of the "fileName" field in the mutation.
+func (m *StashMutation) FileName() (r string, exists bool) {
+	v := m.fileName
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileName returns the old "fileName" field's value of the Stash entity.
+// If the Stash object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StashMutation) OldFileName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
+	}
+	return oldValue.FileName, nil
+}
+
+// ResetFileName resets all changes to the "fileName" field.
+func (m *StashMutation) ResetFileName() {
+	m.fileName = nil
+}
+
+// SetMime sets the "mime" field.
+func (m *StashMutation) SetMime(s string) {
+	m.mime = &s
+}
+
+// Mime returns the value of the "mime" field in the mutation.
+func (m *StashMutation) Mime() (r string, exists bool) {
+	v := m.mime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMime returns the old "mime" field's value of the Stash entity.
+// If the Stash object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StashMutation) OldMime(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMime: %w", err)
+	}
+	return oldValue.Mime, nil
+}
+
+// ResetMime resets all changes to the "mime" field.
+func (m *StashMutation) ResetMime() {
+	m.mime = nil
+}
+
+// SetNonce sets the "nonce" field.
+func (m *StashMutation) SetNonce(b []byte) {
+	m.nonce = &b
+}
+
+// Nonce returns the value of the "nonce" field in the mutation.
+func (m *StashMutation) Nonce() (r []byte, exists bool) {
+	v := m.nonce
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNonce returns the old "nonce" field's value of the Stash entity.
+// If the Stash object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StashMutation) OldNonce(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNonce is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNonce requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNonce: %w", err)
+	}
+	return oldValue.Nonce, nil
+}
+
+// ResetNonce resets all changes to the "nonce" field.
+func (m *StashMutation) ResetNonce() {
+	m.nonce = nil
+}
+
+// SetKeySalt sets the "keySalt" field.
+func (m *StashMutation) SetKeySalt(b []byte) {
+	m.keySalt = &b
+}
+
+// KeySalt returns the value of the "keySalt" field in the mutation.
+func (m *StashMutation) KeySalt() (r []byte, exists bool) {
+	v := m.keySalt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKeySalt returns the old "keySalt" field's value of the Stash entity.
+// If the Stash object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StashMutation) OldKeySalt(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKeySalt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKeySalt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKeySalt: %w", err)
+	}
+	return oldValue.KeySalt, nil
+}
+
+// ResetKeySalt resets all changes to the "keySalt" field.
+func (m *StashMutation) ResetKeySalt() {
+	m.keySalt = nil
+}
+
+// SetHashTime sets the "hashTime" field.
+func (m *StashMutation) SetHashTime(u uint32) {
+	m.hashTime = &u
+	m.addhashTime = nil
+}
+
+// HashTime returns the value of the "hashTime" field in the mutation.
+func (m *StashMutation) HashTime() (r uint32, exists bool) {
+	v := m.hashTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHashTime returns the old "hashTime" field's value of the Stash entity.
+// If the Stash object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StashMutation) OldHashTime(ctx context.Context) (v uint32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHashTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHashTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHashTime: %w", err)
+	}
+	return oldValue.HashTime, nil
+}
+
+// AddHashTime adds u to the "hashTime" field.
+func (m *StashMutation) AddHashTime(u int32) {
+	if m.addhashTime != nil {
+		*m.addhashTime += u
+	} else {
+		m.addhashTime = &u
+	}
+}
+
+// AddedHashTime returns the value that was added to the "hashTime" field in this mutation.
+func (m *StashMutation) AddedHashTime() (r int32, exists bool) {
+	v := m.addhashTime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHashTime resets all changes to the "hashTime" field.
+func (m *StashMutation) ResetHashTime() {
+	m.hashTime = nil
+	m.addhashTime = nil
+}
+
+// SetHashMemory sets the "hashMemory" field.
+func (m *StashMutation) SetHashMemory(u uint32) {
+	m.hashMemory = &u
+	m.addhashMemory = nil
+}
+
+// HashMemory returns the value of the "hashMemory" field in the mutation.
+func (m *StashMutation) HashMemory() (r uint32, exists bool) {
+	v := m.hashMemory
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHashMemory returns the old "hashMemory" field's value of the Stash entity.
+// If the Stash object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StashMutation) OldHashMemory(ctx context.Context) (v uint32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHashMemory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHashMemory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHashMemory: %w", err)
+	}
+	return oldValue.HashMemory, nil
+}
+
+// AddHashMemory adds u to the "hashMemory" field.
+func (m *StashMutation) AddHashMemory(u int32) {
+	if m.addhashMemory != nil {
+		*m.addhashMemory += u
+	} else {
+		m.addhashMemory = &u
+	}
+}
+
+// AddedHashMemory returns the value that was added to the "hashMemory" field in this mutation.
+func (m *StashMutation) AddedHashMemory() (r int32, exists bool) {
+	v := m.addhashMemory
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHashMemory resets all changes to the "hashMemory" field.
+func (m *StashMutation) ResetHashMemory() {
+	m.hashMemory = nil
+	m.addhashMemory = nil
+}
+
+// SetHashThreads sets the "hashThreads" field.
+func (m *StashMutation) SetHashThreads(u uint8) {
+	m.hashThreads = &u
+	m.addhashThreads = nil
+}
+
+// HashThreads returns the value of the "hashThreads" field in the mutation.
+func (m *StashMutation) HashThreads() (r uint8, exists bool) {
+	v := m.hashThreads
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHashThreads returns the old "hashThreads" field's value of the Stash entity.
+// If the Stash object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StashMutation) OldHashThreads(ctx context.Context) (v uint8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHashThreads is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHashThreads requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHashThreads: %w", err)
+	}
+	return oldValue.HashThreads, nil
+}
+
+// AddHashThreads adds u to the "hashThreads" field.
+func (m *StashMutation) AddHashThreads(u int8) {
+	if m.addhashThreads != nil {
+		*m.addhashThreads += u
+	} else {
+		m.addhashThreads = &u
+	}
+}
+
+// AddedHashThreads returns the value that was added to the "hashThreads" field in this mutation.
+func (m *StashMutation) AddedHashThreads() (r int8, exists bool) {
+	v := m.addhashThreads
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHashThreads resets all changes to the "hashThreads" field.
+func (m *StashMutation) ResetHashThreads() {
+	m.hashThreads = nil
+	m.addhashThreads = nil
+}
+
+// SetUserID sets the "userID" field.
+func (m *StashMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "userID" field in the mutation.
+func (m *StashMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "userID" field's value of the Stash entity.
+// If the Stash object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *StashMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "userID" field.
+func (m *StashMutation) ResetUserID() {
+	m.user = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *StashMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[stash.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *StashMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *StashMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *StashMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the StashMutation builder.
+func (m *StashMutation) Where(ps ...predicate.Stash) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the StashMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *StashMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Stash, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *StashMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *StashMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Stash).
+func (m *StashMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *StashMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.content != nil {
+		fields = append(fields, stash.FieldContent)
+	}
+	if m.fileName != nil {
+		fields = append(fields, stash.FieldFileName)
+	}
+	if m.mime != nil {
+		fields = append(fields, stash.FieldMime)
+	}
+	if m.nonce != nil {
+		fields = append(fields, stash.FieldNonce)
+	}
+	if m.keySalt != nil {
+		fields = append(fields, stash.FieldKeySalt)
+	}
+	if m.hashTime != nil {
+		fields = append(fields, stash.FieldHashTime)
+	}
+	if m.hashMemory != nil {
+		fields = append(fields, stash.FieldHashMemory)
+	}
+	if m.hashThreads != nil {
+		fields = append(fields, stash.FieldHashThreads)
+	}
+	if m.user != nil {
+		fields = append(fields, stash.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *StashMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case stash.FieldContent:
+		return m.Content()
+	case stash.FieldFileName:
+		return m.FileName()
+	case stash.FieldMime:
+		return m.Mime()
+	case stash.FieldNonce:
+		return m.Nonce()
+	case stash.FieldKeySalt:
+		return m.KeySalt()
+	case stash.FieldHashTime:
+		return m.HashTime()
+	case stash.FieldHashMemory:
+		return m.HashMemory()
+	case stash.FieldHashThreads:
+		return m.HashThreads()
+	case stash.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *StashMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case stash.FieldContent:
+		return m.OldContent(ctx)
+	case stash.FieldFileName:
+		return m.OldFileName(ctx)
+	case stash.FieldMime:
+		return m.OldMime(ctx)
+	case stash.FieldNonce:
+		return m.OldNonce(ctx)
+	case stash.FieldKeySalt:
+		return m.OldKeySalt(ctx)
+	case stash.FieldHashTime:
+		return m.OldHashTime(ctx)
+	case stash.FieldHashMemory:
+		return m.OldHashMemory(ctx)
+	case stash.FieldHashThreads:
+		return m.OldHashThreads(ctx)
+	case stash.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown Stash field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *StashMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case stash.FieldContent:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case stash.FieldFileName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileName(v)
+		return nil
+	case stash.FieldMime:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMime(v)
+		return nil
+	case stash.FieldNonce:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNonce(v)
+		return nil
+	case stash.FieldKeySalt:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKeySalt(v)
+		return nil
+	case stash.FieldHashTime:
+		v, ok := value.(uint32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHashTime(v)
+		return nil
+	case stash.FieldHashMemory:
+		v, ok := value.(uint32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHashMemory(v)
+		return nil
+	case stash.FieldHashThreads:
+		v, ok := value.(uint8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHashThreads(v)
+		return nil
+	case stash.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Stash field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *StashMutation) AddedFields() []string {
+	var fields []string
+	if m.addhashTime != nil {
+		fields = append(fields, stash.FieldHashTime)
+	}
+	if m.addhashMemory != nil {
+		fields = append(fields, stash.FieldHashMemory)
+	}
+	if m.addhashThreads != nil {
+		fields = append(fields, stash.FieldHashThreads)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *StashMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case stash.FieldHashTime:
+		return m.AddedHashTime()
+	case stash.FieldHashMemory:
+		return m.AddedHashMemory()
+	case stash.FieldHashThreads:
+		return m.AddedHashThreads()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *StashMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case stash.FieldHashTime:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHashTime(v)
+		return nil
+	case stash.FieldHashMemory:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHashMemory(v)
+		return nil
+	case stash.FieldHashThreads:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHashThreads(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Stash numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *StashMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *StashMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *StashMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Stash nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *StashMutation) ResetField(name string) error {
+	switch name {
+	case stash.FieldContent:
+		m.ResetContent()
+		return nil
+	case stash.FieldFileName:
+		m.ResetFileName()
+		return nil
+	case stash.FieldMime:
+		m.ResetMime()
+		return nil
+	case stash.FieldNonce:
+		m.ResetNonce()
+		return nil
+	case stash.FieldKeySalt:
+		m.ResetKeySalt()
+		return nil
+	case stash.FieldHashTime:
+		m.ResetHashTime()
+		return nil
+	case stash.FieldHashMemory:
+		m.ResetHashMemory()
+		return nil
+	case stash.FieldHashThreads:
+		m.ResetHashThreads()
+		return nil
+	case stash.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown Stash field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *StashMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, stash.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *StashMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case stash.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *StashMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *StashMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *StashMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, stash.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *StashMutation) EdgeCleared(name string) bool {
+	switch name {
+	case stash.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *StashMutation) ClearEdge(name string) error {
+	switch name {
+	case stash.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown Stash unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *StashMutation) ResetEdge(name string) error {
+	switch name {
+	case stash.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown Stash edge %s", name)
+}
+
 // TwoFactorActionMutation represents an operation that mutates the TwoFactorAction nodes in the graph.
 type TwoFactorActionMutation struct {
 	config
@@ -4939,18 +5855,9 @@ type UserMutation struct {
 	locked            *bool
 	lockedUntil       *time.Time
 	sessionsValidFrom *time.Time
-	content           *[]byte
-	fileName          *string
-	mime              *string
-	nonce             *[]byte
-	keySalt           *[]byte
-	hashTime          *uint32
-	addhashTime       *int32
-	hashMemory        *uint32
-	addhashMemory     *int32
-	hashThreads       *uint8
-	addhashThreads    *int8
 	clearedFields     map[string]struct{}
+	stash             *int
+	clearedstash      bool
 	sessions          map[int]struct{}
 	removedsessions   map[int]struct{}
 	clearedsessions   bool
@@ -5289,352 +6196,43 @@ func (m *UserMutation) ResetSessionsValidFrom() {
 	m.sessionsValidFrom = nil
 }
 
-// SetContent sets the "content" field.
-func (m *UserMutation) SetContent(b []byte) {
-	m.content = &b
+// SetStashID sets the "stash" edge to the Stash entity by id.
+func (m *UserMutation) SetStashID(id int) {
+	m.stash = &id
 }
 
-// Content returns the value of the "content" field in the mutation.
-func (m *UserMutation) Content() (r []byte, exists bool) {
-	v := m.content
-	if v == nil {
-		return
-	}
-	return *v, true
+// ClearStash clears the "stash" edge to the Stash entity.
+func (m *UserMutation) ClearStash() {
+	m.clearedstash = true
 }
 
-// OldContent returns the old "content" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldContent(ctx context.Context) (v []byte, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldContent is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldContent requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldContent: %w", err)
-	}
-	return oldValue.Content, nil
+// StashCleared reports if the "stash" edge to the Stash entity was cleared.
+func (m *UserMutation) StashCleared() bool {
+	return m.clearedstash
 }
 
-// ResetContent resets all changes to the "content" field.
-func (m *UserMutation) ResetContent() {
-	m.content = nil
+// StashID returns the "stash" edge ID in the mutation.
+func (m *UserMutation) StashID() (id int, exists bool) {
+	if m.stash != nil {
+		return *m.stash, true
+	}
+	return
 }
 
-// SetFileName sets the "fileName" field.
-func (m *UserMutation) SetFileName(s string) {
-	m.fileName = &s
+// StashIDs returns the "stash" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// StashID instead. It exists only for internal usage by the builders.
+func (m *UserMutation) StashIDs() (ids []int) {
+	if id := m.stash; id != nil {
+		ids = append(ids, *id)
+	}
+	return
 }
 
-// FileName returns the value of the "fileName" field in the mutation.
-func (m *UserMutation) FileName() (r string, exists bool) {
-	v := m.fileName
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFileName returns the old "fileName" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldFileName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFileName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFileName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFileName: %w", err)
-	}
-	return oldValue.FileName, nil
-}
-
-// ResetFileName resets all changes to the "fileName" field.
-func (m *UserMutation) ResetFileName() {
-	m.fileName = nil
-}
-
-// SetMime sets the "mime" field.
-func (m *UserMutation) SetMime(s string) {
-	m.mime = &s
-}
-
-// Mime returns the value of the "mime" field in the mutation.
-func (m *UserMutation) Mime() (r string, exists bool) {
-	v := m.mime
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMime returns the old "mime" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldMime(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMime: %w", err)
-	}
-	return oldValue.Mime, nil
-}
-
-// ResetMime resets all changes to the "mime" field.
-func (m *UserMutation) ResetMime() {
-	m.mime = nil
-}
-
-// SetNonce sets the "nonce" field.
-func (m *UserMutation) SetNonce(b []byte) {
-	m.nonce = &b
-}
-
-// Nonce returns the value of the "nonce" field in the mutation.
-func (m *UserMutation) Nonce() (r []byte, exists bool) {
-	v := m.nonce
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldNonce returns the old "nonce" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldNonce(ctx context.Context) (v []byte, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldNonce is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldNonce requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldNonce: %w", err)
-	}
-	return oldValue.Nonce, nil
-}
-
-// ResetNonce resets all changes to the "nonce" field.
-func (m *UserMutation) ResetNonce() {
-	m.nonce = nil
-}
-
-// SetKeySalt sets the "keySalt" field.
-func (m *UserMutation) SetKeySalt(b []byte) {
-	m.keySalt = &b
-}
-
-// KeySalt returns the value of the "keySalt" field in the mutation.
-func (m *UserMutation) KeySalt() (r []byte, exists bool) {
-	v := m.keySalt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldKeySalt returns the old "keySalt" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldKeySalt(ctx context.Context) (v []byte, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldKeySalt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldKeySalt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldKeySalt: %w", err)
-	}
-	return oldValue.KeySalt, nil
-}
-
-// ResetKeySalt resets all changes to the "keySalt" field.
-func (m *UserMutation) ResetKeySalt() {
-	m.keySalt = nil
-}
-
-// SetHashTime sets the "hashTime" field.
-func (m *UserMutation) SetHashTime(u uint32) {
-	m.hashTime = &u
-	m.addhashTime = nil
-}
-
-// HashTime returns the value of the "hashTime" field in the mutation.
-func (m *UserMutation) HashTime() (r uint32, exists bool) {
-	v := m.hashTime
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHashTime returns the old "hashTime" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldHashTime(ctx context.Context) (v uint32, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHashTime is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHashTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHashTime: %w", err)
-	}
-	return oldValue.HashTime, nil
-}
-
-// AddHashTime adds u to the "hashTime" field.
-func (m *UserMutation) AddHashTime(u int32) {
-	if m.addhashTime != nil {
-		*m.addhashTime += u
-	} else {
-		m.addhashTime = &u
-	}
-}
-
-// AddedHashTime returns the value that was added to the "hashTime" field in this mutation.
-func (m *UserMutation) AddedHashTime() (r int32, exists bool) {
-	v := m.addhashTime
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetHashTime resets all changes to the "hashTime" field.
-func (m *UserMutation) ResetHashTime() {
-	m.hashTime = nil
-	m.addhashTime = nil
-}
-
-// SetHashMemory sets the "hashMemory" field.
-func (m *UserMutation) SetHashMemory(u uint32) {
-	m.hashMemory = &u
-	m.addhashMemory = nil
-}
-
-// HashMemory returns the value of the "hashMemory" field in the mutation.
-func (m *UserMutation) HashMemory() (r uint32, exists bool) {
-	v := m.hashMemory
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHashMemory returns the old "hashMemory" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldHashMemory(ctx context.Context) (v uint32, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHashMemory is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHashMemory requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHashMemory: %w", err)
-	}
-	return oldValue.HashMemory, nil
-}
-
-// AddHashMemory adds u to the "hashMemory" field.
-func (m *UserMutation) AddHashMemory(u int32) {
-	if m.addhashMemory != nil {
-		*m.addhashMemory += u
-	} else {
-		m.addhashMemory = &u
-	}
-}
-
-// AddedHashMemory returns the value that was added to the "hashMemory" field in this mutation.
-func (m *UserMutation) AddedHashMemory() (r int32, exists bool) {
-	v := m.addhashMemory
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetHashMemory resets all changes to the "hashMemory" field.
-func (m *UserMutation) ResetHashMemory() {
-	m.hashMemory = nil
-	m.addhashMemory = nil
-}
-
-// SetHashThreads sets the "hashThreads" field.
-func (m *UserMutation) SetHashThreads(u uint8) {
-	m.hashThreads = &u
-	m.addhashThreads = nil
-}
-
-// HashThreads returns the value of the "hashThreads" field in the mutation.
-func (m *UserMutation) HashThreads() (r uint8, exists bool) {
-	v := m.hashThreads
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHashThreads returns the old "hashThreads" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldHashThreads(ctx context.Context) (v uint8, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHashThreads is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHashThreads requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHashThreads: %w", err)
-	}
-	return oldValue.HashThreads, nil
-}
-
-// AddHashThreads adds u to the "hashThreads" field.
-func (m *UserMutation) AddHashThreads(u int8) {
-	if m.addhashThreads != nil {
-		*m.addhashThreads += u
-	} else {
-		m.addhashThreads = &u
-	}
-}
-
-// AddedHashThreads returns the value that was added to the "hashThreads" field in this mutation.
-func (m *UserMutation) AddedHashThreads() (r int8, exists bool) {
-	v := m.addhashThreads
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetHashThreads resets all changes to the "hashThreads" field.
-func (m *UserMutation) ResetHashThreads() {
-	m.hashThreads = nil
-	m.addhashThreads = nil
+// ResetStash resets all changes to the "stash" edge.
+func (m *UserMutation) ResetStash() {
+	m.stash = nil
+	m.clearedstash = false
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by ids.
@@ -5779,7 +6377,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 6)
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
@@ -5797,30 +6395,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.sessionsValidFrom != nil {
 		fields = append(fields, user.FieldSessionsValidFrom)
-	}
-	if m.content != nil {
-		fields = append(fields, user.FieldContent)
-	}
-	if m.fileName != nil {
-		fields = append(fields, user.FieldFileName)
-	}
-	if m.mime != nil {
-		fields = append(fields, user.FieldMime)
-	}
-	if m.nonce != nil {
-		fields = append(fields, user.FieldNonce)
-	}
-	if m.keySalt != nil {
-		fields = append(fields, user.FieldKeySalt)
-	}
-	if m.hashTime != nil {
-		fields = append(fields, user.FieldHashTime)
-	}
-	if m.hashMemory != nil {
-		fields = append(fields, user.FieldHashMemory)
-	}
-	if m.hashThreads != nil {
-		fields = append(fields, user.FieldHashThreads)
 	}
 	return fields
 }
@@ -5842,22 +6416,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.LockedUntil()
 	case user.FieldSessionsValidFrom:
 		return m.SessionsValidFrom()
-	case user.FieldContent:
-		return m.Content()
-	case user.FieldFileName:
-		return m.FileName()
-	case user.FieldMime:
-		return m.Mime()
-	case user.FieldNonce:
-		return m.Nonce()
-	case user.FieldKeySalt:
-		return m.KeySalt()
-	case user.FieldHashTime:
-		return m.HashTime()
-	case user.FieldHashMemory:
-		return m.HashMemory()
-	case user.FieldHashThreads:
-		return m.HashThreads()
 	}
 	return nil, false
 }
@@ -5879,22 +6437,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldLockedUntil(ctx)
 	case user.FieldSessionsValidFrom:
 		return m.OldSessionsValidFrom(ctx)
-	case user.FieldContent:
-		return m.OldContent(ctx)
-	case user.FieldFileName:
-		return m.OldFileName(ctx)
-	case user.FieldMime:
-		return m.OldMime(ctx)
-	case user.FieldNonce:
-		return m.OldNonce(ctx)
-	case user.FieldKeySalt:
-		return m.OldKeySalt(ctx)
-	case user.FieldHashTime:
-		return m.OldHashTime(ctx)
-	case user.FieldHashMemory:
-		return m.OldHashMemory(ctx)
-	case user.FieldHashThreads:
-		return m.OldHashThreads(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -5946,62 +6488,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSessionsValidFrom(v)
 		return nil
-	case user.FieldContent:
-		v, ok := value.([]byte)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetContent(v)
-		return nil
-	case user.FieldFileName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFileName(v)
-		return nil
-	case user.FieldMime:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMime(v)
-		return nil
-	case user.FieldNonce:
-		v, ok := value.([]byte)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetNonce(v)
-		return nil
-	case user.FieldKeySalt:
-		v, ok := value.([]byte)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetKeySalt(v)
-		return nil
-	case user.FieldHashTime:
-		v, ok := value.(uint32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHashTime(v)
-		return nil
-	case user.FieldHashMemory:
-		v, ok := value.(uint32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHashMemory(v)
-		return nil
-	case user.FieldHashThreads:
-		v, ok := value.(uint8)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHashThreads(v)
-		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -6009,31 +6495,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *UserMutation) AddedFields() []string {
-	var fields []string
-	if m.addhashTime != nil {
-		fields = append(fields, user.FieldHashTime)
-	}
-	if m.addhashMemory != nil {
-		fields = append(fields, user.FieldHashMemory)
-	}
-	if m.addhashThreads != nil {
-		fields = append(fields, user.FieldHashThreads)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case user.FieldHashTime:
-		return m.AddedHashTime()
-	case user.FieldHashMemory:
-		return m.AddedHashMemory()
-	case user.FieldHashThreads:
-		return m.AddedHashThreads()
-	}
 	return nil, false
 }
 
@@ -6042,27 +6510,6 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case user.FieldHashTime:
-		v, ok := value.(int32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddHashTime(v)
-		return nil
-	case user.FieldHashMemory:
-		v, ok := value.(int32)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddHashMemory(v)
-		return nil
-	case user.FieldHashThreads:
-		v, ok := value.(int8)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddHashThreads(v)
-		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
 }
@@ -6117,37 +6564,16 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldSessionsValidFrom:
 		m.ResetSessionsValidFrom()
 		return nil
-	case user.FieldContent:
-		m.ResetContent()
-		return nil
-	case user.FieldFileName:
-		m.ResetFileName()
-		return nil
-	case user.FieldMime:
-		m.ResetMime()
-		return nil
-	case user.FieldNonce:
-		m.ResetNonce()
-		return nil
-	case user.FieldKeySalt:
-		m.ResetKeySalt()
-		return nil
-	case user.FieldHashTime:
-		m.ResetHashTime()
-		return nil
-	case user.FieldHashMemory:
-		m.ResetHashMemory()
-		return nil
-	case user.FieldHashThreads:
-		m.ResetHashThreads()
-		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.stash != nil {
+		edges = append(edges, user.EdgeStash)
+	}
 	if m.sessions != nil {
 		edges = append(edges, user.EdgeSessions)
 	}
@@ -6161,6 +6587,10 @@ func (m *UserMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case user.EdgeStash:
+		if id := m.stash; id != nil {
+			return []ent.Value{*id}
+		}
 	case user.EdgeSessions:
 		ids := make([]ent.Value, 0, len(m.sessions))
 		for id := range m.sessions {
@@ -6179,7 +6609,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedsessions != nil {
 		edges = append(edges, user.EdgeSessions)
 	}
@@ -6211,7 +6641,10 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
+	if m.clearedstash {
+		edges = append(edges, user.EdgeStash)
+	}
 	if m.clearedsessions {
 		edges = append(edges, user.EdgeSessions)
 	}
@@ -6225,6 +6658,8 @@ func (m *UserMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
+	case user.EdgeStash:
+		return m.clearedstash
 	case user.EdgeSessions:
 		return m.clearedsessions
 	case user.EdgeLogs:
@@ -6237,6 +6672,9 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *UserMutation) ClearEdge(name string) error {
 	switch name {
+	case user.EdgeStash:
+		m.ClearStash()
+		return nil
 	}
 	return fmt.Errorf("unknown User unique edge %s", name)
 }
@@ -6245,6 +6683,9 @@ func (m *UserMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
+	case user.EdgeStash:
+		m.ResetStash()
+		return nil
 	case user.EdgeSessions:
 		m.ResetSessions()
 		return nil

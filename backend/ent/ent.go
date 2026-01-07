@@ -18,6 +18,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/loginalert"
 	"github.com/NicoClack/cryptic-stash/backend/ent/periodictask"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
+	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/twofactoraction"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 )
@@ -86,6 +87,7 @@ func checkColumn(t, c string) error {
 			loginalert.Table:      loginalert.ValidColumn,
 			periodictask.Table:    periodictask.ValidColumn,
 			session.Table:         session.ValidColumn,
+			stash.Table:           stash.ValidColumn,
 			twofactoraction.Table: twofactoraction.ValidColumn,
 			user.Table:            user.ValidColumn,
 		})

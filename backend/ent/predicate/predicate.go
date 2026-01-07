@@ -24,6 +24,9 @@ type PeriodicTask func(*sql.Selector)
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)
 
+// Stash is the predicate function for stash builders.
+type Stash func(*sql.Selector)
+
 // TwoFactorAction is the predicate function for twofactoraction builders.
 type TwoFactorAction func(*sql.Selector)
 

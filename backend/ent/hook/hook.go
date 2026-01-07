@@ -81,6 +81,18 @@ func (f SessionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SessionMutation", m)
 }
 
+// The StashFunc type is an adapter to allow the use of ordinary
+// function as Stash mutator.
+type StashFunc func(context.Context, *ent.StashMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f StashFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.StashMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StashMutation", m)
+}
+
 // The TwoFactorActionFunc type is an adapter to allow the use of ordinary
 // function as TwoFactorAction mutator.
 type TwoFactorActionFunc func(context.Context, *ent.TwoFactorActionMutation) (ent.Value, error)

@@ -10,6 +10,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/periodictask"
 	"github.com/NicoClack/cryptic-stash/backend/ent/schema"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
+	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/twofactoraction"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 	"github.com/google/uuid"
@@ -127,6 +128,28 @@ func init() {
 	sessionDescCode := sessionFields[1].Descriptor()
 	// session.CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	session.CodeValidator = sessionDescCode.Validators[0].(func([]byte) error)
+	stashFields := schema.Stash{}.Fields()
+	_ = stashFields
+	// stashDescContent is the schema descriptor for content field.
+	stashDescContent := stashFields[0].Descriptor()
+	// stash.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	stash.ContentValidator = stashDescContent.Validators[0].(func([]byte) error)
+	// stashDescFileName is the schema descriptor for fileName field.
+	stashDescFileName := stashFields[1].Descriptor()
+	// stash.FileNameValidator is a validator for the "fileName" field. It is called by the builders before save.
+	stash.FileNameValidator = stashDescFileName.Validators[0].(func(string) error)
+	// stashDescMime is the schema descriptor for mime field.
+	stashDescMime := stashFields[2].Descriptor()
+	// stash.MimeValidator is a validator for the "mime" field. It is called by the builders before save.
+	stash.MimeValidator = stashDescMime.Validators[0].(func(string) error)
+	// stashDescNonce is the schema descriptor for nonce field.
+	stashDescNonce := stashFields[3].Descriptor()
+	// stash.NonceValidator is a validator for the "nonce" field. It is called by the builders before save.
+	stash.NonceValidator = stashDescNonce.Validators[0].(func([]byte) error)
+	// stashDescKeySalt is the schema descriptor for keySalt field.
+	stashDescKeySalt := stashFields[4].Descriptor()
+	// stash.KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
+	stash.KeySaltValidator = stashDescKeySalt.Validators[0].(func([]byte) error)
 	twofactoractionFields := schema.TwoFactorAction{}.Fields()
 	_ = twofactoractionFields
 	// twofactoractionDescType is the schema descriptor for type field.
@@ -187,24 +210,4 @@ func init() {
 	userDescLocked := userFields[3].Descriptor()
 	// user.DefaultLocked holds the default value on creation for the locked field.
 	user.DefaultLocked = userDescLocked.Default.(bool)
-	// userDescContent is the schema descriptor for content field.
-	userDescContent := userFields[6].Descriptor()
-	// user.ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	user.ContentValidator = userDescContent.Validators[0].(func([]byte) error)
-	// userDescFileName is the schema descriptor for fileName field.
-	userDescFileName := userFields[7].Descriptor()
-	// user.FileNameValidator is a validator for the "fileName" field. It is called by the builders before save.
-	user.FileNameValidator = userDescFileName.Validators[0].(func(string) error)
-	// userDescMime is the schema descriptor for mime field.
-	userDescMime := userFields[8].Descriptor()
-	// user.MimeValidator is a validator for the "mime" field. It is called by the builders before save.
-	user.MimeValidator = userDescMime.Validators[0].(func(string) error)
-	// userDescNonce is the schema descriptor for nonce field.
-	userDescNonce := userFields[9].Descriptor()
-	// user.NonceValidator is a validator for the "nonce" field. It is called by the builders before save.
-	user.NonceValidator = userDescNonce.Validators[0].(func([]byte) error)
-	// userDescKeySalt is the schema descriptor for keySalt field.
-	userDescKeySalt := userFields[10].Descriptor()
-	// user.KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
-	user.KeySaltValidator = userDescKeySalt.Validators[0].(func([]byte) error)
 }

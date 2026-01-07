@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/NicoClack/cryptic-stash/backend/ent/logentry"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
+	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 	"github.com/google/uuid"
 )
@@ -93,52 +94,23 @@ func (_c *UserCreate) SetSessionsValidFrom(v time.Time) *UserCreate {
 	return _c
 }
 
-// SetContent sets the "content" field.
-func (_c *UserCreate) SetContent(v []byte) *UserCreate {
-	_c.mutation.SetContent(v)
+// SetStashID sets the "stash" edge to the Stash entity by ID.
+func (_c *UserCreate) SetStashID(id int) *UserCreate {
+	_c.mutation.SetStashID(id)
 	return _c
 }
 
-// SetFileName sets the "fileName" field.
-func (_c *UserCreate) SetFileName(v string) *UserCreate {
-	_c.mutation.SetFileName(v)
+// SetNillableStashID sets the "stash" edge to the Stash entity by ID if the given value is not nil.
+func (_c *UserCreate) SetNillableStashID(id *int) *UserCreate {
+	if id != nil {
+		_c = _c.SetStashID(*id)
+	}
 	return _c
 }
 
-// SetMime sets the "mime" field.
-func (_c *UserCreate) SetMime(v string) *UserCreate {
-	_c.mutation.SetMime(v)
-	return _c
-}
-
-// SetNonce sets the "nonce" field.
-func (_c *UserCreate) SetNonce(v []byte) *UserCreate {
-	_c.mutation.SetNonce(v)
-	return _c
-}
-
-// SetKeySalt sets the "keySalt" field.
-func (_c *UserCreate) SetKeySalt(v []byte) *UserCreate {
-	_c.mutation.SetKeySalt(v)
-	return _c
-}
-
-// SetHashTime sets the "hashTime" field.
-func (_c *UserCreate) SetHashTime(v uint32) *UserCreate {
-	_c.mutation.SetHashTime(v)
-	return _c
-}
-
-// SetHashMemory sets the "hashMemory" field.
-func (_c *UserCreate) SetHashMemory(v uint32) *UserCreate {
-	_c.mutation.SetHashMemory(v)
-	return _c
-}
-
-// SetHashThreads sets the "hashThreads" field.
-func (_c *UserCreate) SetHashThreads(v uint8) *UserCreate {
-	_c.mutation.SetHashThreads(v)
-	return _c
+// SetStash sets the "stash" edge to the Stash entity.
+func (_c *UserCreate) SetStash(v *Stash) *UserCreate {
+	return _c.SetStashID(v.ID)
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
@@ -242,55 +214,6 @@ func (_c *UserCreate) check() error {
 	if _, ok := _c.mutation.SessionsValidFrom(); !ok {
 		return &ValidationError{Name: "sessionsValidFrom", err: errors.New(`ent: missing required field "User.sessionsValidFrom"`)}
 	}
-	if _, ok := _c.mutation.Content(); !ok {
-		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "User.content"`)}
-	}
-	if v, ok := _c.mutation.Content(); ok {
-		if err := user.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "User.content": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.FileName(); !ok {
-		return &ValidationError{Name: "fileName", err: errors.New(`ent: missing required field "User.fileName"`)}
-	}
-	if v, ok := _c.mutation.FileName(); ok {
-		if err := user.FileNameValidator(v); err != nil {
-			return &ValidationError{Name: "fileName", err: fmt.Errorf(`ent: validator failed for field "User.fileName": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Mime(); !ok {
-		return &ValidationError{Name: "mime", err: errors.New(`ent: missing required field "User.mime"`)}
-	}
-	if v, ok := _c.mutation.Mime(); ok {
-		if err := user.MimeValidator(v); err != nil {
-			return &ValidationError{Name: "mime", err: fmt.Errorf(`ent: validator failed for field "User.mime": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Nonce(); !ok {
-		return &ValidationError{Name: "nonce", err: errors.New(`ent: missing required field "User.nonce"`)}
-	}
-	if v, ok := _c.mutation.Nonce(); ok {
-		if err := user.NonceValidator(v); err != nil {
-			return &ValidationError{Name: "nonce", err: fmt.Errorf(`ent: validator failed for field "User.nonce": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.KeySalt(); !ok {
-		return &ValidationError{Name: "keySalt", err: errors.New(`ent: missing required field "User.keySalt"`)}
-	}
-	if v, ok := _c.mutation.KeySalt(); ok {
-		if err := user.KeySaltValidator(v); err != nil {
-			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.HashTime(); !ok {
-		return &ValidationError{Name: "hashTime", err: errors.New(`ent: missing required field "User.hashTime"`)}
-	}
-	if _, ok := _c.mutation.HashMemory(); !ok {
-		return &ValidationError{Name: "hashMemory", err: errors.New(`ent: missing required field "User.hashMemory"`)}
-	}
-	if _, ok := _c.mutation.HashThreads(); !ok {
-		return &ValidationError{Name: "hashThreads", err: errors.New(`ent: missing required field "User.hashThreads"`)}
-	}
 	return nil
 }
 
@@ -342,37 +265,21 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldSessionsValidFrom, field.TypeTime, value)
 		_node.SessionsValidFrom = value
 	}
-	if value, ok := _c.mutation.Content(); ok {
-		_spec.SetField(user.FieldContent, field.TypeBytes, value)
-		_node.Content = value
-	}
-	if value, ok := _c.mutation.FileName(); ok {
-		_spec.SetField(user.FieldFileName, field.TypeString, value)
-		_node.FileName = value
-	}
-	if value, ok := _c.mutation.Mime(); ok {
-		_spec.SetField(user.FieldMime, field.TypeString, value)
-		_node.Mime = value
-	}
-	if value, ok := _c.mutation.Nonce(); ok {
-		_spec.SetField(user.FieldNonce, field.TypeBytes, value)
-		_node.Nonce = value
-	}
-	if value, ok := _c.mutation.KeySalt(); ok {
-		_spec.SetField(user.FieldKeySalt, field.TypeBytes, value)
-		_node.KeySalt = value
-	}
-	if value, ok := _c.mutation.HashTime(); ok {
-		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
-		_node.HashTime = value
-	}
-	if value, ok := _c.mutation.HashMemory(); ok {
-		_spec.SetField(user.FieldHashMemory, field.TypeUint32, value)
-		_node.HashMemory = value
-	}
-	if value, ok := _c.mutation.HashThreads(); ok {
-		_spec.SetField(user.FieldHashThreads, field.TypeUint8, value)
-		_node.HashThreads = value
+	if nodes := _c.mutation.StashIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.StashTable,
+			Columns: []string{user.StashColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.SessionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -536,120 +443,6 @@ func (u *UserUpsert) UpdateSessionsValidFrom() *UserUpsert {
 	return u
 }
 
-// SetContent sets the "content" field.
-func (u *UserUpsert) SetContent(v []byte) *UserUpsert {
-	u.Set(user.FieldContent, v)
-	return u
-}
-
-// UpdateContent sets the "content" field to the value that was provided on create.
-func (u *UserUpsert) UpdateContent() *UserUpsert {
-	u.SetExcluded(user.FieldContent)
-	return u
-}
-
-// SetFileName sets the "fileName" field.
-func (u *UserUpsert) SetFileName(v string) *UserUpsert {
-	u.Set(user.FieldFileName, v)
-	return u
-}
-
-// UpdateFileName sets the "fileName" field to the value that was provided on create.
-func (u *UserUpsert) UpdateFileName() *UserUpsert {
-	u.SetExcluded(user.FieldFileName)
-	return u
-}
-
-// SetMime sets the "mime" field.
-func (u *UserUpsert) SetMime(v string) *UserUpsert {
-	u.Set(user.FieldMime, v)
-	return u
-}
-
-// UpdateMime sets the "mime" field to the value that was provided on create.
-func (u *UserUpsert) UpdateMime() *UserUpsert {
-	u.SetExcluded(user.FieldMime)
-	return u
-}
-
-// SetNonce sets the "nonce" field.
-func (u *UserUpsert) SetNonce(v []byte) *UserUpsert {
-	u.Set(user.FieldNonce, v)
-	return u
-}
-
-// UpdateNonce sets the "nonce" field to the value that was provided on create.
-func (u *UserUpsert) UpdateNonce() *UserUpsert {
-	u.SetExcluded(user.FieldNonce)
-	return u
-}
-
-// SetKeySalt sets the "keySalt" field.
-func (u *UserUpsert) SetKeySalt(v []byte) *UserUpsert {
-	u.Set(user.FieldKeySalt, v)
-	return u
-}
-
-// UpdateKeySalt sets the "keySalt" field to the value that was provided on create.
-func (u *UserUpsert) UpdateKeySalt() *UserUpsert {
-	u.SetExcluded(user.FieldKeySalt)
-	return u
-}
-
-// SetHashTime sets the "hashTime" field.
-func (u *UserUpsert) SetHashTime(v uint32) *UserUpsert {
-	u.Set(user.FieldHashTime, v)
-	return u
-}
-
-// UpdateHashTime sets the "hashTime" field to the value that was provided on create.
-func (u *UserUpsert) UpdateHashTime() *UserUpsert {
-	u.SetExcluded(user.FieldHashTime)
-	return u
-}
-
-// AddHashTime adds v to the "hashTime" field.
-func (u *UserUpsert) AddHashTime(v uint32) *UserUpsert {
-	u.Add(user.FieldHashTime, v)
-	return u
-}
-
-// SetHashMemory sets the "hashMemory" field.
-func (u *UserUpsert) SetHashMemory(v uint32) *UserUpsert {
-	u.Set(user.FieldHashMemory, v)
-	return u
-}
-
-// UpdateHashMemory sets the "hashMemory" field to the value that was provided on create.
-func (u *UserUpsert) UpdateHashMemory() *UserUpsert {
-	u.SetExcluded(user.FieldHashMemory)
-	return u
-}
-
-// AddHashMemory adds v to the "hashMemory" field.
-func (u *UserUpsert) AddHashMemory(v uint32) *UserUpsert {
-	u.Add(user.FieldHashMemory, v)
-	return u
-}
-
-// SetHashThreads sets the "hashThreads" field.
-func (u *UserUpsert) SetHashThreads(v uint8) *UserUpsert {
-	u.Set(user.FieldHashThreads, v)
-	return u
-}
-
-// UpdateHashThreads sets the "hashThreads" field to the value that was provided on create.
-func (u *UserUpsert) UpdateHashThreads() *UserUpsert {
-	u.SetExcluded(user.FieldHashThreads)
-	return u
-}
-
-// AddHashThreads adds v to the "hashThreads" field.
-func (u *UserUpsert) AddHashThreads(v uint8) *UserUpsert {
-	u.Add(user.FieldHashThreads, v)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -778,139 +571,6 @@ func (u *UserUpsertOne) SetSessionsValidFrom(v time.Time) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateSessionsValidFrom() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateSessionsValidFrom()
-	})
-}
-
-// SetContent sets the "content" field.
-func (u *UserUpsertOne) SetContent(v []byte) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetContent(v)
-	})
-}
-
-// UpdateContent sets the "content" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateContent() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateContent()
-	})
-}
-
-// SetFileName sets the "fileName" field.
-func (u *UserUpsertOne) SetFileName(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetFileName(v)
-	})
-}
-
-// UpdateFileName sets the "fileName" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateFileName() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateFileName()
-	})
-}
-
-// SetMime sets the "mime" field.
-func (u *UserUpsertOne) SetMime(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetMime(v)
-	})
-}
-
-// UpdateMime sets the "mime" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateMime() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateMime()
-	})
-}
-
-// SetNonce sets the "nonce" field.
-func (u *UserUpsertOne) SetNonce(v []byte) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetNonce(v)
-	})
-}
-
-// UpdateNonce sets the "nonce" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateNonce() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateNonce()
-	})
-}
-
-// SetKeySalt sets the "keySalt" field.
-func (u *UserUpsertOne) SetKeySalt(v []byte) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetKeySalt(v)
-	})
-}
-
-// UpdateKeySalt sets the "keySalt" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateKeySalt() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateKeySalt()
-	})
-}
-
-// SetHashTime sets the "hashTime" field.
-func (u *UserUpsertOne) SetHashTime(v uint32) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetHashTime(v)
-	})
-}
-
-// AddHashTime adds v to the "hashTime" field.
-func (u *UserUpsertOne) AddHashTime(v uint32) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.AddHashTime(v)
-	})
-}
-
-// UpdateHashTime sets the "hashTime" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateHashTime() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashTime()
-	})
-}
-
-// SetHashMemory sets the "hashMemory" field.
-func (u *UserUpsertOne) SetHashMemory(v uint32) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetHashMemory(v)
-	})
-}
-
-// AddHashMemory adds v to the "hashMemory" field.
-func (u *UserUpsertOne) AddHashMemory(v uint32) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.AddHashMemory(v)
-	})
-}
-
-// UpdateHashMemory sets the "hashMemory" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateHashMemory() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashMemory()
-	})
-}
-
-// SetHashThreads sets the "hashThreads" field.
-func (u *UserUpsertOne) SetHashThreads(v uint8) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetHashThreads(v)
-	})
-}
-
-// AddHashThreads adds v to the "hashThreads" field.
-func (u *UserUpsertOne) AddHashThreads(v uint8) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.AddHashThreads(v)
-	})
-}
-
-// UpdateHashThreads sets the "hashThreads" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateHashThreads() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashThreads()
 	})
 }
 
@@ -1206,139 +866,6 @@ func (u *UserUpsertBulk) SetSessionsValidFrom(v time.Time) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateSessionsValidFrom() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateSessionsValidFrom()
-	})
-}
-
-// SetContent sets the "content" field.
-func (u *UserUpsertBulk) SetContent(v []byte) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetContent(v)
-	})
-}
-
-// UpdateContent sets the "content" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateContent() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateContent()
-	})
-}
-
-// SetFileName sets the "fileName" field.
-func (u *UserUpsertBulk) SetFileName(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetFileName(v)
-	})
-}
-
-// UpdateFileName sets the "fileName" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateFileName() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateFileName()
-	})
-}
-
-// SetMime sets the "mime" field.
-func (u *UserUpsertBulk) SetMime(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetMime(v)
-	})
-}
-
-// UpdateMime sets the "mime" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateMime() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateMime()
-	})
-}
-
-// SetNonce sets the "nonce" field.
-func (u *UserUpsertBulk) SetNonce(v []byte) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetNonce(v)
-	})
-}
-
-// UpdateNonce sets the "nonce" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateNonce() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateNonce()
-	})
-}
-
-// SetKeySalt sets the "keySalt" field.
-func (u *UserUpsertBulk) SetKeySalt(v []byte) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetKeySalt(v)
-	})
-}
-
-// UpdateKeySalt sets the "keySalt" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateKeySalt() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateKeySalt()
-	})
-}
-
-// SetHashTime sets the "hashTime" field.
-func (u *UserUpsertBulk) SetHashTime(v uint32) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetHashTime(v)
-	})
-}
-
-// AddHashTime adds v to the "hashTime" field.
-func (u *UserUpsertBulk) AddHashTime(v uint32) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.AddHashTime(v)
-	})
-}
-
-// UpdateHashTime sets the "hashTime" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateHashTime() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashTime()
-	})
-}
-
-// SetHashMemory sets the "hashMemory" field.
-func (u *UserUpsertBulk) SetHashMemory(v uint32) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetHashMemory(v)
-	})
-}
-
-// AddHashMemory adds v to the "hashMemory" field.
-func (u *UserUpsertBulk) AddHashMemory(v uint32) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.AddHashMemory(v)
-	})
-}
-
-// UpdateHashMemory sets the "hashMemory" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateHashMemory() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashMemory()
-	})
-}
-
-// SetHashThreads sets the "hashThreads" field.
-func (u *UserUpsertBulk) SetHashThreads(v uint8) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetHashThreads(v)
-	})
-}
-
-// AddHashThreads adds v to the "hashThreads" field.
-func (u *UserUpsertBulk) AddHashThreads(v uint8) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.AddHashThreads(v)
-	})
-}
-
-// UpdateHashThreads sets the "hashThreads" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateHashThreads() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateHashThreads()
 	})
 }
 

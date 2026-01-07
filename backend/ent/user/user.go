@@ -24,28 +24,21 @@ const (
 	FieldLockedUntil = "locked_until"
 	// FieldSessionsValidFrom holds the string denoting the sessionsvalidfrom field in the database.
 	FieldSessionsValidFrom = "sessions_valid_from"
-	// FieldContent holds the string denoting the content field in the database.
-	FieldContent = "content"
-	// FieldFileName holds the string denoting the filename field in the database.
-	FieldFileName = "file_name"
-	// FieldMime holds the string denoting the mime field in the database.
-	FieldMime = "mime"
-	// FieldNonce holds the string denoting the nonce field in the database.
-	FieldNonce = "nonce"
-	// FieldKeySalt holds the string denoting the keysalt field in the database.
-	FieldKeySalt = "key_salt"
-	// FieldHashTime holds the string denoting the hashtime field in the database.
-	FieldHashTime = "hash_time"
-	// FieldHashMemory holds the string denoting the hashmemory field in the database.
-	FieldHashMemory = "hash_memory"
-	// FieldHashThreads holds the string denoting the hashthreads field in the database.
-	FieldHashThreads = "hash_threads"
+	// EdgeStash holds the string denoting the stash edge name in mutations.
+	EdgeStash = "stash"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
 	// EdgeLogs holds the string denoting the logs edge name in mutations.
 	EdgeLogs = "logs"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// StashTable is the table that holds the stash relation/edge.
+	StashTable = "stashes"
+	// StashInverseTable is the table name for the Stash entity.
+	// It exists in this package in order to avoid circular dependency with the "stash" package.
+	StashInverseTable = "stashes"
+	// StashColumn is the table column denoting the stash relation/edge.
+	StashColumn = "user_id"
 	// SessionsTable is the table that holds the sessions relation/edge.
 	SessionsTable = "sessions"
 	// SessionsInverseTable is the table name for the Session entity.
@@ -71,14 +64,6 @@ var Columns = []string{
 	FieldLocked,
 	FieldLockedUntil,
 	FieldSessionsValidFrom,
-	FieldContent,
-	FieldFileName,
-	FieldMime,
-	FieldNonce,
-	FieldKeySalt,
-	FieldHashTime,
-	FieldHashMemory,
-	FieldHashThreads,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -100,16 +85,6 @@ var (
 	DefaultAlertEmail string
 	// DefaultLocked holds the default value on creation for the "locked" field.
 	DefaultLocked bool
-	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	ContentValidator func([]byte) error
-	// FileNameValidator is a validator for the "fileName" field. It is called by the builders before save.
-	FileNameValidator func(string) error
-	// MimeValidator is a validator for the "mime" field. It is called by the builders before save.
-	MimeValidator func(string) error
-	// NonceValidator is a validator for the "nonce" field. It is called by the builders before save.
-	NonceValidator func([]byte) error
-	// KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
-	KeySaltValidator func([]byte) error
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -150,29 +125,11 @@ func BySessionsValidFrom(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSessionsValidFrom, opts...).ToFunc()
 }
 
-// ByFileName orders the results by the fileName field.
-func ByFileName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFileName, opts...).ToFunc()
-}
-
-// ByMime orders the results by the mime field.
-func ByMime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldMime, opts...).ToFunc()
-}
-
-// ByHashTime orders the results by the hashTime field.
-func ByHashTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldHashTime, opts...).ToFunc()
-}
-
-// ByHashMemory orders the results by the hashMemory field.
-func ByHashMemory(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldHashMemory, opts...).ToFunc()
-}
-
-// ByHashThreads orders the results by the hashThreads field.
-func ByHashThreads(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldHashThreads, opts...).ToFunc()
+// ByStashField orders the results by stash field.
+func ByStashField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStashStep(), sql.OrderByField(field, opts...))
+	}
 }
 
 // BySessionsCount orders the results by sessions count.
@@ -201,6 +158,13 @@ func ByLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
+}
+func newStashStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StashInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, StashTable, StashColumn),
+	)
 }
 func newSessionsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

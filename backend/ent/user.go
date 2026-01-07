@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 )
 
@@ -29,22 +30,6 @@ type User struct {
 	LockedUntil *time.Time `json:"lockedUntil,omitempty"`
 	// SessionsValidFrom holds the value of the "sessionsValidFrom" field.
 	SessionsValidFrom time.Time `json:"sessionsValidFrom,omitempty"`
-	// Content holds the value of the "content" field.
-	Content []byte `json:"content,omitempty"`
-	// FileName holds the value of the "fileName" field.
-	FileName string `json:"fileName,omitempty"`
-	// Mime holds the value of the "mime" field.
-	Mime string `json:"mime,omitempty"`
-	// Nonce holds the value of the "nonce" field.
-	Nonce []byte `json:"nonce,omitempty"`
-	// KeySalt holds the value of the "keySalt" field.
-	KeySalt []byte `json:"keySalt,omitempty"`
-	// HashTime holds the value of the "hashTime" field.
-	HashTime uint32 `json:"hashTime,omitempty"`
-	// HashMemory holds the value of the "hashMemory" field.
-	HashMemory uint32 `json:"hashMemory,omitempty"`
-	// HashThreads holds the value of the "hashThreads" field.
-	HashThreads uint8 `json:"hashThreads,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -53,19 +38,32 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
+	// Stash holds the value of the stash edge.
+	Stash *Stash `json:"stash,omitempty"`
 	// Sessions holds the value of the sessions edge.
 	Sessions []*Session `json:"sessions,omitempty"`
 	// Logs holds the value of the logs edge.
 	Logs []*LogEntry `json:"logs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
+}
+
+// StashOrErr returns the Stash value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) StashOrErr() (*Stash, error) {
+	if e.Stash != nil {
+		return e.Stash, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: stash.Label}
+	}
+	return nil, &NotLoadedError{edge: "stash"}
 }
 
 // SessionsOrErr returns the Sessions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) SessionsOrErr() ([]*Session, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Sessions, nil
 	}
 	return nil, &NotLoadedError{edge: "sessions"}
@@ -74,7 +72,7 @@ func (e UserEdges) SessionsOrErr() ([]*Session, error) {
 // LogsOrErr returns the Logs value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) LogsOrErr() ([]*LogEntry, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Logs, nil
 	}
 	return nil, &NotLoadedError{edge: "logs"}
@@ -85,13 +83,11 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldContent, user.FieldNonce, user.FieldKeySalt:
-			values[i] = new([]byte)
 		case user.FieldLocked:
 			values[i] = new(sql.NullBool)
-		case user.FieldID, user.FieldHashTime, user.FieldHashMemory, user.FieldHashThreads:
+		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUsername, user.FieldAlertDiscordId, user.FieldAlertEmail, user.FieldFileName, user.FieldMime:
+		case user.FieldUsername, user.FieldAlertDiscordId, user.FieldAlertEmail:
 			values[i] = new(sql.NullString)
 		case user.FieldLockedUntil, user.FieldSessionsValidFrom:
 			values[i] = new(sql.NullTime)
@@ -153,54 +149,6 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.SessionsValidFrom = value.Time
 			}
-		case user.FieldContent:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field content", values[i])
-			} else if value != nil {
-				_m.Content = *value
-			}
-		case user.FieldFileName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field fileName", values[i])
-			} else if value.Valid {
-				_m.FileName = value.String
-			}
-		case user.FieldMime:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field mime", values[i])
-			} else if value.Valid {
-				_m.Mime = value.String
-			}
-		case user.FieldNonce:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field nonce", values[i])
-			} else if value != nil {
-				_m.Nonce = *value
-			}
-		case user.FieldKeySalt:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field keySalt", values[i])
-			} else if value != nil {
-				_m.KeySalt = *value
-			}
-		case user.FieldHashTime:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field hashTime", values[i])
-			} else if value.Valid {
-				_m.HashTime = uint32(value.Int64)
-			}
-		case user.FieldHashMemory:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field hashMemory", values[i])
-			} else if value.Valid {
-				_m.HashMemory = uint32(value.Int64)
-			}
-		case user.FieldHashThreads:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field hashThreads", values[i])
-			} else if value.Valid {
-				_m.HashThreads = uint8(value.Int64)
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -212,6 +160,11 @@ func (_m *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *User) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryStash queries the "stash" edge of the User entity.
+func (_m *User) QueryStash() *StashQuery {
+	return NewUserClient(_m.config).QueryStash(_m)
 }
 
 // QuerySessions queries the "sessions" edge of the User entity.
@@ -266,30 +219,6 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("sessionsValidFrom=")
 	builder.WriteString(_m.SessionsValidFrom.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("content=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Content))
-	builder.WriteString(", ")
-	builder.WriteString("fileName=")
-	builder.WriteString(_m.FileName)
-	builder.WriteString(", ")
-	builder.WriteString("mime=")
-	builder.WriteString(_m.Mime)
-	builder.WriteString(", ")
-	builder.WriteString("nonce=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Nonce))
-	builder.WriteString(", ")
-	builder.WriteString("keySalt=")
-	builder.WriteString(fmt.Sprintf("%v", _m.KeySalt))
-	builder.WriteString(", ")
-	builder.WriteString("hashTime=")
-	builder.WriteString(fmt.Sprintf("%v", _m.HashTime))
-	builder.WriteString(", ")
-	builder.WriteString("hashMemory=")
-	builder.WriteString(fmt.Sprintf("%v", _m.HashMemory))
-	builder.WriteString(", ")
-	builder.WriteString("hashThreads=")
-	builder.WriteString(fmt.Sprintf("%v", _m.HashThreads))
 	builder.WriteByte(')')
 	return builder.String()
 }

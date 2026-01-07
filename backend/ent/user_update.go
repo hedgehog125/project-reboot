@@ -14,6 +14,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/logentry"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
+	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 	"github.com/google/uuid"
 )
@@ -121,113 +122,23 @@ func (_u *UserUpdate) SetNillableSessionsValidFrom(v *time.Time) *UserUpdate {
 	return _u
 }
 
-// SetContent sets the "content" field.
-func (_u *UserUpdate) SetContent(v []byte) *UserUpdate {
-	_u.mutation.SetContent(v)
+// SetStashID sets the "stash" edge to the Stash entity by ID.
+func (_u *UserUpdate) SetStashID(id int) *UserUpdate {
+	_u.mutation.SetStashID(id)
 	return _u
 }
 
-// SetFileName sets the "fileName" field.
-func (_u *UserUpdate) SetFileName(v string) *UserUpdate {
-	_u.mutation.SetFileName(v)
-	return _u
-}
-
-// SetNillableFileName sets the "fileName" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableFileName(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetFileName(*v)
+// SetNillableStashID sets the "stash" edge to the Stash entity by ID if the given value is not nil.
+func (_u *UserUpdate) SetNillableStashID(id *int) *UserUpdate {
+	if id != nil {
+		_u = _u.SetStashID(*id)
 	}
 	return _u
 }
 
-// SetMime sets the "mime" field.
-func (_u *UserUpdate) SetMime(v string) *UserUpdate {
-	_u.mutation.SetMime(v)
-	return _u
-}
-
-// SetNillableMime sets the "mime" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableMime(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetMime(*v)
-	}
-	return _u
-}
-
-// SetNonce sets the "nonce" field.
-func (_u *UserUpdate) SetNonce(v []byte) *UserUpdate {
-	_u.mutation.SetNonce(v)
-	return _u
-}
-
-// SetKeySalt sets the "keySalt" field.
-func (_u *UserUpdate) SetKeySalt(v []byte) *UserUpdate {
-	_u.mutation.SetKeySalt(v)
-	return _u
-}
-
-// SetHashTime sets the "hashTime" field.
-func (_u *UserUpdate) SetHashTime(v uint32) *UserUpdate {
-	_u.mutation.ResetHashTime()
-	_u.mutation.SetHashTime(v)
-	return _u
-}
-
-// SetNillableHashTime sets the "hashTime" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableHashTime(v *uint32) *UserUpdate {
-	if v != nil {
-		_u.SetHashTime(*v)
-	}
-	return _u
-}
-
-// AddHashTime adds value to the "hashTime" field.
-func (_u *UserUpdate) AddHashTime(v int32) *UserUpdate {
-	_u.mutation.AddHashTime(v)
-	return _u
-}
-
-// SetHashMemory sets the "hashMemory" field.
-func (_u *UserUpdate) SetHashMemory(v uint32) *UserUpdate {
-	_u.mutation.ResetHashMemory()
-	_u.mutation.SetHashMemory(v)
-	return _u
-}
-
-// SetNillableHashMemory sets the "hashMemory" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableHashMemory(v *uint32) *UserUpdate {
-	if v != nil {
-		_u.SetHashMemory(*v)
-	}
-	return _u
-}
-
-// AddHashMemory adds value to the "hashMemory" field.
-func (_u *UserUpdate) AddHashMemory(v int32) *UserUpdate {
-	_u.mutation.AddHashMemory(v)
-	return _u
-}
-
-// SetHashThreads sets the "hashThreads" field.
-func (_u *UserUpdate) SetHashThreads(v uint8) *UserUpdate {
-	_u.mutation.ResetHashThreads()
-	_u.mutation.SetHashThreads(v)
-	return _u
-}
-
-// SetNillableHashThreads sets the "hashThreads" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableHashThreads(v *uint8) *UserUpdate {
-	if v != nil {
-		_u.SetHashThreads(*v)
-	}
-	return _u
-}
-
-// AddHashThreads adds value to the "hashThreads" field.
-func (_u *UserUpdate) AddHashThreads(v int8) *UserUpdate {
-	_u.mutation.AddHashThreads(v)
-	return _u
+// SetStash sets the "stash" edge to the Stash entity.
+func (_u *UserUpdate) SetStash(v *Stash) *UserUpdate {
+	return _u.SetStashID(v.ID)
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
@@ -263,6 +174,12 @@ func (_u *UserUpdate) AddLogs(v ...*LogEntry) *UserUpdate {
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
+}
+
+// ClearStash clears the "stash" edge to the Stash entity.
+func (_u *UserUpdate) ClearStash() *UserUpdate {
+	_u.mutation.ClearStash()
+	return _u
 }
 
 // ClearSessions clears all "sessions" edges to the Session entity.
@@ -341,31 +258,6 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Content(); ok {
-		if err := user.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "User.content": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.FileName(); ok {
-		if err := user.FileNameValidator(v); err != nil {
-			return &ValidationError{Name: "fileName", err: fmt.Errorf(`ent: validator failed for field "User.fileName": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Mime(); ok {
-		if err := user.MimeValidator(v); err != nil {
-			return &ValidationError{Name: "mime", err: fmt.Errorf(`ent: validator failed for field "User.mime": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Nonce(); ok {
-		if err := user.NonceValidator(v); err != nil {
-			return &ValidationError{Name: "nonce", err: fmt.Errorf(`ent: validator failed for field "User.nonce": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.KeySalt(); ok {
-		if err := user.KeySaltValidator(v); err != nil {
-			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -402,38 +294,34 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.SessionsValidFrom(); ok {
 		_spec.SetField(user.FieldSessionsValidFrom, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.Content(); ok {
-		_spec.SetField(user.FieldContent, field.TypeBytes, value)
+	if _u.mutation.StashCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.StashTable,
+			Columns: []string{user.StashColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := _u.mutation.FileName(); ok {
-		_spec.SetField(user.FieldFileName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Mime(); ok {
-		_spec.SetField(user.FieldMime, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Nonce(); ok {
-		_spec.SetField(user.FieldNonce, field.TypeBytes, value)
-	}
-	if value, ok := _u.mutation.KeySalt(); ok {
-		_spec.SetField(user.FieldKeySalt, field.TypeBytes, value)
-	}
-	if value, ok := _u.mutation.HashTime(); ok {
-		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
-	}
-	if value, ok := _u.mutation.AddedHashTime(); ok {
-		_spec.AddField(user.FieldHashTime, field.TypeUint32, value)
-	}
-	if value, ok := _u.mutation.HashMemory(); ok {
-		_spec.SetField(user.FieldHashMemory, field.TypeUint32, value)
-	}
-	if value, ok := _u.mutation.AddedHashMemory(); ok {
-		_spec.AddField(user.FieldHashMemory, field.TypeUint32, value)
-	}
-	if value, ok := _u.mutation.HashThreads(); ok {
-		_spec.SetField(user.FieldHashThreads, field.TypeUint8, value)
-	}
-	if value, ok := _u.mutation.AddedHashThreads(); ok {
-		_spec.AddField(user.FieldHashThreads, field.TypeUint8, value)
+	if nodes := _u.mutation.StashIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.StashTable,
+			Columns: []string{user.StashColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -635,113 +523,23 @@ func (_u *UserUpdateOne) SetNillableSessionsValidFrom(v *time.Time) *UserUpdateO
 	return _u
 }
 
-// SetContent sets the "content" field.
-func (_u *UserUpdateOne) SetContent(v []byte) *UserUpdateOne {
-	_u.mutation.SetContent(v)
+// SetStashID sets the "stash" edge to the Stash entity by ID.
+func (_u *UserUpdateOne) SetStashID(id int) *UserUpdateOne {
+	_u.mutation.SetStashID(id)
 	return _u
 }
 
-// SetFileName sets the "fileName" field.
-func (_u *UserUpdateOne) SetFileName(v string) *UserUpdateOne {
-	_u.mutation.SetFileName(v)
-	return _u
-}
-
-// SetNillableFileName sets the "fileName" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableFileName(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetFileName(*v)
+// SetNillableStashID sets the "stash" edge to the Stash entity by ID if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableStashID(id *int) *UserUpdateOne {
+	if id != nil {
+		_u = _u.SetStashID(*id)
 	}
 	return _u
 }
 
-// SetMime sets the "mime" field.
-func (_u *UserUpdateOne) SetMime(v string) *UserUpdateOne {
-	_u.mutation.SetMime(v)
-	return _u
-}
-
-// SetNillableMime sets the "mime" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableMime(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetMime(*v)
-	}
-	return _u
-}
-
-// SetNonce sets the "nonce" field.
-func (_u *UserUpdateOne) SetNonce(v []byte) *UserUpdateOne {
-	_u.mutation.SetNonce(v)
-	return _u
-}
-
-// SetKeySalt sets the "keySalt" field.
-func (_u *UserUpdateOne) SetKeySalt(v []byte) *UserUpdateOne {
-	_u.mutation.SetKeySalt(v)
-	return _u
-}
-
-// SetHashTime sets the "hashTime" field.
-func (_u *UserUpdateOne) SetHashTime(v uint32) *UserUpdateOne {
-	_u.mutation.ResetHashTime()
-	_u.mutation.SetHashTime(v)
-	return _u
-}
-
-// SetNillableHashTime sets the "hashTime" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableHashTime(v *uint32) *UserUpdateOne {
-	if v != nil {
-		_u.SetHashTime(*v)
-	}
-	return _u
-}
-
-// AddHashTime adds value to the "hashTime" field.
-func (_u *UserUpdateOne) AddHashTime(v int32) *UserUpdateOne {
-	_u.mutation.AddHashTime(v)
-	return _u
-}
-
-// SetHashMemory sets the "hashMemory" field.
-func (_u *UserUpdateOne) SetHashMemory(v uint32) *UserUpdateOne {
-	_u.mutation.ResetHashMemory()
-	_u.mutation.SetHashMemory(v)
-	return _u
-}
-
-// SetNillableHashMemory sets the "hashMemory" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableHashMemory(v *uint32) *UserUpdateOne {
-	if v != nil {
-		_u.SetHashMemory(*v)
-	}
-	return _u
-}
-
-// AddHashMemory adds value to the "hashMemory" field.
-func (_u *UserUpdateOne) AddHashMemory(v int32) *UserUpdateOne {
-	_u.mutation.AddHashMemory(v)
-	return _u
-}
-
-// SetHashThreads sets the "hashThreads" field.
-func (_u *UserUpdateOne) SetHashThreads(v uint8) *UserUpdateOne {
-	_u.mutation.ResetHashThreads()
-	_u.mutation.SetHashThreads(v)
-	return _u
-}
-
-// SetNillableHashThreads sets the "hashThreads" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableHashThreads(v *uint8) *UserUpdateOne {
-	if v != nil {
-		_u.SetHashThreads(*v)
-	}
-	return _u
-}
-
-// AddHashThreads adds value to the "hashThreads" field.
-func (_u *UserUpdateOne) AddHashThreads(v int8) *UserUpdateOne {
-	_u.mutation.AddHashThreads(v)
-	return _u
+// SetStash sets the "stash" edge to the Stash entity.
+func (_u *UserUpdateOne) SetStash(v *Stash) *UserUpdateOne {
+	return _u.SetStashID(v.ID)
 }
 
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
@@ -777,6 +575,12 @@ func (_u *UserUpdateOne) AddLogs(v ...*LogEntry) *UserUpdateOne {
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
+}
+
+// ClearStash clears the "stash" edge to the Stash entity.
+func (_u *UserUpdateOne) ClearStash() *UserUpdateOne {
+	_u.mutation.ClearStash()
+	return _u
 }
 
 // ClearSessions clears all "sessions" edges to the Session entity.
@@ -868,31 +672,6 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Content(); ok {
-		if err := user.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "User.content": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.FileName(); ok {
-		if err := user.FileNameValidator(v); err != nil {
-			return &ValidationError{Name: "fileName", err: fmt.Errorf(`ent: validator failed for field "User.fileName": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Mime(); ok {
-		if err := user.MimeValidator(v); err != nil {
-			return &ValidationError{Name: "mime", err: fmt.Errorf(`ent: validator failed for field "User.mime": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.Nonce(); ok {
-		if err := user.NonceValidator(v); err != nil {
-			return &ValidationError{Name: "nonce", err: fmt.Errorf(`ent: validator failed for field "User.nonce": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.KeySalt(); ok {
-		if err := user.KeySaltValidator(v); err != nil {
-			return &ValidationError{Name: "keySalt", err: fmt.Errorf(`ent: validator failed for field "User.keySalt": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -946,38 +725,34 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.SessionsValidFrom(); ok {
 		_spec.SetField(user.FieldSessionsValidFrom, field.TypeTime, value)
 	}
-	if value, ok := _u.mutation.Content(); ok {
-		_spec.SetField(user.FieldContent, field.TypeBytes, value)
+	if _u.mutation.StashCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.StashTable,
+			Columns: []string{user.StashColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := _u.mutation.FileName(); ok {
-		_spec.SetField(user.FieldFileName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Mime(); ok {
-		_spec.SetField(user.FieldMime, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Nonce(); ok {
-		_spec.SetField(user.FieldNonce, field.TypeBytes, value)
-	}
-	if value, ok := _u.mutation.KeySalt(); ok {
-		_spec.SetField(user.FieldKeySalt, field.TypeBytes, value)
-	}
-	if value, ok := _u.mutation.HashTime(); ok {
-		_spec.SetField(user.FieldHashTime, field.TypeUint32, value)
-	}
-	if value, ok := _u.mutation.AddedHashTime(); ok {
-		_spec.AddField(user.FieldHashTime, field.TypeUint32, value)
-	}
-	if value, ok := _u.mutation.HashMemory(); ok {
-		_spec.SetField(user.FieldHashMemory, field.TypeUint32, value)
-	}
-	if value, ok := _u.mutation.AddedHashMemory(); ok {
-		_spec.AddField(user.FieldHashMemory, field.TypeUint32, value)
-	}
-	if value, ok := _u.mutation.HashThreads(); ok {
-		_spec.SetField(user.FieldHashThreads, field.TypeUint8, value)
-	}
-	if value, ok := _u.mutation.AddedHashThreads(); ok {
-		_spec.AddField(user.FieldHashThreads, field.TypeUint8, value)
+	if nodes := _u.mutation.StashIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.StashTable,
+			Columns: []string{user.StashColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.SessionsCleared() {
 		edge := &sqlgraph.EdgeSpec{

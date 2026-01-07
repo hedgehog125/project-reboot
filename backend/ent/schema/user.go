@@ -18,24 +18,18 @@ func (User) Fields() []ent.Field {
 		field.String("username").Unique().NotEmpty(),
 		field.String("alertDiscordId").Default(""),
 		field.String("alertEmail").Default(""),
+		// Admins might be able to be locked in the future
 		field.Bool("locked").Default(false),
 		field.Time("lockedUntil").Nillable().Optional(),
 		field.Time("sessionsValidFrom"),
-
-		field.Bytes("content").NotEmpty(),
-		field.String("fileName").NotEmpty(),
-		field.String("mime").NotEmpty(),
-		field.Bytes("nonce").NotEmpty(),
-		field.Bytes("keySalt").NotEmpty(),
-		field.Uint32("hashTime"),
-		field.Uint32("hashMemory"),
-		field.Uint8("hashThreads"),
 	}
 }
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.To("stash", Stash.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)).Unique(),
 		edge.To("sessions", Session.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("logs", LogEntry.Type).

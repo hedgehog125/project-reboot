@@ -24,6 +24,8 @@ type Tx struct {
 	PeriodicTask *PeriodicTaskClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
+	// Stash is the client for interacting with the Stash builders.
+	Stash *StashClient
 	// TwoFactorAction is the client for interacting with the TwoFactorAction builders.
 	TwoFactorAction *TwoFactorActionClient
 	// User is the client for interacting with the User builders.
@@ -165,6 +167,7 @@ func (tx *Tx) init() {
 	tx.LoginAlert = NewLoginAlertClient(tx.config)
 	tx.PeriodicTask = NewPeriodicTaskClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
+	tx.Stash = NewStashClient(tx.config)
 	tx.TwoFactorAction = NewTwoFactorActionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
