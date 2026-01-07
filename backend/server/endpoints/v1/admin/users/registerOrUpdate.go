@@ -50,7 +50,14 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 		return dbcommon.WithWriteTx(
 			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
-				stashOb, stdErr := tx.Stash.Create().
+				userOb, stdErr := tx.User.Create().
+					SetUsername(body.Username).
+					SetSessionsValidFrom(app.Clock.Now()).
+					Save(ctx)
+				if stdErr != nil {
+					return stdErr
+				}
+				stdErr = tx.Stash.Create().
 					SetContent(encrypted).
 					SetFileName(body.Filename).
 					SetMime(body.Mime).
@@ -59,15 +66,8 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 					SetHashTime(hashSettings.Time).
 					SetHashMemory(hashSettings.Memory).
 					SetHashThreads(hashSettings.Threads).
-					Save(ctx)
-				if stdErr != nil {
-					return stdErr
-				}
-				userOb, stdErr := tx.User.Create().
-					SetUsername(body.Username).
-					SetSessionsValidFrom(app.Clock.Now()).
-					SetStash(stashOb).
-					Save(ctx)
+					SetUser(userOb).
+					Exec(ctx)
 				if stdErr != nil {
 					return stdErr
 				}

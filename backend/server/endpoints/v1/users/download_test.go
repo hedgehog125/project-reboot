@@ -46,7 +46,15 @@ func TestDownload_SufficientlyNotifiedUser_AllowsDownload(t *testing.T) {
 		func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
 			now := clock.Now()
 
-			stashOb, stdErr := tx.Stash.Create().
+			userOb, stdErr := tx.User.Create().
+				SetUsername(username).
+				SetSessionsValidFrom(now).
+				SetLockedUntil(now). // Has just expired
+				Save(ctx)
+			if stdErr != nil {
+				return nil, stdErr
+			}
+			stdErr = tx.Stash.Create().
 				SetContent(encrypted).
 				SetFileName(filename).
 				SetMime(mimeType).
@@ -55,16 +63,8 @@ func TestDownload_SufficientlyNotifiedUser_AllowsDownload(t *testing.T) {
 				SetHashTime(app.Env.PASSWORD_HASH_SETTINGS.Time).
 				SetHashMemory(app.Env.PASSWORD_HASH_SETTINGS.Memory).
 				SetHashThreads(app.Env.PASSWORD_HASH_SETTINGS.Threads).
-				Save(ctx)
-			if stdErr != nil {
-				return nil, stdErr
-			}
-			userOb, stdErr := tx.User.Create().
-				SetUsername(username).
-				SetSessionsValidFrom(now).
-				SetLockedUntil(now). // Has just expired
-				SetStash(stashOb).
-				Save(ctx)
+				SetUser(userOb).
+				Exec(ctx)
 			if stdErr != nil {
 				return nil, stdErr
 			}
@@ -146,7 +146,14 @@ func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T)
 			// Set SessionsValidFrom to be in the future
 			sessionsValidFrom := now.Add(1 * time.Hour)
 
-			stashOb, stdErr := tx.Stash.Create().
+			userOb, stdErr := tx.User.Create().
+				SetUsername(username).
+				SetSessionsValidFrom(sessionsValidFrom).
+				Save(ctx)
+			if stdErr != nil {
+				return nil, stdErr
+			}
+			stdErr = tx.Stash.Create().
 				SetContent(encrypted).
 				SetFileName(filename).
 				SetMime(mimeType).
@@ -155,15 +162,8 @@ func TestDownload_UndeletedInvalidSession_ReturnsUnauthorizedError(t *testing.T)
 				SetHashTime(app.Env.PASSWORD_HASH_SETTINGS.Time).
 				SetHashMemory(app.Env.PASSWORD_HASH_SETTINGS.Memory).
 				SetHashThreads(app.Env.PASSWORD_HASH_SETTINGS.Threads).
-				Save(ctx)
-			if stdErr != nil {
-				return nil, stdErr
-			}
-			userOb, stdErr := tx.User.Create().
-				SetUsername(username).
-				SetSessionsValidFrom(sessionsValidFrom).
-				SetStash(stashOb).
-				Save(ctx)
+				SetUser(userOb).
+				Exec(ctx)
 			if stdErr != nil {
 				return nil, stdErr
 			}
@@ -239,7 +239,15 @@ func TestDownload_TemporarilyLockedUser_ReturnsUnauthorizedError(t *testing.T) {
 		func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
 			now := clock.Now()
 
-			stashOb, stdErr := tx.Stash.Create().
+			userOb, stdErr := tx.User.Create().
+				SetUsername(username).
+				SetSessionsValidFrom(now).
+				SetLockedUntil(now.Add((24 * time.Hour) + time.Nanosecond)).
+				Save(ctx)
+			if stdErr != nil {
+				return nil, stdErr
+			}
+			stdErr = tx.Stash.Create().
 				SetContent(encrypted).
 				SetFileName(filename).
 				SetMime(mimeType).
@@ -248,16 +256,8 @@ func TestDownload_TemporarilyLockedUser_ReturnsUnauthorizedError(t *testing.T) {
 				SetHashTime(app.Env.PASSWORD_HASH_SETTINGS.Time).
 				SetHashMemory(app.Env.PASSWORD_HASH_SETTINGS.Memory).
 				SetHashThreads(app.Env.PASSWORD_HASH_SETTINGS.Threads).
-				Save(ctx)
-			if stdErr != nil {
-				return nil, stdErr
-			}
-			userOb, stdErr := tx.User.Create().
-				SetUsername(username).
-				SetSessionsValidFrom(now).
-				SetLockedUntil(now.Add((24 * time.Hour) + time.Nanosecond)).
-				SetStash(stashOb).
-				Save(ctx)
+				SetUser(userOb).
+				Exec(ctx)
 			if stdErr != nil {
 				return nil, stdErr
 			}
@@ -381,7 +381,16 @@ func TestDownload_PermanentlyLockedUser_ReturnsUnauthorizedError(t *testing.T) {
 		func(tx *ent.Tx, ctx context.Context) (*ent.Session, error) {
 			now := clock.Now()
 
-			stashOb, stdErr := tx.Stash.Create().
+			userOb, stdErr := tx.User.Create().
+				SetUsername(username).
+				SetSessionsValidFrom(now).
+				SetLockedUntil(now.Add(-time.Hour)). // Expired a little while ago
+				SetLocked(true).                     // But this takes priority
+				Save(ctx)
+			if stdErr != nil {
+				return nil, stdErr
+			}
+			stdErr = tx.Stash.Create().
 				SetContent(encrypted).
 				SetFileName(filename).
 				SetMime(mimeType).
@@ -390,17 +399,8 @@ func TestDownload_PermanentlyLockedUser_ReturnsUnauthorizedError(t *testing.T) {
 				SetHashTime(app.Env.PASSWORD_HASH_SETTINGS.Time).
 				SetHashMemory(app.Env.PASSWORD_HASH_SETTINGS.Memory).
 				SetHashThreads(app.Env.PASSWORD_HASH_SETTINGS.Threads).
-				Save(ctx)
-			if stdErr != nil {
-				return nil, stdErr
-			}
-			userOb, stdErr := tx.User.Create().
-				SetUsername(username).
-				SetSessionsValidFrom(now).
-				SetLockedUntil(now.Add(-time.Hour)). // Expired a little while ago
-				SetLocked(true).                     // But this takes priority
-				SetStash(stashOb).
-				Save(ctx)
+				SetUser(userOb).
+				Exec(ctx)
 			if stdErr != nil {
 				return nil, stdErr
 			}
