@@ -13,9 +13,16 @@ require (
 	github.com/jonboulle/clockwork v0.5.0
 	github.com/lmittmann/tint v1.1.2
 	github.com/pquerna/otp v1.5.0
+	github.com/pressly/goose/v3 v3.26.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/crypto v0.46.0
 	modernc.org/sqlite v1.42.2
+)
+
+require (
+	github.com/mfridman/interpolate v0.0.2 // indirect
+	github.com/sethvargo/go-retry v0.3.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 )
 
 require (

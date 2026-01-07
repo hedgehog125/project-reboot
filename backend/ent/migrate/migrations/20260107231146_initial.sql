@@ -1,0 +1,79 @@
+-- +goose Up
+-- create "jobs" table
+CREATE TABLE `jobs` (`id` uuid NOT NULL, `created_at` datetime NOT NULL, `due_at` datetime NOT NULL, `originally_due_at` datetime NOT NULL, `started_at` datetime NULL, `type` text NOT NULL, `version` integer NOT NULL, `priority` integer NOT NULL, `weight` integer NOT NULL, `body` json NOT NULL, `status` text NOT NULL DEFAULT ('pending'), `retries` integer NOT NULL DEFAULT (0), `retried_fraction` real NOT NULL DEFAULT (0), `logged_stall_warning` bool NOT NULL DEFAULT (false), PRIMARY KEY (`id`));
+-- create index "job_status_priority_due_at" to table: "jobs"
+CREATE INDEX `job_status_priority_due_at` ON `jobs` (`status`, `priority`, `due_at`);
+-- create index "job_due_at" to table: "jobs"
+CREATE INDEX `job_due_at` ON `jobs` (`due_at`);
+-- create "key_values" table
+CREATE TABLE `key_values` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `key` text NOT NULL, `value` json NOT NULL);
+-- create index "keyvalue_key" to table: "key_values"
+CREATE UNIQUE INDEX `keyvalue_key` ON `key_values` (`key`);
+-- create "log_entries" table
+CREATE TABLE `log_entries` (`id` uuid NOT NULL, `logged_at` datetime NOT NULL, `logged_at_known` bool NOT NULL, `level` integer NOT NULL, `message` text NOT NULL, `attributes` json NOT NULL, `source_file` text NOT NULL, `source_function` text NOT NULL, `source_line` integer NOT NULL, `public_message` text NOT NULL, `user_id` integer NULL, PRIMARY KEY (`id`), CONSTRAINT `log_entries_users_logs` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL);
+-- create index "logentry_logged_at" to table: "log_entries"
+CREATE INDEX `logentry_logged_at` ON `log_entries` (`logged_at`);
+-- create "login_alerts" table
+CREATE TABLE `login_alerts` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `sent_at` datetime NOT NULL, `versioned_messenger_type` text NOT NULL, `confirmed` bool NOT NULL, `session_id` integer NOT NULL, CONSTRAINT `login_alerts_sessions_loginAlerts` FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE);
+-- create "periodic_tasks" table
+CREATE TABLE `periodic_tasks` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `name` text NOT NULL, `last_ran_at` datetime NULL);
+-- create index "periodictask_name" to table: "periodic_tasks"
+CREATE UNIQUE INDEX `periodictask_name` ON `periodic_tasks` (`name`);
+-- create "sessions" table
+CREATE TABLE `sessions` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `created_at` datetime NOT NULL, `code` blob NOT NULL, `valid_from` datetime NOT NULL, `valid_until` datetime NOT NULL, `user_agent` text NOT NULL, `ip` text NOT NULL, `user_id` integer NOT NULL, CONSTRAINT `sessions_users_sessions` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE);
+-- create index "sessions_code_key" to table: "sessions"
+CREATE UNIQUE INDEX `sessions_code_key` ON `sessions` (`code`);
+-- create index "session_code_user_id" to table: "sessions"
+CREATE INDEX `session_code_user_id` ON `sessions` (`code`, `user_id`);
+-- create "stashes" table
+CREATE TABLE `stashes` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `content` blob NOT NULL, `file_name` text NOT NULL, `mime` text NOT NULL, `nonce` blob NOT NULL, `key_salt` blob NOT NULL, `hash_time` integer NOT NULL, `hash_memory` integer NOT NULL, `hash_threads` integer NOT NULL, `user_id` integer NOT NULL, CONSTRAINT `stashes_users_stash` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT);
+-- create index "stashes_user_id_key" to table: "stashes"
+CREATE UNIQUE INDEX `stashes_user_id_key` ON `stashes` (`user_id`);
+-- create "two_factor_actions" table
+CREATE TABLE `two_factor_actions` (`id` uuid NOT NULL, `type` text NOT NULL, `version` integer NOT NULL, `body` json NOT NULL, `expires_at` datetime NOT NULL, `code` text NOT NULL, PRIMARY KEY (`id`));
+-- create index "twofactoraction_code" to table: "two_factor_actions"
+CREATE INDEX `twofactoraction_code` ON `two_factor_actions` (`code`);
+-- create "users" table
+CREATE TABLE `users` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `username` text NOT NULL, `alert_discord_id` text NOT NULL DEFAULT (''), `alert_email` text NOT NULL DEFAULT (''), `locked` bool NOT NULL DEFAULT (false), `locked_until` datetime NULL, `sessions_valid_from` datetime NOT NULL);
+-- create index "users_username_key" to table: "users"
+CREATE UNIQUE INDEX `users_username_key` ON `users` (`username`);
+
+-- +goose Down
+-- reverse: create index "users_username_key" to table: "users"
+DROP INDEX `users_username_key`;
+-- reverse: create "users" table
+DROP TABLE `users`;
+-- reverse: create index "twofactoraction_code" to table: "two_factor_actions"
+DROP INDEX `twofactoraction_code`;
+-- reverse: create "two_factor_actions" table
+DROP TABLE `two_factor_actions`;
+-- reverse: create index "stashes_user_id_key" to table: "stashes"
+DROP INDEX `stashes_user_id_key`;
+-- reverse: create "stashes" table
+DROP TABLE `stashes`;
+-- reverse: create index "session_code_user_id" to table: "sessions"
+DROP INDEX `session_code_user_id`;
+-- reverse: create index "sessions_code_key" to table: "sessions"
+DROP INDEX `sessions_code_key`;
+-- reverse: create "sessions" table
+DROP TABLE `sessions`;
+-- reverse: create index "periodictask_name" to table: "periodic_tasks"
+DROP INDEX `periodictask_name`;
+-- reverse: create "periodic_tasks" table
+DROP TABLE `periodic_tasks`;
+-- reverse: create "login_alerts" table
+DROP TABLE `login_alerts`;
+-- reverse: create index "logentry_logged_at" to table: "log_entries"
+DROP INDEX `logentry_logged_at`;
+-- reverse: create "log_entries" table
+DROP TABLE `log_entries`;
+-- reverse: create index "keyvalue_key" to table: "key_values"
+DROP INDEX `keyvalue_key`;
+-- reverse: create "key_values" table
+DROP TABLE `key_values`;
+-- reverse: create index "job_due_at" to table: "jobs"
+DROP INDEX `job_due_at`;
+-- reverse: create index "job_status_priority_due_at" to table: "jobs"
+DROP INDEX `job_status_priority_due_at`;
+-- reverse: create "jobs" table
+DROP TABLE `jobs`;

@@ -170,6 +170,33 @@ var (
 			},
 		},
 	}
+	// StashesColumns holds the columns for the "stashes" table.
+	StashesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "content", Type: field.TypeBytes},
+		{Name: "file_name", Type: field.TypeString},
+		{Name: "mime", Type: field.TypeString},
+		{Name: "nonce", Type: field.TypeBytes},
+		{Name: "key_salt", Type: field.TypeBytes},
+		{Name: "hash_time", Type: field.TypeUint32},
+		{Name: "hash_memory", Type: field.TypeUint32},
+		{Name: "hash_threads", Type: field.TypeUint8},
+		{Name: "user_id", Type: field.TypeInt, Unique: true},
+	}
+	// StashesTable holds the schema information for the "stashes" table.
+	StashesTable = &schema.Table{
+		Name:       "stashes",
+		Columns:    StashesColumns,
+		PrimaryKey: []*schema.Column{StashesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "stashes_users_stash",
+				Columns:    []*schema.Column{StashesColumns[9]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+	}
 	// TwoFactorActionsColumns holds the columns for the "two_factor_actions" table.
 	TwoFactorActionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -201,14 +228,6 @@ var (
 		{Name: "locked", Type: field.TypeBool, Default: false},
 		{Name: "locked_until", Type: field.TypeTime, Nullable: true},
 		{Name: "sessions_valid_from", Type: field.TypeTime},
-		{Name: "content", Type: field.TypeBytes},
-		{Name: "file_name", Type: field.TypeString},
-		{Name: "mime", Type: field.TypeString},
-		{Name: "nonce", Type: field.TypeBytes},
-		{Name: "key_salt", Type: field.TypeBytes},
-		{Name: "hash_time", Type: field.TypeUint32},
-		{Name: "hash_memory", Type: field.TypeUint32},
-		{Name: "hash_threads", Type: field.TypeUint8},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -224,6 +243,7 @@ var (
 		LoginAlertsTable,
 		PeriodicTasksTable,
 		SessionsTable,
+		StashesTable,
 		TwoFactorActionsTable,
 		UsersTable,
 	}
@@ -233,4 +253,5 @@ func init() {
 	LogEntriesTable.ForeignKeys[0].RefTable = UsersTable
 	LoginAlertsTable.ForeignKeys[0].RefTable = SessionsTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
+	StashesTable.ForeignKeys[0].RefTable = UsersTable
 }

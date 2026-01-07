@@ -13,7 +13,9 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/common/globals"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
+	"github.com/NicoClack/cryptic-stash/backend/ent/migrate"
 	_ "github.com/NicoClack/cryptic-stash/backend/entps"
+	"github.com/pressly/goose/v3"
 )
 
 func NewDatabase(app *common.App) *Database {
@@ -54,17 +56,22 @@ func (service *Database) Start() {
 		driver := ent.Driver(entsql.OpenDB("sqlite3", db))
 		client := ent.NewClient(driver)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		stdErr = client.Schema.Create(ctx)
-		if stdErr == nil {
-			service.mu.Lock()
-			service.client = client
-			service.mu.Unlock()
-		} else {
-			_ = client.Close()
-			log.Fatalf("couldn't create schema resources. error:\n%v", stdErr)
+		goose.SetBaseFS(migrate.MigrationsFS)
+		stdErr = goose.SetDialect("sqlite3")
+		if stdErr != nil {
+			log.Fatalf("couldn't set goose dialect. error\n%v", stdErr)
 		}
+
+		service.app.Logger.Info("running migrations...")
+		stdErr = goose.Up(db, "migrations")
+		if stdErr != nil {
+			log.Fatalf("migration failed: %v", stdErr)
+		}
+		service.app.Logger.Info("migrations complete")
+
+		service.mu.Lock()
+		defer service.mu.Unlock()
+		service.client = client
 	})
 }
 

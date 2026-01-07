@@ -26,6 +26,7 @@ var (
 
 func CreateDB() *TestDatabase {
 	// TODO: use enttest like in https://entgo.io/blog/2023/02/23/simple-cms-with-ent/
+	// TODO: use goose?
 
 	// TODO: review options
 	// TODO: what does shared cache do any why is it sometimes necessary
