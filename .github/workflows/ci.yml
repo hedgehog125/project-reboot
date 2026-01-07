@@ -21,6 +21,20 @@ jobs:
           version: v2.7.1
           working-directory: backend
 
+  backend-migration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Atlas Lint
+        uses: ariga/atlas-action/migrate/lint@v1
+        with:
+          dir: 'file://backend/ent/migrate/migrations'
+          dir-name: 'cryptic-stash'
+          dev-url: 'sqlite://ci-test?mode=memory'
+
   backend-test:
     needs: backend-lint
     runs-on: ubuntu-latest
