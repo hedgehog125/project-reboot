@@ -13,6 +13,7 @@ func DefaultEnv() *common.Env {
 		PORT:                          -1,
 		MOUNT_PATH:                    "temp-test-storage",
 		PROXY_ORIGINAL_IP_HEADER_NAME: "test-proxy-original-ip",
+		ALLOWED_ORIGINS:               []string{},
 		CLEAN_UP_INTERVAL:             time.Hour,
 		FULL_GC_INTERVAL:              0,
 

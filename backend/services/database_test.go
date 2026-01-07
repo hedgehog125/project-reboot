@@ -15,9 +15,11 @@ func TestDatabaseShutdown_HandlesConcurrentCalls(t *testing.T) {
 
 	env := testcommon.DefaultEnv()
 	env.MOUNT_PATH = t.TempDir()
-	db := services.NewDatabase(&common.App{
+	app := &common.App{
 		Env: env,
-	})
+	}
+	app.Logger = services.NewLogger(app)
+	db := services.NewDatabase(app)
 	db.Start()
 
 	var wg sync.WaitGroup
@@ -32,9 +34,11 @@ func TestDatabaseShutdown_NoOpWhenNotStarted(t *testing.T) {
 
 	env := testcommon.DefaultEnv()
 	env.MOUNT_PATH = t.TempDir()
-	db := services.NewDatabase(&common.App{
+	app := &common.App{
 		Env: env,
-	})
+	}
+	app.Logger = services.NewLogger(app)
+	db := services.NewDatabase(app)
 
 	testcommon.AssertNoOp(t, db.Shutdown)
 }
@@ -44,9 +48,11 @@ func TestDatabaseStart_SubsequentCallsAreNoOp(t *testing.T) {
 
 	env := testcommon.DefaultEnv()
 	env.MOUNT_PATH = t.TempDir()
-	db := services.NewDatabase(&common.App{
+	app := &common.App{
 		Env: env,
-	})
+	}
+	app.Logger = services.NewLogger(app)
+	db := services.NewDatabase(app)
 	t.Cleanup(db.Shutdown)
 
 	db.Start()

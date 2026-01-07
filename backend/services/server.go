@@ -36,9 +36,11 @@ func NewServer(app *common.App) *Server {
 	// TODO: ^ this is logging "Error #01: ..."
 	router.Use(middleware.NewTimeout())
 
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = app.Env.ALLOWED_ORIGINS
-	router.Use(cors.New(corsConfig))
+	if len(app.Env.ALLOWED_ORIGINS) > 0 {
+		corsConfig := cors.DefaultConfig()
+		corsConfig.AllowOrigins = app.Env.ALLOWED_ORIGINS
+		router.Use(cors.New(corsConfig))
+	}
 
 	router.LoadHTMLFS(http.FS(server.TemplateFiles.FS), fmt.Sprintf("%v/*.html", server.TemplateFiles.Path))
 	router.Use(middleware.NewRateLimiting("api", app.RateLimiter))
