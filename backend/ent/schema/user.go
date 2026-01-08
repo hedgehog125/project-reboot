@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // User holds the schema definition for the User entity.
@@ -15,9 +16,8 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
+		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.String("username").Unique().NotEmpty(),
-		field.String("alertDiscordId").Default(""),
-		field.String("alertEmail").Default(""),
 		// Admins might be able to be locked in the future
 		field.Bool("locked").Default(false),
 		field.Time("lockedUntil").Nillable().Optional(),
@@ -29,7 +29,9 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("stash", Stash.Type).
-			Annotations(entsql.OnDelete(entsql.Restrict)).Unique(),
+			Annotations(entsql.OnDelete(entsql.Cascade)).Unique(),
+		edge.To("messengers", UserMessenger.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("sessions", Session.Type).
 			Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.To("logs", LogEntry.Type).

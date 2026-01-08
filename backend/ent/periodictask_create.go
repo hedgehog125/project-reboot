@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/NicoClack/cryptic-stash/backend/ent/periodictask"
+	"github.com/google/uuid"
 )
 
 // PeriodicTaskCreate is the builder for creating a PeriodicTask entity.
@@ -42,6 +44,20 @@ func (_c *PeriodicTaskCreate) SetNillableLastRanAt(v *time.Time) *PeriodicTaskCr
 	return _c
 }
 
+// SetID sets the "id" field.
+func (_c *PeriodicTaskCreate) SetID(v uuid.UUID) *PeriodicTaskCreate {
+	_c.mutation.SetID(v)
+	return _c
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *PeriodicTaskCreate) SetNillableID(v *uuid.UUID) *PeriodicTaskCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
+	return _c
+}
+
 // Mutation returns the PeriodicTaskMutation object of the builder.
 func (_c *PeriodicTaskCreate) Mutation() *PeriodicTaskMutation {
 	return _c.mutation
@@ -49,6 +65,7 @@ func (_c *PeriodicTaskCreate) Mutation() *PeriodicTaskMutation {
 
 // Save creates the PeriodicTask in the database.
 func (_c *PeriodicTaskCreate) Save(ctx context.Context) (*PeriodicTask, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -71,6 +88,14 @@ func (_c *PeriodicTaskCreate) Exec(ctx context.Context) error {
 func (_c *PeriodicTaskCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *PeriodicTaskCreate) defaults() {
+	if _, ok := _c.mutation.ID(); !ok {
+		v := periodictask.DefaultID()
+		_c.mutation.SetID(v)
 	}
 }
 
@@ -98,8 +123,13 @@ func (_c *PeriodicTaskCreate) sqlSave(ctx context.Context) (*PeriodicTask, error
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -108,9 +138,13 @@ func (_c *PeriodicTaskCreate) sqlSave(ctx context.Context) (*PeriodicTask, error
 func (_c *PeriodicTaskCreate) createSpec() (*PeriodicTask, *sqlgraph.CreateSpec) {
 	var (
 		_node = &PeriodicTask{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(periodictask.Table, sqlgraph.NewFieldSpec(periodictask.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(periodictask.Table, sqlgraph.NewFieldSpec(periodictask.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = _c.conflict
+	if id, ok := _c.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(periodictask.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -201,16 +235,24 @@ func (u *PeriodicTaskUpsert) ClearLastRanAt() *PeriodicTaskUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.PeriodicTask.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(periodictask.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *PeriodicTaskUpsertOne) UpdateNewValues() *PeriodicTaskUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(periodictask.FieldID)
+		}
+	}))
 	return u
 }
 
@@ -292,7 +334,12 @@ func (u *PeriodicTaskUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *PeriodicTaskUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *PeriodicTaskUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PeriodicTaskUpsertOne.ID is not supported by MySQL driver. Use PeriodicTaskUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -301,7 +348,7 @@ func (u *PeriodicTaskUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *PeriodicTaskUpsertOne) IDX(ctx context.Context) int {
+func (u *PeriodicTaskUpsertOne) IDX(ctx context.Context) uuid.UUID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -328,6 +375,7 @@ func (_c *PeriodicTaskCreateBulk) Save(ctx context.Context) ([]*PeriodicTask, er
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PeriodicTaskMutation)
 				if !ok {
@@ -355,10 +403,6 @@ func (_c *PeriodicTaskCreateBulk) Save(ctx context.Context) ([]*PeriodicTask, er
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -445,10 +489,20 @@ type PeriodicTaskUpsertBulk struct {
 //	client.PeriodicTask.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(periodictask.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *PeriodicTaskUpsertBulk) UpdateNewValues() *PeriodicTaskUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(periodictask.FieldID)
+			}
+		}
+	}))
 	return u
 }
 

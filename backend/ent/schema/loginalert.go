@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // LoginAlert holds the schema definition for the LoginAlert entity.
@@ -14,10 +15,11 @@ type LoginAlert struct {
 // Fields of the SuccessfulLoginAlerts.
 func (LoginAlert) Fields() []ent.Field {
 	return []ent.Field{
+		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Time("sentAt"),
 		field.String("versionedMessengerType").MinLen(1).MaxLen(128),
 		field.Bool("confirmed"),
-		field.Int("sessionID"),
+		field.UUID("sessionID", uuid.UUID{}),
 	}
 }
 

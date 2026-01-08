@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -15,6 +16,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/NicoClack/cryptic-stash/backend/ent/usermessenger"
 	"github.com/google/uuid"
 )
 
@@ -29,34 +31,6 @@ type UserCreate struct {
 // SetUsername sets the "username" field.
 func (_c *UserCreate) SetUsername(v string) *UserCreate {
 	_c.mutation.SetUsername(v)
-	return _c
-}
-
-// SetAlertDiscordId sets the "alertDiscordId" field.
-func (_c *UserCreate) SetAlertDiscordId(v string) *UserCreate {
-	_c.mutation.SetAlertDiscordId(v)
-	return _c
-}
-
-// SetNillableAlertDiscordId sets the "alertDiscordId" field if the given value is not nil.
-func (_c *UserCreate) SetNillableAlertDiscordId(v *string) *UserCreate {
-	if v != nil {
-		_c.SetAlertDiscordId(*v)
-	}
-	return _c
-}
-
-// SetAlertEmail sets the "alertEmail" field.
-func (_c *UserCreate) SetAlertEmail(v string) *UserCreate {
-	_c.mutation.SetAlertEmail(v)
-	return _c
-}
-
-// SetNillableAlertEmail sets the "alertEmail" field if the given value is not nil.
-func (_c *UserCreate) SetNillableAlertEmail(v *string) *UserCreate {
-	if v != nil {
-		_c.SetAlertEmail(*v)
-	}
 	return _c
 }
 
@@ -94,14 +68,28 @@ func (_c *UserCreate) SetSessionsValidFrom(v time.Time) *UserCreate {
 	return _c
 }
 
+// SetID sets the "id" field.
+func (_c *UserCreate) SetID(v uuid.UUID) *UserCreate {
+	_c.mutation.SetID(v)
+	return _c
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *UserCreate) SetNillableID(v *uuid.UUID) *UserCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
+	return _c
+}
+
 // SetStashID sets the "stash" edge to the Stash entity by ID.
-func (_c *UserCreate) SetStashID(id int) *UserCreate {
+func (_c *UserCreate) SetStashID(id uuid.UUID) *UserCreate {
 	_c.mutation.SetStashID(id)
 	return _c
 }
 
 // SetNillableStashID sets the "stash" edge to the Stash entity by ID if the given value is not nil.
-func (_c *UserCreate) SetNillableStashID(id *int) *UserCreate {
+func (_c *UserCreate) SetNillableStashID(id *uuid.UUID) *UserCreate {
 	if id != nil {
 		_c = _c.SetStashID(*id)
 	}
@@ -113,15 +101,30 @@ func (_c *UserCreate) SetStash(v *Stash) *UserCreate {
 	return _c.SetStashID(v.ID)
 }
 
+// AddMessengerIDs adds the "messengers" edge to the UserMessenger entity by IDs.
+func (_c *UserCreate) AddMessengerIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddMessengerIDs(ids...)
+	return _c
+}
+
+// AddMessengers adds the "messengers" edges to the UserMessenger entity.
+func (_c *UserCreate) AddMessengers(v ...*UserMessenger) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddMessengerIDs(ids...)
+}
+
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
-func (_c *UserCreate) AddSessionIDs(ids ...int) *UserCreate {
+func (_c *UserCreate) AddSessionIDs(ids ...uuid.UUID) *UserCreate {
 	_c.mutation.AddSessionIDs(ids...)
 	return _c
 }
 
 // AddSessions adds the "sessions" edges to the Session entity.
 func (_c *UserCreate) AddSessions(v ...*Session) *UserCreate {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -178,17 +181,13 @@ func (_c *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *UserCreate) defaults() {
-	if _, ok := _c.mutation.AlertDiscordId(); !ok {
-		v := user.DefaultAlertDiscordId
-		_c.mutation.SetAlertDiscordId(v)
-	}
-	if _, ok := _c.mutation.AlertEmail(); !ok {
-		v := user.DefaultAlertEmail
-		_c.mutation.SetAlertEmail(v)
-	}
 	if _, ok := _c.mutation.Locked(); !ok {
 		v := user.DefaultLocked
 		_c.mutation.SetLocked(v)
+	}
+	if _, ok := _c.mutation.ID(); !ok {
+		v := user.DefaultID()
+		_c.mutation.SetID(v)
 	}
 }
 
@@ -201,12 +200,6 @@ func (_c *UserCreate) check() error {
 		if err := user.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.AlertDiscordId(); !ok {
-		return &ValidationError{Name: "alertDiscordId", err: errors.New(`ent: missing required field "User.alertDiscordId"`)}
-	}
-	if _, ok := _c.mutation.AlertEmail(); !ok {
-		return &ValidationError{Name: "alertEmail", err: errors.New(`ent: missing required field "User.alertEmail"`)}
 	}
 	if _, ok := _c.mutation.Locked(); !ok {
 		return &ValidationError{Name: "locked", err: errors.New(`ent: missing required field "User.locked"`)}
@@ -228,8 +221,13 @@ func (_c *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -238,20 +236,16 @@ func (_c *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	var (
 		_node = &User{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = _c.conflict
+	if id, ok := _c.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
-	}
-	if value, ok := _c.mutation.AlertDiscordId(); ok {
-		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
-		_node.AlertDiscordId = value
-	}
-	if value, ok := _c.mutation.AlertEmail(); ok {
-		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
-		_node.AlertEmail = value
 	}
 	if value, ok := _c.mutation.Locked(); ok {
 		_spec.SetField(user.FieldLocked, field.TypeBool, value)
@@ -273,7 +267,23 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.StashColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.MessengersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MessengersTable,
+			Columns: []string{user.MessengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usermessenger.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -289,7 +299,7 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -377,30 +387,6 @@ func (u *UserUpsert) UpdateUsername() *UserUpsert {
 	return u
 }
 
-// SetAlertDiscordId sets the "alertDiscordId" field.
-func (u *UserUpsert) SetAlertDiscordId(v string) *UserUpsert {
-	u.Set(user.FieldAlertDiscordId, v)
-	return u
-}
-
-// UpdateAlertDiscordId sets the "alertDiscordId" field to the value that was provided on create.
-func (u *UserUpsert) UpdateAlertDiscordId() *UserUpsert {
-	u.SetExcluded(user.FieldAlertDiscordId)
-	return u
-}
-
-// SetAlertEmail sets the "alertEmail" field.
-func (u *UserUpsert) SetAlertEmail(v string) *UserUpsert {
-	u.Set(user.FieldAlertEmail, v)
-	return u
-}
-
-// UpdateAlertEmail sets the "alertEmail" field to the value that was provided on create.
-func (u *UserUpsert) UpdateAlertEmail() *UserUpsert {
-	u.SetExcluded(user.FieldAlertEmail)
-	return u
-}
-
 // SetLocked sets the "locked" field.
 func (u *UserUpsert) SetLocked(v bool) *UserUpsert {
 	u.Set(user.FieldLocked, v)
@@ -443,16 +429,24 @@ func (u *UserUpsert) UpdateSessionsValidFrom() *UserUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.User.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(user.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *UserUpsertOne) UpdateNewValues() *UserUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(user.FieldID)
+		}
+	}))
 	return u
 }
 
@@ -494,34 +488,6 @@ func (u *UserUpsertOne) SetUsername(v string) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateUsername() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateUsername()
-	})
-}
-
-// SetAlertDiscordId sets the "alertDiscordId" field.
-func (u *UserUpsertOne) SetAlertDiscordId(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetAlertDiscordId(v)
-	})
-}
-
-// UpdateAlertDiscordId sets the "alertDiscordId" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateAlertDiscordId() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateAlertDiscordId()
-	})
-}
-
-// SetAlertEmail sets the "alertEmail" field.
-func (u *UserUpsertOne) SetAlertEmail(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetAlertEmail(v)
-	})
-}
-
-// UpdateAlertEmail sets the "alertEmail" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateAlertEmail() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateAlertEmail()
 	})
 }
 
@@ -590,7 +556,12 @@ func (u *UserUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *UserUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *UserUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: UserUpsertOne.ID is not supported by MySQL driver. Use UserUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -599,7 +570,7 @@ func (u *UserUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *UserUpsertOne) IDX(ctx context.Context) int {
+func (u *UserUpsertOne) IDX(ctx context.Context) uuid.UUID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -654,10 +625,6 @@ func (_c *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -744,10 +711,20 @@ type UserUpsertBulk struct {
 //	client.User.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(user.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *UserUpsertBulk) UpdateNewValues() *UserUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(user.FieldID)
+			}
+		}
+	}))
 	return u
 }
 
@@ -789,34 +766,6 @@ func (u *UserUpsertBulk) SetUsername(v string) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateUsername() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateUsername()
-	})
-}
-
-// SetAlertDiscordId sets the "alertDiscordId" field.
-func (u *UserUpsertBulk) SetAlertDiscordId(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetAlertDiscordId(v)
-	})
-}
-
-// UpdateAlertDiscordId sets the "alertDiscordId" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateAlertDiscordId() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateAlertDiscordId()
-	})
-}
-
-// SetAlertEmail sets the "alertEmail" field.
-func (u *UserUpsertBulk) SetAlertEmail(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetAlertEmail(v)
-	})
-}
-
-// UpdateAlertEmail sets the "alertEmail" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateAlertEmail() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateAlertEmail()
 	})
 }
 

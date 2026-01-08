@@ -17,18 +17,21 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/NicoClack/cryptic-stash/backend/ent/usermessenger"
+	"github.com/google/uuid"
 )
 
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx          *QueryContext
-	order        []user.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.User
-	withStash    *StashQuery
-	withSessions *SessionQuery
-	withLogs     *LogEntryQuery
+	ctx            *QueryContext
+	order          []user.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.User
+	withStash      *StashQuery
+	withMessengers *UserMessengerQuery
+	withSessions   *SessionQuery
+	withLogs       *LogEntryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -80,6 +83,28 @@ func (_q *UserQuery) QueryStash() *StashQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(stash.Table, stash.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, user.StashTable, user.StashColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMessengers chains the current query on the "messengers" edge.
+func (_q *UserQuery) QueryMessengers() *UserMessengerQuery {
+	query := (&UserMessengerClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(usermessenger.Table, usermessenger.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MessengersTable, user.MessengersColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -155,8 +180,8 @@ func (_q *UserQuery) FirstX(ctx context.Context) *User {
 
 // FirstID returns the first User ID from the query.
 // Returns a *NotFoundError when no User ID was found.
-func (_q *UserQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *UserQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -168,7 +193,7 @@ func (_q *UserQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *UserQuery) FirstIDX(ctx context.Context) int {
+func (_q *UserQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -206,8 +231,8 @@ func (_q *UserQuery) OnlyX(ctx context.Context) *User {
 // OnlyID is like Only, but returns the only User ID in the query.
 // Returns a *NotSingularError when more than one User ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *UserQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *UserQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -223,7 +248,7 @@ func (_q *UserQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *UserQuery) OnlyIDX(ctx context.Context) int {
+func (_q *UserQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -251,7 +276,7 @@ func (_q *UserQuery) AllX(ctx context.Context) []*User {
 }
 
 // IDs executes the query and returns a list of User IDs.
-func (_q *UserQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (_q *UserQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -263,7 +288,7 @@ func (_q *UserQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *UserQuery) IDsX(ctx context.Context) []int {
+func (_q *UserQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -318,14 +343,15 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:       _q.config,
-		ctx:          _q.ctx.Clone(),
-		order:        append([]user.OrderOption{}, _q.order...),
-		inters:       append([]Interceptor{}, _q.inters...),
-		predicates:   append([]predicate.User{}, _q.predicates...),
-		withStash:    _q.withStash.Clone(),
-		withSessions: _q.withSessions.Clone(),
-		withLogs:     _q.withLogs.Clone(),
+		config:         _q.config,
+		ctx:            _q.ctx.Clone(),
+		order:          append([]user.OrderOption{}, _q.order...),
+		inters:         append([]Interceptor{}, _q.inters...),
+		predicates:     append([]predicate.User{}, _q.predicates...),
+		withStash:      _q.withStash.Clone(),
+		withMessengers: _q.withMessengers.Clone(),
+		withSessions:   _q.withSessions.Clone(),
+		withLogs:       _q.withLogs.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -340,6 +366,17 @@ func (_q *UserQuery) WithStash(opts ...func(*StashQuery)) *UserQuery {
 		opt(query)
 	}
 	_q.withStash = query
+	return _q
+}
+
+// WithMessengers tells the query-builder to eager-load the nodes that are connected to
+// the "messengers" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithMessengers(opts ...func(*UserMessengerQuery)) *UserQuery {
+	query := (&UserMessengerClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withMessengers = query
 	return _q
 }
 
@@ -443,8 +480,9 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withStash != nil,
+			_q.withMessengers != nil,
 			_q.withSessions != nil,
 			_q.withLogs != nil,
 		}
@@ -473,6 +511,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := _q.withMessengers; query != nil {
+		if err := _q.loadMessengers(ctx, query, nodes,
+			func(n *User) { n.Edges.Messengers = []*UserMessenger{} },
+			func(n *User, e *UserMessenger) { n.Edges.Messengers = append(n.Edges.Messengers, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withSessions; query != nil {
 		if err := _q.loadSessions(ctx, query, nodes,
 			func(n *User) { n.Edges.Sessions = []*Session{} },
@@ -492,7 +537,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 
 func (_q *UserQuery) loadStash(ctx context.Context, query *StashQuery, nodes []*User, init func(*User), assign func(*User, *Stash)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*User)
+	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -517,9 +562,39 @@ func (_q *UserQuery) loadStash(ctx context.Context, query *StashQuery, nodes []*
 	}
 	return nil
 }
+func (_q *UserQuery) loadMessengers(ctx context.Context, query *UserMessengerQuery, nodes []*User, init func(*User), assign func(*User, *UserMessenger)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(usermessenger.FieldUserID)
+	}
+	query.Where(predicate.UserMessenger(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.MessengersColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "userID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 func (_q *UserQuery) loadSessions(ctx context.Context, query *SessionQuery, nodes []*User, init func(*User), assign func(*User, *Session)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*User)
+	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -549,7 +624,7 @@ func (_q *UserQuery) loadSessions(ctx context.Context, query *SessionQuery, node
 }
 func (_q *UserQuery) loadLogs(ctx context.Context, query *LogEntryQuery, nodes []*User, init func(*User), assign func(*User, *LogEntry)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*User)
+	nodeids := make(map[uuid.UUID]*User)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -588,7 +663,7 @@ func (_q *UserQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *UserQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

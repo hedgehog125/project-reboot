@@ -13,6 +13,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 )
 
 // StashUpdate is the builder for updating Stash entities.
@@ -138,13 +139,13 @@ func (_u *StashUpdate) AddHashThreads(v int8) *StashUpdate {
 }
 
 // SetUserID sets the "userID" field.
-func (_u *StashUpdate) SetUserID(v int) *StashUpdate {
+func (_u *StashUpdate) SetUserID(v uuid.UUID) *StashUpdate {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "userID" field if the given value is not nil.
-func (_u *StashUpdate) SetNillableUserID(v *int) *StashUpdate {
+func (_u *StashUpdate) SetNillableUserID(v *uuid.UUID) *StashUpdate {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -231,7 +232,7 @@ func (_u *StashUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(stash.Table, stash.Columns, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(stash.Table, stash.Columns, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -280,7 +281,7 @@ func (_u *StashUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{stash.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -293,7 +294,7 @@ func (_u *StashUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{stash.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -431,13 +432,13 @@ func (_u *StashUpdateOne) AddHashThreads(v int8) *StashUpdateOne {
 }
 
 // SetUserID sets the "userID" field.
-func (_u *StashUpdateOne) SetUserID(v int) *StashUpdateOne {
+func (_u *StashUpdateOne) SetUserID(v uuid.UUID) *StashUpdateOne {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "userID" field if the given value is not nil.
-func (_u *StashUpdateOne) SetNillableUserID(v *int) *StashUpdateOne {
+func (_u *StashUpdateOne) SetNillableUserID(v *uuid.UUID) *StashUpdateOne {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -537,7 +538,7 @@ func (_u *StashUpdateOne) sqlSave(ctx context.Context) (_node *Stash, err error)
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(stash.Table, stash.Columns, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(stash.Table, stash.Columns, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Stash.id" for update`)}
@@ -603,7 +604,7 @@ func (_u *StashUpdateOne) sqlSave(ctx context.Context) (_node *Stash, err error)
 			Columns: []string{stash.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -616,7 +617,7 @@ func (_u *StashUpdateOne) sqlSave(ctx context.Context) (_node *Stash, err error)
 			Columns: []string{stash.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

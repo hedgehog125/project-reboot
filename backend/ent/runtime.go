@@ -13,6 +13,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/twofactoraction"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/NicoClack/cryptic-stash/backend/ent/usermessenger"
 	"github.com/google/uuid"
 )
 
@@ -59,7 +60,7 @@ func init() {
 	keyvalueFields := schema.KeyValue{}.Fields()
 	_ = keyvalueFields
 	// keyvalueDescKey is the schema descriptor for key field.
-	keyvalueDescKey := keyvalueFields[0].Descriptor()
+	keyvalueDescKey := keyvalueFields[1].Descriptor()
 	// keyvalue.KeyValidator is a validator for the "key" field. It is called by the builders before save.
 	keyvalue.KeyValidator = func() func(string) error {
 		validators := keyvalueDescKey.Validators
@@ -76,6 +77,10 @@ func init() {
 			return nil
 		}
 	}()
+	// keyvalueDescID is the schema descriptor for id field.
+	keyvalueDescID := keyvalueFields[0].Descriptor()
+	// keyvalue.DefaultID holds the default value on creation for the id field.
+	keyvalue.DefaultID = keyvalueDescID.Default.(func() uuid.UUID)
 	logentryFields := schema.LogEntry{}.Fields()
 	_ = logentryFields
 	// logentryDescID is the schema descriptor for id field.
@@ -85,7 +90,7 @@ func init() {
 	loginalertFields := schema.LoginAlert{}.Fields()
 	_ = loginalertFields
 	// loginalertDescVersionedMessengerType is the schema descriptor for versionedMessengerType field.
-	loginalertDescVersionedMessengerType := loginalertFields[1].Descriptor()
+	loginalertDescVersionedMessengerType := loginalertFields[2].Descriptor()
 	// loginalert.VersionedMessengerTypeValidator is a validator for the "versionedMessengerType" field. It is called by the builders before save.
 	loginalert.VersionedMessengerTypeValidator = func() func(string) error {
 		validators := loginalertDescVersionedMessengerType.Validators
@@ -102,10 +107,14 @@ func init() {
 			return nil
 		}
 	}()
+	// loginalertDescID is the schema descriptor for id field.
+	loginalertDescID := loginalertFields[0].Descriptor()
+	// loginalert.DefaultID holds the default value on creation for the id field.
+	loginalert.DefaultID = loginalertDescID.Default.(func() uuid.UUID)
 	periodictaskFields := schema.PeriodicTask{}.Fields()
 	_ = periodictaskFields
 	// periodictaskDescName is the schema descriptor for name field.
-	periodictaskDescName := periodictaskFields[0].Descriptor()
+	periodictaskDescName := periodictaskFields[1].Descriptor()
 	// periodictask.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	periodictask.NameValidator = func() func(string) error {
 		validators := periodictaskDescName.Validators
@@ -122,34 +131,46 @@ func init() {
 			return nil
 		}
 	}()
+	// periodictaskDescID is the schema descriptor for id field.
+	periodictaskDescID := periodictaskFields[0].Descriptor()
+	// periodictask.DefaultID holds the default value on creation for the id field.
+	periodictask.DefaultID = periodictaskDescID.Default.(func() uuid.UUID)
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
 	// sessionDescCode is the schema descriptor for code field.
-	sessionDescCode := sessionFields[1].Descriptor()
+	sessionDescCode := sessionFields[2].Descriptor()
 	// session.CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	session.CodeValidator = sessionDescCode.Validators[0].(func([]byte) error)
+	// sessionDescID is the schema descriptor for id field.
+	sessionDescID := sessionFields[0].Descriptor()
+	// session.DefaultID holds the default value on creation for the id field.
+	session.DefaultID = sessionDescID.Default.(func() uuid.UUID)
 	stashFields := schema.Stash{}.Fields()
 	_ = stashFields
 	// stashDescContent is the schema descriptor for content field.
-	stashDescContent := stashFields[0].Descriptor()
+	stashDescContent := stashFields[1].Descriptor()
 	// stash.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	stash.ContentValidator = stashDescContent.Validators[0].(func([]byte) error)
 	// stashDescFileName is the schema descriptor for fileName field.
-	stashDescFileName := stashFields[1].Descriptor()
+	stashDescFileName := stashFields[2].Descriptor()
 	// stash.FileNameValidator is a validator for the "fileName" field. It is called by the builders before save.
 	stash.FileNameValidator = stashDescFileName.Validators[0].(func(string) error)
 	// stashDescMime is the schema descriptor for mime field.
-	stashDescMime := stashFields[2].Descriptor()
+	stashDescMime := stashFields[3].Descriptor()
 	// stash.MimeValidator is a validator for the "mime" field. It is called by the builders before save.
 	stash.MimeValidator = stashDescMime.Validators[0].(func(string) error)
 	// stashDescNonce is the schema descriptor for nonce field.
-	stashDescNonce := stashFields[3].Descriptor()
+	stashDescNonce := stashFields[4].Descriptor()
 	// stash.NonceValidator is a validator for the "nonce" field. It is called by the builders before save.
 	stash.NonceValidator = stashDescNonce.Validators[0].(func([]byte) error)
 	// stashDescKeySalt is the schema descriptor for keySalt field.
-	stashDescKeySalt := stashFields[4].Descriptor()
+	stashDescKeySalt := stashFields[5].Descriptor()
 	// stash.KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
 	stash.KeySaltValidator = stashDescKeySalt.Validators[0].(func([]byte) error)
+	// stashDescID is the schema descriptor for id field.
+	stashDescID := stashFields[0].Descriptor()
+	// stash.DefaultID holds the default value on creation for the id field.
+	stash.DefaultID = stashDescID.Default.(func() uuid.UUID)
 	twofactoractionFields := schema.TwoFactorAction{}.Fields()
 	_ = twofactoractionFields
 	// twofactoractionDescType is the schema descriptor for type field.
@@ -195,19 +216,43 @@ func init() {
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userFields[0].Descriptor()
+	userDescUsername := userFields[1].Descriptor()
 	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
-	// userDescAlertDiscordId is the schema descriptor for alertDiscordId field.
-	userDescAlertDiscordId := userFields[1].Descriptor()
-	// user.DefaultAlertDiscordId holds the default value on creation for the alertDiscordId field.
-	user.DefaultAlertDiscordId = userDescAlertDiscordId.Default.(string)
-	// userDescAlertEmail is the schema descriptor for alertEmail field.
-	userDescAlertEmail := userFields[2].Descriptor()
-	// user.DefaultAlertEmail holds the default value on creation for the alertEmail field.
-	user.DefaultAlertEmail = userDescAlertEmail.Default.(string)
 	// userDescLocked is the schema descriptor for locked field.
-	userDescLocked := userFields[3].Descriptor()
+	userDescLocked := userFields[2].Descriptor()
 	// user.DefaultLocked holds the default value on creation for the locked field.
 	user.DefaultLocked = userDescLocked.Default.(bool)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() uuid.UUID)
+	usermessengerFields := schema.UserMessenger{}.Fields()
+	_ = usermessengerFields
+	// usermessengerDescType is the schema descriptor for type field.
+	usermessengerDescType := usermessengerFields[1].Descriptor()
+	// usermessenger.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	usermessenger.TypeValidator = func() func(string) error {
+		validators := usermessengerDescType.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(_type string) error {
+			for _, fn := range fns {
+				if err := fn(_type); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// usermessengerDescEnabled is the schema descriptor for enabled field.
+	usermessengerDescEnabled := usermessengerFields[3].Descriptor()
+	// usermessenger.DefaultEnabled holds the default value on creation for the enabled field.
+	usermessenger.DefaultEnabled = usermessengerDescEnabled.Default.(bool)
+	// usermessengerDescID is the schema descriptor for id field.
+	usermessengerDescID := usermessengerFields[0].Descriptor()
+	// usermessenger.DefaultID holds the default value on creation for the id field.
+	usermessenger.DefaultID = usermessengerDescID.Default.(func() uuid.UUID)
 }

@@ -11,19 +11,16 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 )
 
 // User is the model entity for the User schema.
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
-	// AlertDiscordId holds the value of the "alertDiscordId" field.
-	AlertDiscordId string `json:"alertDiscordId,omitempty"`
-	// AlertEmail holds the value of the "alertEmail" field.
-	AlertEmail string `json:"alertEmail,omitempty"`
 	// Locked holds the value of the "locked" field.
 	Locked bool `json:"locked,omitempty"`
 	// LockedUntil holds the value of the "lockedUntil" field.
@@ -40,13 +37,15 @@ type User struct {
 type UserEdges struct {
 	// Stash holds the value of the stash edge.
 	Stash *Stash `json:"stash,omitempty"`
+	// Messengers holds the value of the messengers edge.
+	Messengers []*UserMessenger `json:"messengers,omitempty"`
 	// Sessions holds the value of the sessions edge.
 	Sessions []*Session `json:"sessions,omitempty"`
 	// Logs holds the value of the logs edge.
 	Logs []*LogEntry `json:"logs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // StashOrErr returns the Stash value or an error if the edge
@@ -60,10 +59,19 @@ func (e UserEdges) StashOrErr() (*Stash, error) {
 	return nil, &NotLoadedError{edge: "stash"}
 }
 
+// MessengersOrErr returns the Messengers value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) MessengersOrErr() ([]*UserMessenger, error) {
+	if e.loadedTypes[1] {
+		return e.Messengers, nil
+	}
+	return nil, &NotLoadedError{edge: "messengers"}
+}
+
 // SessionsOrErr returns the Sessions value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) SessionsOrErr() ([]*Session, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Sessions, nil
 	}
 	return nil, &NotLoadedError{edge: "sessions"}
@@ -72,7 +80,7 @@ func (e UserEdges) SessionsOrErr() ([]*Session, error) {
 // LogsOrErr returns the Logs value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) LogsOrErr() ([]*LogEntry, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.Logs, nil
 	}
 	return nil, &NotLoadedError{edge: "logs"}
@@ -85,12 +93,12 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldLocked:
 			values[i] = new(sql.NullBool)
-		case user.FieldID:
-			values[i] = new(sql.NullInt64)
-		case user.FieldUsername, user.FieldAlertDiscordId, user.FieldAlertEmail:
+		case user.FieldUsername:
 			values[i] = new(sql.NullString)
 		case user.FieldLockedUntil, user.FieldSessionsValidFrom:
 			values[i] = new(sql.NullTime)
+		case user.FieldID:
+			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -107,28 +115,16 @@ func (_m *User) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case user.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				_m.ID = *value
 			}
-			_m.ID = int(value.Int64)
 		case user.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field username", values[i])
 			} else if value.Valid {
 				_m.Username = value.String
-			}
-		case user.FieldAlertDiscordId:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field alertDiscordId", values[i])
-			} else if value.Valid {
-				_m.AlertDiscordId = value.String
-			}
-		case user.FieldAlertEmail:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field alertEmail", values[i])
-			} else if value.Valid {
-				_m.AlertEmail = value.String
 			}
 		case user.FieldLocked:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -167,6 +163,11 @@ func (_m *User) QueryStash() *StashQuery {
 	return NewUserClient(_m.config).QueryStash(_m)
 }
 
+// QueryMessengers queries the "messengers" edge of the User entity.
+func (_m *User) QueryMessengers() *UserMessengerQuery {
+	return NewUserClient(_m.config).QueryMessengers(_m)
+}
+
 // QuerySessions queries the "sessions" edge of the User entity.
 func (_m *User) QuerySessions() *SessionQuery {
 	return NewUserClient(_m.config).QuerySessions(_m)
@@ -202,12 +203,6 @@ func (_m *User) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("username=")
 	builder.WriteString(_m.Username)
-	builder.WriteString(", ")
-	builder.WriteString("alertDiscordId=")
-	builder.WriteString(_m.AlertDiscordId)
-	builder.WriteString(", ")
-	builder.WriteString("alertEmail=")
-	builder.WriteString(_m.AlertEmail)
 	builder.WriteString(", ")
 	builder.WriteString("locked=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Locked))

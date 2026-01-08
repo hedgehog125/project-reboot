@@ -80,13 +80,13 @@ func (_c *LogEntryCreate) SetPublicMessage(v string) *LogEntryCreate {
 }
 
 // SetUserID sets the "userID" field.
-func (_c *LogEntryCreate) SetUserID(v int) *LogEntryCreate {
+func (_c *LogEntryCreate) SetUserID(v uuid.UUID) *LogEntryCreate {
 	_c.mutation.SetUserID(v)
 	return _c
 }
 
 // SetNillableUserID sets the "userID" field if the given value is not nil.
-func (_c *LogEntryCreate) SetNillableUserID(v *int) *LogEntryCreate {
+func (_c *LogEntryCreate) SetNillableUserID(v *uuid.UUID) *LogEntryCreate {
 	if v != nil {
 		_c.SetUserID(*v)
 	}
@@ -262,7 +262,7 @@ func (_c *LogEntryCreate) createSpec() (*LogEntry, *sqlgraph.CreateSpec) {
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -444,7 +444,7 @@ func (u *LogEntryUpsert) UpdatePublicMessage() *LogEntryUpsert {
 }
 
 // SetUserID sets the "userID" field.
-func (u *LogEntryUpsert) SetUserID(v int) *LogEntryUpsert {
+func (u *LogEntryUpsert) SetUserID(v uuid.UUID) *LogEntryUpsert {
 	u.Set(logentry.FieldUserID, v)
 	return u
 }
@@ -650,7 +650,7 @@ func (u *LogEntryUpsertOne) UpdatePublicMessage() *LogEntryUpsertOne {
 }
 
 // SetUserID sets the "userID" field.
-func (u *LogEntryUpsertOne) SetUserID(v int) *LogEntryUpsertOne {
+func (u *LogEntryUpsertOne) SetUserID(v uuid.UUID) *LogEntryUpsertOne {
 	return u.Update(func(s *LogEntryUpsert) {
 		s.SetUserID(v)
 	})
@@ -1026,7 +1026,7 @@ func (u *LogEntryUpsertBulk) UpdatePublicMessage() *LogEntryUpsertBulk {
 }
 
 // SetUserID sets the "userID" field.
-func (u *LogEntryUpsertBulk) SetUserID(v int) *LogEntryUpsertBulk {
+func (u *LogEntryUpsertBulk) SetUserID(v uuid.UUID) *LogEntryUpsertBulk {
 	return u.Update(func(s *LogEntryUpsert) {
 		s.SetUserID(v)
 	})

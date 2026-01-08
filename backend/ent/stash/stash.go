@@ -5,6 +5,7 @@ package stash
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 const (
@@ -78,6 +79,8 @@ var (
 	NonceValidator func([]byte) error
 	// KeySaltValidator is a validator for the "keySalt" field. It is called by the builders before save.
 	KeySaltValidator func([]byte) error
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
 )
 
 // OrderOption defines the ordering options for the Stash queries.

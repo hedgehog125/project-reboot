@@ -8,50 +8,51 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Session {
+func ID(id uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Session {
+func IDEQ(id uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Session {
+func IDNEQ(id uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Session {
+func IDIn(ids ...uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Session {
+func IDNotIn(ids ...uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Session {
+func IDGT(id uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Session {
+func IDGTE(id uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Session {
+func IDLT(id uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Session {
+func IDLTE(id uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldLTE(FieldID, id))
 }
 
@@ -86,7 +87,7 @@ func IP(v string) predicate.Session {
 }
 
 // UserID applies equality check predicate on the "userID" field. It's identical to UserIDEQ.
-func UserID(v int) predicate.Session {
+func UserID(v uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldUserID, v))
 }
 
@@ -381,22 +382,22 @@ func IPContainsFold(v string) predicate.Session {
 }
 
 // UserIDEQ applies the EQ predicate on the "userID" field.
-func UserIDEQ(v int) predicate.Session {
+func UserIDEQ(v uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "userID" field.
-func UserIDNEQ(v int) predicate.Session {
+func UserIDNEQ(v uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "userID" field.
-func UserIDIn(vs ...int) predicate.Session {
+func UserIDIn(vs ...uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "userID" field.
-func UserIDNotIn(vs ...int) predicate.Session {
+func UserIDNotIn(vs ...uuid.UUID) predicate.Session {
 	return predicate.Session(sql.FieldNotIn(FieldUserID, vs...))
 }
 

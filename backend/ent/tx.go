@@ -30,6 +30,8 @@ type Tx struct {
 	TwoFactorAction *TwoFactorActionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserMessenger is the client for interacting with the UserMessenger builders.
+	UserMessenger *UserMessengerClient
 
 	// lazily loaded.
 	client     *Client
@@ -170,6 +172,7 @@ func (tx *Tx) init() {
 	tx.Stash = NewStashClient(tx.config)
 	tx.TwoFactorAction = NewTwoFactorActionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserMessenger = NewUserMessengerClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

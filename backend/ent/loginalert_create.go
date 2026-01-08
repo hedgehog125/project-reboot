@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/NicoClack/cryptic-stash/backend/ent/loginalert"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
+	"github.com/google/uuid"
 )
 
 // LoginAlertCreate is the builder for creating a LoginAlert entity.
@@ -42,8 +44,22 @@ func (_c *LoginAlertCreate) SetConfirmed(v bool) *LoginAlertCreate {
 }
 
 // SetSessionID sets the "sessionID" field.
-func (_c *LoginAlertCreate) SetSessionID(v int) *LoginAlertCreate {
+func (_c *LoginAlertCreate) SetSessionID(v uuid.UUID) *LoginAlertCreate {
 	_c.mutation.SetSessionID(v)
+	return _c
+}
+
+// SetID sets the "id" field.
+func (_c *LoginAlertCreate) SetID(v uuid.UUID) *LoginAlertCreate {
+	_c.mutation.SetID(v)
+	return _c
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *LoginAlertCreate) SetNillableID(v *uuid.UUID) *LoginAlertCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
 	return _c
 }
 
@@ -59,6 +75,7 @@ func (_c *LoginAlertCreate) Mutation() *LoginAlertMutation {
 
 // Save creates the LoginAlert in the database.
 func (_c *LoginAlertCreate) Save(ctx context.Context) (*LoginAlert, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -81,6 +98,14 @@ func (_c *LoginAlertCreate) Exec(ctx context.Context) error {
 func (_c *LoginAlertCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *LoginAlertCreate) defaults() {
+	if _, ok := _c.mutation.ID(); !ok {
+		v := loginalert.DefaultID()
+		_c.mutation.SetID(v)
 	}
 }
 
@@ -120,8 +145,13 @@ func (_c *LoginAlertCreate) sqlSave(ctx context.Context) (*LoginAlert, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -130,9 +160,13 @@ func (_c *LoginAlertCreate) sqlSave(ctx context.Context) (*LoginAlert, error) {
 func (_c *LoginAlertCreate) createSpec() (*LoginAlert, *sqlgraph.CreateSpec) {
 	var (
 		_node = &LoginAlert{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(loginalert.Table, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(loginalert.Table, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = _c.conflict
+	if id, ok := _c.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := _c.mutation.SentAt(); ok {
 		_spec.SetField(loginalert.FieldSentAt, field.TypeTime, value)
 		_node.SentAt = value
@@ -153,7 +187,7 @@ func (_c *LoginAlertCreate) createSpec() (*LoginAlert, *sqlgraph.CreateSpec) {
 			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -251,7 +285,7 @@ func (u *LoginAlertUpsert) UpdateConfirmed() *LoginAlertUpsert {
 }
 
 // SetSessionID sets the "sessionID" field.
-func (u *LoginAlertUpsert) SetSessionID(v int) *LoginAlertUpsert {
+func (u *LoginAlertUpsert) SetSessionID(v uuid.UUID) *LoginAlertUpsert {
 	u.Set(loginalert.FieldSessionID, v)
 	return u
 }
@@ -262,16 +296,24 @@ func (u *LoginAlertUpsert) UpdateSessionID() *LoginAlertUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.LoginAlert.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(loginalert.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *LoginAlertUpsertOne) UpdateNewValues() *LoginAlertUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(loginalert.FieldID)
+		}
+	}))
 	return u
 }
 
@@ -345,7 +387,7 @@ func (u *LoginAlertUpsertOne) UpdateConfirmed() *LoginAlertUpsertOne {
 }
 
 // SetSessionID sets the "sessionID" field.
-func (u *LoginAlertUpsertOne) SetSessionID(v int) *LoginAlertUpsertOne {
+func (u *LoginAlertUpsertOne) SetSessionID(v uuid.UUID) *LoginAlertUpsertOne {
 	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetSessionID(v)
 	})
@@ -374,7 +416,12 @@ func (u *LoginAlertUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *LoginAlertUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *LoginAlertUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: LoginAlertUpsertOne.ID is not supported by MySQL driver. Use LoginAlertUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -383,7 +430,7 @@ func (u *LoginAlertUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *LoginAlertUpsertOne) IDX(ctx context.Context) int {
+func (u *LoginAlertUpsertOne) IDX(ctx context.Context) uuid.UUID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -410,6 +457,7 @@ func (_c *LoginAlertCreateBulk) Save(ctx context.Context) ([]*LoginAlert, error)
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*LoginAlertMutation)
 				if !ok {
@@ -437,10 +485,6 @@ func (_c *LoginAlertCreateBulk) Save(ctx context.Context) ([]*LoginAlert, error)
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -527,10 +571,20 @@ type LoginAlertUpsertBulk struct {
 //	client.LoginAlert.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(loginalert.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *LoginAlertUpsertBulk) UpdateNewValues() *LoginAlertUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(loginalert.FieldID)
+			}
+		}
+	}))
 	return u
 }
 
@@ -604,7 +658,7 @@ func (u *LoginAlertUpsertBulk) UpdateConfirmed() *LoginAlertUpsertBulk {
 }
 
 // SetSessionID sets the "sessionID" field.
-func (u *LoginAlertUpsertBulk) SetSessionID(v int) *LoginAlertUpsertBulk {
+func (u *LoginAlertUpsertBulk) SetSessionID(v uuid.UUID) *LoginAlertUpsertBulk {
 	return u.Update(func(s *LoginAlertUpsert) {
 		s.SetSessionID(v)
 	})

@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/NicoClack/cryptic-stash/backend/ent/periodictask"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
+	"github.com/google/uuid"
 )
 
 // PeriodicTaskQuery is the builder for querying PeriodicTask entities.
@@ -82,8 +83,8 @@ func (_q *PeriodicTaskQuery) FirstX(ctx context.Context) *PeriodicTask {
 
 // FirstID returns the first PeriodicTask ID from the query.
 // Returns a *NotFoundError when no PeriodicTask ID was found.
-func (_q *PeriodicTaskQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *PeriodicTaskQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -95,7 +96,7 @@ func (_q *PeriodicTaskQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *PeriodicTaskQuery) FirstIDX(ctx context.Context) int {
+func (_q *PeriodicTaskQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -133,8 +134,8 @@ func (_q *PeriodicTaskQuery) OnlyX(ctx context.Context) *PeriodicTask {
 // OnlyID is like Only, but returns the only PeriodicTask ID in the query.
 // Returns a *NotSingularError when more than one PeriodicTask ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *PeriodicTaskQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *PeriodicTaskQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -150,7 +151,7 @@ func (_q *PeriodicTaskQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *PeriodicTaskQuery) OnlyIDX(ctx context.Context) int {
+func (_q *PeriodicTaskQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,7 +179,7 @@ func (_q *PeriodicTaskQuery) AllX(ctx context.Context) []*PeriodicTask {
 }
 
 // IDs executes the query and returns a list of PeriodicTask IDs.
-func (_q *PeriodicTaskQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (_q *PeriodicTaskQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -190,7 +191,7 @@ func (_q *PeriodicTaskQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *PeriodicTaskQuery) IDsX(ctx context.Context) []int {
+func (_q *PeriodicTaskQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -365,7 +366,7 @@ func (_q *PeriodicTaskQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *PeriodicTaskQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(periodictask.Table, periodictask.Columns, sqlgraph.NewFieldSpec(periodictask.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(periodictask.Table, periodictask.Columns, sqlgraph.NewFieldSpec(periodictask.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

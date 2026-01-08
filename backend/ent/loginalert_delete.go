@@ -40,7 +40,7 @@ func (_d *LoginAlertDelete) ExecX(ctx context.Context) int {
 }
 
 func (_d *LoginAlertDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(loginalert.Table, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(loginalert.Table, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

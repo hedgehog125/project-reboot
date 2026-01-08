@@ -25,6 +25,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/twofactoraction"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/NicoClack/cryptic-stash/backend/ent/usermessenger"
 )
 
 // Client is the client that holds all ent builders.
@@ -50,6 +51,8 @@ type Client struct {
 	TwoFactorAction *TwoFactorActionClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserMessenger is the client for interacting with the UserMessenger builders.
+	UserMessenger *UserMessengerClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -70,6 +73,7 @@ func (c *Client) init() {
 	c.Stash = NewStashClient(c.config)
 	c.TwoFactorAction = NewTwoFactorActionClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UserMessenger = NewUserMessengerClient(c.config)
 }
 
 type (
@@ -171,6 +175,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Stash:           NewStashClient(cfg),
 		TwoFactorAction: NewTwoFactorActionClient(cfg),
 		User:            NewUserClient(cfg),
+		UserMessenger:   NewUserMessengerClient(cfg),
 	}, nil
 }
 
@@ -199,6 +204,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Stash:           NewStashClient(cfg),
 		TwoFactorAction: NewTwoFactorActionClient(cfg),
 		User:            NewUserClient(cfg),
+		UserMessenger:   NewUserMessengerClient(cfg),
 	}, nil
 }
 
@@ -229,7 +235,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Job, c.KeyValue, c.LogEntry, c.LoginAlert, c.PeriodicTask, c.Session, c.Stash,
-		c.TwoFactorAction, c.User,
+		c.TwoFactorAction, c.User, c.UserMessenger,
 	} {
 		n.Use(hooks...)
 	}
@@ -240,7 +246,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Job, c.KeyValue, c.LogEntry, c.LoginAlert, c.PeriodicTask, c.Session, c.Stash,
-		c.TwoFactorAction, c.User,
+		c.TwoFactorAction, c.User, c.UserMessenger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -267,6 +273,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.TwoFactorAction.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *UserMessengerMutation:
+		return c.UserMessenger.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -466,7 +474,7 @@ func (c *KeyValueClient) UpdateOne(_m *KeyValue) *KeyValueUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *KeyValueClient) UpdateOneID(id int) *KeyValueUpdateOne {
+func (c *KeyValueClient) UpdateOneID(id uuid.UUID) *KeyValueUpdateOne {
 	mutation := newKeyValueMutation(c.config, OpUpdateOne, withKeyValueID(id))
 	return &KeyValueUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -483,7 +491,7 @@ func (c *KeyValueClient) DeleteOne(_m *KeyValue) *KeyValueDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *KeyValueClient) DeleteOneID(id int) *KeyValueDeleteOne {
+func (c *KeyValueClient) DeleteOneID(id uuid.UUID) *KeyValueDeleteOne {
 	builder := c.Delete().Where(keyvalue.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -500,12 +508,12 @@ func (c *KeyValueClient) Query() *KeyValueQuery {
 }
 
 // Get returns a KeyValue entity by its id.
-func (c *KeyValueClient) Get(ctx context.Context, id int) (*KeyValue, error) {
+func (c *KeyValueClient) Get(ctx context.Context, id uuid.UUID) (*KeyValue, error) {
 	return c.Query().Where(keyvalue.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *KeyValueClient) GetX(ctx context.Context, id int) *KeyValue {
+func (c *KeyValueClient) GetX(ctx context.Context, id uuid.UUID) *KeyValue {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -748,7 +756,7 @@ func (c *LoginAlertClient) UpdateOne(_m *LoginAlert) *LoginAlertUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LoginAlertClient) UpdateOneID(id int) *LoginAlertUpdateOne {
+func (c *LoginAlertClient) UpdateOneID(id uuid.UUID) *LoginAlertUpdateOne {
 	mutation := newLoginAlertMutation(c.config, OpUpdateOne, withLoginAlertID(id))
 	return &LoginAlertUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -765,7 +773,7 @@ func (c *LoginAlertClient) DeleteOne(_m *LoginAlert) *LoginAlertDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LoginAlertClient) DeleteOneID(id int) *LoginAlertDeleteOne {
+func (c *LoginAlertClient) DeleteOneID(id uuid.UUID) *LoginAlertDeleteOne {
 	builder := c.Delete().Where(loginalert.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -782,12 +790,12 @@ func (c *LoginAlertClient) Query() *LoginAlertQuery {
 }
 
 // Get returns a LoginAlert entity by its id.
-func (c *LoginAlertClient) Get(ctx context.Context, id int) (*LoginAlert, error) {
+func (c *LoginAlertClient) Get(ctx context.Context, id uuid.UUID) (*LoginAlert, error) {
 	return c.Query().Where(loginalert.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LoginAlertClient) GetX(ctx context.Context, id int) *LoginAlert {
+func (c *LoginAlertClient) GetX(ctx context.Context, id uuid.UUID) *LoginAlert {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -897,7 +905,7 @@ func (c *PeriodicTaskClient) UpdateOne(_m *PeriodicTask) *PeriodicTaskUpdateOne 
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *PeriodicTaskClient) UpdateOneID(id int) *PeriodicTaskUpdateOne {
+func (c *PeriodicTaskClient) UpdateOneID(id uuid.UUID) *PeriodicTaskUpdateOne {
 	mutation := newPeriodicTaskMutation(c.config, OpUpdateOne, withPeriodicTaskID(id))
 	return &PeriodicTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -914,7 +922,7 @@ func (c *PeriodicTaskClient) DeleteOne(_m *PeriodicTask) *PeriodicTaskDeleteOne 
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *PeriodicTaskClient) DeleteOneID(id int) *PeriodicTaskDeleteOne {
+func (c *PeriodicTaskClient) DeleteOneID(id uuid.UUID) *PeriodicTaskDeleteOne {
 	builder := c.Delete().Where(periodictask.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -931,12 +939,12 @@ func (c *PeriodicTaskClient) Query() *PeriodicTaskQuery {
 }
 
 // Get returns a PeriodicTask entity by its id.
-func (c *PeriodicTaskClient) Get(ctx context.Context, id int) (*PeriodicTask, error) {
+func (c *PeriodicTaskClient) Get(ctx context.Context, id uuid.UUID) (*PeriodicTask, error) {
 	return c.Query().Where(periodictask.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *PeriodicTaskClient) GetX(ctx context.Context, id int) *PeriodicTask {
+func (c *PeriodicTaskClient) GetX(ctx context.Context, id uuid.UUID) *PeriodicTask {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1030,7 +1038,7 @@ func (c *SessionClient) UpdateOne(_m *Session) *SessionUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SessionClient) UpdateOneID(id int) *SessionUpdateOne {
+func (c *SessionClient) UpdateOneID(id uuid.UUID) *SessionUpdateOne {
 	mutation := newSessionMutation(c.config, OpUpdateOne, withSessionID(id))
 	return &SessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1047,7 +1055,7 @@ func (c *SessionClient) DeleteOne(_m *Session) *SessionDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SessionClient) DeleteOneID(id int) *SessionDeleteOne {
+func (c *SessionClient) DeleteOneID(id uuid.UUID) *SessionDeleteOne {
 	builder := c.Delete().Where(session.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1064,12 +1072,12 @@ func (c *SessionClient) Query() *SessionQuery {
 }
 
 // Get returns a Session entity by its id.
-func (c *SessionClient) Get(ctx context.Context, id int) (*Session, error) {
+func (c *SessionClient) Get(ctx context.Context, id uuid.UUID) (*Session, error) {
 	return c.Query().Where(session.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SessionClient) GetX(ctx context.Context, id int) *Session {
+func (c *SessionClient) GetX(ctx context.Context, id uuid.UUID) *Session {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1195,7 +1203,7 @@ func (c *StashClient) UpdateOne(_m *Stash) *StashUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *StashClient) UpdateOneID(id int) *StashUpdateOne {
+func (c *StashClient) UpdateOneID(id uuid.UUID) *StashUpdateOne {
 	mutation := newStashMutation(c.config, OpUpdateOne, withStashID(id))
 	return &StashUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1212,7 +1220,7 @@ func (c *StashClient) DeleteOne(_m *Stash) *StashDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *StashClient) DeleteOneID(id int) *StashDeleteOne {
+func (c *StashClient) DeleteOneID(id uuid.UUID) *StashDeleteOne {
 	builder := c.Delete().Where(stash.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1229,12 +1237,12 @@ func (c *StashClient) Query() *StashQuery {
 }
 
 // Get returns a Stash entity by its id.
-func (c *StashClient) Get(ctx context.Context, id int) (*Stash, error) {
+func (c *StashClient) Get(ctx context.Context, id uuid.UUID) (*Stash, error) {
 	return c.Query().Where(stash.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *StashClient) GetX(ctx context.Context, id int) *Stash {
+func (c *StashClient) GetX(ctx context.Context, id uuid.UUID) *Stash {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1477,7 +1485,7 @@ func (c *UserClient) UpdateOne(_m *User) *UserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
+func (c *UserClient) UpdateOneID(id uuid.UUID) *UserUpdateOne {
 	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
 	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1494,7 +1502,7 @@ func (c *UserClient) DeleteOne(_m *User) *UserDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
+func (c *UserClient) DeleteOneID(id uuid.UUID) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1511,12 +1519,12 @@ func (c *UserClient) Query() *UserQuery {
 }
 
 // Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
+func (c *UserClient) Get(ctx context.Context, id uuid.UUID) (*User, error) {
 	return c.Query().Where(user.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id int) *User {
+func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1533,6 +1541,22 @@ func (c *UserClient) QueryStash(_m *User) *StashQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(stash.Table, stash.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, user.StashTable, user.StashColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMessengers queries the messengers edge of a User.
+func (c *UserClient) QueryMessengers(_m *User) *UserMessengerQuery {
+	query := (&UserMessengerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(usermessenger.Table, usermessenger.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.MessengersTable, user.MessengersColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -1597,14 +1621,163 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
+// UserMessengerClient is a client for the UserMessenger schema.
+type UserMessengerClient struct {
+	config
+}
+
+// NewUserMessengerClient returns a client for the UserMessenger from the given config.
+func NewUserMessengerClient(c config) *UserMessengerClient {
+	return &UserMessengerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usermessenger.Hooks(f(g(h())))`.
+func (c *UserMessengerClient) Use(hooks ...Hook) {
+	c.hooks.UserMessenger = append(c.hooks.UserMessenger, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usermessenger.Intercept(f(g(h())))`.
+func (c *UserMessengerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserMessenger = append(c.inters.UserMessenger, interceptors...)
+}
+
+// Create returns a builder for creating a UserMessenger entity.
+func (c *UserMessengerClient) Create() *UserMessengerCreate {
+	mutation := newUserMessengerMutation(c.config, OpCreate)
+	return &UserMessengerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserMessenger entities.
+func (c *UserMessengerClient) CreateBulk(builders ...*UserMessengerCreate) *UserMessengerCreateBulk {
+	return &UserMessengerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserMessengerClient) MapCreateBulk(slice any, setFunc func(*UserMessengerCreate, int)) *UserMessengerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserMessengerCreateBulk{err: fmt.Errorf("calling to UserMessengerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserMessengerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserMessengerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserMessenger.
+func (c *UserMessengerClient) Update() *UserMessengerUpdate {
+	mutation := newUserMessengerMutation(c.config, OpUpdate)
+	return &UserMessengerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserMessengerClient) UpdateOne(_m *UserMessenger) *UserMessengerUpdateOne {
+	mutation := newUserMessengerMutation(c.config, OpUpdateOne, withUserMessenger(_m))
+	return &UserMessengerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserMessengerClient) UpdateOneID(id uuid.UUID) *UserMessengerUpdateOne {
+	mutation := newUserMessengerMutation(c.config, OpUpdateOne, withUserMessengerID(id))
+	return &UserMessengerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserMessenger.
+func (c *UserMessengerClient) Delete() *UserMessengerDelete {
+	mutation := newUserMessengerMutation(c.config, OpDelete)
+	return &UserMessengerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserMessengerClient) DeleteOne(_m *UserMessenger) *UserMessengerDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserMessengerClient) DeleteOneID(id uuid.UUID) *UserMessengerDeleteOne {
+	builder := c.Delete().Where(usermessenger.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserMessengerDeleteOne{builder}
+}
+
+// Query returns a query builder for UserMessenger.
+func (c *UserMessengerClient) Query() *UserMessengerQuery {
+	return &UserMessengerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserMessenger},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserMessenger entity by its id.
+func (c *UserMessengerClient) Get(ctx context.Context, id uuid.UUID) (*UserMessenger, error) {
+	return c.Query().Where(usermessenger.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserMessengerClient) GetX(ctx context.Context, id uuid.UUID) *UserMessenger {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserMessenger.
+func (c *UserMessengerClient) QueryUser(_m *UserMessenger) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usermessenger.Table, usermessenger.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, usermessenger.UserTable, usermessenger.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserMessengerClient) Hooks() []Hook {
+	return c.hooks.UserMessenger
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserMessengerClient) Interceptors() []Interceptor {
+	return c.inters.UserMessenger
+}
+
+func (c *UserMessengerClient) mutate(ctx context.Context, m *UserMessengerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserMessengerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserMessengerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserMessengerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserMessengerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserMessenger mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		Job, KeyValue, LogEntry, LoginAlert, PeriodicTask, Session, Stash,
-		TwoFactorAction, User []ent.Hook
+		TwoFactorAction, User, UserMessenger []ent.Hook
 	}
 	inters struct {
 		Job, KeyValue, LogEntry, LoginAlert, PeriodicTask, Session, Stash,
-		TwoFactorAction, User []ent.Interceptor
+		TwoFactorAction, User, UserMessenger []ent.Interceptor
 	}
 )

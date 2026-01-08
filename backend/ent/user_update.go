@@ -16,6 +16,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/NicoClack/cryptic-stash/backend/ent/usermessenger"
 	"github.com/google/uuid"
 )
 
@@ -42,34 +43,6 @@ func (_u *UserUpdate) SetUsername(v string) *UserUpdate {
 func (_u *UserUpdate) SetNillableUsername(v *string) *UserUpdate {
 	if v != nil {
 		_u.SetUsername(*v)
-	}
-	return _u
-}
-
-// SetAlertDiscordId sets the "alertDiscordId" field.
-func (_u *UserUpdate) SetAlertDiscordId(v string) *UserUpdate {
-	_u.mutation.SetAlertDiscordId(v)
-	return _u
-}
-
-// SetNillableAlertDiscordId sets the "alertDiscordId" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableAlertDiscordId(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetAlertDiscordId(*v)
-	}
-	return _u
-}
-
-// SetAlertEmail sets the "alertEmail" field.
-func (_u *UserUpdate) SetAlertEmail(v string) *UserUpdate {
-	_u.mutation.SetAlertEmail(v)
-	return _u
-}
-
-// SetNillableAlertEmail sets the "alertEmail" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableAlertEmail(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetAlertEmail(*v)
 	}
 	return _u
 }
@@ -123,13 +96,13 @@ func (_u *UserUpdate) SetNillableSessionsValidFrom(v *time.Time) *UserUpdate {
 }
 
 // SetStashID sets the "stash" edge to the Stash entity by ID.
-func (_u *UserUpdate) SetStashID(id int) *UserUpdate {
+func (_u *UserUpdate) SetStashID(id uuid.UUID) *UserUpdate {
 	_u.mutation.SetStashID(id)
 	return _u
 }
 
 // SetNillableStashID sets the "stash" edge to the Stash entity by ID if the given value is not nil.
-func (_u *UserUpdate) SetNillableStashID(id *int) *UserUpdate {
+func (_u *UserUpdate) SetNillableStashID(id *uuid.UUID) *UserUpdate {
 	if id != nil {
 		_u = _u.SetStashID(*id)
 	}
@@ -141,15 +114,30 @@ func (_u *UserUpdate) SetStash(v *Stash) *UserUpdate {
 	return _u.SetStashID(v.ID)
 }
 
+// AddMessengerIDs adds the "messengers" edge to the UserMessenger entity by IDs.
+func (_u *UserUpdate) AddMessengerIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddMessengerIDs(ids...)
+	return _u
+}
+
+// AddMessengers adds the "messengers" edges to the UserMessenger entity.
+func (_u *UserUpdate) AddMessengers(v ...*UserMessenger) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMessengerIDs(ids...)
+}
+
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
-func (_u *UserUpdate) AddSessionIDs(ids ...int) *UserUpdate {
+func (_u *UserUpdate) AddSessionIDs(ids ...uuid.UUID) *UserUpdate {
 	_u.mutation.AddSessionIDs(ids...)
 	return _u
 }
 
 // AddSessions adds the "sessions" edges to the Session entity.
 func (_u *UserUpdate) AddSessions(v ...*Session) *UserUpdate {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -182,6 +170,27 @@ func (_u *UserUpdate) ClearStash() *UserUpdate {
 	return _u
 }
 
+// ClearMessengers clears all "messengers" edges to the UserMessenger entity.
+func (_u *UserUpdate) ClearMessengers() *UserUpdate {
+	_u.mutation.ClearMessengers()
+	return _u
+}
+
+// RemoveMessengerIDs removes the "messengers" edge to UserMessenger entities by IDs.
+func (_u *UserUpdate) RemoveMessengerIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveMessengerIDs(ids...)
+	return _u
+}
+
+// RemoveMessengers removes "messengers" edges to UserMessenger entities.
+func (_u *UserUpdate) RemoveMessengers(v ...*UserMessenger) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMessengerIDs(ids...)
+}
+
 // ClearSessions clears all "sessions" edges to the Session entity.
 func (_u *UserUpdate) ClearSessions() *UserUpdate {
 	_u.mutation.ClearSessions()
@@ -189,14 +198,14 @@ func (_u *UserUpdate) ClearSessions() *UserUpdate {
 }
 
 // RemoveSessionIDs removes the "sessions" edge to Session entities by IDs.
-func (_u *UserUpdate) RemoveSessionIDs(ids ...int) *UserUpdate {
+func (_u *UserUpdate) RemoveSessionIDs(ids ...uuid.UUID) *UserUpdate {
 	_u.mutation.RemoveSessionIDs(ids...)
 	return _u
 }
 
 // RemoveSessions removes "sessions" edges to Session entities.
 func (_u *UserUpdate) RemoveSessions(v ...*Session) *UserUpdate {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -265,7 +274,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -275,12 +284,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.AlertDiscordId(); ok {
-		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.AlertEmail(); ok {
-		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Locked(); ok {
 		_spec.SetField(user.FieldLocked, field.TypeBool, value)
@@ -302,7 +305,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.StashColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -315,7 +318,52 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.StashColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MessengersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MessengersTable,
+			Columns: []string{user.MessengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usermessenger.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMessengersIDs(); len(nodes) > 0 && !_u.mutation.MessengersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MessengersTable,
+			Columns: []string{user.MessengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usermessenger.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MessengersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MessengersTable,
+			Columns: []string{user.MessengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usermessenger.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -331,7 +379,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -344,7 +392,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -360,7 +408,7 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -447,34 +495,6 @@ func (_u *UserUpdateOne) SetNillableUsername(v *string) *UserUpdateOne {
 	return _u
 }
 
-// SetAlertDiscordId sets the "alertDiscordId" field.
-func (_u *UserUpdateOne) SetAlertDiscordId(v string) *UserUpdateOne {
-	_u.mutation.SetAlertDiscordId(v)
-	return _u
-}
-
-// SetNillableAlertDiscordId sets the "alertDiscordId" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableAlertDiscordId(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetAlertDiscordId(*v)
-	}
-	return _u
-}
-
-// SetAlertEmail sets the "alertEmail" field.
-func (_u *UserUpdateOne) SetAlertEmail(v string) *UserUpdateOne {
-	_u.mutation.SetAlertEmail(v)
-	return _u
-}
-
-// SetNillableAlertEmail sets the "alertEmail" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableAlertEmail(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetAlertEmail(*v)
-	}
-	return _u
-}
-
 // SetLocked sets the "locked" field.
 func (_u *UserUpdateOne) SetLocked(v bool) *UserUpdateOne {
 	_u.mutation.SetLocked(v)
@@ -524,13 +544,13 @@ func (_u *UserUpdateOne) SetNillableSessionsValidFrom(v *time.Time) *UserUpdateO
 }
 
 // SetStashID sets the "stash" edge to the Stash entity by ID.
-func (_u *UserUpdateOne) SetStashID(id int) *UserUpdateOne {
+func (_u *UserUpdateOne) SetStashID(id uuid.UUID) *UserUpdateOne {
 	_u.mutation.SetStashID(id)
 	return _u
 }
 
 // SetNillableStashID sets the "stash" edge to the Stash entity by ID if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableStashID(id *int) *UserUpdateOne {
+func (_u *UserUpdateOne) SetNillableStashID(id *uuid.UUID) *UserUpdateOne {
 	if id != nil {
 		_u = _u.SetStashID(*id)
 	}
@@ -542,15 +562,30 @@ func (_u *UserUpdateOne) SetStash(v *Stash) *UserUpdateOne {
 	return _u.SetStashID(v.ID)
 }
 
+// AddMessengerIDs adds the "messengers" edge to the UserMessenger entity by IDs.
+func (_u *UserUpdateOne) AddMessengerIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddMessengerIDs(ids...)
+	return _u
+}
+
+// AddMessengers adds the "messengers" edges to the UserMessenger entity.
+func (_u *UserUpdateOne) AddMessengers(v ...*UserMessenger) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMessengerIDs(ids...)
+}
+
 // AddSessionIDs adds the "sessions" edge to the Session entity by IDs.
-func (_u *UserUpdateOne) AddSessionIDs(ids ...int) *UserUpdateOne {
+func (_u *UserUpdateOne) AddSessionIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddSessionIDs(ids...)
 	return _u
 }
 
 // AddSessions adds the "sessions" edges to the Session entity.
 func (_u *UserUpdateOne) AddSessions(v ...*Session) *UserUpdateOne {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -583,6 +618,27 @@ func (_u *UserUpdateOne) ClearStash() *UserUpdateOne {
 	return _u
 }
 
+// ClearMessengers clears all "messengers" edges to the UserMessenger entity.
+func (_u *UserUpdateOne) ClearMessengers() *UserUpdateOne {
+	_u.mutation.ClearMessengers()
+	return _u
+}
+
+// RemoveMessengerIDs removes the "messengers" edge to UserMessenger entities by IDs.
+func (_u *UserUpdateOne) RemoveMessengerIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveMessengerIDs(ids...)
+	return _u
+}
+
+// RemoveMessengers removes "messengers" edges to UserMessenger entities.
+func (_u *UserUpdateOne) RemoveMessengers(v ...*UserMessenger) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMessengerIDs(ids...)
+}
+
 // ClearSessions clears all "sessions" edges to the Session entity.
 func (_u *UserUpdateOne) ClearSessions() *UserUpdateOne {
 	_u.mutation.ClearSessions()
@@ -590,14 +646,14 @@ func (_u *UserUpdateOne) ClearSessions() *UserUpdateOne {
 }
 
 // RemoveSessionIDs removes the "sessions" edge to Session entities by IDs.
-func (_u *UserUpdateOne) RemoveSessionIDs(ids ...int) *UserUpdateOne {
+func (_u *UserUpdateOne) RemoveSessionIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.RemoveSessionIDs(ids...)
 	return _u
 }
 
 // RemoveSessions removes "sessions" edges to Session entities.
 func (_u *UserUpdateOne) RemoveSessions(v ...*Session) *UserUpdateOne {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -679,7 +735,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
@@ -707,12 +763,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.AlertDiscordId(); ok {
-		_spec.SetField(user.FieldAlertDiscordId, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.AlertEmail(); ok {
-		_spec.SetField(user.FieldAlertEmail, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.Locked(); ok {
 		_spec.SetField(user.FieldLocked, field.TypeBool, value)
 	}
@@ -733,7 +783,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.StashColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -746,7 +796,52 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.StashColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MessengersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MessengersTable,
+			Columns: []string{user.MessengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usermessenger.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMessengersIDs(); len(nodes) > 0 && !_u.mutation.MessengersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MessengersTable,
+			Columns: []string{user.MessengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usermessenger.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MessengersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.MessengersTable,
+			Columns: []string{user.MessengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(usermessenger.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -762,7 +857,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -775,7 +870,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -791,7 +886,7 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Columns: []string{user.SessionsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

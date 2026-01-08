@@ -6,50 +6,51 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Stash {
+func ID(id uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Stash {
+func IDEQ(id uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Stash {
+func IDNEQ(id uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Stash {
+func IDIn(ids ...uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Stash {
+func IDNotIn(ids ...uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Stash {
+func IDGT(id uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Stash {
+func IDGTE(id uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Stash {
+func IDLT(id uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Stash {
+func IDLTE(id uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldLTE(FieldID, id))
 }
 
@@ -94,7 +95,7 @@ func HashThreads(v uint8) predicate.Stash {
 }
 
 // UserID applies equality check predicate on the "userID" field. It's identical to UserIDEQ.
-func UserID(v int) predicate.Stash {
+func UserID(v uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldEQ(FieldUserID, v))
 }
 
@@ -469,22 +470,22 @@ func HashThreadsLTE(v uint8) predicate.Stash {
 }
 
 // UserIDEQ applies the EQ predicate on the "userID" field.
-func UserIDEQ(v int) predicate.Stash {
+func UserIDEQ(v uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "userID" field.
-func UserIDNEQ(v int) predicate.Stash {
+func UserIDNEQ(v uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "userID" field.
-func UserIDIn(vs ...int) predicate.Stash {
+func UserIDIn(vs ...uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "userID" field.
-func UserIDNotIn(vs ...int) predicate.Stash {
+func UserIDNotIn(vs ...uuid.UUID) predicate.Stash {
 	return predicate.Stash(sql.FieldNotIn(FieldUserID, vs...))
 }
 

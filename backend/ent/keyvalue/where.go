@@ -5,50 +5,51 @@ package keyvalue
 import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.KeyValue {
+func ID(id uuid.UUID) predicate.KeyValue {
 	return predicate.KeyValue(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.KeyValue {
+func IDEQ(id uuid.UUID) predicate.KeyValue {
 	return predicate.KeyValue(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.KeyValue {
+func IDNEQ(id uuid.UUID) predicate.KeyValue {
 	return predicate.KeyValue(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.KeyValue {
+func IDIn(ids ...uuid.UUID) predicate.KeyValue {
 	return predicate.KeyValue(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.KeyValue {
+func IDNotIn(ids ...uuid.UUID) predicate.KeyValue {
 	return predicate.KeyValue(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.KeyValue {
+func IDGT(id uuid.UUID) predicate.KeyValue {
 	return predicate.KeyValue(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.KeyValue {
+func IDGTE(id uuid.UUID) predicate.KeyValue {
 	return predicate.KeyValue(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.KeyValue {
+func IDLT(id uuid.UUID) predicate.KeyValue {
 	return predicate.KeyValue(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.KeyValue {
+func IDLTE(id uuid.UUID) predicate.KeyValue {
 	return predicate.KeyValue(sql.FieldLTE(FieldID, id))
 }
 

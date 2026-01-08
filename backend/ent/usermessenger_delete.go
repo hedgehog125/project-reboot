@@ -8,30 +8,30 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/NicoClack/cryptic-stash/backend/ent/keyvalue"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
+	"github.com/NicoClack/cryptic-stash/backend/ent/usermessenger"
 )
 
-// KeyValueDelete is the builder for deleting a KeyValue entity.
-type KeyValueDelete struct {
+// UserMessengerDelete is the builder for deleting a UserMessenger entity.
+type UserMessengerDelete struct {
 	config
 	hooks    []Hook
-	mutation *KeyValueMutation
+	mutation *UserMessengerMutation
 }
 
-// Where appends a list predicates to the KeyValueDelete builder.
-func (_d *KeyValueDelete) Where(ps ...predicate.KeyValue) *KeyValueDelete {
+// Where appends a list predicates to the UserMessengerDelete builder.
+func (_d *UserMessengerDelete) Where(ps ...predicate.UserMessenger) *UserMessengerDelete {
 	_d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (_d *KeyValueDelete) Exec(ctx context.Context) (int, error) {
+func (_d *UserMessengerDelete) Exec(ctx context.Context) (int, error) {
 	return withHooks(ctx, _d.sqlExec, _d.mutation, _d.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *KeyValueDelete) ExecX(ctx context.Context) int {
+func (_d *UserMessengerDelete) ExecX(ctx context.Context) int {
 	n, err := _d.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -39,8 +39,8 @@ func (_d *KeyValueDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (_d *KeyValueDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(keyvalue.Table, sqlgraph.NewFieldSpec(keyvalue.FieldID, field.TypeUUID))
+func (_d *UserMessengerDelete) sqlExec(ctx context.Context) (int, error) {
+	_spec := sqlgraph.NewDeleteSpec(usermessenger.Table, sqlgraph.NewFieldSpec(usermessenger.FieldID, field.TypeUUID))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -56,32 +56,32 @@ func (_d *KeyValueDelete) sqlExec(ctx context.Context) (int, error) {
 	return affected, err
 }
 
-// KeyValueDeleteOne is the builder for deleting a single KeyValue entity.
-type KeyValueDeleteOne struct {
-	_d *KeyValueDelete
+// UserMessengerDeleteOne is the builder for deleting a single UserMessenger entity.
+type UserMessengerDeleteOne struct {
+	_d *UserMessengerDelete
 }
 
-// Where appends a list predicates to the KeyValueDelete builder.
-func (_d *KeyValueDeleteOne) Where(ps ...predicate.KeyValue) *KeyValueDeleteOne {
+// Where appends a list predicates to the UserMessengerDelete builder.
+func (_d *UserMessengerDeleteOne) Where(ps ...predicate.UserMessenger) *UserMessengerDeleteOne {
 	_d._d.mutation.Where(ps...)
 	return _d
 }
 
 // Exec executes the deletion query.
-func (_d *KeyValueDeleteOne) Exec(ctx context.Context) error {
+func (_d *UserMessengerDeleteOne) Exec(ctx context.Context) error {
 	n, err := _d._d.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{keyvalue.Label}
+		return &NotFoundError{usermessenger.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (_d *KeyValueDeleteOne) ExecX(ctx context.Context) {
+func (_d *UserMessengerDeleteOne) ExecX(ctx context.Context) {
 	if err := _d.Exec(ctx); err != nil {
 		panic(err)
 	}

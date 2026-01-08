@@ -14,6 +14,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/loginalert"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
+	"github.com/google/uuid"
 )
 
 // LoginAlertQuery is the builder for querying LoginAlert entities.
@@ -106,8 +107,8 @@ func (_q *LoginAlertQuery) FirstX(ctx context.Context) *LoginAlert {
 
 // FirstID returns the first LoginAlert ID from the query.
 // Returns a *NotFoundError when no LoginAlert ID was found.
-func (_q *LoginAlertQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *LoginAlertQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -119,7 +120,7 @@ func (_q *LoginAlertQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *LoginAlertQuery) FirstIDX(ctx context.Context) int {
+func (_q *LoginAlertQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -157,8 +158,8 @@ func (_q *LoginAlertQuery) OnlyX(ctx context.Context) *LoginAlert {
 // OnlyID is like Only, but returns the only LoginAlert ID in the query.
 // Returns a *NotSingularError when more than one LoginAlert ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *LoginAlertQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *LoginAlertQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -174,7 +175,7 @@ func (_q *LoginAlertQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *LoginAlertQuery) OnlyIDX(ctx context.Context) int {
+func (_q *LoginAlertQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -202,7 +203,7 @@ func (_q *LoginAlertQuery) AllX(ctx context.Context) []*LoginAlert {
 }
 
 // IDs executes the query and returns a list of LoginAlert IDs.
-func (_q *LoginAlertQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (_q *LoginAlertQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -214,7 +215,7 @@ func (_q *LoginAlertQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *LoginAlertQuery) IDsX(ctx context.Context) []int {
+func (_q *LoginAlertQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -402,8 +403,8 @@ func (_q *LoginAlertQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*L
 }
 
 func (_q *LoginAlertQuery) loadSession(ctx context.Context, query *SessionQuery, nodes []*LoginAlert, init func(*LoginAlert), assign func(*LoginAlert, *Session)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*LoginAlert)
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*LoginAlert)
 	for i := range nodes {
 		fk := nodes[i].SessionID
 		if _, ok := nodeids[fk]; !ok {
@@ -441,7 +442,7 @@ func (_q *LoginAlertQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *LoginAlertQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(loginalert.Table, loginalert.Columns, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(loginalert.Table, loginalert.Columns, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

@@ -14,6 +14,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 )
 
 // StashQuery is the builder for querying Stash entities.
@@ -106,8 +107,8 @@ func (_q *StashQuery) FirstX(ctx context.Context) *Stash {
 
 // FirstID returns the first Stash ID from the query.
 // Returns a *NotFoundError when no Stash ID was found.
-func (_q *StashQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *StashQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -119,7 +120,7 @@ func (_q *StashQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *StashQuery) FirstIDX(ctx context.Context) int {
+func (_q *StashQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -157,8 +158,8 @@ func (_q *StashQuery) OnlyX(ctx context.Context) *Stash {
 // OnlyID is like Only, but returns the only Stash ID in the query.
 // Returns a *NotSingularError when more than one Stash ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *StashQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *StashQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -174,7 +175,7 @@ func (_q *StashQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *StashQuery) OnlyIDX(ctx context.Context) int {
+func (_q *StashQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -202,7 +203,7 @@ func (_q *StashQuery) AllX(ctx context.Context) []*Stash {
 }
 
 // IDs executes the query and returns a list of Stash IDs.
-func (_q *StashQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (_q *StashQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -214,7 +215,7 @@ func (_q *StashQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *StashQuery) IDsX(ctx context.Context) []int {
+func (_q *StashQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -402,8 +403,8 @@ func (_q *StashQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Stash,
 }
 
 func (_q *StashQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Stash, init func(*Stash), assign func(*Stash, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Stash)
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Stash)
 	for i := range nodes {
 		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
@@ -441,7 +442,7 @@ func (_q *StashQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *StashQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(stash.Table, stash.Columns, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(stash.Table, stash.Columns, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

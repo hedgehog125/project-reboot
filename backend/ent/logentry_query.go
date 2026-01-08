@@ -403,8 +403,8 @@ func (_q *LogEntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Log
 }
 
 func (_q *LogEntryQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*LogEntry, init func(*LogEntry), assign func(*LogEntry, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*LogEntry)
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*LogEntry)
 	for i := range nodes {
 		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {

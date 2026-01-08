@@ -11,13 +11,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 )
 
 // Session is the model entity for the Session schema.
 type Session struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// CreatedAt holds the value of the "createdAt" field.
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 	// Code holds the value of the "code" field.
@@ -31,7 +32,7 @@ type Session struct {
 	// IP holds the value of the "ip" field.
 	IP string `json:"ip,omitempty"`
 	// UserID holds the value of the "userID" field.
-	UserID int `json:"userID,omitempty"`
+	UserID uuid.UUID `json:"userID,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SessionQuery when eager-loading is set.
 	Edges        SessionEdges `json:"edges"`
@@ -76,12 +77,12 @@ func (*Session) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case session.FieldCode:
 			values[i] = new([]byte)
-		case session.FieldID, session.FieldUserID:
-			values[i] = new(sql.NullInt64)
 		case session.FieldUserAgent, session.FieldIP:
 			values[i] = new(sql.NullString)
 		case session.FieldCreatedAt, session.FieldValidFrom, session.FieldValidUntil:
 			values[i] = new(sql.NullTime)
+		case session.FieldID, session.FieldUserID:
+			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -98,11 +99,11 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case session.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				_m.ID = *value
 			}
-			_m.ID = int(value.Int64)
 		case session.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field createdAt", values[i])
@@ -140,10 +141,10 @@ func (_m *Session) assignValues(columns []string, values []any) error {
 				_m.IP = value.String
 			}
 		case session.FieldUserID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field userID", values[i])
-			} else if value.Valid {
-				_m.UserID = int(value.Int64)
+			} else if value != nil {
+				_m.UserID = *value
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])

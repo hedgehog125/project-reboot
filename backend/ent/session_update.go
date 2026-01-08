@@ -15,6 +15,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 )
 
 // SessionUpdate is the builder for updating Session entities.
@@ -107,13 +108,13 @@ func (_u *SessionUpdate) SetNillableIP(v *string) *SessionUpdate {
 }
 
 // SetUserID sets the "userID" field.
-func (_u *SessionUpdate) SetUserID(v int) *SessionUpdate {
+func (_u *SessionUpdate) SetUserID(v uuid.UUID) *SessionUpdate {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "userID" field if the given value is not nil.
-func (_u *SessionUpdate) SetNillableUserID(v *int) *SessionUpdate {
+func (_u *SessionUpdate) SetNillableUserID(v *uuid.UUID) *SessionUpdate {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -126,14 +127,14 @@ func (_u *SessionUpdate) SetUser(v *User) *SessionUpdate {
 }
 
 // AddLoginAlertIDs adds the "loginAlerts" edge to the LoginAlert entity by IDs.
-func (_u *SessionUpdate) AddLoginAlertIDs(ids ...int) *SessionUpdate {
+func (_u *SessionUpdate) AddLoginAlertIDs(ids ...uuid.UUID) *SessionUpdate {
 	_u.mutation.AddLoginAlertIDs(ids...)
 	return _u
 }
 
 // AddLoginAlerts adds the "loginAlerts" edges to the LoginAlert entity.
 func (_u *SessionUpdate) AddLoginAlerts(v ...*LoginAlert) *SessionUpdate {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -158,14 +159,14 @@ func (_u *SessionUpdate) ClearLoginAlerts() *SessionUpdate {
 }
 
 // RemoveLoginAlertIDs removes the "loginAlerts" edge to LoginAlert entities by IDs.
-func (_u *SessionUpdate) RemoveLoginAlertIDs(ids ...int) *SessionUpdate {
+func (_u *SessionUpdate) RemoveLoginAlertIDs(ids ...uuid.UUID) *SessionUpdate {
 	_u.mutation.RemoveLoginAlertIDs(ids...)
 	return _u
 }
 
 // RemoveLoginAlerts removes "loginAlerts" edges to LoginAlert entities.
 func (_u *SessionUpdate) RemoveLoginAlerts(v ...*LoginAlert) *SessionUpdate {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -216,7 +217,7 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(session.Table, session.Columns, sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(session.Table, session.Columns, sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -250,7 +251,7 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{session.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -263,7 +264,7 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{session.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -279,7 +280,7 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{session.LoginAlertsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -292,7 +293,7 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{session.LoginAlertsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -308,7 +309,7 @@ func (_u *SessionUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{session.LoginAlertsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -413,13 +414,13 @@ func (_u *SessionUpdateOne) SetNillableIP(v *string) *SessionUpdateOne {
 }
 
 // SetUserID sets the "userID" field.
-func (_u *SessionUpdateOne) SetUserID(v int) *SessionUpdateOne {
+func (_u *SessionUpdateOne) SetUserID(v uuid.UUID) *SessionUpdateOne {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "userID" field if the given value is not nil.
-func (_u *SessionUpdateOne) SetNillableUserID(v *int) *SessionUpdateOne {
+func (_u *SessionUpdateOne) SetNillableUserID(v *uuid.UUID) *SessionUpdateOne {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -432,14 +433,14 @@ func (_u *SessionUpdateOne) SetUser(v *User) *SessionUpdateOne {
 }
 
 // AddLoginAlertIDs adds the "loginAlerts" edge to the LoginAlert entity by IDs.
-func (_u *SessionUpdateOne) AddLoginAlertIDs(ids ...int) *SessionUpdateOne {
+func (_u *SessionUpdateOne) AddLoginAlertIDs(ids ...uuid.UUID) *SessionUpdateOne {
 	_u.mutation.AddLoginAlertIDs(ids...)
 	return _u
 }
 
 // AddLoginAlerts adds the "loginAlerts" edges to the LoginAlert entity.
 func (_u *SessionUpdateOne) AddLoginAlerts(v ...*LoginAlert) *SessionUpdateOne {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -464,14 +465,14 @@ func (_u *SessionUpdateOne) ClearLoginAlerts() *SessionUpdateOne {
 }
 
 // RemoveLoginAlertIDs removes the "loginAlerts" edge to LoginAlert entities by IDs.
-func (_u *SessionUpdateOne) RemoveLoginAlertIDs(ids ...int) *SessionUpdateOne {
+func (_u *SessionUpdateOne) RemoveLoginAlertIDs(ids ...uuid.UUID) *SessionUpdateOne {
 	_u.mutation.RemoveLoginAlertIDs(ids...)
 	return _u
 }
 
 // RemoveLoginAlerts removes "loginAlerts" edges to LoginAlert entities.
 func (_u *SessionUpdateOne) RemoveLoginAlerts(v ...*LoginAlert) *SessionUpdateOne {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -535,7 +536,7 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(session.Table, session.Columns, sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(session.Table, session.Columns, sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Session.id" for update`)}
@@ -586,7 +587,7 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 			Columns: []string{session.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -599,7 +600,7 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 			Columns: []string{session.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -615,7 +616,7 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 			Columns: []string{session.LoginAlertsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -628,7 +629,7 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 			Columns: []string{session.LoginAlertsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -644,7 +645,7 @@ func (_u *SessionUpdateOne) sqlSave(ctx context.Context) (_node *Session, err er
 			Columns: []string{session.LoginAlertsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

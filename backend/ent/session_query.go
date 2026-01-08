@@ -16,6 +16,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 )
 
 // SessionQuery is the builder for querying Session entities.
@@ -131,8 +132,8 @@ func (_q *SessionQuery) FirstX(ctx context.Context) *Session {
 
 // FirstID returns the first Session ID from the query.
 // Returns a *NotFoundError when no Session ID was found.
-func (_q *SessionQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *SessionQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -144,7 +145,7 @@ func (_q *SessionQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *SessionQuery) FirstIDX(ctx context.Context) int {
+func (_q *SessionQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -182,8 +183,8 @@ func (_q *SessionQuery) OnlyX(ctx context.Context) *Session {
 // OnlyID is like Only, but returns the only Session ID in the query.
 // Returns a *NotSingularError when more than one Session ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *SessionQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *SessionQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -199,7 +200,7 @@ func (_q *SessionQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *SessionQuery) OnlyIDX(ctx context.Context) int {
+func (_q *SessionQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -227,7 +228,7 @@ func (_q *SessionQuery) AllX(ctx context.Context) []*Session {
 }
 
 // IDs executes the query and returns a list of Session IDs.
-func (_q *SessionQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (_q *SessionQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -239,7 +240,7 @@ func (_q *SessionQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *SessionQuery) IDsX(ctx context.Context) []int {
+func (_q *SessionQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -447,8 +448,8 @@ func (_q *SessionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Sess
 }
 
 func (_q *SessionQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Session, init func(*Session), assign func(*Session, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Session)
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Session)
 	for i := range nodes {
 		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
@@ -477,7 +478,7 @@ func (_q *SessionQuery) loadUser(ctx context.Context, query *UserQuery, nodes []
 }
 func (_q *SessionQuery) loadLoginAlerts(ctx context.Context, query *LoginAlertQuery, nodes []*Session, init func(*Session), assign func(*Session, *LoginAlert)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Session)
+	nodeids := make(map[uuid.UUID]*Session)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -516,7 +517,7 @@ func (_q *SessionQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *SessionQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(session.Table, session.Columns, sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(session.Table, session.Columns, sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

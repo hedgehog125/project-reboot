@@ -97,7 +97,7 @@ func PublicMessage(v string) predicate.LogEntry {
 }
 
 // UserID applies equality check predicate on the "userID" field. It's identical to UserIDEQ.
-func UserID(v int) predicate.LogEntry {
+func UserID(v uuid.UUID) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldEQ(FieldUserID, v))
 }
 
@@ -492,22 +492,22 @@ func PublicMessageContainsFold(v string) predicate.LogEntry {
 }
 
 // UserIDEQ applies the EQ predicate on the "userID" field.
-func UserIDEQ(v int) predicate.LogEntry {
+func UserIDEQ(v uuid.UUID) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "userID" field.
-func UserIDNEQ(v int) predicate.LogEntry {
+func UserIDNEQ(v uuid.UUID) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "userID" field.
-func UserIDIn(vs ...int) predicate.LogEntry {
+func UserIDIn(vs ...uuid.UUID) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "userID" field.
-func UserIDNotIn(vs ...int) predicate.LogEntry {
+func UserIDNotIn(vs ...uuid.UUID) predicate.LogEntry {
 	return predicate.LogEntry(sql.FieldNotIn(FieldUserID, vs...))
 }
 

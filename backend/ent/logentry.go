@@ -39,7 +39,7 @@ type LogEntry struct {
 	// PublicMessage holds the value of the "publicMessage" field.
 	PublicMessage string `json:"publicMessage,omitempty"`
 	// UserID holds the value of the "userID" field.
-	UserID int `json:"userID,omitempty"`
+	UserID uuid.UUID `json:"userID,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LogEntryQuery when eager-loading is set.
 	Edges        LogEntryEdges `json:"edges"`
@@ -75,13 +75,13 @@ func (*LogEntry) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case logentry.FieldLoggedAtKnown:
 			values[i] = new(sql.NullBool)
-		case logentry.FieldLevel, logentry.FieldSourceLine, logentry.FieldUserID:
+		case logentry.FieldLevel, logentry.FieldSourceLine:
 			values[i] = new(sql.NullInt64)
 		case logentry.FieldMessage, logentry.FieldSourceFile, logentry.FieldSourceFunction, logentry.FieldPublicMessage:
 			values[i] = new(sql.NullString)
 		case logentry.FieldLoggedAt:
 			values[i] = new(sql.NullTime)
-		case logentry.FieldID:
+		case logentry.FieldID, logentry.FieldUserID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -161,10 +161,10 @@ func (_m *LogEntry) assignValues(columns []string, values []any) error {
 				_m.PublicMessage = value.String
 			}
 		case logentry.FieldUserID:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field userID", values[i])
-			} else if value.Valid {
-				_m.UserID = int(value.Int64)
+			} else if value != nil {
+				_m.UserID = *value
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])

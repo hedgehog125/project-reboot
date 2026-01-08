@@ -7,11 +7,13 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 )
 
 // StashCreate is the builder for creating a Stash entity.
@@ -71,8 +73,22 @@ func (_c *StashCreate) SetHashThreads(v uint8) *StashCreate {
 }
 
 // SetUserID sets the "userID" field.
-func (_c *StashCreate) SetUserID(v int) *StashCreate {
+func (_c *StashCreate) SetUserID(v uuid.UUID) *StashCreate {
 	_c.mutation.SetUserID(v)
+	return _c
+}
+
+// SetID sets the "id" field.
+func (_c *StashCreate) SetID(v uuid.UUID) *StashCreate {
+	_c.mutation.SetID(v)
+	return _c
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *StashCreate) SetNillableID(v *uuid.UUID) *StashCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
 	return _c
 }
 
@@ -88,6 +104,7 @@ func (_c *StashCreate) Mutation() *StashMutation {
 
 // Save creates the Stash in the database.
 func (_c *StashCreate) Save(ctx context.Context) (*Stash, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -110,6 +127,14 @@ func (_c *StashCreate) Exec(ctx context.Context) error {
 func (_c *StashCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *StashCreate) defaults() {
+	if _, ok := _c.mutation.ID(); !ok {
+		v := stash.DefaultID()
+		_c.mutation.SetID(v)
 	}
 }
 
@@ -184,8 +209,13 @@ func (_c *StashCreate) sqlSave(ctx context.Context) (*Stash, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -194,9 +224,13 @@ func (_c *StashCreate) sqlSave(ctx context.Context) (*Stash, error) {
 func (_c *StashCreate) createSpec() (*Stash, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Stash{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(stash.Table, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(stash.Table, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = _c.conflict
+	if id, ok := _c.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := _c.mutation.Content(); ok {
 		_spec.SetField(stash.FieldContent, field.TypeBytes, value)
 		_node.Content = value
@@ -237,7 +271,7 @@ func (_c *StashCreate) createSpec() (*Stash, *sqlgraph.CreateSpec) {
 			Columns: []string{stash.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -413,7 +447,7 @@ func (u *StashUpsert) AddHashThreads(v uint8) *StashUpsert {
 }
 
 // SetUserID sets the "userID" field.
-func (u *StashUpsert) SetUserID(v int) *StashUpsert {
+func (u *StashUpsert) SetUserID(v uuid.UUID) *StashUpsert {
 	u.Set(stash.FieldUserID, v)
 	return u
 }
@@ -424,16 +458,24 @@ func (u *StashUpsert) UpdateUserID() *StashUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.Stash.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(stash.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *StashUpsertOne) UpdateNewValues() *StashUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(stash.FieldID)
+		}
+	}))
 	return u
 }
 
@@ -598,7 +640,7 @@ func (u *StashUpsertOne) UpdateHashThreads() *StashUpsertOne {
 }
 
 // SetUserID sets the "userID" field.
-func (u *StashUpsertOne) SetUserID(v int) *StashUpsertOne {
+func (u *StashUpsertOne) SetUserID(v uuid.UUID) *StashUpsertOne {
 	return u.Update(func(s *StashUpsert) {
 		s.SetUserID(v)
 	})
@@ -627,7 +669,12 @@ func (u *StashUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *StashUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *StashUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: StashUpsertOne.ID is not supported by MySQL driver. Use StashUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -636,7 +683,7 @@ func (u *StashUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *StashUpsertOne) IDX(ctx context.Context) int {
+func (u *StashUpsertOne) IDX(ctx context.Context) uuid.UUID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -663,6 +710,7 @@ func (_c *StashCreateBulk) Save(ctx context.Context) ([]*Stash, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*StashMutation)
 				if !ok {
@@ -690,10 +738,6 @@ func (_c *StashCreateBulk) Save(ctx context.Context) ([]*Stash, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -780,10 +824,20 @@ type StashUpsertBulk struct {
 //	client.Stash.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(stash.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *StashUpsertBulk) UpdateNewValues() *StashUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(stash.FieldID)
+			}
+		}
+	}))
 	return u
 }
 
@@ -948,7 +1002,7 @@ func (u *StashUpsertBulk) UpdateHashThreads() *StashUpsertBulk {
 }
 
 // SetUserID sets the "userID" field.
-func (u *StashUpsertBulk) SetUserID(v int) *StashUpsertBulk {
+func (u *StashUpsertBulk) SetUserID(v uuid.UUID) *StashUpsertBulk {
 	return u.Update(func(s *StashUpsert) {
 		s.SetUserID(v)
 	})

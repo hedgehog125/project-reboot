@@ -45,7 +45,7 @@ var (
 	}
 	// KeyValuesColumns holds the columns for the "key_values" table.
 	KeyValuesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "key", Type: field.TypeString, Size: 128},
 		{Name: "value", Type: field.TypeJSON},
 	}
@@ -74,7 +74,7 @@ var (
 		{Name: "source_function", Type: field.TypeString},
 		{Name: "source_line", Type: field.TypeInt},
 		{Name: "public_message", Type: field.TypeString},
-		{Name: "user_id", Type: field.TypeInt, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// LogEntriesTable holds the schema information for the "log_entries" table.
 	LogEntriesTable = &schema.Table{
@@ -99,11 +99,11 @@ var (
 	}
 	// LoginAlertsColumns holds the columns for the "login_alerts" table.
 	LoginAlertsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "sent_at", Type: field.TypeTime},
 		{Name: "versioned_messenger_type", Type: field.TypeString, Size: 128},
 		{Name: "confirmed", Type: field.TypeBool},
-		{Name: "session_id", Type: field.TypeInt},
+		{Name: "session_id", Type: field.TypeUUID},
 	}
 	// LoginAlertsTable holds the schema information for the "login_alerts" table.
 	LoginAlertsTable = &schema.Table{
@@ -121,7 +121,7 @@ var (
 	}
 	// PeriodicTasksColumns holds the columns for the "periodic_tasks" table.
 	PeriodicTasksColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString, Size: 128},
 		{Name: "last_ran_at", Type: field.TypeTime, Nullable: true},
 	}
@@ -140,14 +140,14 @@ var (
 	}
 	// SessionsColumns holds the columns for the "sessions" table.
 	SessionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeBytes, Unique: true},
 		{Name: "valid_from", Type: field.TypeTime},
 		{Name: "valid_until", Type: field.TypeTime},
 		{Name: "user_agent", Type: field.TypeString},
 		{Name: "ip", Type: field.TypeString},
-		{Name: "user_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeUUID},
 	}
 	// SessionsTable holds the schema information for the "sessions" table.
 	SessionsTable = &schema.Table{
@@ -172,7 +172,7 @@ var (
 	}
 	// StashesColumns holds the columns for the "stashes" table.
 	StashesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "content", Type: field.TypeBytes},
 		{Name: "file_name", Type: field.TypeString},
 		{Name: "mime", Type: field.TypeString},
@@ -181,7 +181,7 @@ var (
 		{Name: "hash_time", Type: field.TypeUint32},
 		{Name: "hash_memory", Type: field.TypeUint32},
 		{Name: "hash_threads", Type: field.TypeUint8},
-		{Name: "user_id", Type: field.TypeInt, Unique: true},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true},
 	}
 	// StashesTable holds the schema information for the "stashes" table.
 	StashesTable = &schema.Table{
@@ -193,7 +193,7 @@ var (
 				Symbol:     "stashes_users_stash",
 				Columns:    []*schema.Column{StashesColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Restrict,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -221,10 +221,8 @@ var (
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "username", Type: field.TypeString, Unique: true},
-		{Name: "alert_discord_id", Type: field.TypeString, Default: ""},
-		{Name: "alert_email", Type: field.TypeString, Default: ""},
 		{Name: "locked", Type: field.TypeBool, Default: false},
 		{Name: "locked_until", Type: field.TypeTime, Nullable: true},
 		{Name: "sessions_valid_from", Type: field.TypeTime},
@@ -234,6 +232,29 @@ var (
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	}
+	// UserMessengersColumns holds the columns for the "user_messengers" table.
+	UserMessengersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "type", Type: field.TypeString, Size: 128},
+		{Name: "version", Type: field.TypeInt},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "options", Type: field.TypeJSON},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// UserMessengersTable holds the schema information for the "user_messengers" table.
+	UserMessengersTable = &schema.Table{
+		Name:       "user_messengers",
+		Columns:    UserMessengersColumns,
+		PrimaryKey: []*schema.Column{UserMessengersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_messengers_users_messengers",
+				Columns:    []*schema.Column{UserMessengersColumns[5]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
@@ -246,6 +267,7 @@ var (
 		StashesTable,
 		TwoFactorActionsTable,
 		UsersTable,
+		UserMessengersTable,
 	}
 )
 
@@ -254,4 +276,5 @@ func init() {
 	LoginAlertsTable.ForeignKeys[0].RefTable = SessionsTable
 	SessionsTable.ForeignKeys[0].RefTable = UsersTable
 	StashesTable.ForeignKeys[0].RefTable = UsersTable
+	UserMessengersTable.ForeignKeys[0].RefTable = UsersTable
 }

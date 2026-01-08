@@ -14,6 +14,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/loginalert"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
+	"github.com/google/uuid"
 )
 
 // LoginAlertUpdate is the builder for updating LoginAlert entities.
@@ -72,13 +73,13 @@ func (_u *LoginAlertUpdate) SetNillableConfirmed(v *bool) *LoginAlertUpdate {
 }
 
 // SetSessionID sets the "sessionID" field.
-func (_u *LoginAlertUpdate) SetSessionID(v int) *LoginAlertUpdate {
+func (_u *LoginAlertUpdate) SetSessionID(v uuid.UUID) *LoginAlertUpdate {
 	_u.mutation.SetSessionID(v)
 	return _u
 }
 
 // SetNillableSessionID sets the "sessionID" field if the given value is not nil.
-func (_u *LoginAlertUpdate) SetNillableSessionID(v *int) *LoginAlertUpdate {
+func (_u *LoginAlertUpdate) SetNillableSessionID(v *uuid.UUID) *LoginAlertUpdate {
 	if v != nil {
 		_u.SetSessionID(*v)
 	}
@@ -145,7 +146,7 @@ func (_u *LoginAlertUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(loginalert.Table, loginalert.Columns, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(loginalert.Table, loginalert.Columns, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -170,7 +171,7 @@ func (_u *LoginAlertUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -183,7 +184,7 @@ func (_u *LoginAlertUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -254,13 +255,13 @@ func (_u *LoginAlertUpdateOne) SetNillableConfirmed(v *bool) *LoginAlertUpdateOn
 }
 
 // SetSessionID sets the "sessionID" field.
-func (_u *LoginAlertUpdateOne) SetSessionID(v int) *LoginAlertUpdateOne {
+func (_u *LoginAlertUpdateOne) SetSessionID(v uuid.UUID) *LoginAlertUpdateOne {
 	_u.mutation.SetSessionID(v)
 	return _u
 }
 
 // SetNillableSessionID sets the "sessionID" field if the given value is not nil.
-func (_u *LoginAlertUpdateOne) SetNillableSessionID(v *int) *LoginAlertUpdateOne {
+func (_u *LoginAlertUpdateOne) SetNillableSessionID(v *uuid.UUID) *LoginAlertUpdateOne {
 	if v != nil {
 		_u.SetSessionID(*v)
 	}
@@ -340,7 +341,7 @@ func (_u *LoginAlertUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlert, 
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(loginalert.Table, loginalert.Columns, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(loginalert.Table, loginalert.Columns, sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LoginAlert.id" for update`)}
@@ -382,7 +383,7 @@ func (_u *LoginAlertUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlert, 
 			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -395,7 +396,7 @@ func (_u *LoginAlertUpdateOne) sqlSave(ctx context.Context) (_node *LoginAlert, 
 			Columns: []string{loginalert.SessionColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

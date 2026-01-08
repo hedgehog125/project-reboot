@@ -8,10 +8,12 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/NicoClack/cryptic-stash/backend/ent/keyvalue"
+	"github.com/google/uuid"
 )
 
 // KeyValueCreate is the builder for creating a KeyValue entity.
@@ -34,6 +36,20 @@ func (_c *KeyValueCreate) SetValue(v json.RawMessage) *KeyValueCreate {
 	return _c
 }
 
+// SetID sets the "id" field.
+func (_c *KeyValueCreate) SetID(v uuid.UUID) *KeyValueCreate {
+	_c.mutation.SetID(v)
+	return _c
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *KeyValueCreate) SetNillableID(v *uuid.UUID) *KeyValueCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
+	return _c
+}
+
 // Mutation returns the KeyValueMutation object of the builder.
 func (_c *KeyValueCreate) Mutation() *KeyValueMutation {
 	return _c.mutation
@@ -41,6 +57,7 @@ func (_c *KeyValueCreate) Mutation() *KeyValueMutation {
 
 // Save creates the KeyValue in the database.
 func (_c *KeyValueCreate) Save(ctx context.Context) (*KeyValue, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -63,6 +80,14 @@ func (_c *KeyValueCreate) Exec(ctx context.Context) error {
 func (_c *KeyValueCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *KeyValueCreate) defaults() {
+	if _, ok := _c.mutation.ID(); !ok {
+		v := keyvalue.DefaultID()
+		_c.mutation.SetID(v)
 	}
 }
 
@@ -93,8 +118,13 @@ func (_c *KeyValueCreate) sqlSave(ctx context.Context) (*KeyValue, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -103,9 +133,13 @@ func (_c *KeyValueCreate) sqlSave(ctx context.Context) (*KeyValue, error) {
 func (_c *KeyValueCreate) createSpec() (*KeyValue, *sqlgraph.CreateSpec) {
 	var (
 		_node = &KeyValue{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(keyvalue.Table, sqlgraph.NewFieldSpec(keyvalue.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(keyvalue.Table, sqlgraph.NewFieldSpec(keyvalue.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = _c.conflict
+	if id, ok := _c.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := _c.mutation.Key(); ok {
 		_spec.SetField(keyvalue.FieldKey, field.TypeString, value)
 		_node.Key = value
@@ -190,16 +224,24 @@ func (u *KeyValueUpsert) UpdateValue() *KeyValueUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.KeyValue.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(keyvalue.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *KeyValueUpsertOne) UpdateNewValues() *KeyValueUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(keyvalue.FieldID)
+		}
+	}))
 	return u
 }
 
@@ -274,7 +316,12 @@ func (u *KeyValueUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *KeyValueUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *KeyValueUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: KeyValueUpsertOne.ID is not supported by MySQL driver. Use KeyValueUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -283,7 +330,7 @@ func (u *KeyValueUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *KeyValueUpsertOne) IDX(ctx context.Context) int {
+func (u *KeyValueUpsertOne) IDX(ctx context.Context) uuid.UUID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -310,6 +357,7 @@ func (_c *KeyValueCreateBulk) Save(ctx context.Context) ([]*KeyValue, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*KeyValueMutation)
 				if !ok {
@@ -337,10 +385,6 @@ func (_c *KeyValueCreateBulk) Save(ctx context.Context) ([]*KeyValue, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -427,10 +471,20 @@ type KeyValueUpsertBulk struct {
 //	client.KeyValue.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(keyvalue.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *KeyValueUpsertBulk) UpdateNewValues() *KeyValueUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(keyvalue.FieldID)
+			}
+		}
+	}))
 	return u
 }
 

@@ -4,6 +4,7 @@ package keyvalue
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 const (
@@ -39,6 +40,8 @@ func ValidColumn(column string) bool {
 var (
 	// KeyValidator is a validator for the "key" field. It is called by the builders before save.
 	KeyValidator func(string) error
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
 )
 
 // OrderOption defines the ordering options for the KeyValue queries.

@@ -21,6 +21,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/twofactoraction"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/NicoClack/cryptic-stash/backend/ent/usermessenger"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -90,6 +91,7 @@ func checkColumn(t, c string) error {
 			stash.Table:           stash.ValidColumn,
 			twofactoraction.Table: twofactoraction.ValidColumn,
 			user.Table:            user.ValidColumn,
+			usermessenger.Table:   usermessenger.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

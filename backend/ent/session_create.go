@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/NicoClack/cryptic-stash/backend/ent/loginalert"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 )
 
 // SessionCreate is the builder for creating a Session entity.
@@ -61,8 +63,22 @@ func (_c *SessionCreate) SetIP(v string) *SessionCreate {
 }
 
 // SetUserID sets the "userID" field.
-func (_c *SessionCreate) SetUserID(v int) *SessionCreate {
+func (_c *SessionCreate) SetUserID(v uuid.UUID) *SessionCreate {
 	_c.mutation.SetUserID(v)
+	return _c
+}
+
+// SetID sets the "id" field.
+func (_c *SessionCreate) SetID(v uuid.UUID) *SessionCreate {
+	_c.mutation.SetID(v)
+	return _c
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (_c *SessionCreate) SetNillableID(v *uuid.UUID) *SessionCreate {
+	if v != nil {
+		_c.SetID(*v)
+	}
 	return _c
 }
 
@@ -72,14 +88,14 @@ func (_c *SessionCreate) SetUser(v *User) *SessionCreate {
 }
 
 // AddLoginAlertIDs adds the "loginAlerts" edge to the LoginAlert entity by IDs.
-func (_c *SessionCreate) AddLoginAlertIDs(ids ...int) *SessionCreate {
+func (_c *SessionCreate) AddLoginAlertIDs(ids ...uuid.UUID) *SessionCreate {
 	_c.mutation.AddLoginAlertIDs(ids...)
 	return _c
 }
 
 // AddLoginAlerts adds the "loginAlerts" edges to the LoginAlert entity.
 func (_c *SessionCreate) AddLoginAlerts(v ...*LoginAlert) *SessionCreate {
-	ids := make([]int, len(v))
+	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
@@ -93,6 +109,7 @@ func (_c *SessionCreate) Mutation() *SessionMutation {
 
 // Save creates the Session in the database.
 func (_c *SessionCreate) Save(ctx context.Context) (*Session, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -115,6 +132,14 @@ func (_c *SessionCreate) Exec(ctx context.Context) error {
 func (_c *SessionCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_c *SessionCreate) defaults() {
+	if _, ok := _c.mutation.ID(); !ok {
+		v := session.DefaultID()
+		_c.mutation.SetID(v)
 	}
 }
 
@@ -163,8 +188,13 @@ func (_c *SessionCreate) sqlSave(ctx context.Context) (*Session, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -173,9 +203,13 @@ func (_c *SessionCreate) sqlSave(ctx context.Context) (*Session, error) {
 func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Session{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(session.Table, sqlgraph.NewFieldSpec(session.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(session.Table, sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = _c.conflict
+	if id, ok := _c.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(session.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -208,7 +242,7 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 			Columns: []string{session.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -225,7 +259,7 @@ func (_c *SessionCreate) createSpec() (*Session, *sqlgraph.CreateSpec) {
 			Columns: []string{session.LoginAlertsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(loginalert.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -358,7 +392,7 @@ func (u *SessionUpsert) UpdateIP() *SessionUpsert {
 }
 
 // SetUserID sets the "userID" field.
-func (u *SessionUpsert) SetUserID(v int) *SessionUpsert {
+func (u *SessionUpsert) SetUserID(v uuid.UUID) *SessionUpsert {
 	u.Set(session.FieldUserID, v)
 	return u
 }
@@ -369,16 +403,24 @@ func (u *SessionUpsert) UpdateUserID() *SessionUpsert {
 	return u
 }
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.Session.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(session.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *SessionUpsertOne) UpdateNewValues() *SessionUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(session.FieldID)
+		}
+	}))
 	return u
 }
 
@@ -494,7 +536,7 @@ func (u *SessionUpsertOne) UpdateIP() *SessionUpsertOne {
 }
 
 // SetUserID sets the "userID" field.
-func (u *SessionUpsertOne) SetUserID(v int) *SessionUpsertOne {
+func (u *SessionUpsertOne) SetUserID(v uuid.UUID) *SessionUpsertOne {
 	return u.Update(func(s *SessionUpsert) {
 		s.SetUserID(v)
 	})
@@ -523,7 +565,12 @@ func (u *SessionUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *SessionUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *SessionUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: SessionUpsertOne.ID is not supported by MySQL driver. Use SessionUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -532,7 +579,7 @@ func (u *SessionUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *SessionUpsertOne) IDX(ctx context.Context) int {
+func (u *SessionUpsertOne) IDX(ctx context.Context) uuid.UUID {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -559,6 +606,7 @@ func (_c *SessionCreateBulk) Save(ctx context.Context) ([]*Session, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*SessionMutation)
 				if !ok {
@@ -586,10 +634,6 @@ func (_c *SessionCreateBulk) Save(ctx context.Context) ([]*Session, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -676,10 +720,20 @@ type SessionUpsertBulk struct {
 //	client.Session.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(session.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *SessionUpsertBulk) UpdateNewValues() *SessionUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(session.FieldID)
+			}
+		}
+	}))
 	return u
 }
 
@@ -795,7 +849,7 @@ func (u *SessionUpsertBulk) UpdateIP() *SessionUpsertBulk {
 }
 
 // SetUserID sets the "userID" field.
-func (u *SessionUpsertBulk) SetUserID(v int) *SessionUpsertBulk {
+func (u *SessionUpsertBulk) SetUserID(v uuid.UUID) *SessionUpsertBulk {
 	return u.Update(func(s *SessionUpsert) {
 		s.SetUserID(v)
 	})

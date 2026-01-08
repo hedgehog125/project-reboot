@@ -22,6 +22,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/stash"
 	"github.com/NicoClack/cryptic-stash/backend/ent/twofactoraction"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/NicoClack/cryptic-stash/backend/ent/usermessenger"
 	"github.com/google/uuid"
 )
 
@@ -43,6 +44,7 @@ const (
 	TypeStash           = "Stash"
 	TypeTwoFactorAction = "TwoFactorAction"
 	TypeUser            = "User"
+	TypeUserMessenger   = "UserMessenger"
 )
 
 // JobMutation represents an operation that mutates the Job nodes in the graph.
@@ -1236,7 +1238,7 @@ type KeyValueMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
 	key           *string
 	value         *json.RawMessage
 	appendvalue   json.RawMessage
@@ -1266,7 +1268,7 @@ func newKeyValueMutation(c config, op Op, opts ...keyvalueOption) *KeyValueMutat
 }
 
 // withKeyValueID sets the ID field of the mutation.
-func withKeyValueID(id int) keyvalueOption {
+func withKeyValueID(id uuid.UUID) keyvalueOption {
 	return func(m *KeyValueMutation) {
 		var (
 			err   error
@@ -1316,9 +1318,15 @@ func (m KeyValueMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of KeyValue entities.
+func (m *KeyValueMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *KeyValueMutation) ID() (id int, exists bool) {
+func (m *KeyValueMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1329,12 +1337,12 @@ func (m *KeyValueMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *KeyValueMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *KeyValueMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1645,7 +1653,7 @@ type LogEntryMutation struct {
 	addsourceLine  *int
 	publicMessage  *string
 	clearedFields  map[string]struct{}
-	user           *int
+	user           *uuid.UUID
 	cleareduser    bool
 	done           bool
 	oldValue       func(context.Context) (*LogEntry, error)
@@ -2121,12 +2129,12 @@ func (m *LogEntryMutation) ResetPublicMessage() {
 }
 
 // SetUserID sets the "userID" field.
-func (m *LogEntryMutation) SetUserID(i int) {
-	m.user = &i
+func (m *LogEntryMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
 }
 
 // UserID returns the value of the "userID" field in the mutation.
-func (m *LogEntryMutation) UserID() (r int, exists bool) {
+func (m *LogEntryMutation) UserID() (r uuid.UUID, exists bool) {
 	v := m.user
 	if v == nil {
 		return
@@ -2137,7 +2145,7 @@ func (m *LogEntryMutation) UserID() (r int, exists bool) {
 // OldUserID returns the old "userID" field's value of the LogEntry entity.
 // If the LogEntry object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LogEntryMutation) OldUserID(ctx context.Context) (v int, err error) {
+func (m *LogEntryMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -2183,7 +2191,7 @@ func (m *LogEntryMutation) UserCleared() bool {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *LogEntryMutation) UserIDs() (ids []int) {
+func (m *LogEntryMutation) UserIDs() (ids []uuid.UUID) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2391,7 +2399,7 @@ func (m *LogEntryMutation) SetField(name string, value ent.Value) error {
 		m.SetPublicMessage(v)
 		return nil
 	case logentry.FieldUserID:
-		v, ok := value.(int)
+		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -2595,12 +2603,12 @@ type LoginAlertMutation struct {
 	config
 	op                     Op
 	typ                    string
-	id                     *int
+	id                     *uuid.UUID
 	sentAt                 *time.Time
 	versionedMessengerType *string
 	confirmed              *bool
 	clearedFields          map[string]struct{}
-	session                *int
+	session                *uuid.UUID
 	clearedsession         bool
 	done                   bool
 	oldValue               func(context.Context) (*LoginAlert, error)
@@ -2627,7 +2635,7 @@ func newLoginAlertMutation(c config, op Op, opts ...loginalertOption) *LoginAler
 }
 
 // withLoginAlertID sets the ID field of the mutation.
-func withLoginAlertID(id int) loginalertOption {
+func withLoginAlertID(id uuid.UUID) loginalertOption {
 	return func(m *LoginAlertMutation) {
 		var (
 			err   error
@@ -2677,9 +2685,15 @@ func (m LoginAlertMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LoginAlert entities.
+func (m *LoginAlertMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *LoginAlertMutation) ID() (id int, exists bool) {
+func (m *LoginAlertMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2690,12 +2704,12 @@ func (m *LoginAlertMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *LoginAlertMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *LoginAlertMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2814,12 +2828,12 @@ func (m *LoginAlertMutation) ResetConfirmed() {
 }
 
 // SetSessionID sets the "sessionID" field.
-func (m *LoginAlertMutation) SetSessionID(i int) {
-	m.session = &i
+func (m *LoginAlertMutation) SetSessionID(u uuid.UUID) {
+	m.session = &u
 }
 
 // SessionID returns the value of the "sessionID" field in the mutation.
-func (m *LoginAlertMutation) SessionID() (r int, exists bool) {
+func (m *LoginAlertMutation) SessionID() (r uuid.UUID, exists bool) {
 	v := m.session
 	if v == nil {
 		return
@@ -2830,7 +2844,7 @@ func (m *LoginAlertMutation) SessionID() (r int, exists bool) {
 // OldSessionID returns the old "sessionID" field's value of the LoginAlert entity.
 // If the LoginAlert object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LoginAlertMutation) OldSessionID(ctx context.Context) (v int, err error) {
+func (m *LoginAlertMutation) OldSessionID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSessionID is only allowed on UpdateOne operations")
 	}
@@ -2863,7 +2877,7 @@ func (m *LoginAlertMutation) SessionCleared() bool {
 // SessionIDs returns the "session" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // SessionID instead. It exists only for internal usage by the builders.
-func (m *LoginAlertMutation) SessionIDs() (ids []int) {
+func (m *LoginAlertMutation) SessionIDs() (ids []uuid.UUID) {
 	if id := m.session; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2987,7 +3001,7 @@ func (m *LoginAlertMutation) SetField(name string, value ent.Value) error {
 		m.SetConfirmed(v)
 		return nil
 	case loginalert.FieldSessionID:
-		v, ok := value.(int)
+		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -3000,16 +3014,13 @@ func (m *LoginAlertMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *LoginAlertMutation) AddedFields() []string {
-	var fields []string
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *LoginAlertMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
 	return nil, false
 }
 
@@ -3140,7 +3151,7 @@ type PeriodicTaskMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uuid.UUID
 	name          *string
 	lastRanAt     *time.Time
 	clearedFields map[string]struct{}
@@ -3169,7 +3180,7 @@ func newPeriodicTaskMutation(c config, op Op, opts ...periodictaskOption) *Perio
 }
 
 // withPeriodicTaskID sets the ID field of the mutation.
-func withPeriodicTaskID(id int) periodictaskOption {
+func withPeriodicTaskID(id uuid.UUID) periodictaskOption {
 	return func(m *PeriodicTaskMutation) {
 		var (
 			err   error
@@ -3219,9 +3230,15 @@ func (m PeriodicTaskMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PeriodicTask entities.
+func (m *PeriodicTaskMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *PeriodicTaskMutation) ID() (id int, exists bool) {
+func (m *PeriodicTaskMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -3232,12 +3249,12 @@ func (m *PeriodicTaskMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *PeriodicTaskMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *PeriodicTaskMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -3542,7 +3559,7 @@ type SessionMutation struct {
 	config
 	op                 Op
 	typ                string
-	id                 *int
+	id                 *uuid.UUID
 	createdAt          *time.Time
 	code               *[]byte
 	validFrom          *time.Time
@@ -3550,10 +3567,10 @@ type SessionMutation struct {
 	userAgent          *string
 	ip                 *string
 	clearedFields      map[string]struct{}
-	user               *int
+	user               *uuid.UUID
 	cleareduser        bool
-	loginAlerts        map[int]struct{}
-	removedloginAlerts map[int]struct{}
+	loginAlerts        map[uuid.UUID]struct{}
+	removedloginAlerts map[uuid.UUID]struct{}
 	clearedloginAlerts bool
 	done               bool
 	oldValue           func(context.Context) (*Session, error)
@@ -3580,7 +3597,7 @@ func newSessionMutation(c config, op Op, opts ...sessionOption) *SessionMutation
 }
 
 // withSessionID sets the ID field of the mutation.
-func withSessionID(id int) sessionOption {
+func withSessionID(id uuid.UUID) sessionOption {
 	return func(m *SessionMutation) {
 		var (
 			err   error
@@ -3630,9 +3647,15 @@ func (m SessionMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Session entities.
+func (m *SessionMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *SessionMutation) ID() (id int, exists bool) {
+func (m *SessionMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -3643,12 +3666,12 @@ func (m *SessionMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *SessionMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *SessionMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -3875,12 +3898,12 @@ func (m *SessionMutation) ResetIP() {
 }
 
 // SetUserID sets the "userID" field.
-func (m *SessionMutation) SetUserID(i int) {
-	m.user = &i
+func (m *SessionMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
 }
 
 // UserID returns the value of the "userID" field in the mutation.
-func (m *SessionMutation) UserID() (r int, exists bool) {
+func (m *SessionMutation) UserID() (r uuid.UUID, exists bool) {
 	v := m.user
 	if v == nil {
 		return
@@ -3891,7 +3914,7 @@ func (m *SessionMutation) UserID() (r int, exists bool) {
 // OldUserID returns the old "userID" field's value of the Session entity.
 // If the Session object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SessionMutation) OldUserID(ctx context.Context) (v int, err error) {
+func (m *SessionMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -3924,7 +3947,7 @@ func (m *SessionMutation) UserCleared() bool {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *SessionMutation) UserIDs() (ids []int) {
+func (m *SessionMutation) UserIDs() (ids []uuid.UUID) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -3938,9 +3961,9 @@ func (m *SessionMutation) ResetUser() {
 }
 
 // AddLoginAlertIDs adds the "loginAlerts" edge to the LoginAlert entity by ids.
-func (m *SessionMutation) AddLoginAlertIDs(ids ...int) {
+func (m *SessionMutation) AddLoginAlertIDs(ids ...uuid.UUID) {
 	if m.loginAlerts == nil {
-		m.loginAlerts = make(map[int]struct{})
+		m.loginAlerts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.loginAlerts[ids[i]] = struct{}{}
@@ -3958,9 +3981,9 @@ func (m *SessionMutation) LoginAlertsCleared() bool {
 }
 
 // RemoveLoginAlertIDs removes the "loginAlerts" edge to the LoginAlert entity by IDs.
-func (m *SessionMutation) RemoveLoginAlertIDs(ids ...int) {
+func (m *SessionMutation) RemoveLoginAlertIDs(ids ...uuid.UUID) {
 	if m.removedloginAlerts == nil {
-		m.removedloginAlerts = make(map[int]struct{})
+		m.removedloginAlerts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.loginAlerts, ids[i])
@@ -3969,7 +3992,7 @@ func (m *SessionMutation) RemoveLoginAlertIDs(ids ...int) {
 }
 
 // RemovedLoginAlerts returns the removed IDs of the "loginAlerts" edge to the LoginAlert entity.
-func (m *SessionMutation) RemovedLoginAlertsIDs() (ids []int) {
+func (m *SessionMutation) RemovedLoginAlertsIDs() (ids []uuid.UUID) {
 	for id := range m.removedloginAlerts {
 		ids = append(ids, id)
 	}
@@ -3977,7 +4000,7 @@ func (m *SessionMutation) RemovedLoginAlertsIDs() (ids []int) {
 }
 
 // LoginAlertsIDs returns the "loginAlerts" edge IDs in the mutation.
-func (m *SessionMutation) LoginAlertsIDs() (ids []int) {
+func (m *SessionMutation) LoginAlertsIDs() (ids []uuid.UUID) {
 	for id := range m.loginAlerts {
 		ids = append(ids, id)
 	}
@@ -4144,7 +4167,7 @@ func (m *SessionMutation) SetField(name string, value ent.Value) error {
 		m.SetIP(v)
 		return nil
 	case session.FieldUserID:
-		v, ok := value.(int)
+		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -4157,16 +4180,13 @@ func (m *SessionMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *SessionMutation) AddedFields() []string {
-	var fields []string
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *SessionMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	}
 	return nil, false
 }
 
@@ -4334,7 +4354,7 @@ type StashMutation struct {
 	config
 	op             Op
 	typ            string
-	id             *int
+	id             *uuid.UUID
 	content        *[]byte
 	fileName       *string
 	mime           *string
@@ -4347,7 +4367,7 @@ type StashMutation struct {
 	hashThreads    *uint8
 	addhashThreads *int8
 	clearedFields  map[string]struct{}
-	user           *int
+	user           *uuid.UUID
 	cleareduser    bool
 	done           bool
 	oldValue       func(context.Context) (*Stash, error)
@@ -4374,7 +4394,7 @@ func newStashMutation(c config, op Op, opts ...stashOption) *StashMutation {
 }
 
 // withStashID sets the ID field of the mutation.
-func withStashID(id int) stashOption {
+func withStashID(id uuid.UUID) stashOption {
 	return func(m *StashMutation) {
 		var (
 			err   error
@@ -4424,9 +4444,15 @@ func (m StashMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Stash entities.
+func (m *StashMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *StashMutation) ID() (id int, exists bool) {
+func (m *StashMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -4437,12 +4463,12 @@ func (m *StashMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *StashMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *StashMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -4801,12 +4827,12 @@ func (m *StashMutation) ResetHashThreads() {
 }
 
 // SetUserID sets the "userID" field.
-func (m *StashMutation) SetUserID(i int) {
-	m.user = &i
+func (m *StashMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
 }
 
 // UserID returns the value of the "userID" field in the mutation.
-func (m *StashMutation) UserID() (r int, exists bool) {
+func (m *StashMutation) UserID() (r uuid.UUID, exists bool) {
 	v := m.user
 	if v == nil {
 		return
@@ -4817,7 +4843,7 @@ func (m *StashMutation) UserID() (r int, exists bool) {
 // OldUserID returns the old "userID" field's value of the Stash entity.
 // If the Stash object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *StashMutation) OldUserID(ctx context.Context) (v int, err error) {
+func (m *StashMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -4850,7 +4876,7 @@ func (m *StashMutation) UserCleared() bool {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *StashMutation) UserIDs() (ids []int) {
+func (m *StashMutation) UserIDs() (ids []uuid.UUID) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -5044,7 +5070,7 @@ func (m *StashMutation) SetField(name string, value ent.Value) error {
 		m.SetHashThreads(v)
 		return nil
 	case stash.FieldUserID:
-		v, ok := value.(int)
+		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -5848,18 +5874,19 @@ type UserMutation struct {
 	config
 	op                Op
 	typ               string
-	id                *int
+	id                *uuid.UUID
 	username          *string
-	alertDiscordId    *string
-	alertEmail        *string
 	locked            *bool
 	lockedUntil       *time.Time
 	sessionsValidFrom *time.Time
 	clearedFields     map[string]struct{}
-	stash             *int
+	stash             *uuid.UUID
 	clearedstash      bool
-	sessions          map[int]struct{}
-	removedsessions   map[int]struct{}
+	messengers        map[uuid.UUID]struct{}
+	removedmessengers map[uuid.UUID]struct{}
+	clearedmessengers bool
+	sessions          map[uuid.UUID]struct{}
+	removedsessions   map[uuid.UUID]struct{}
 	clearedsessions   bool
 	logs              map[uuid.UUID]struct{}
 	removedlogs       map[uuid.UUID]struct{}
@@ -5889,7 +5916,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id int) userOption {
+func withUserID(id uuid.UUID) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -5939,9 +5966,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of User entities.
+func (m *UserMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *UserMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -5952,12 +5985,12 @@ func (m *UserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -6001,78 +6034,6 @@ func (m *UserMutation) OldUsername(ctx context.Context) (v string, err error) {
 // ResetUsername resets all changes to the "username" field.
 func (m *UserMutation) ResetUsername() {
 	m.username = nil
-}
-
-// SetAlertDiscordId sets the "alertDiscordId" field.
-func (m *UserMutation) SetAlertDiscordId(s string) {
-	m.alertDiscordId = &s
-}
-
-// AlertDiscordId returns the value of the "alertDiscordId" field in the mutation.
-func (m *UserMutation) AlertDiscordId() (r string, exists bool) {
-	v := m.alertDiscordId
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldAlertDiscordId returns the old "alertDiscordId" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldAlertDiscordId(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAlertDiscordId is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAlertDiscordId requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAlertDiscordId: %w", err)
-	}
-	return oldValue.AlertDiscordId, nil
-}
-
-// ResetAlertDiscordId resets all changes to the "alertDiscordId" field.
-func (m *UserMutation) ResetAlertDiscordId() {
-	m.alertDiscordId = nil
-}
-
-// SetAlertEmail sets the "alertEmail" field.
-func (m *UserMutation) SetAlertEmail(s string) {
-	m.alertEmail = &s
-}
-
-// AlertEmail returns the value of the "alertEmail" field in the mutation.
-func (m *UserMutation) AlertEmail() (r string, exists bool) {
-	v := m.alertEmail
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldAlertEmail returns the old "alertEmail" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldAlertEmail(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAlertEmail is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAlertEmail requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAlertEmail: %w", err)
-	}
-	return oldValue.AlertEmail, nil
-}
-
-// ResetAlertEmail resets all changes to the "alertEmail" field.
-func (m *UserMutation) ResetAlertEmail() {
-	m.alertEmail = nil
 }
 
 // SetLocked sets the "locked" field.
@@ -6197,7 +6158,7 @@ func (m *UserMutation) ResetSessionsValidFrom() {
 }
 
 // SetStashID sets the "stash" edge to the Stash entity by id.
-func (m *UserMutation) SetStashID(id int) {
+func (m *UserMutation) SetStashID(id uuid.UUID) {
 	m.stash = &id
 }
 
@@ -6212,7 +6173,7 @@ func (m *UserMutation) StashCleared() bool {
 }
 
 // StashID returns the "stash" edge ID in the mutation.
-func (m *UserMutation) StashID() (id int, exists bool) {
+func (m *UserMutation) StashID() (id uuid.UUID, exists bool) {
 	if m.stash != nil {
 		return *m.stash, true
 	}
@@ -6222,7 +6183,7 @@ func (m *UserMutation) StashID() (id int, exists bool) {
 // StashIDs returns the "stash" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // StashID instead. It exists only for internal usage by the builders.
-func (m *UserMutation) StashIDs() (ids []int) {
+func (m *UserMutation) StashIDs() (ids []uuid.UUID) {
 	if id := m.stash; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6235,10 +6196,64 @@ func (m *UserMutation) ResetStash() {
 	m.clearedstash = false
 }
 
+// AddMessengerIDs adds the "messengers" edge to the UserMessenger entity by ids.
+func (m *UserMutation) AddMessengerIDs(ids ...uuid.UUID) {
+	if m.messengers == nil {
+		m.messengers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.messengers[ids[i]] = struct{}{}
+	}
+}
+
+// ClearMessengers clears the "messengers" edge to the UserMessenger entity.
+func (m *UserMutation) ClearMessengers() {
+	m.clearedmessengers = true
+}
+
+// MessengersCleared reports if the "messengers" edge to the UserMessenger entity was cleared.
+func (m *UserMutation) MessengersCleared() bool {
+	return m.clearedmessengers
+}
+
+// RemoveMessengerIDs removes the "messengers" edge to the UserMessenger entity by IDs.
+func (m *UserMutation) RemoveMessengerIDs(ids ...uuid.UUID) {
+	if m.removedmessengers == nil {
+		m.removedmessengers = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.messengers, ids[i])
+		m.removedmessengers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMessengers returns the removed IDs of the "messengers" edge to the UserMessenger entity.
+func (m *UserMutation) RemovedMessengersIDs() (ids []uuid.UUID) {
+	for id := range m.removedmessengers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MessengersIDs returns the "messengers" edge IDs in the mutation.
+func (m *UserMutation) MessengersIDs() (ids []uuid.UUID) {
+	for id := range m.messengers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMessengers resets all changes to the "messengers" edge.
+func (m *UserMutation) ResetMessengers() {
+	m.messengers = nil
+	m.clearedmessengers = false
+	m.removedmessengers = nil
+}
+
 // AddSessionIDs adds the "sessions" edge to the Session entity by ids.
-func (m *UserMutation) AddSessionIDs(ids ...int) {
+func (m *UserMutation) AddSessionIDs(ids ...uuid.UUID) {
 	if m.sessions == nil {
-		m.sessions = make(map[int]struct{})
+		m.sessions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		m.sessions[ids[i]] = struct{}{}
@@ -6256,9 +6271,9 @@ func (m *UserMutation) SessionsCleared() bool {
 }
 
 // RemoveSessionIDs removes the "sessions" edge to the Session entity by IDs.
-func (m *UserMutation) RemoveSessionIDs(ids ...int) {
+func (m *UserMutation) RemoveSessionIDs(ids ...uuid.UUID) {
 	if m.removedsessions == nil {
-		m.removedsessions = make(map[int]struct{})
+		m.removedsessions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		delete(m.sessions, ids[i])
@@ -6267,7 +6282,7 @@ func (m *UserMutation) RemoveSessionIDs(ids ...int) {
 }
 
 // RemovedSessions returns the removed IDs of the "sessions" edge to the Session entity.
-func (m *UserMutation) RemovedSessionsIDs() (ids []int) {
+func (m *UserMutation) RemovedSessionsIDs() (ids []uuid.UUID) {
 	for id := range m.removedsessions {
 		ids = append(ids, id)
 	}
@@ -6275,7 +6290,7 @@ func (m *UserMutation) RemovedSessionsIDs() (ids []int) {
 }
 
 // SessionsIDs returns the "sessions" edge IDs in the mutation.
-func (m *UserMutation) SessionsIDs() (ids []int) {
+func (m *UserMutation) SessionsIDs() (ids []uuid.UUID) {
 	for id := range m.sessions {
 		ids = append(ids, id)
 	}
@@ -6377,15 +6392,9 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 4)
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
-	}
-	if m.alertDiscordId != nil {
-		fields = append(fields, user.FieldAlertDiscordId)
-	}
-	if m.alertEmail != nil {
-		fields = append(fields, user.FieldAlertEmail)
 	}
 	if m.locked != nil {
 		fields = append(fields, user.FieldLocked)
@@ -6406,10 +6415,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case user.FieldUsername:
 		return m.Username()
-	case user.FieldAlertDiscordId:
-		return m.AlertDiscordId()
-	case user.FieldAlertEmail:
-		return m.AlertEmail()
 	case user.FieldLocked:
 		return m.Locked()
 	case user.FieldLockedUntil:
@@ -6427,10 +6432,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 	switch name {
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
-	case user.FieldAlertDiscordId:
-		return m.OldAlertDiscordId(ctx)
-	case user.FieldAlertEmail:
-		return m.OldAlertEmail(ctx)
 	case user.FieldLocked:
 		return m.OldLocked(ctx)
 	case user.FieldLockedUntil:
@@ -6452,20 +6453,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUsername(v)
-		return nil
-	case user.FieldAlertDiscordId:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAlertDiscordId(v)
-		return nil
-	case user.FieldAlertEmail:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAlertEmail(v)
 		return nil
 	case user.FieldLocked:
 		v, ok := value.(bool)
@@ -6549,12 +6536,6 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldUsername:
 		m.ResetUsername()
 		return nil
-	case user.FieldAlertDiscordId:
-		m.ResetAlertDiscordId()
-		return nil
-	case user.FieldAlertEmail:
-		m.ResetAlertEmail()
-		return nil
 	case user.FieldLocked:
 		m.ResetLocked()
 		return nil
@@ -6570,9 +6551,12 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.stash != nil {
 		edges = append(edges, user.EdgeStash)
+	}
+	if m.messengers != nil {
+		edges = append(edges, user.EdgeMessengers)
 	}
 	if m.sessions != nil {
 		edges = append(edges, user.EdgeSessions)
@@ -6591,6 +6575,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.stash; id != nil {
 			return []ent.Value{*id}
 		}
+	case user.EdgeMessengers:
+		ids := make([]ent.Value, 0, len(m.messengers))
+		for id := range m.messengers {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeSessions:
 		ids := make([]ent.Value, 0, len(m.sessions))
 		for id := range m.sessions {
@@ -6609,7 +6599,10 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
+	if m.removedmessengers != nil {
+		edges = append(edges, user.EdgeMessengers)
+	}
 	if m.removedsessions != nil {
 		edges = append(edges, user.EdgeSessions)
 	}
@@ -6623,6 +6616,12 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case user.EdgeMessengers:
+		ids := make([]ent.Value, 0, len(m.removedmessengers))
+		for id := range m.removedmessengers {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeSessions:
 		ids := make([]ent.Value, 0, len(m.removedsessions))
 		for id := range m.removedsessions {
@@ -6641,9 +6640,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedstash {
 		edges = append(edges, user.EdgeStash)
+	}
+	if m.clearedmessengers {
+		edges = append(edges, user.EdgeMessengers)
 	}
 	if m.clearedsessions {
 		edges = append(edges, user.EdgeSessions)
@@ -6660,6 +6662,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeStash:
 		return m.clearedstash
+	case user.EdgeMessengers:
+		return m.clearedmessengers
 	case user.EdgeSessions:
 		return m.clearedsessions
 	case user.EdgeLogs:
@@ -6686,6 +6690,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeStash:
 		m.ResetStash()
 		return nil
+	case user.EdgeMessengers:
+		m.ResetMessengers()
+		return nil
 	case user.EdgeSessions:
 		m.ResetSessions()
 		return nil
@@ -6694,4 +6701,658 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// UserMessengerMutation represents an operation that mutates the UserMessenger nodes in the graph.
+type UserMessengerMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	_type         *string
+	version       *int
+	addversion    *int
+	enabled       *bool
+	options       *json.RawMessage
+	appendoptions json.RawMessage
+	clearedFields map[string]struct{}
+	user          *uuid.UUID
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*UserMessenger, error)
+	predicates    []predicate.UserMessenger
+}
+
+var _ ent.Mutation = (*UserMessengerMutation)(nil)
+
+// usermessengerOption allows management of the mutation configuration using functional options.
+type usermessengerOption func(*UserMessengerMutation)
+
+// newUserMessengerMutation creates new mutation for the UserMessenger entity.
+func newUserMessengerMutation(c config, op Op, opts ...usermessengerOption) *UserMessengerMutation {
+	m := &UserMessengerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUserMessenger,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserMessengerID sets the ID field of the mutation.
+func withUserMessengerID(id uuid.UUID) usermessengerOption {
+	return func(m *UserMessengerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UserMessenger
+		)
+		m.oldValue = func(ctx context.Context) (*UserMessenger, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UserMessenger.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUserMessenger sets the old UserMessenger of the mutation.
+func withUserMessenger(node *UserMessenger) usermessengerOption {
+	return func(m *UserMessengerMutation) {
+		m.oldValue = func(context.Context) (*UserMessenger, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserMessengerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserMessengerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of UserMessenger entities.
+func (m *UserMessengerMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UserMessengerMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UserMessengerMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UserMessenger.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetType sets the "type" field.
+func (m *UserMessengerMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *UserMessengerMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the UserMessenger entity.
+// If the UserMessenger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMessengerMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *UserMessengerMutation) ResetType() {
+	m._type = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *UserMessengerMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *UserMessengerMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the UserMessenger entity.
+// If the UserMessenger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMessengerMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *UserMessengerMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *UserMessengerMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *UserMessengerMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *UserMessengerMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *UserMessengerMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the UserMessenger entity.
+// If the UserMessenger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMessengerMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *UserMessengerMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetOptions sets the "options" field.
+func (m *UserMessengerMutation) SetOptions(jm json.RawMessage) {
+	m.options = &jm
+	m.appendoptions = nil
+}
+
+// Options returns the value of the "options" field in the mutation.
+func (m *UserMessengerMutation) Options() (r json.RawMessage, exists bool) {
+	v := m.options
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOptions returns the old "options" field's value of the UserMessenger entity.
+// If the UserMessenger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMessengerMutation) OldOptions(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOptions is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOptions requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOptions: %w", err)
+	}
+	return oldValue.Options, nil
+}
+
+// AppendOptions adds jm to the "options" field.
+func (m *UserMessengerMutation) AppendOptions(jm json.RawMessage) {
+	m.appendoptions = append(m.appendoptions, jm...)
+}
+
+// AppendedOptions returns the list of values that were appended to the "options" field in this mutation.
+func (m *UserMessengerMutation) AppendedOptions() (json.RawMessage, bool) {
+	if len(m.appendoptions) == 0 {
+		return nil, false
+	}
+	return m.appendoptions, true
+}
+
+// ResetOptions resets all changes to the "options" field.
+func (m *UserMessengerMutation) ResetOptions() {
+	m.options = nil
+	m.appendoptions = nil
+}
+
+// SetUserID sets the "userID" field.
+func (m *UserMessengerMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "userID" field in the mutation.
+func (m *UserMessengerMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "userID" field's value of the UserMessenger entity.
+// If the UserMessenger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMessengerMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "userID" field.
+func (m *UserMessengerMutation) ResetUserID() {
+	m.user = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *UserMessengerMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[usermessenger.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *UserMessengerMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *UserMessengerMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *UserMessengerMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the UserMessengerMutation builder.
+func (m *UserMessengerMutation) Where(ps ...predicate.UserMessenger) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UserMessengerMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserMessengerMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UserMessenger, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UserMessengerMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserMessengerMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UserMessenger).
+func (m *UserMessengerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UserMessengerMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m._type != nil {
+		fields = append(fields, usermessenger.FieldType)
+	}
+	if m.version != nil {
+		fields = append(fields, usermessenger.FieldVersion)
+	}
+	if m.enabled != nil {
+		fields = append(fields, usermessenger.FieldEnabled)
+	}
+	if m.options != nil {
+		fields = append(fields, usermessenger.FieldOptions)
+	}
+	if m.user != nil {
+		fields = append(fields, usermessenger.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UserMessengerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case usermessenger.FieldType:
+		return m.GetType()
+	case usermessenger.FieldVersion:
+		return m.Version()
+	case usermessenger.FieldEnabled:
+		return m.Enabled()
+	case usermessenger.FieldOptions:
+		return m.Options()
+	case usermessenger.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UserMessengerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case usermessenger.FieldType:
+		return m.OldType(ctx)
+	case usermessenger.FieldVersion:
+		return m.OldVersion(ctx)
+	case usermessenger.FieldEnabled:
+		return m.OldEnabled(ctx)
+	case usermessenger.FieldOptions:
+		return m.OldOptions(ctx)
+	case usermessenger.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown UserMessenger field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserMessengerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case usermessenger.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case usermessenger.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case usermessenger.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	case usermessenger.FieldOptions:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOptions(v)
+		return nil
+	case usermessenger.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserMessenger field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UserMessengerMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, usermessenger.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UserMessengerMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case usermessenger.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserMessengerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case usermessenger.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserMessenger numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UserMessengerMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UserMessengerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserMessengerMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UserMessenger nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UserMessengerMutation) ResetField(name string) error {
+	switch name {
+	case usermessenger.FieldType:
+		m.ResetType()
+		return nil
+	case usermessenger.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case usermessenger.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	case usermessenger.FieldOptions:
+		m.ResetOptions()
+		return nil
+	case usermessenger.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown UserMessenger field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UserMessengerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, usermessenger.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UserMessengerMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case usermessenger.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UserMessengerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UserMessengerMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UserMessengerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, usermessenger.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UserMessengerMutation) EdgeCleared(name string) bool {
+	switch name {
+	case usermessenger.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UserMessengerMutation) ClearEdge(name string) error {
+	switch name {
+	case usermessenger.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UserMessenger unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UserMessengerMutation) ResetEdge(name string) error {
+	switch name {
+	case usermessenger.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown UserMessenger edge %s", name)
 }

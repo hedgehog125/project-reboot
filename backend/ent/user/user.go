@@ -5,6 +5,7 @@ package user
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 const (
@@ -14,10 +15,6 @@ const (
 	FieldID = "id"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
-	// FieldAlertDiscordId holds the string denoting the alertdiscordid field in the database.
-	FieldAlertDiscordId = "alert_discord_id"
-	// FieldAlertEmail holds the string denoting the alertemail field in the database.
-	FieldAlertEmail = "alert_email"
 	// FieldLocked holds the string denoting the locked field in the database.
 	FieldLocked = "locked"
 	// FieldLockedUntil holds the string denoting the lockeduntil field in the database.
@@ -26,6 +23,8 @@ const (
 	FieldSessionsValidFrom = "sessions_valid_from"
 	// EdgeStash holds the string denoting the stash edge name in mutations.
 	EdgeStash = "stash"
+	// EdgeMessengers holds the string denoting the messengers edge name in mutations.
+	EdgeMessengers = "messengers"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
 	// EdgeLogs holds the string denoting the logs edge name in mutations.
@@ -39,6 +38,13 @@ const (
 	StashInverseTable = "stashes"
 	// StashColumn is the table column denoting the stash relation/edge.
 	StashColumn = "user_id"
+	// MessengersTable is the table that holds the messengers relation/edge.
+	MessengersTable = "user_messengers"
+	// MessengersInverseTable is the table name for the UserMessenger entity.
+	// It exists in this package in order to avoid circular dependency with the "usermessenger" package.
+	MessengersInverseTable = "user_messengers"
+	// MessengersColumn is the table column denoting the messengers relation/edge.
+	MessengersColumn = "user_id"
 	// SessionsTable is the table that holds the sessions relation/edge.
 	SessionsTable = "sessions"
 	// SessionsInverseTable is the table name for the Session entity.
@@ -59,8 +65,6 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldUsername,
-	FieldAlertDiscordId,
-	FieldAlertEmail,
 	FieldLocked,
 	FieldLockedUntil,
 	FieldSessionsValidFrom,
@@ -79,12 +83,10 @@ func ValidColumn(column string) bool {
 var (
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	UsernameValidator func(string) error
-	// DefaultAlertDiscordId holds the default value on creation for the "alertDiscordId" field.
-	DefaultAlertDiscordId string
-	// DefaultAlertEmail holds the default value on creation for the "alertEmail" field.
-	DefaultAlertEmail string
 	// DefaultLocked holds the default value on creation for the "locked" field.
 	DefaultLocked bool
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
 )
 
 // OrderOption defines the ordering options for the User queries.
@@ -98,16 +100,6 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByUsername orders the results by the username field.
 func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
-}
-
-// ByAlertDiscordId orders the results by the alertDiscordId field.
-func ByAlertDiscordId(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldAlertDiscordId, opts...).ToFunc()
-}
-
-// ByAlertEmail orders the results by the alertEmail field.
-func ByAlertEmail(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldAlertEmail, opts...).ToFunc()
 }
 
 // ByLocked orders the results by the locked field.
@@ -129,6 +121,20 @@ func BySessionsValidFrom(opts ...sql.OrderTermOption) OrderOption {
 func ByStashField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newStashStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByMessengersCount orders the results by messengers count.
+func ByMessengersCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMessengersStep(), opts...)
+	}
+}
+
+// ByMessengers orders the results by messengers terms.
+func ByMessengers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMessengersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -164,6 +170,13 @@ func newStashStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(StashInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, StashTable, StashColumn),
+	)
+}
+func newMessengersStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MessengersInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MessengersTable, MessengersColumn),
 	)
 }
 func newSessionsStep() *sqlgraph.Step {

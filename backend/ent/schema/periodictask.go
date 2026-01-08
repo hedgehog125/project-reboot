@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"github.com/google/uuid"
 )
 
 // PeriodicTask holds the schema definition for the PeriodicTask entity.
@@ -14,6 +15,7 @@ type PeriodicTask struct {
 // Fields of the PeriodicJob.
 func (PeriodicTask) Fields() []ent.Field {
 	return []ent.Field{
+		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.String("name").MinLen(1).MaxLen(128),
 		// Note: there's no version because we should just be able to upgrade to new versions
 		// when the server restarts since there's no request body

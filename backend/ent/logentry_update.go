@@ -14,6 +14,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/logentry"
 	"github.com/NicoClack/cryptic-stash/backend/ent/predicate"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 )
 
 // LogEntryUpdate is the builder for updating LogEntry entities.
@@ -162,13 +163,13 @@ func (_u *LogEntryUpdate) SetNillablePublicMessage(v *string) *LogEntryUpdate {
 }
 
 // SetUserID sets the "userID" field.
-func (_u *LogEntryUpdate) SetUserID(v int) *LogEntryUpdate {
+func (_u *LogEntryUpdate) SetUserID(v uuid.UUID) *LogEntryUpdate {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "userID" field if the given value is not nil.
-func (_u *LogEntryUpdate) SetNillableUserID(v *int) *LogEntryUpdate {
+func (_u *LogEntryUpdate) SetNillableUserID(v *uuid.UUID) *LogEntryUpdate {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -274,7 +275,7 @@ func (_u *LogEntryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -287,7 +288,7 @@ func (_u *LogEntryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -448,13 +449,13 @@ func (_u *LogEntryUpdateOne) SetNillablePublicMessage(v *string) *LogEntryUpdate
 }
 
 // SetUserID sets the "userID" field.
-func (_u *LogEntryUpdateOne) SetUserID(v int) *LogEntryUpdateOne {
+func (_u *LogEntryUpdateOne) SetUserID(v uuid.UUID) *LogEntryUpdateOne {
 	_u.mutation.SetUserID(v)
 	return _u
 }
 
 // SetNillableUserID sets the "userID" field if the given value is not nil.
-func (_u *LogEntryUpdateOne) SetNillableUserID(v *int) *LogEntryUpdateOne {
+func (_u *LogEntryUpdateOne) SetNillableUserID(v *uuid.UUID) *LogEntryUpdateOne {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
@@ -590,7 +591,7 @@ func (_u *LogEntryUpdateOne) sqlSave(ctx context.Context) (_node *LogEntry, err 
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -603,7 +604,7 @@ func (_u *LogEntryUpdateOne) sqlSave(ctx context.Context) (_node *LogEntry, err 
 			Columns: []string{logentry.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

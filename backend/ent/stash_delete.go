@@ -40,7 +40,7 @@ func (_d *StashDelete) ExecX(ctx context.Context) int {
 }
 
 func (_d *StashDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(stash.Table, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(stash.Table, sqlgraph.NewFieldSpec(stash.FieldID, field.TypeUUID))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
