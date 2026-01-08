@@ -15,7 +15,7 @@ type Stash struct {
 // Fields of the Stash.
 func (Stash) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("id", uuid.Nil).Default(uuid.New),
 		field.Bytes("content").NotEmpty(),
 		field.String("fileName").NotEmpty(),
 		field.String("mime").NotEmpty(),
@@ -24,7 +24,7 @@ func (Stash) Fields() []ent.Field {
 		field.Uint32("hashTime"),
 		field.Uint32("hashMemory"),
 		field.Uint8("hashThreads"),
-		field.UUID("userID", uuid.UUID{}),
+		field.UUID("userID", uuid.Nil),
 	}
 }
 

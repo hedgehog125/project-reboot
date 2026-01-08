@@ -48,7 +48,7 @@ func SimpleFixedInterval(interval time.Duration) DelayFunc {
 	}
 }
 func PersistentFixedInterval(periodicTaskName string, interval time.Duration) DelayFunc {
-	periodicTaskID := uuid.UUID{}
+	periodicTaskID := uuid.Nil
 	return func(delayCtx *DelayFuncContext) (time.Time, CommitDelayFunc) {
 		lastRan := delayCtx.LastRan
 		commit := func(runTime time.Time, ctx context.Context) {

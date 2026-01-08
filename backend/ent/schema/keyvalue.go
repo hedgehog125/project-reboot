@@ -17,7 +17,7 @@ type KeyValue struct {
 // Fields of the KeyValue.
 func (KeyValue) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("id", uuid.Nil).Default(uuid.New),
 		field.String("key").MinLen(1).MaxLen(128),
 		field.JSON("value", json.RawMessage{}),
 	}

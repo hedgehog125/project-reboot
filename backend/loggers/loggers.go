@@ -262,7 +262,7 @@ func (handler *Handler) individualWriteFallback(
 					// UserID is hydrated later in case it was the cause of the original error
 					Save(ctx)
 				if stdErr != nil {
-					return uuid.UUID{}, stdErr
+					return uuid.Nil, stdErr
 				}
 				return ob.ID, stdErr
 			},
@@ -679,7 +679,7 @@ func (handler Handler) appendAttr(
 		} else {
 			groupAttr := map[string]any{}
 			for _, attr := range groupAttrs {
-				handler.appendAttr(attr, groupAttr, false, logErrors, common.Pointer(""), common.Pointer(uuid.UUID{}))
+				handler.appendAttr(attr, groupAttr, false, logErrors, common.Pointer(""), common.Pointer(uuid.Nil))
 			}
 			outputAttrs[attr.Key] = groupAttr
 		}

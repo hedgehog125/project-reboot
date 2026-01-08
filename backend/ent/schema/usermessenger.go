@@ -17,12 +17,12 @@ type UserMessenger struct {
 // Fields of the UserMessenger.
 func (UserMessenger) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("id", uuid.Nil).Default(uuid.New),
 		field.String("type").MinLen(1).MaxLen(128),
 		field.Int("version"),
 		field.Bool("enabled").Default(true),
 		field.JSON("options", json.RawMessage{}),
-		field.UUID("userID", uuid.UUID{}),
+		field.UUID("userID", uuid.Nil),
 	}
 }
 

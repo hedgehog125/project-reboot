@@ -16,7 +16,7 @@ type LogEntry struct {
 // Fields of the LogEntry.
 func (LogEntry) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("id", uuid.Nil).Default(uuid.New),
 		field.Time("loggedAt"),      // The entries should be batch created, so a default time wouldn't be accurate
 		field.Bool("loggedAtKnown"), // Some logs don't have a time, so an inaccurate time is added during processing
 		field.Int("level"),
@@ -26,7 +26,7 @@ func (LogEntry) Fields() []ent.Field {
 		field.String("sourceFunction"),
 		field.Int("sourceLine"),
 		field.String("publicMessage"),
-		field.UUID("userID", uuid.UUID{}).Optional(),
+		field.UUID("userID", uuid.Nil).Optional(),
 	}
 }
 

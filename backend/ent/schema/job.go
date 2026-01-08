@@ -17,7 +17,7 @@ type Job struct {
 // Fields of the Job.
 func (Job) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("id", uuid.Nil).Default(uuid.New),
 		field.Time("createdAt"),
 		field.Time("dueAt"),
 		field.Time("originallyDueAt"), // Due is updated for retries

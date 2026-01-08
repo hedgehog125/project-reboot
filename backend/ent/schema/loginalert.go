@@ -15,11 +15,11 @@ type LoginAlert struct {
 // Fields of the SuccessfulLoginAlerts.
 func (LoginAlert) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("id", uuid.Nil).Default(uuid.New),
 		field.Time("sentAt"),
 		field.String("versionedMessengerType").MinLen(1).MaxLen(128),
 		field.Bool("confirmed"),
-		field.UUID("sessionID", uuid.UUID{}),
+		field.UUID("sessionID", uuid.Nil),
 	}
 }
 

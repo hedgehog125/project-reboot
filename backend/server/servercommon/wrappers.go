@@ -10,7 +10,7 @@ import (
 func ParseUUID(str string) (uuid.UUID, *Error) {
 	parsedID, stdErr := uuid.Parse(str)
 	if stdErr != nil {
-		return uuid.UUID{}, NewError(stdErr).
+		return uuid.Nil, NewError(stdErr).
 			SetStatus(http.StatusBadRequest).
 			AddDetail(ErrorDetail{
 				Message: "ID is not a valid UUID",

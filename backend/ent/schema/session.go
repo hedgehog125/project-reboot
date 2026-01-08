@@ -17,7 +17,7 @@ type Session struct {
 // Fields of the Session.
 func (Session) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Default(uuid.New),
+		field.UUID("id", uuid.Nil).Default(uuid.New),
 		field.Time("createdAt"),
 		field.Bytes("code").
 			Unique().
@@ -26,7 +26,7 @@ func (Session) Fields() []ent.Field {
 		field.Time("validUntil"),
 		field.String("userAgent"),
 		field.String("ip"),
-		field.UUID("userID", uuid.UUID{}),
+		field.UUID("userID", uuid.Nil),
 	}
 }
 

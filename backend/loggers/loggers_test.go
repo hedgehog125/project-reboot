@@ -201,7 +201,7 @@ func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
 	defer db.Shutdown()
 	clock := clockwork.NewRealClock()
 
-	userIDs := []uuid.UUID{}
+	userIDs := []uuid.Nil
 	for i := range 2 {
 		userIDs = append(
 			userIDs,
@@ -335,7 +335,7 @@ func TestLogger_SpecialAttributes(t *testing.T) {
 	defer db.Shutdown()
 	clock := clockwork.NewRealClock()
 
-	userIDs := []uuid.UUID{}
+	userIDs := []uuid.Nil
 	for i := range 2 {
 		userIDs = append(
 			userIDs,
