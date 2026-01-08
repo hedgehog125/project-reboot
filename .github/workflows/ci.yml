@@ -21,13 +21,16 @@ jobs:
           version: v2.7.1
           working-directory: backend
 
-  backend-migration-test:
+  backend-migration-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+      - name: Setup Atlas
+        uses: ariga/setup-atlas@v0
+        with:
+          version: latest
       - name: Atlas Lint
         uses: ariga/atlas-action/migrate/lint@v1
         with:
@@ -36,7 +39,7 @@ jobs:
           dev-url: 'sqlite://ci-test?mode=memory'
 
   backend-test:
-    needs: backend-lint
+    needs: [backend-lint, backend-migration-lint]
     runs-on: ubuntu-latest
     container:
       image: golang:1.25-alpine
