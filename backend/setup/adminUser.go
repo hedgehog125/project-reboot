@@ -14,7 +14,6 @@ func CheckAdminHasMessengers(ctx context.Context, messengers common.MessengerSer
 		return false, ErrWrapperCheckAdminHasMessengers.Wrap(common.ErrNoTxInContext)
 	}
 
-	// TODO: check for and create this user on startup
 	userOb, stdErr := tx.User.Query().Where(user.Username(common.AdminUsername)).Only(ctx)
 	if stdErr != nil {
 		return false, ErrWrapperCheckAdminHasMessengers.Wrap(

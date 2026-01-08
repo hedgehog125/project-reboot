@@ -7,6 +7,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/core"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
+	"github.com/google/uuid"
 )
 
 type Core struct {
@@ -65,7 +66,7 @@ func (service *Core) SendActiveSessionReminders(ctx context.Context) common.Wrap
 func (service *Core) DeleteExpiredSessions(ctx context.Context) common.WrappedError {
 	return core.DeleteExpiredSessions(ctx, service.App.Clock)
 }
-func (service *Core) InvalidateUserSessions(userID int, ctx context.Context) common.WrappedError {
+func (service *Core) InvalidateUserSessions(userID uuid.UUID, ctx context.Context) common.WrappedError {
 	return core.InvalidateUserSessions(userID, ctx, service.App.Clock)
 }
 func (service *Core) IsUserSufficientlyNotified(sessionOb *ent.Session) bool {

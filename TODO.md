@@ -1,9 +1,10 @@
 # TODO
 
--   00:07:52 ERR schedulers\delayFuncs.go:68 unable to create initial PeriodicTask object error="db common [package] error: WithTx error: start transaction error: database [general] error: other error: ent: starting a transaction: SQL logic error: cannot start a transaction within a transaction (1)" periodicTaskName=SEND_ACTIVE_SESSION_REMINDERS
--   Improve frontend
--   Can cancelling requests make views non-atomic if a view uses multiple transactions? Are there any security risks with this?
 -   Move user contacts to separate model so SMS and Signal can have different phone numbers for the same user for example. Each messenger can be explicitly enabled and has its own options. e.g only send login alerts via SMS, don't send any other types of messages to it
+-   Improve frontend
+- Should endpoints take username or user ID?
+-   00:07:52 ERR schedulers\delayFuncs.go:68 unable to create initial PeriodicTask object error="db common [package] error: WithTx error: start transaction error: database [general] error: other error: ent: starting a transaction: SQL logic error: cannot start a transaction within a transaction (1)" periodicTaskName=SEND_ACTIVE_SESSION_REMINDERS
+-   Can cancelling requests make views non-atomic if a view uses multiple transactions? Are there any security risks with this?
 -   Standardise returning errors and using gin.H vs the endpoint specific download struct. That struct applies defaults which the other 2 approaches don't, so it could leak information
 -   Experiment using Cloudflare to prevent DDoS requests on the hashing endpoint. It's not a great idea to shift the hashing to the client due to WASM and different devices' RAM limitations. Can specifically limit that endpoint
 -   Limit number of concurrent hash requests to avoid using too much RAM
@@ -41,6 +42,7 @@
 -   -   Admin endpoints don't need this security, as long as they fail early if unauthorised
 -   When the admin is locked, whether temporarily or permanently, errors should make the server enter some kind of lockdown state? Need to weigh up pros and cons
 
+- Don't delete jobs on completion, instead periodically delete jobs older than 2 weeks or so. Could help with debugging
 -   Rework endpoint system, maybe the endpoint functions could return an Endpoint struct with an array of handlers and some other things? Middleware should be defined there instead of in RegisterEndpoints
 -   Create servicescommon so things can be split up better?
 -   Job engine should support rate limiting for each API by each definition having an optional function to modify the database object.

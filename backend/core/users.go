@@ -10,6 +10,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent"
 	"github.com/NicoClack/cryptic-stash/backend/ent/session"
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
+	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
 )
 
@@ -51,7 +52,7 @@ func SendActiveSessionReminders(
 			continue
 		}
 		sessionOb := sessionObs[0]
-		sessionIDs := make([]int, 0, len(sessionObs))
+		sessionIDs := make([]uuid.UUID, 0, len(sessionObs))
 		for _, sessionOb := range sessionObs {
 			sessionIDs = append(sessionIDs, sessionOb.ID)
 		}
@@ -88,7 +89,7 @@ func DeleteExpiredSessions(ctx context.Context, clock clockwork.Clock) common.Wr
 	return nil
 }
 
-func InvalidateUserSessions(userID int, ctx context.Context, clock clockwork.Clock) common.WrappedError {
+func InvalidateUserSessions(userID uuid.UUID, ctx context.Context, clock clockwork.Clock) common.WrappedError {
 	tx := ent.TxFromContext(ctx)
 	if tx == nil {
 		return ErrWrapperInvalidateUserSessions.Wrap(common.ErrNoTxInContext)

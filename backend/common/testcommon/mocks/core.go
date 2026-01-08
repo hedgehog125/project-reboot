@@ -5,6 +5,7 @@ import (
 
 	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
+	"github.com/google/uuid"
 )
 
 type EmptyCoreService struct{}
@@ -31,7 +32,7 @@ func (m *EmptyCoreService) SendActiveSessionReminders(ctx context.Context) commo
 func (m *EmptyCoreService) DeleteExpiredSessions(ctx context.Context) common.WrappedError {
 	return nil
 }
-func (m *EmptyCoreService) InvalidateUserSessions(userID int, ctx context.Context) common.WrappedError {
+func (m *EmptyCoreService) InvalidateUserSessions(userID uuid.UUID, ctx context.Context) common.WrappedError {
 	return nil
 }
 func (m *EmptyCoreService) IsUserSufficientlyNotified(sessionOb *ent.Session) bool {

@@ -67,7 +67,7 @@ type entry struct {
 	sourceFunction               string
 	sourceLine                   int
 	publicMessage                string
-	userID                       int
+	userID                       uuid.UUID
 	disableErrorLogging          bool
 	useAdminNotificationFallback bool
 	disableAdminNotification     bool
@@ -220,10 +220,8 @@ func (handler *Handler) bulkWrite(entries []*entry, ctx context.Context) error {
 					SetSourceFile(entry.sourceFile).
 					SetSourceFunction(entry.sourceFunction).
 					SetSourceLine(entry.sourceLine).
-					SetPublicMessage(entry.publicMessage)
-				if entry.userID != 0 {
-					lec.SetUserID(entry.userID)
-				}
+					SetPublicMessage(entry.publicMessage).
+					SetUserID(entry.userID) // Nullable
 			}).Exec(ctx)
 		},
 	)
@@ -291,7 +289,7 @@ func (handler *Handler) individualWriteFallback(
 			}
 			continue
 		}
-		if entry.userID == 0 {
+		if entry.userID == uuid.Nil {
 			cancel()
 			continue
 		}
@@ -627,12 +625,12 @@ func (handler Handler) Handle(ctx context.Context, record slog.Record) error {
 
 type specialProperties struct {
 	publicMessage string
-	userID        int
+	userID        uuid.UUID
 }
 
 func (handler Handler) resolveNestedAttrs(
 	attrs []slog.Attr, logErrors bool,
-	publicMessagePtr *string, userIDPtr *int,
+	publicMessagePtr *string, userIDPtr *uuid.UUID,
 ) map[string]any {
 	resolved := maps.Clone(handler.baseAttrs)
 	nestedResolved := resolved
@@ -659,7 +657,7 @@ func (handler Handler) resolveNestedAttrs(
 func (handler Handler) appendAttr(
 	attr slog.Attr, outputAttrs map[string]any,
 	isTopLevel bool, logErrors bool,
-	publicMessagePtr *string, userIDPtr *int,
+	publicMessagePtr *string, userIDPtr *uuid.UUID,
 ) {
 	attr.Value = attr.Value.Resolve()
 	if attr.Equal(slog.Attr{}) {
@@ -681,7 +679,7 @@ func (handler Handler) appendAttr(
 		} else {
 			groupAttr := map[string]any{}
 			for _, attr := range groupAttrs {
-				handler.appendAttr(attr, groupAttr, false, logErrors, common.Pointer(""), common.Pointer(0))
+				handler.appendAttr(attr, groupAttr, false, logErrors, common.Pointer(""), common.Pointer(uuid.UUID{}))
 			}
 			outputAttrs[attr.Key] = groupAttr
 		}
@@ -693,15 +691,15 @@ func (handler Handler) appendAttr(
 			return
 		}
 		if attr.Key == UserIDKey {
-			intValue, ok := attr.Value.Any().(int64)
+			uuidValue, ok := attr.Value.Any().(uuid.UUID)
 			if ok {
-				*userIDPtr = int(intValue)
+				*userIDPtr = uuidValue
 			} else if logErrors {
 				pc, _, _, _ := runtime.Caller(0)
 				record := slog.NewRecord(
 					handler.App.Clock.Now(),
 					slog.LevelWarn,
-					"userID property in log statement was not an int so has been ignored",
+					"userID property in log statement was not a UUID so has been ignored",
 					pc,
 				)
 				record.AddAttrs(slog.String("type", reflect.TypeOf(attr.Value.Any()).String()))

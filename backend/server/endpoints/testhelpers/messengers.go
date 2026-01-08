@@ -3,6 +3,7 @@ package testhelpers
 import (
 	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/messengers"
+	"github.com/google/uuid"
 )
 
 type MockMessenger struct {
@@ -11,7 +12,7 @@ type MockMessenger struct {
 }
 type SentMessage struct {
 	Type   string
-	UserID int
+	UserID uuid.UUID
 }
 
 func NewMockMessenger(name string) *MockMessenger {

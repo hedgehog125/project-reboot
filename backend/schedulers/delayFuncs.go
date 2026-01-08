@@ -9,6 +9,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/common/dbcommon"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
 	"github.com/NicoClack/cryptic-stash/backend/ent/periodictask"
+	"github.com/google/uuid"
 )
 
 type DelayFuncContext struct {
@@ -47,11 +48,11 @@ func SimpleFixedInterval(interval time.Duration) DelayFunc {
 	}
 }
 func PersistentFixedInterval(periodicTaskName string, interval time.Duration) DelayFunc {
-	periodicTaskID := 0
+	periodicTaskID := uuid.UUID{}
 	return func(delayCtx *DelayFuncContext) (time.Time, CommitDelayFunc) {
 		lastRan := delayCtx.LastRan
 		commit := func(runTime time.Time, ctx context.Context) {
-			if periodicTaskID == 0 {
+			if periodicTaskID == uuid.Nil {
 				periodicTask, stdErr := dbcommon.WithReadWriteTx(
 					ctx,
 					delayCtx.App.Database,

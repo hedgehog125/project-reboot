@@ -17,6 +17,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/logentry"
 	"github.com/NicoClack/cryptic-stash/backend/loggers"
 	"github.com/NicoClack/cryptic-stash/backend/services"
+	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -46,7 +47,7 @@ type ExpectedEntry struct {
 	PublicMessage string
 	Level         int
 	Attributes    map[string]any
-	UserID        int
+	UserID        uuid.UUID
 	// UserID should be asserted by its attribute
 }
 
@@ -200,7 +201,7 @@ func TestLogger_WithAttrs_and_WithGroup(t *testing.T) {
 	defer db.Shutdown()
 	clock := clockwork.NewRealClock()
 
-	userIDs := []int{}
+	userIDs := []uuid.UUID{}
 	for i := range 2 {
 		userIDs = append(
 			userIDs,
@@ -334,7 +335,7 @@ func TestLogger_SpecialAttributes(t *testing.T) {
 	defer db.Shutdown()
 	clock := clockwork.NewRealClock()
 
-	userIDs := []int{}
+	userIDs := []uuid.UUID{}
 	for i := range 2 {
 		userIDs = append(
 			userIDs,
@@ -375,7 +376,7 @@ func TestLogger_SpecialAttributes(t *testing.T) {
 		{
 			Message: "deleted expired sessions",
 			Level:   int(slog.LevelInfo),
-			UserID:  1,
+			UserID:  userIDs[0],
 			Attributes: map[string]any{
 				"userID": userIDs[0],
 			},

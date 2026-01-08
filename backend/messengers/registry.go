@@ -13,6 +13,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/common/dbcommon"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
 	"github.com/NicoClack/cryptic-stash/backend/jobs"
+	"github.com/google/uuid"
 )
 
 const JobNamePrefix = "messengers"
@@ -66,7 +67,7 @@ func NewRegistry(app *common.App) *Registry {
 type bodyWrapperType struct {
 	MessageType            common.MessageType
 	VersionedMessengerType string
-	SessionIDs             []int
+	SessionIDs             []uuid.UUID
 	Inner                  string
 }
 

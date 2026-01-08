@@ -12,6 +12,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 	"github.com/NicoClack/cryptic-stash/backend/server/servercommon"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type GetAuthorizationCodePayload struct {
@@ -101,7 +102,7 @@ func GetAuthorizationCode(app *servercommon.ServerApp) gin.HandlerFunc {
 						Type:       common.MessageLogin,
 						User:       userOb,
 						Time:       validFrom,
-						SessionIDs: []int{sessionOb.ID},
+						SessionIDs: []uuid.UUID{sessionOb.ID},
 					},
 					ctx,
 				)

@@ -149,7 +149,7 @@ type Message struct {
 	User       *ent.User
 	Code       string
 	Time       time.Time
-	SessionIDs []int
+	SessionIDs []uuid.UUID
 }
 
 // The public version of *messengers.Definition
@@ -225,7 +225,7 @@ type CoreService interface {
 
 	SendActiveSessionReminders(ctx context.Context) WrappedError
 	DeleteExpiredSessions(ctx context.Context) WrappedError
-	InvalidateUserSessions(userID int, ctx context.Context) WrappedError
+	InvalidateUserSessions(userID uuid.UUID, ctx context.Context) WrappedError
 	IsUserSufficientlyNotified(sessionOb *ent.Session) bool
 	IsUserLocked(userOb *ent.User) bool
 
