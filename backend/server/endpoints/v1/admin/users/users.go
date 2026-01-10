@@ -6,8 +6,9 @@ import (
 )
 
 func ConfigureEndpoints(group *servercommon.Group) {
-	group.POST("/register-or-update", RegisterOrUpdate(group.App))
-	group.POST("/lock", AdminLock(group.App))
-	group.POST("/unlock", AdminUnlock(group.App))
+	group.GET("/", ListUsers(group.App))
+	// group.POST("/register-or-update", RegisterOrUpdate(group.App))
+	// group.POST("/lock", AdminLock(group.App))
+	// group.POST("/unlock", AdminUnlock(group.App))
 	messengers.ConfigureEndpoints(group.Group("/:id/messengers"))
 }
