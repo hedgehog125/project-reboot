@@ -6,27 +6,27 @@ CREATE INDEX `job_status_priority_due_at` ON `jobs` (`status`, `priority`, `due_
 -- create index "job_due_at" to table: "jobs"
 CREATE INDEX `job_due_at` ON `jobs` (`due_at`);
 -- create "key_values" table
-CREATE TABLE `key_values` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `key` text NOT NULL, `value` json NOT NULL);
+CREATE TABLE `key_values` (`id` uuid NOT NULL, `key` text NOT NULL, `value` json NOT NULL, PRIMARY KEY (`id`));
 -- create index "keyvalue_key" to table: "key_values"
 CREATE UNIQUE INDEX `keyvalue_key` ON `key_values` (`key`);
 -- create "log_entries" table
-CREATE TABLE `log_entries` (`id` uuid NOT NULL, `logged_at` datetime NOT NULL, `logged_at_known` bool NOT NULL, `level` integer NOT NULL, `message` text NOT NULL, `attributes` json NOT NULL, `source_file` text NOT NULL, `source_function` text NOT NULL, `source_line` integer NOT NULL, `public_message` text NOT NULL, `user_id` integer NULL, PRIMARY KEY (`id`), CONSTRAINT `log_entries_users_logs` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL);
+CREATE TABLE `log_entries` (`id` uuid NOT NULL, `logged_at` datetime NOT NULL, `logged_at_known` bool NOT NULL, `level` integer NOT NULL, `message` text NOT NULL, `attributes` json NOT NULL, `source_file` text NOT NULL, `source_function` text NOT NULL, `source_line` integer NOT NULL, `public_message` text NOT NULL, `user_id` uuid NULL, PRIMARY KEY (`id`), CONSTRAINT `log_entries_users_logs` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL);
 -- create index "logentry_logged_at" to table: "log_entries"
 CREATE INDEX `logentry_logged_at` ON `log_entries` (`logged_at`);
 -- create "login_alerts" table
-CREATE TABLE `login_alerts` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `sent_at` datetime NOT NULL, `versioned_messenger_type` text NOT NULL, `confirmed` bool NOT NULL, `session_id` integer NOT NULL, CONSTRAINT `login_alerts_sessions_loginAlerts` FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE);
+CREATE TABLE `login_alerts` (`id` uuid NOT NULL, `sent_at` datetime NOT NULL, `versioned_messenger_type` text NOT NULL, `confirmed` bool NOT NULL, `session_id` uuid NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `login_alerts_sessions_loginAlerts` FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE);
 -- create "periodic_tasks" table
-CREATE TABLE `periodic_tasks` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `name` text NOT NULL, `last_ran_at` datetime NULL);
+CREATE TABLE `periodic_tasks` (`id` uuid NOT NULL, `name` text NOT NULL, `last_ran_at` datetime NULL, PRIMARY KEY (`id`));
 -- create index "periodictask_name" to table: "periodic_tasks"
 CREATE UNIQUE INDEX `periodictask_name` ON `periodic_tasks` (`name`);
 -- create "sessions" table
-CREATE TABLE `sessions` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `created_at` datetime NOT NULL, `code` blob NOT NULL, `valid_from` datetime NOT NULL, `valid_until` datetime NOT NULL, `user_agent` text NOT NULL, `ip` text NOT NULL, `user_id` integer NOT NULL, CONSTRAINT `sessions_users_sessions` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE);
+CREATE TABLE `sessions` (`id` uuid NOT NULL, `created_at` datetime NOT NULL, `code` blob NOT NULL, `valid_from` datetime NOT NULL, `valid_until` datetime NOT NULL, `user_agent` text NOT NULL, `ip` text NOT NULL, `user_id` uuid NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `sessions_users_sessions` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE);
 -- create index "sessions_code_key" to table: "sessions"
 CREATE UNIQUE INDEX `sessions_code_key` ON `sessions` (`code`);
 -- create index "session_code_user_id" to table: "sessions"
 CREATE INDEX `session_code_user_id` ON `sessions` (`code`, `user_id`);
 -- create "stashes" table
-CREATE TABLE `stashes` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `content` blob NOT NULL, `file_name` text NOT NULL, `mime` text NOT NULL, `nonce` blob NOT NULL, `key_salt` blob NOT NULL, `hash_time` integer NOT NULL, `hash_memory` integer NOT NULL, `hash_threads` integer NOT NULL, `user_id` integer NOT NULL, CONSTRAINT `stashes_users_stash` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT);
+CREATE TABLE `stashes` (`id` uuid NOT NULL, `content` blob NOT NULL, `file_name` text NOT NULL, `mime` text NOT NULL, `nonce` blob NOT NULL, `key_salt` blob NOT NULL, `hash_time` integer NOT NULL, `hash_memory` integer NOT NULL, `hash_threads` integer NOT NULL, `user_id` uuid NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `stashes_users_stash` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE);
 -- create index "stashes_user_id_key" to table: "stashes"
 CREATE UNIQUE INDEX `stashes_user_id_key` ON `stashes` (`user_id`);
 -- create "two_factor_actions" table
@@ -34,11 +34,15 @@ CREATE TABLE `two_factor_actions` (`id` uuid NOT NULL, `type` text NOT NULL, `ve
 -- create index "twofactoraction_code" to table: "two_factor_actions"
 CREATE INDEX `twofactoraction_code` ON `two_factor_actions` (`code`);
 -- create "users" table
-CREATE TABLE `users` (`id` integer NOT NULL PRIMARY KEY AUTOINCREMENT, `username` text NOT NULL, `alert_discord_id` text NOT NULL DEFAULT (''), `alert_email` text NOT NULL DEFAULT (''), `locked` bool NOT NULL DEFAULT (false), `locked_until` datetime NULL, `sessions_valid_from` datetime NOT NULL);
+CREATE TABLE `users` (`id` uuid NOT NULL, `username` text NOT NULL, `locked` bool NOT NULL DEFAULT (false), `locked_until` datetime NULL, `sessions_valid_from` datetime NOT NULL, PRIMARY KEY (`id`));
 -- create index "users_username_key" to table: "users"
 CREATE UNIQUE INDEX `users_username_key` ON `users` (`username`);
+-- create "user_messengers" table
+CREATE TABLE `user_messengers` (`id` uuid NOT NULL, `type` text NOT NULL, `version` integer NOT NULL, `enabled` bool NOT NULL DEFAULT (true), `options` json NOT NULL, `user_id` uuid NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `user_messengers_users_messengers` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE);
 
 -- +goose Down
+-- reverse: create "user_messengers" table
+DROP TABLE `user_messengers`;
 -- reverse: create index "users_username_key" to table: "users"
 DROP INDEX `users_username_key`;
 -- reverse: create "users" table

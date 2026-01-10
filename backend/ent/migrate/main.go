@@ -17,8 +17,6 @@ import (
 	_ "github.com/NicoClack/cryptic-stash/backend/entps"
 )
 
-// TODO: embed the migrations folder
-
 func main() {
     ctx := context.Background()
     dir, stdErr := atlas.NewLocalDir("ent/migrate/migrations")
