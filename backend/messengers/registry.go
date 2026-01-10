@@ -49,7 +49,7 @@ type Definition struct {
 	Handler           HandlerFunc
 	jobDefinition     *jobs.Definition
 	reflectedBodyType reflect.Type
-	optionsSchema     *gojsonschema.Schema
+	optionsSchema     *common.PublicJSONSchema
 }
 
 type PrepareFunc = func(prepareCtx *PrepareContext) (any, error)
@@ -94,7 +94,7 @@ func (registry *Registry) Register(definition *Definition) {
 	definition.reflectedBodyType = reflect.TypeOf(definition.BodyType)
 	validateDefinition(definition)
 	if definition.OptionsSchemaPath != "" {
-		definition.optionsSchema = requireSchema(definition.OptionsSchemaPath, registry.embeddedDir)
+		definition.optionsSchema = requirePublicSchema(definition.OptionsSchemaPath, registry.embeddedDir)
 	}
 
 	definition.jobDefinition = &jobs.Definition{
@@ -182,7 +182,7 @@ func validateDefinition(definition *Definition) {
 	versionedType := common.GetVersionedType(definition.ID, definition.Version)
 	jobs.AssertTypeIsValidBodyType(definition.reflectedBodyType, versionedType)
 }
-func requireSchema(schemaPath string, embeddedDir common.EmbeddedDirectory) *gojsonschema.Schema {
+func requirePublicSchema(schemaPath string, embeddedDir common.EmbeddedDirectory) *common.PublicJSONSchema {
 	schemaFileBytes, stdErr := embeddedDir.FS.ReadFile(
 		path.Join(embeddedDir.Path, schemaPath),
 	)
@@ -195,7 +195,11 @@ func requireSchema(schemaPath string, embeddedDir common.EmbeddedDirectory) *goj
 	if stdErr != nil {
 		log.Fatalf("couldn't load messenger schema \"%v\". error:\n%v", schemaPath, stdErr)
 	}
-	return schema
+	publicSchema, wrappedErr := common.NewPublicJSONSchema(schema, schemaFileBytes)
+	if wrappedErr != nil {
+		log.Fatalf("couldn't create public messenger schema \"%v\". error:\n%v", schemaPath, wrappedErr)
+	}
+	return publicSchema
 }
 
 func (registry *Registry) RegisterJobs(group *jobs.RegistryGroup) {
@@ -377,12 +381,18 @@ func (registry *Registry) GetPublicDefinition(versionedType string) (*common.Mes
 	return getPublicDefinition(definition), true
 }
 func getPublicDefinition(definition *Definition) *common.MessengerDefinition {
+	publicOptionsSchema := json.RawMessage(nil)
+	if definition.optionsSchema != nil {
+		publicOptionsSchema = definition.optionsSchema.PublicSchema
+	}
+
 	//exhaustruct:enforce
 	return &common.MessengerDefinition{
 		ID:             definition.ID,
 		Version:        definition.Version,
 		Name:           definition.Name,
 		IsSupplemental: definition.IsSupplemental,
+		OptionsSchema:  publicOptionsSchema,
 	}
 }
 func (registry *Registry) AllPublicDefinitions() []*common.MessengerDefinition {
