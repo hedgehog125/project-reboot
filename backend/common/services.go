@@ -159,6 +159,7 @@ type MessengerDefinition struct {
 	Version        int
 	Name           string
 	IsSupplemental bool
+	OptionsSchema  json.RawMessage
 }
 
 type Logger interface {

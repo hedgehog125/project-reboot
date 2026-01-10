@@ -1,7 +1,6 @@
 package common
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/NicoClack/cryptic-stash/backend/ent" // Note: will have to reorganise if I end up needing to use the common module in schemas
 	"modernc.org/sqlite"
-	sqlite3 "modernc.org/sqlite/lib"
 )
 
 // TODO: rename to ErrType1 and ErrType2?
@@ -43,49 +41,6 @@ const (
 	ErrTypeServerCommon    = "server common [package]"
 	// Similar idea here if it's unknown
 )
-
-var ErrWrapperDatabase = NewDynamicErrorWrapper(func(err error) WrappedError {
-	wrappedErr := WrapErrorWithCategories(err)
-	if wrappedErr == nil {
-		return nil
-	}
-
-	if errors.Is(err, context.DeadlineExceeded) {
-		wrappedErr.AddCategoriesMut(ErrTypeTimeout, ErrTypeDatabase)
-		return wrappedErr
-	}
-	sqliteErr := &sqlite.Error{}
-	if errors.As(err, &sqliteErr) {
-		code := sqliteErr.Code()
-		if slices.Index([]int{
-			sqlite3.SQLITE_FULL,
-			sqlite3.SQLITE_AUTH,
-			sqlite3.SQLITE_READONLY,
-			sqlite3.SQLITE_BUSY,
-			sqlite3.SQLITE_CANTOPEN,
-			sqlite3.SQLITE_IOERR,
-			sqlite3.SQLITE_LOCKED,
-			sqlite3.SQLITE_NOMEM,
-		}, code) != -1 {
-			wrappedErr.ConfigureRetriesMut(10, 50*time.Millisecond, 2)
-			if code == sqlite3.SQLITE_NOMEM {
-				wrappedErr.AddCategoriesMut(ErrTypeMemory, ErrTypeDatabase)
-			} else {
-				wrappedErr.AddCategoriesMut(ErrTypeDisk, ErrTypeDatabase)
-			}
-			return wrappedErr
-		}
-	}
-
-	wrappedErr.AddCategoriesMut(ErrTypeOther, ErrTypeDatabase)
-	return wrappedErr
-})
-var ErrWrapperAPI = NewErrorWrapper(ErrTypeAPI)
-
-var ErrNoTxInContext = NewErrorWithCategories("no db transaction found in context")
-var ErrNotImplemented = NewErrorWithCategories("not implemented")
-
-// Note: this constant error will be wrapped in a common.Error with more details
 
 func HasErrors(errs []error) bool {
 	for _, err := range errs {
