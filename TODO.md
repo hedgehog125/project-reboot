@@ -2,8 +2,8 @@
 
 -   Move user contacts to separate model so SMS and Signal can have different phone numbers for the same user for example. Each messenger can be explicitly enabled and has its own options. e.g only send login alerts via SMS, don't send any other types of messages to it
 -   Improve frontend
-- Should endpoints take username or user ID?
-- Remove userID and publicMessage from logger, it's not worth the complexity and risks
+-   Rename sessions to something else? In case I add logins and sessions for regular users in the future
+-   Remove userID and publicMessage from logger, it's not worth the complexity and risks
 -   00:07:52 ERR schedulers\delayFuncs.go:68 unable to create initial PeriodicTask object error="db common [package] error: WithTx error: start transaction error: database [general] error: other error: ent: starting a transaction: SQL logic error: cannot start a transaction within a transaction (1)" periodicTaskName=SEND_ACTIVE_SESSION_REMINDERS
 -   Can cancelling requests make views non-atomic if a view uses multiple transactions? Are there any security risks with this?
 -   Standardise returning errors and using gin.H vs the endpoint specific download struct. That struct applies defaults which the other 2 approaches don't, so it could leak information

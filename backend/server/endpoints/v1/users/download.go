@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"encoding/base64"
 	"net/http"
 	"time"
 
@@ -42,9 +43,15 @@ func Download(app *servercommon.ServerApp) gin.HandlerFunc {
 		if body.Username == common.AdminUsername {
 			return servercommon.NewInvalidUsernameError()
 		}
-		givenAuthCodeBytes, ctxErr := servercommon.DecodeBase64(body.AuthorizationCode)
-		if ctxErr != nil {
-			return ctxErr
+		givenAuthCodeBytes, stdErr := base64.StdEncoding.DecodeString(body.AuthorizationCode)
+		if stdErr != nil {
+			return servercommon.NewError(stdErr).
+				SetStatus(http.StatusBadRequest).
+				AddDetail(servercommon.ErrorDetail{
+					Message: "auth code is not valid base64",
+					Code:    "MALFORMED_AUTH_CODE",
+				}).
+				DisableLogging()
 		}
 
 		sessionOb, stdErr := dbcommon.WithReadWriteTx(

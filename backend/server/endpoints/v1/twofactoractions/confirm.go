@@ -25,7 +25,7 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
-		parsedID, ctxErr := servercommon.ParseUUID(ginCtx.Param("id"))
+		actionID, ctxErr := servercommon.ParseObjectID(ginCtx.Param("id"))
 		if ctxErr != nil {
 			return ctxErr
 		}
@@ -33,7 +33,7 @@ func Confirm(app *servercommon.ServerApp) gin.HandlerFunc {
 		return dbcommon.WithWriteTx(
 			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) error {
-				_, wrappedErr := app.TwoFactorActions.Confirm(parsedID, body.Code, ctx)
+				_, wrappedErr := app.TwoFactorActions.Confirm(actionID, body.Code, ctx)
 				if wrappedErr != nil {
 					return servercommon.ExpectAnyOfErrors(
 						wrappedErr,

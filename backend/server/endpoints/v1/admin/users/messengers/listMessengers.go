@@ -29,18 +29,21 @@ type Messenger struct {
 
 func ListMessengers(app *servercommon.ServerApp) gin.HandlerFunc {
 	return servercommon.NewHandler(func(ginCtx *gin.Context) error {
+		userID, ctxErr := servercommon.ParseObjectID(ginCtx.Param("id"))
+		if ctxErr != nil {
+			return ctxErr
+		}
 		userOb, stdErr := dbcommon.WithReadTx(
 			ginCtx.Request.Context(), app.Database,
 			func(tx *ent.Tx, ctx context.Context) (*ent.User, error) {
 				return tx.User.Query().
-					// TODO: don't hardcode for admin!
-					Where(user.Username(common.AdminUsername)).
+					Where(user.ID(userID)).
 					WithMessengers().
 					Only(ctx)
 			},
 		)
 		if stdErr != nil {
-			return stdErr
+			return servercommon.Send404IfNotFound(stdErr)
 		}
 
 		definitions := app.Messengers.AllPublicDefinitions()

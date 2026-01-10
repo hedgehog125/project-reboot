@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"encoding/base64"
 	"net/http"
 
 	"github.com/NicoClack/cryptic-stash/backend/common"
@@ -35,9 +36,15 @@ func RegisterOrUpdate(app *servercommon.ServerApp) gin.HandlerFunc {
 		if body.Username == common.AdminUsername {
 			return servercommon.NewInvalidUsernameError()
 		}
-		contentBytes, ctxErr := servercommon.DecodeBase64(body.Content)
-		if ctxErr != nil {
-			return ctxErr
+		contentBytes, stdErr := base64.StdEncoding.DecodeString(body.Content)
+		if stdErr != nil {
+			return servercommon.NewError(stdErr).
+				SetStatus(http.StatusBadRequest).
+				AddDetail(servercommon.ErrorDetail{
+					Message: "content is not valid base64",
+					Code:    "MALFORMED_CONTENT",
+				}).
+				DisableLogging()
 		}
 
 		salt := app.Core.GenerateSalt()

@@ -9,19 +9,7 @@ import (
 	"time"
 
 	"github.com/NicoClack/cryptic-stash/backend/common"
-	"github.com/NicoClack/cryptic-stash/backend/common/dbcommon"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
-)
-
-const (
-	ErrTypeParseBodyJson = "parse body json"
-)
-
-var ErrCancelTransaction = NewError(dbcommon.ErrCancelTransaction).DisableLogging()
-
-var ErrWrapperParseBodyJson = common.NewErrorWrapper(
-	common.ErrTypeServerCommon,
-	ErrTypeParseBodyJson, common.ErrTypeClient,
 )
 
 type Error struct {
@@ -125,6 +113,14 @@ func (err *Error) ConfigureRetries(maxRetries int, baseBackoff time.Duration, ba
 	newChild := err.child.CloneAsWrappedError()
 	newChild.ConfigureRetriesMut(maxRetries, baseBackoff, backoffMultiplier)
 	return err.SetChild(newChild)
+}
+func (err *Error) AddDebugValues(values ...common.DebugValue) *Error {
+	newChild := err.child.CloneAsWrappedError()
+	newChild.AddDebugValuesMut(values...)
+	return err.SetChild(newChild)
+}
+func (err *Error) AddDebugValue(value common.DebugValue) *Error {
+	return err.AddDebugValues(value)
 }
 
 func (err *Error) AddDetails(details ...ErrorDetail) *Error {

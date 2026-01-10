@@ -1,18 +1,34 @@
 package servercommon
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
-func ParseBody(obj any, ginCtx *gin.Context) *Error {
-	// TODO: this is not secure. The error type should is a validator.ValidationErrors which should be processed
-	if err := ginCtx.ShouldBindJSON(obj); err != nil {
-		return NewError(ErrWrapperParseBodyJson.Wrap(err)).
+func ParseBody(pointer any, ginCtx *gin.Context) *Error {
+	stdErr := ginCtx.ShouldBindJSON(pointer)
+	if stdErr != nil {
+		validationErrs := validator.ValidationErrors{}
+		if !errors.As(stdErr, &validationErrs) {
+			return NewError(ErrWrapperParseBodyJson.Wrap(stdErr))
+		}
+
+		var builder strings.Builder
+		for _, validationErr := range validationErrs {
+			// TODO: these errors have incorrect casing:
+			// TotpCode: condition failed: required
+			builder.WriteString(fmt.Sprintf("%v: condition failed: %v", validationErr.Field(), validationErr.Tag()))
+		}
+
+		return NewError(ErrWrapperParseBodyJson.Wrap(stdErr)).
 			SetStatus(http.StatusBadRequest).
 			AddDetail(ErrorDetail{
-				Message: err.Error(),
+				Message: builder.String(),
 				Code:    "INVALID_BODY_JSON",
 			}).
 			DisableLogging()

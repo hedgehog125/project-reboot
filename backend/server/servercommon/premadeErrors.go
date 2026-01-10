@@ -6,10 +6,24 @@ import (
 	"net/http"
 
 	"github.com/NicoClack/cryptic-stash/backend/common"
+	"github.com/NicoClack/cryptic-stash/backend/common/dbcommon"
 )
 
 const (
-	ErrTypeBadRequest = "bad request"
+	ErrTypeParseBodyJson = "parse body json"
+	ErrTypeParseObjectID = "parse object ID"
+	ErrTypeBadRequest    = "bad request"
+)
+
+var ErrCancelTransaction = NewError(dbcommon.ErrCancelTransaction).DisableLogging()
+
+var ErrWrapperParseBodyJson = common.NewErrorWrapper(
+	common.ErrTypeServerCommon,
+	ErrTypeParseBodyJson, common.ErrTypeClient,
+)
+var ErrWrapperParseObjectID = common.NewErrorWrapper(
+	common.ErrTypeServerCommon,
+	ErrTypeParseObjectID, common.ErrTypeClient,
 )
 
 var ErrUnauthorized = NewError(common.NewErrorWithCategories(

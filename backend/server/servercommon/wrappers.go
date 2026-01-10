@@ -1,34 +1,21 @@
 package servercommon
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/google/uuid"
 )
 
-func ParseUUID(str string) (uuid.UUID, *Error) {
-	parsedID, stdErr := uuid.Parse(str)
+func ParseObjectID(uuidStr string) (uuid.UUID, *Error) {
+	parsed, stdErr := uuid.Parse(uuidStr)
 	if stdErr != nil {
-		return uuid.Nil, NewError(stdErr).
+		return uuid.Nil, NewError(ErrWrapperParseObjectID.Wrap(stdErr)).
 			SetStatus(http.StatusBadRequest).
 			AddDetail(ErrorDetail{
 				Message: "ID is not a valid UUID",
 				Code:    "ID_NOT_VALID_UUID",
-			})
+			}).
+			DisableLogging()
 	}
-	return parsedID, nil
-}
-
-func DecodeBase64(str string) ([]byte, *Error) {
-	parsedBytes, stdErr := base64.StdEncoding.DecodeString(str)
-	if stdErr != nil {
-		return nil, NewError(stdErr).
-			SetStatus(http.StatusBadRequest).
-			AddDetail(ErrorDetail{
-				Message: "auth code is not valid base64",
-				Code:    "MALFORMED_AUTH_CODE",
-			})
-	}
-	return parsedBytes, nil
+	return parsed, nil
 }

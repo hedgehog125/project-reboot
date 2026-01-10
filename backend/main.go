@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/NicoClack/cryptic-stash/backend/common"
+	"github.com/NicoClack/cryptic-stash/backend/ent/user"
 	"github.com/NicoClack/cryptic-stash/backend/services"
+	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
 )
 
@@ -70,6 +74,15 @@ func main() {
 	app.Scheduler.Start() // Note: initialises some state, e.g the rotating admin code
 	app.Server.Start()
 	app.Jobs.Start()
+
+	{
+		parsed, _ := uuid.Parse("376dac89b642668d1b979a62b4450fbb")
+		userObs := app.Database.Client().Debug().User.Query().
+			Where(user.ID(parsed)).
+			WithMessengers().
+			AllX(context.TODO())
+		fmt.Printf("userObs: %v\n", userObs)
+	}
 
 	shutdownService.Listen()
 }
