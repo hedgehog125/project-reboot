@@ -126,6 +126,7 @@ type MessengerService interface {
 
 	GetConfiguredMessengerTypes(user *ent.User) []string
 	GetPublicDefinition(versionedType string) (*MessengerDefinition, bool)
+	AllPublicDefinitions() []*MessengerDefinition
 }
 type MessageType string
 
@@ -156,6 +157,7 @@ type Message struct {
 type MessengerDefinition struct {
 	ID             string
 	Version        int
+	Name           string
 	IsSupplemental bool
 }
 

@@ -47,9 +47,9 @@ type Context struct {
 }
 
 func (ctx *Context) Decode(pointer any) common.WrappedError {
-	err := json.Unmarshal(ctx.Body, pointer)
-	if err != nil {
-		return ErrWrapperDecode.Wrap(err)
+	stdErr := json.Unmarshal(ctx.Body, pointer)
+	if stdErr != nil {
+		return ErrWrapperDecode.Wrap(stdErr)
 	}
 	return nil
 }

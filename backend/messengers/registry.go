@@ -6,14 +6,18 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"path"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/common/dbcommon"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
 	"github.com/NicoClack/cryptic-stash/backend/jobs"
+	"github.com/bytedance/gopkg/util/logger"
 	"github.com/google/uuid"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 const JobNamePrefix = "messengers"
@@ -23,31 +27,42 @@ type Registry struct {
 	messengers map[string]*Definition
 	// RegisterJobs can be called with a prefix, so this is JobNamePrefix + that
 	jobNamePrefix string
+	embeddedDir   common.EmbeddedDirectory
 }
 
 type Definition struct {
 	ID      string
 	Version int
+	Name    string
 	// Supplemental messengers often can't tell if a message was successfully sent. So they increase the
 	// chance the user is notified but are ignored when assessing if the user was sufficiently notified.
 	// This also means that the user needs to have at least one non-supplemental messenger configured,
 	// otherwise they'll never be considered sufficiently notified.
-	IsSupplemental bool
+	IsSupplemental    bool
+	OptionsType       any
+	OptionsSchemaPath string
 	// Returns the data the Handler needs, typically a struct containing the formatted message and
 	// some sort of contact (e.g a username)
-	// If the user doesn't have the right contacts for this messenger, return messengers.ErrNoContactForUser.Clone()
 	Prepare PrepareFunc
 	// The return type of Prepare
 	BodyType          any
 	Handler           HandlerFunc
 	jobDefinition     *jobs.Definition
 	reflectedBodyType reflect.Type
+	optionsSchema     *gojsonschema.Schema
 }
 
-type PrepareFunc = func(message *common.Message) (any, error)
+type PrepareFunc = func(prepareCtx *PrepareContext) (any, error)
 type HandlerFunc func(messengerCtx *Context) error
 
 type JobContext = jobs.Context
+
+type bodyWrapperType struct {
+	MessageType            common.MessageType
+	VersionedMessengerType string
+	SessionIDs             []uuid.UUID
+	Inner                  string
+}
 type Context struct {
 	*JobContext
 	confirmedSent bool
@@ -64,11 +79,11 @@ func NewRegistry(app *common.App) *Registry {
 	}
 }
 
-type bodyWrapperType struct {
-	MessageType            common.MessageType
-	VersionedMessengerType string
-	SessionIDs             []uuid.UUID
-	Inner                  string
+func (registry *Registry) SetEmbeddedDir(embeddedDir common.EmbeddedDirectory) {
+	if registry.embeddedDir.Path != "" {
+		panic("messenger registry's embedded directory has already been set")
+	}
+	registry.embeddedDir = embeddedDir
 }
 
 func (registry *Registry) Register(definition *Definition) {
@@ -77,7 +92,10 @@ func (registry *Registry) Register(definition *Definition) {
 		log.Fatalf("messenger definition with ID \"%s\" already exists", versionedType)
 	}
 	definition.reflectedBodyType = reflect.TypeOf(definition.BodyType)
-	jobs.AssertTypeIsValidBodyType(definition.reflectedBodyType, versionedType)
+	validateDefinition(definition)
+	if definition.OptionsSchemaPath != "" {
+		definition.optionsSchema = requireSchema(definition.OptionsSchemaPath, registry.embeddedDir)
+	}
 
 	definition.jobDefinition = &jobs.Definition{
 		ID:      definition.ID,
@@ -159,12 +177,46 @@ func (registry *Registry) Register(definition *Definition) {
 	}
 	registry.messengers[versionedType] = definition
 }
+func validateDefinition(definition *Definition) {
+	// TODO
+	versionedType := common.GetVersionedType(definition.ID, definition.Version)
+	jobs.AssertTypeIsValidBodyType(definition.reflectedBodyType, versionedType)
+}
+func requireSchema(schemaPath string, embeddedDir common.EmbeddedDirectory) *gojsonschema.Schema {
+	schemaFileBytes, stdErr := embeddedDir.FS.ReadFile(
+		path.Join(embeddedDir.Path, schemaPath),
+	)
+	if stdErr != nil {
+		log.Fatalf("couldn't read embedded messenger schema \"%v\". error:\n%v", schemaPath, stdErr)
+	}
+
+	loader := gojsonschema.NewStringLoader(string(schemaFileBytes))
+	schema, stdErr := gojsonschema.NewSchema(loader)
+	if stdErr != nil {
+		log.Fatalf("couldn't load messenger schema \"%v\". error:\n%v", schemaPath, stdErr)
+	}
+	return schema
+}
+
 func (registry *Registry) RegisterJobs(group *jobs.RegistryGroup) {
 	registry.jobNamePrefix = common.JoinPaths(group.Path, JobNamePrefix)
 	prefixedGroup := group.Group(JobNamePrefix)
 	for _, messenger := range registry.messengers {
 		prefixedGroup.Register(messenger.jobDefinition)
 	}
+}
+
+type PrepareContext struct {
+	Message *common.Message
+	Options json.RawMessage
+}
+
+func (ctx *PrepareContext) DecodeOptions(pointer any) common.WrappedError {
+	stdErr := json.Unmarshal(ctx.Options, pointer)
+	if stdErr != nil {
+		return ErrWrapperDecodeOptions.Wrap(stdErr)
+	}
+	return nil
 }
 
 func (registry *Registry) Send(
@@ -181,7 +233,11 @@ func (registry *Registry) Send(
 		return ErrWrapperSend.Wrap(common.ErrNoTxInContext)
 	}
 
-	preparedData, stdErr := messengerDef.Prepare(message)
+	prepareCtx, wrappedErr := newPrepareContext(versionedType, message)
+	if wrappedErr != nil {
+		return ErrWrapperSend.Wrap(wrappedErr)
+	}
+	preparedData, stdErr := messengerDef.Prepare(prepareCtx)
 	if stdErr != nil {
 		return ErrWrapperSend.Wrap(ErrWrapperPrepare.Wrap(stdErr))
 	}
@@ -201,7 +257,7 @@ func (registry *Registry) Send(
 		))
 	}
 
-	_, wrappedErr := registry.App.Jobs.EnqueueWithModifier(
+	_, wrappedErr = registry.App.Jobs.EnqueueWithModifier(
 		common.JoinPaths(registry.jobNamePrefix, versionedType),
 		&bodyWrapperType{
 			MessageType:            message.Type,
@@ -218,25 +274,29 @@ func (registry *Registry) Send(
 		return ErrWrapperSend.Wrap(ErrWrapperEnqueueJob.Wrap(wrappedErr))
 	}
 
-	logMessage, wrappedErr := FormatDefaultMessage(message)
-	logger := registry.App.Logger.With(
+	logger.Info(
+		"sending message to user",
 		"userID", message.User.ID,
-		"messageType", versionedType,
+		"messageType", message.Type,
 	)
-	if wrappedErr == nil {
-		logger.Info(
-			"sending message to user",
-			"message", logMessage,
-		)
-	} else {
-		logger.Warn(
-			"sending a message that FormatDefaultMessage couldn't format",
-			"error", wrappedErr,
-		)
-	}
-
 	return nil
 }
+func newPrepareContext(
+	versionedType string,
+	message *common.Message,
+) (*PrepareContext, common.WrappedError) {
+	index := slices.IndexFunc(message.User.Edges.Messengers, func(userMessenger *ent.UserMessenger) bool {
+		return common.GetVersionedType(userMessenger.Type, userMessenger.Version) == versionedType
+	})
+	if index == -1 {
+		return nil, ErrMessengerDisabledForUser.Clone()
+	}
+	return &PrepareContext{
+		Message: message,
+		Options: message.User.Edges.Messengers[index].Options,
+	}, nil
+}
+
 func (registry *Registry) SendUsingAll(
 	message *common.Message,
 	sendTime time.Time,
@@ -249,20 +309,16 @@ func (registry *Registry) SendUsingAll(
 		if wrappedErr == nil {
 			messagesQueued++
 		} else {
-			// TODO: remove this ErrNoContactForUser sentinel error and have a separate hook
-			// to check if the messenger has the right contacts?
 			errs[versionedType] = wrappedErr
-			if !ErrWrapperPrepare.HasWrapped(wrappedErr) {
-				return messagesQueued, errs, ErrWrapperSendUsingAll.Wrap(wrappedErr)
+			if errors.Is(wrappedErr, ErrMessengerDisabledForUser) {
+				continue
 			}
-			if !errors.Is(wrappedErr, ErrNoContactForUser) {
-				// Just log an error and let the admin deal with this, there's not much the user can do
-				registry.App.Logger.Error(
-					"failed to prepare message",
-					"messengerType", versionedType,
-					"error", wrappedErr,
-				)
-			}
+			// Just log an error and let the admin deal with this, there's not much the user can do
+			registry.App.Logger.Error(
+				"failed to enqueue message send",
+				"messengerType", versionedType,
+				"error", wrappedErr,
+			)
 		}
 	}
 	return messagesQueued, errs, nil
@@ -289,13 +345,24 @@ func (registry *Registry) SendBulk(
 }
 
 func (registry *Registry) GetConfiguredMessengerTypes(user *ent.User) []string {
+	if user.Edges.Messengers == nil {
+		panic("GetConfiguredMessengerTypes: user messengers edge must be loaded")
+	}
+
 	configuredTypes := []string{}
 	for versionedType, messengerDef := range registry.messengers {
-		_, wrappedErr := messengerDef.Prepare(&common.Message{
-			Type: common.MessageTest,
-			User: user,
-		})
+		prepareCtx, wrappedErr := newPrepareContext(
+			versionedType,
+			&common.Message{
+				Type: common.MessageTest,
+				User: user,
+			},
+		)
 		if wrappedErr != nil {
+			continue
+		}
+		_, stdErr := messengerDef.Prepare(prepareCtx)
+		if stdErr != nil {
 			continue
 		}
 		configuredTypes = append(configuredTypes, versionedType)
@@ -303,13 +370,25 @@ func (registry *Registry) GetConfiguredMessengerTypes(user *ent.User) []string {
 	return configuredTypes
 }
 func (registry *Registry) GetPublicDefinition(versionedType string) (*common.MessengerDefinition, bool) {
-	messengerDef, ok := registry.messengers[versionedType]
+	definition, ok := registry.messengers[versionedType]
 	if !ok {
 		return nil, false
 	}
+	return getPublicDefinition(definition), true
+}
+func getPublicDefinition(definition *Definition) *common.MessengerDefinition {
+	//exhaustruct:enforce
 	return &common.MessengerDefinition{
-		ID:             messengerDef.ID,
-		Version:        messengerDef.Version,
-		IsSupplemental: messengerDef.IsSupplemental,
-	}, true
+		ID:             definition.ID,
+		Version:        definition.Version,
+		Name:           definition.Name,
+		IsSupplemental: definition.IsSupplemental,
+	}
+}
+func (registry *Registry) AllPublicDefinitions() []*common.MessengerDefinition {
+	definitions := make([]*common.MessengerDefinition, 0, len(registry.messengers))
+	for _, definition := range registry.messengers {
+		definitions = append(definitions, getPublicDefinition(definition))
+	}
+	return definitions
 }

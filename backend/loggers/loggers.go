@@ -211,17 +211,19 @@ func (handler *Handler) bulkWrite(entries []*entry, ctx context.Context) error {
 	return dbcommon.WithWriteTx(
 		ctx, handler.App.Database,
 		func(tx *ent.Tx, ctx context.Context) error {
-			return tx.LogEntry.MapCreateBulk(entries, func(lec *ent.LogEntryCreate, i int) {
+			return tx.LogEntry.MapCreateBulk(entries, func(logEntryCreate *ent.LogEntryCreate, i int) {
 				entry := entries[i]
-				lec.SetLoggedAt(entry.time).SetLoggedAtKnown(entry.timeKnown).
+				logEntryCreate.SetLoggedAt(entry.time).SetLoggedAtKnown(entry.timeKnown).
 					SetLevel(entry.level).
 					SetMessage(entry.message).
 					SetAttributes(entry.attributes).
 					SetSourceFile(entry.sourceFile).
 					SetSourceFunction(entry.sourceFunction).
 					SetSourceLine(entry.sourceLine).
-					SetPublicMessage(entry.publicMessage).
-					SetUserID(entry.userID) // Nullable
+					SetPublicMessage(entry.publicMessage)
+				if entry.userID != uuid.Nil {
+					logEntryCreate.SetUserID(entry.userID) // Nullable
+				}
 			}).Exec(ctx)
 		},
 	)
@@ -347,7 +349,10 @@ func (handler *Handler) individualWriteFallback(
 				"so the writes took longer than they should have",
 			pc,
 		)
-		record.AddAttrs(slog.Any("error", bulkWriteErr))
+		record.AddAttrs(
+			slog.Any("error", bulkWriteErr),
+			slog.Any("entryCount", len(entries)),
+		)
 		//nolint:contextcheck // logging is a different context to the code that created the original log
 		_ = handler.Handle(
 			context.Background(),
@@ -506,13 +511,12 @@ func (handler *Handler) maybeNotifyAdmin(entries []*entry, loggedAdminNotificati
 			*loggedAdminNotificationErrorPtr = true
 			selfLogged = true
 		}
-		// TODO: apply the same logic as what's used to check if a user was sufficiently notified of a login
 		if queuedCount == 0 {
 			session.Cancel()
 			message := "admin user has no contacts so couldn't notify them about an error"
 			for _, wrappedErr := range errs {
 				// TODO: this error should be moved to common (or common/errors?) to avoid circular imports in the future
-				if !errors.Is(wrappedErr, messengers.ErrNoContactForUser) {
+				if !errors.Is(wrappedErr, messengers.ErrMessengerDisabledForUser) {
 					message = "unable to prepare messages to notify admin about an error, see the errors before"
 				}
 			}

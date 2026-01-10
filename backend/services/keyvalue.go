@@ -31,7 +31,6 @@ func (service *KeyValue) Init() {
 	stdErr := dbcommon.WithWriteTx(
 		context.TODO(), service.App.Database,
 		func(tx *ent.Tx, ctx context.Context) error {
-			// TODO: why no transaction?
 			return service.InitAll(ctx)
 		},
 	)

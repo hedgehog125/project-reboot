@@ -13,11 +13,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Discord1Body struct {
-	UserID           string `json:"userId"`
-	FormattedMessage string `json:"formattedMessage"`
-}
-
 var ErrWrapperDiscord = common.NewDynamicErrorWrapper(func(err error) common.WrappedError {
 	wrappedErr := common.ErrWrapperAPI.Wrap(err)
 	if wrappedErr == nil {
@@ -63,6 +58,14 @@ var ErrWrapperDiscord = common.NewDynamicErrorWrapper(func(err error) common.Wra
 	return wrappedErr
 })
 
+type Discord1Options struct {
+	UserID string `json:"userId"`
+}
+type Discord1Body struct {
+	Options          *Discord1Options `json:"options"`
+	FormattedMessage string           `json:"formattedMessage"`
+}
+
 func Discord1(app *common.App) *messengers.Definition {
 	getSession := func() (*discordgo.Session, common.WrappedError) {
 		session, err := discordgo.New("Bot " + app.Env.DISCORD_TOKEN)
@@ -83,19 +86,25 @@ func Discord1(app *common.App) *messengers.Definition {
 	}
 
 	return &messengers.Definition{
-		ID:      "discord",
-		Version: 1,
-		Prepare: func(message *common.Message) (any, error) {
-			if message.User.AlertDiscordId == "" {
-				return nil, messengers.ErrNoContactForUser.Clone()
+		ID:                "discord",
+		Version:           1,
+		Name:              "Discord",
+		OptionsType:       &Discord1Options{},
+		OptionsSchemaPath: "discord/v1/options.schema.json",
+		Prepare: func(prepareCtx *messengers.PrepareContext) (any, error) {
+			options := &Discord1Options{}
+			wrappedErr := prepareCtx.DecodeOptions(options)
+			if wrappedErr != nil {
+				return nil, wrappedErr
 			}
-			formattedMessage, wrappedErr := messengers.FormatDefaultMessage(message)
+
+			formattedMessage, wrappedErr := messengers.FormatDefaultMessage(prepareCtx.Message)
 			if wrappedErr != nil {
 				return nil, wrappedErr
 			}
 
 			return &Discord1Body{
-				UserID:           message.User.AlertDiscordId,
+				Options:          options,
 				FormattedMessage: formattedMessage,
 			}, nil
 		},
@@ -127,7 +136,7 @@ func Discord1(app *common.App) *messengers.Definition {
 			}()
 
 			// TODO: it's probably worth caching this to reduce how often we're rate limited
-			channel, stdErr := session.UserChannelCreate(body.UserID)
+			channel, stdErr := session.UserChannelCreate(body.Options.UserID)
 			if stdErr != nil {
 				return ErrWrapperDiscord.Wrap(stdErr)
 			}

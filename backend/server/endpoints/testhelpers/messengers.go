@@ -23,17 +23,18 @@ func NewMockMessenger(name string) *MockMessenger {
 }
 
 func (mockMessenger *MockMessenger) Register(registry *messengers.Registry) {
+	type Options struct{}
 	type Body struct {
 		Message SentMessage
 	}
 	registry.Register(&messengers.Definition{
 		ID:      mockMessenger.Name,
 		Version: 1,
-		Prepare: func(message *common.Message) (any, error) {
+		Prepare: func(prepareCtx *messengers.PrepareContext) (any, error) {
 			return &Body{
 				Message: SentMessage{
-					Type:   string(message.Type),
-					UserID: message.User.ID,
+					Type:   string(prepareCtx.Message.Type),
+					UserID: prepareCtx.Message.User.ID,
 				},
 			}, nil
 		},

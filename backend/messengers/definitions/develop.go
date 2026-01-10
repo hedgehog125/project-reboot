@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/messengers"
 )
 
@@ -16,15 +15,16 @@ func Develop1() *messengers.Definition {
 	return &messengers.Definition{
 		ID:      "develop",
 		Version: 1,
-		Prepare: func(message *common.Message) (any, error) {
-			formattedMessage, wrappedErr := messengers.FormatDefaultMessage(message)
+		Name:    "Develop",
+		Prepare: func(prepareCtx *messengers.PrepareContext) (any, error) {
+			formattedMessage, wrappedErr := messengers.FormatDefaultMessage(prepareCtx.Message)
 			if wrappedErr != nil {
 				return nil, wrappedErr
 			}
 			return &Develop1Body{
 				FullMessage: fmt.Sprintf(
 					"\nmessage sent to user \"%v\":\n%v\n",
-					message.User.Username, formattedMessage,
+					prepareCtx.Message.User.Username, formattedMessage,
 				),
 			}, nil
 		},

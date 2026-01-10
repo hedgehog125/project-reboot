@@ -80,6 +80,9 @@ func (service *Messengers) GetConfiguredMessengerTypes(user *ent.User) []string 
 func (service *Messengers) GetPublicDefinition(versionedType string) (*common.MessengerDefinition, bool) {
 	return service.Registry.GetPublicDefinition(versionedType)
 }
+func (service *Messengers) AllPublicDefinitions() []*common.MessengerDefinition {
+	return service.Registry.AllPublicDefinitions()
+}
 
 // Not in service interface
 func (service *Messengers) RegisterJobs(group *jobs.RegistryGroup) {
