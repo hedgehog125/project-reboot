@@ -14,7 +14,10 @@ func CheckAdminHasMessengers(ctx context.Context, messengers common.MessengerSer
 		return false, ErrWrapperCheckAdminHasMessengers.Wrap(common.ErrNoTxInContext)
 	}
 
-	userOb, stdErr := tx.User.Query().Where(user.Username(common.AdminUsername)).Only(ctx)
+	userOb, stdErr := tx.User.Query().
+		Where(user.Username(common.AdminUsername)).
+		WithMessengers().
+		Only(ctx)
 	if stdErr != nil {
 		return false, ErrWrapperCheckAdminHasMessengers.Wrap(
 			ErrWrapperDatabase.Wrap(stdErr),
