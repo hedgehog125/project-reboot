@@ -24,8 +24,11 @@ export class JsonResponse {
 		this.redirecting = false;
 	}
 
+	get ok(): boolean {
+		return this.status >= 200 && this.status <= 299;
+	}
 	throwForStatus() {
-		if (this.status > 299) {
+		if (!this.ok) {
 			throw new StatusError(this);
 		}
 	}

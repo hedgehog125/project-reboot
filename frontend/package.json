@@ -24,6 +24,7 @@
 		"@sveltejs/kit": "^2.49.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@types/node": "^24",
+		"@types/qrcode": "^1.5.6",
 		"@vitest/browser-playwright": "^4.0.15",
 		"eslint": "^9.39.1",
 		"eslint-config-prettier": "^10.1.8",
@@ -40,5 +41,8 @@
 		"vite-plugin-devtools-json": "^1.0.0",
 		"vitest": "^4.0.15",
 		"vitest-browser-svelte": "^2.0.1"
+	},
+	"dependencies": {
+		"qrcode": "^1.5.4"
 	}
 }
