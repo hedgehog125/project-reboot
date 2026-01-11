@@ -5,10 +5,12 @@ import (
 )
 
 const (
-	ErrTypeSend         = "send"
-	ErrTypeSendUsingAll = "send using all"
-	ErrTypeSendBulk     = "send bulk"
+	ErrTypeSend            = "send"
+	ErrTypeSendUsingAll    = "send using all"
+	ErrTypeSendBulk        = "send bulk"
+	ErrTypeEnableMessenger = "enable messenger"
 	// Lower level
+	ErrTypeDecodeOptions = "decode options"
 	ErrTypeFormatMessage = "format message"
 	ErrTypePrepare       = "prepare"
 	ErrTypeEnqueueJob    = "enqueue job"
@@ -23,16 +25,20 @@ var ErrWrapperEnqueueJob = common.NewErrorWrapper(
 var ErrWrapperSend = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSend)
 var ErrWrapperSendUsingAll = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSendUsingAll)
 var ErrWrapperSendBulk = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSendBulk)
+var ErrWrapperEnableMessenger = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeEnableMessenger)
 
-var ErrWrapperDecodeOptions = common.NewErrorWrapper(common.ErrTypeMessengers, "decode options")
+var ErrWrapperDecodeOptions = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeDecodeOptions)
 var ErrMessengerDisabledForUser = common.NewErrorWithCategories(
 	"messenger type disabled for user", common.ErrTypeMessengers,
 )
 var ErrUnknownMessengerType = common.NewErrorWithCategories(
 	"unknown messenger type", common.ErrTypeMessengers,
 )
+var ErrNoOptionsAcceptedForMessenger = common.NewErrorWithCategories(
+	"no options accepted for messenger", common.ErrTypeMessengers,
+)
 
-var ErrWrapperFormat = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeFormatMessage)
+var ErrWrapperFormatMessage = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeFormatMessage)
 var ErrWrapperDatabase = common.NewErrorWrapper(common.ErrTypeMessengers).
 	SetChild(common.ErrWrapperDatabase)
 

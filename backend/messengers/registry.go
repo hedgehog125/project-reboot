@@ -14,6 +14,7 @@ import (
 	"github.com/NicoClack/cryptic-stash/backend/common"
 	"github.com/NicoClack/cryptic-stash/backend/common/dbcommon"
 	"github.com/NicoClack/cryptic-stash/backend/ent"
+	"github.com/NicoClack/cryptic-stash/backend/ent/usermessenger"
 	"github.com/NicoClack/cryptic-stash/backend/jobs"
 	"github.com/bytedance/gopkg/util/logger"
 	"github.com/google/uuid"
@@ -401,4 +402,54 @@ func (registry *Registry) AllPublicDefinitions() []*common.MessengerDefinition {
 		definitions = append(definitions, getPublicDefinition(definition))
 	}
 	return definitions
+}
+
+func (registry *Registry) EnableMessenger(
+	userOb *ent.User,
+	versionedType string,
+	options json.RawMessage,
+	ctx context.Context,
+) common.WrappedError {
+	tx := ent.TxFromContext(ctx)
+	if tx == nil {
+		return ErrWrapperEnableMessenger.Wrap(common.ErrNoTxInContext)
+	}
+	definition, ok := registry.messengers[versionedType]
+	if !ok {
+		return ErrWrapperEnableMessenger.Wrap(ErrUnknownMessengerType)
+	}
+
+	if definition.optionsSchema == nil {
+		if options != nil {
+			return ErrWrapperEnableMessenger.Wrap(ErrNoOptionsAcceptedForMessenger)
+		}
+	} else {
+		result, stdErr := definition.optionsSchema.Validate(
+			gojsonschema.NewBytesLoader(options),
+		)
+		// TODO: improve this logic
+		if stdErr != nil {
+			return ErrWrapperEnableMessenger.Wrap(stdErr)
+		}
+		if !result.Valid() {
+			return ErrWrapperEnableMessenger.Wrap(fmt.Errorf("validation failed"))
+		}
+	}
+
+	stdErr := tx.UserMessenger.
+		Create().
+		SetType(definition.ID).
+		SetVersion(definition.Version).
+		SetUserID(userOb.ID).
+		SetOptions(options).
+		SetEnabled(true).
+		OnConflictColumns(usermessenger.FieldType, usermessenger.FieldVersion, usermessenger.FieldUserID).
+		UpdateOptions().
+		UpdateEnabled().
+		Exec(ctx)
+	if stdErr != nil {
+		return ErrWrapperEnableMessenger.Wrap(stdErr)
+	}
+
+	return nil
 }

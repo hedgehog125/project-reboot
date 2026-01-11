@@ -127,6 +127,12 @@ type MessengerService interface {
 	GetConfiguredMessengerTypes(user *ent.User) []string
 	GetPublicDefinition(versionedType string) (*MessengerDefinition, bool)
 	AllPublicDefinitions() []*MessengerDefinition
+	EnableMessenger(
+		userOb *ent.User,
+		versionedType string,
+		options json.RawMessage,
+		ctx context.Context,
+	) WrappedError
 }
 type MessageType string
 

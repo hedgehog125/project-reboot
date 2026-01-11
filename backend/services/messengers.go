@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/NicoClack/cryptic-stash/backend/common"
@@ -87,4 +88,13 @@ func (service *Messengers) AllPublicDefinitions() []*common.MessengerDefinition 
 // Not in service interface
 func (service *Messengers) RegisterJobs(group *jobs.RegistryGroup) {
 	service.Registry.RegisterJobs(group)
+}
+
+func (service *Messengers) EnableMessenger(
+	userOb *ent.User,
+	versionedType string,
+	options json.RawMessage,
+	ctx context.Context,
+) common.WrappedError {
+	return service.Registry.EnableMessenger(userOb, versionedType, options, ctx)
 }

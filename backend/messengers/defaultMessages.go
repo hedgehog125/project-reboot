@@ -60,7 +60,7 @@ var defaultMessageMap = map[common.MessageType]func(message *common.Message) str
 func FormatDefaultMessage(message *common.Message) (string, common.WrappedError) {
 	formatter, ok := defaultMessageMap[message.Type]
 	if !ok {
-		return "", ErrWrapperFormat.Wrap(
+		return "", ErrWrapperFormatMessage.Wrap(
 			fmt.Errorf("message type \"%v\" hasn't been implemented", message.Type),
 		)
 	}
