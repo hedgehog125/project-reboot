@@ -255,6 +255,13 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "usermessenger_type_version_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserMessengersColumns[1], UserMessengersColumns[2], UserMessengersColumns[5]},
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{

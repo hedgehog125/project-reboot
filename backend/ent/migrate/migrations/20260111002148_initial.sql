@@ -39,8 +39,12 @@ CREATE TABLE `users` (`id` uuid NOT NULL, `username` text NOT NULL, `locked` boo
 CREATE UNIQUE INDEX `users_username_key` ON `users` (`username`);
 -- create "user_messengers" table
 CREATE TABLE `user_messengers` (`id` uuid NOT NULL, `type` text NOT NULL, `version` integer NOT NULL, `enabled` bool NOT NULL DEFAULT (true), `options` json NOT NULL, `user_id` uuid NOT NULL, PRIMARY KEY (`id`), CONSTRAINT `user_messengers_users_messengers` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE);
+-- create index "usermessenger_type_version_user_id" to table: "user_messengers"
+CREATE UNIQUE INDEX `usermessenger_type_version_user_id` ON `user_messengers` (`type`, `version`, `user_id`);
 
 -- +goose Down
+-- reverse: create index "usermessenger_type_version_user_id" to table: "user_messengers"
+DROP INDEX `usermessenger_type_version_user_id`;
 -- reverse: create "user_messengers" table
 DROP TABLE `user_messengers`;
 -- reverse: create index "users_username_key" to table: "users"
