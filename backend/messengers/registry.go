@@ -290,15 +290,19 @@ func newPrepareContext(
 	versionedType string,
 	message *common.Message,
 ) (*PrepareContext, common.WrappedError) {
-	index := slices.IndexFunc(message.User.Edges.Messengers, func(userMessenger *ent.UserMessenger) bool {
-		return common.GetVersionedType(userMessenger.Type, userMessenger.Version) == versionedType
+	index := slices.IndexFunc(message.User.Edges.Messengers, func(userMessengerOb *ent.UserMessenger) bool {
+		return common.GetVersionedType(userMessengerOb.Type, userMessengerOb.Version) == versionedType
 	})
 	if index == -1 {
 		return nil, ErrMessengerDisabledForUser.Clone()
 	}
+	userMessengerOb := message.User.Edges.Messengers[index]
+	if !userMessengerOb.Enabled {
+		return nil, ErrMessengerDisabledForUser.Clone()
+	}
 	return &PrepareContext{
 		Message: message,
-		Options: message.User.Edges.Messengers[index].Options,
+		Options: userMessengerOb.Options,
 	}, nil
 }
 
@@ -449,6 +453,36 @@ func (registry *Registry) EnableMessenger(
 		Exec(ctx)
 	if stdErr != nil {
 		return ErrWrapperEnableMessenger.Wrap(stdErr)
+	}
+
+	return nil
+}
+
+func (registry *Registry) DisableMessenger(
+	userOb *ent.User,
+	versionedType string,
+	ctx context.Context,
+) common.WrappedError {
+	tx := ent.TxFromContext(ctx)
+	if tx == nil {
+		return ErrWrapperDisableMessenger.Wrap(common.ErrNoTxInContext)
+	}
+	definition, ok := registry.messengers[versionedType]
+	if !ok {
+		return ErrWrapperDisableMessenger.Wrap(ErrUnknownMessengerType)
+	}
+
+	stdErr := tx.UserMessenger.
+		Update().
+		Where(
+			usermessenger.Type(definition.ID),
+			usermessenger.Version(definition.Version),
+			usermessenger.UserID(userOb.ID),
+		).
+		SetEnabled(false).
+		Exec(ctx)
+	if stdErr != nil {
+		return ErrWrapperDisableMessenger.Wrap(stdErr)
 	}
 
 	return nil

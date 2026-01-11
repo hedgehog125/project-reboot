@@ -133,6 +133,11 @@ type MessengerService interface {
 		options json.RawMessage,
 		ctx context.Context,
 	) WrappedError
+	DisableMessenger(
+		userOb *ent.User,
+		versionedType string,
+		ctx context.Context,
+	) WrappedError
 }
 type MessageType string
 

@@ -98,3 +98,11 @@ func (service *Messengers) EnableMessenger(
 ) common.WrappedError {
 	return service.Registry.EnableMessenger(userOb, versionedType, options, ctx)
 }
+
+func (service *Messengers) DisableMessenger(
+	userOb *ent.User,
+	versionedType string,
+	ctx context.Context,
+) common.WrappedError {
+	return service.Registry.DisableMessenger(userOb, versionedType, ctx)
+}

@@ -5,10 +5,11 @@ import (
 )
 
 const (
-	ErrTypeSend            = "send"
-	ErrTypeSendUsingAll    = "send using all"
-	ErrTypeSendBulk        = "send bulk"
-	ErrTypeEnableMessenger = "enable messenger"
+	ErrTypeSend             = "send"
+	ErrTypeSendUsingAll     = "send using all"
+	ErrTypeSendBulk         = "send bulk"
+	ErrTypeEnableMessenger  = "enable messenger"
+	ErrTypeDisableMessenger = "disable messenger"
 	// Lower level
 	ErrTypeDecodeOptions = "decode options"
 	ErrTypeFormatMessage = "format message"
@@ -26,6 +27,7 @@ var ErrWrapperSend = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSen
 var ErrWrapperSendUsingAll = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSendUsingAll)
 var ErrWrapperSendBulk = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeSendBulk)
 var ErrWrapperEnableMessenger = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeEnableMessenger)
+var ErrWrapperDisableMessenger = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeDisableMessenger)
 
 var ErrWrapperDecodeOptions = common.NewErrorWrapper(common.ErrTypeMessengers, ErrTypeDecodeOptions)
 var ErrMessengerDisabledForUser = common.NewErrorWithCategories(
