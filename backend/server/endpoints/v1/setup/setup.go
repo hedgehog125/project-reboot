@@ -13,8 +13,8 @@ import (
 func ConfigureEndpoints(group *servercommon.Group) {
 	group.GET("/", GetSetup(group.App))
 	if group.App.Env.ENABLE_ENV_SETUP {
-		group.POST("/generate-constants", GenerateConstants(group.App))
-		group.POST("/check-totp", CheckTotp(group.App))
-		group.GET("/echo-headers", EchoHeaders(group.App))
+		group.POST("/generate-admin-env-vars/", GenerateAdminEnvVars(group.App))
+		group.POST("/check-totp/", CheckTotp(group.App))
+		group.GET("/echo-headers/", EchoHeaders(group.App))
 	}
 }

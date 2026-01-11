@@ -8,19 +8,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type GenerateConstantsPayload struct {
+type GenerateAdminEnvVarsPayload struct {
 	Password string `binding:"required,min=8,max=256" json:"password"`
 }
 
-type GenerateConstantsResponse struct {
+type GenerateAdminEnvVarsResponse struct {
 	Errors  []servercommon.ErrorDetail `binding:"required" json:"errors"`
 	EnvVars *common.AdminAuthEnvVars   `                   json:"envVars"`
 	TotpURL string                     `                   json:"totpUrl"`
 }
 
-func GenerateConstants(app *servercommon.ServerApp) gin.HandlerFunc {
+func GenerateAdminEnvVars(app *servercommon.ServerApp) gin.HandlerFunc {
 	return servercommon.NewHandler(func(ginCtx *gin.Context) error {
-		body := GenerateConstantsPayload{}
+		body := GenerateAdminEnvVarsPayload{}
 		if ctxErr := servercommon.ParseBody(&body, ginCtx); ctxErr != nil {
 			return ctxErr
 		}
@@ -30,7 +30,7 @@ func GenerateConstants(app *servercommon.ServerApp) gin.HandlerFunc {
 			return wrappedErr
 		}
 
-		ginCtx.JSON(http.StatusOK, GenerateConstantsResponse{
+		ginCtx.JSON(http.StatusOK, GenerateAdminEnvVarsResponse{
 			Errors:  []servercommon.ErrorDetail{},
 			EnvVars: envVars,
 			TotpURL: totpURL,

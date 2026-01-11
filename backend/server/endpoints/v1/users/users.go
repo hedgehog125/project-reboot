@@ -5,7 +5,7 @@ import (
 )
 
 func ConfigureEndpoints(group *servercommon.Group) {
-	group.POST("/get-authorization-code", GetAuthorizationCode(group.App))
-	group.POST("/download", Download(group.App))
-	group.POST("/self-lock", SelfLock(group.App))
+	group.POST("/get-authorization-code/", GetAuthorizationCode(group.App))
+	group.POST("/download/", Download(group.App))
+	group.POST("/self-lock/", SelfLock(group.App))
 }

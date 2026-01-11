@@ -14,7 +14,7 @@ func ConfigureEndpoints(group *servercommon.Group) {
 		users.ConfigureEndpoints(group.Group("/users"))
 		twofactoractions.ConfigureEndpoints(group.Group("/two-factor-actions"))
 
-		group.POST("/admin/login", admin.Login(group.App))
+		group.POST("/admin/login/", admin.Login(group.App))
 		adminGroup := group.Group("/admin")
 		adminGroup.Use(group.App.AdminMiddleware)
 		admin.ConfigureEndpoints(adminGroup)
